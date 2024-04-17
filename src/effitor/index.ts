@@ -4,8 +4,8 @@ export { Et } from "./@types";
 import { extentEtElement, builtinEl } from "./element";
 import { MainKeydownSolver } from "./effector";
 import { MainKeyupSolver } from './effector/keyup';
-import { MainBeforeInputSolver } from './effector/beforeinput';
-import { MainAfterInputSolver } from './effector/input';
+import { MainBeforeInputTypeSolver } from './effector/beforeinput';
+import { MainAfterInputTypeSolver } from './effector/input';
 import { createEditor } from './effitor';
 import { getMainEffector } from './effector/index';
 import { useUndoEffector } from "./plugins/undo";
@@ -31,9 +31,9 @@ const et = {
         /** 继承该类, 以自定义keyup 的按键处理 */
         MainKeyupSolver,
         /** 继承该类, 以自定义beforeinput 的inputType处理 */
-        MainBeforeInputSolver,
+        MainBeforeInputTypeSolver,
         /** 继承该类, 以自定义input 的inputType */
-        MainAfterInputSolver,
+        MainAfterInputTypeSolver,
     },
     /** 自定义元素 */
     element: {

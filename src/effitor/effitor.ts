@@ -43,16 +43,16 @@ const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssTe
     return shadow as Et.EtShadow
 }
 
-const reducePlugins = (plugins: Et.EffitorPlugin[], elCtors: EffectElementCtor[]): Et.EffectorConfigs => {
+const reducePlugins = (plugins: Et.EffitorPlugin[], elCtors: EffectElementCtor[], ctx: Et.EditorContext): Et.EffectorConfigs => {
     return plugins.reduce((pre, cur) => {
-        pre.etElementCtors.push(...cur.elements)
+        cur.elements && pre.etElementCtors.push(...cur.elements)
         const ef = cur.effector
         for (const k in ef) {
             if ((pre as any)[k + 's']) {
                 (pre as any)[k + 's'].push((ef as any)[k])
             }
         }
-        cur.registry?.()
+        cur.registry?.(ctx)
         return pre
     }, {
         etElementCtors: elCtors,
@@ -176,7 +176,7 @@ export const createEditor = ({
     undoEffector = useUndoEffector(defaultConfig.DEFAULT_UNDO_LENGTH),
     plugins = []
 }: Et.CreateEditorOptions = {}): Et.Editor => {
-    undoEffector && plugins.push({ elements: [], effector: undoEffector })
+    undoEffector && plugins.push({ effector: undoEffector })
     const schema: Et.EditorSchema = {
         editor: builtinEl.EtEditorElement,
         body: builtinEl.EtBodyElement,
@@ -188,7 +188,7 @@ export const createEditor = ({
     // 记录需要注册的EtElement
     const elCtors: EffectElementCtor[] = Object.values(schema)
     /** 从plugins中提取出effector对应处理器 及 自定义元素 */
-    const pluginConfigs = reducePlugins(plugins, elCtors)
+    const pluginConfigs = reducePlugins(plugins, elCtors, context)
     /** 编辑器事件监听器 */
     const listeners = initListeners(context, mainEffector, pluginConfigs)
     // 注册EtElement 并获取内联样式

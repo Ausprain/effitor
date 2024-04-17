@@ -27,7 +27,7 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
         ctx.effectInvoker.invoke(BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect, ctx, ev)
         ctx.commandHandler.handle() && ev.preventDefault()
     },
-    /** 未生名或不合法的inputType, 直接尝试执行命令 */
+    /** 未声明或不合法的inputType, 执行此回调 */
     '': (ev, ctx) => {
         console.error(`handle beforeinput type=="${ev.inputType}"  ======`)
         ctx.commandHandler.handle() && ev.preventDefault()
@@ -39,12 +39,12 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
     // },
 }
 
-export class MainBeforeInputSolver implements Et.InputSolver {
+export class MainBeforeInputTypeSolver implements Et.InputTypeSolver {
     [k: string]: Et.InputAction | undefined
 }
-Object.assign(MainBeforeInputSolver.prototype, mainBeforeInputTypeSolver)
+Object.assign(MainBeforeInputTypeSolver.prototype, mainBeforeInputTypeSolver)
 
-export const runInputSolver = (ev: InputEvent, ctx: Et.EditorContext, main: MainBeforeInputSolver, solvers: Et.InputSolver[]) => {
+export const runInputSolver = (ev: Et.EtInputEvent, ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solvers: Et.InputTypeSolver[]) => {
     if (!ctx.effectElement) {
         console.error('无效应元素')
         return
@@ -63,8 +63,8 @@ export const runInputSolver = (ev: InputEvent, ctx: Et.EditorContext, main: Main
     typeof fn === 'function' && fn(ev, ctx)
 }
 
-export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeInputSolver, solvers: Et.InputSolver[]) => {
-    return (ev: InputEvent) => {
+export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solvers: Et.InputTypeSolver[]) => {
+    return (ev: Et.EtInputEvent) => {
         // console.error('beforeinput', ev.inputType, ctx.effectElement)
         // 移除当前段落状态
         runInputSolver(ev, ctx, main, solvers)

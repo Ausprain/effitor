@@ -48,6 +48,7 @@ export const enum HtmlChar {
 }
 declare global {
     interface HTMLElementEventMap {
+        beforeinput: Et.EtInputEvent;
         input: Et.EtInputEvent;
         copy: Et.EtClipboardEvent;
         cut: Et.EtClipboardEvent;
@@ -210,7 +211,10 @@ export namespace Et {
          * `ctx.skipDefault标记为true`时将跳过内置效应
          */
         readonly effector: Effector
-        readonly elements: EffectElementCtor[]
+        /**
+         * 自定义的效应元素列表
+         */
+        readonly elements?: EffectElementCtor[]
         // readonly handlers: EffectHandle[]
         /**
          * 插件注册时执行, 一般用于extentEtElement()给效应元素添加handler  
@@ -230,7 +234,7 @@ export namespace Et {
          *  }
          * ```
          */
-        readonly registry?: (...args: any[]) => void
+        readonly registry?: (ctx: EditorContext) => void
     }
     /**
      * 撤回栈插件效应器类型
@@ -270,7 +274,14 @@ export namespace Et {
     export type KeyboardSolver = Partial<Record<string, KeyboardAction>>
     export type InputSolver = Partial<Record<string, InputAction>>
     // export type KeyboardCodeSolver = Partial<Record<KeyboardCode, KeyboardAction> & { default: KeyboardAction }>
+    /**
+     * keydown/keyup中处理按键响应 ev.key -> action  
+     * 其中`default`为默认响应, 即当ev.key未声明在solver中时, 执行该响应  
+     */
     export type KeyboardKeySolver = Partial<Record<KeyboardKey, KeyboardAction> & { default: KeyboardAction }>
+    /**
+     * 同KeyboardKeySolver, ev.inputType -> action  
+     */
     export type InputTypeSolver = Partial<Record<Exclude<InputType, 'undefined'>, InputAction> & { default: InputAction }>
     export type MainInputTypeSolver = InputTypeSolver & { '': InputAction }
     export type HTMLEventSolver = { [k in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[k], ctx: EditorContext) => void }
@@ -291,9 +302,9 @@ export namespace Et {
         /** keyup中处理按键响应 */
         readonly keyupSolver: KeyboardKeySolver
         /** beforeinput中处理inputType */
-        readonly beforeInputSolver: InputSolver
+        readonly beforeInputSolver: InputTypeSolver
         /** input中处理inputType */
-        readonly afterInputSolver: InputSolver
+        readonly afterInputSolver: InputTypeSolver
         // html事件处理器
         readonly htmlEventSolver: HTMLEventSolver
 
@@ -881,7 +892,7 @@ const enum KeyboardKeyEnum {
  */
 const enum InputTypeEnum {
     /** 未初始化 或 不是规定以内的值; 该值作为保留, 其对应真正的inputType为空串"" 仅MainInputTypeSolver可实现 */
-    'undefined' = 'undefined',
+    '' = '',
     /** 插入字符 */
     insertText = "insertText",
     /** 替换字符 */

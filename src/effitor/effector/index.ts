@@ -1,7 +1,7 @@
 export { MainKeydownSolver } from './keydown';
 export { MainKeyupSolver } from './keyup'
-export { MainBeforeInputSolver } from './beforeinput'
-export { MainAfterInputSolver } from './input';
+export { MainBeforeInputTypeSolver as MainBeforeInputSolver } from './beforeinput'
+export { MainAfterInputTypeSolver as MainAfterInputSolver } from './input';
 
 
 import type { Et } from '../@types';
