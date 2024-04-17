@@ -1,0 +1,29 @@
+{
+  "name": "effitor",
+  "version": "1.0.0",
+  "description": "a web editor",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git"
+  },
+  "keywords": [
+    "effitor",
+    "web editor"
+  ],
+  "author": "Ausprain",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ausprain/effitor/issues"
+  },
+  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  }
+}
