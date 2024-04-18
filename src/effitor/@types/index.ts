@@ -165,6 +165,9 @@ export namespace Et {
         readonly effectInvoker: EffectInvoker
         readonly commandHandler: CommandHandler
 
+        /** 编辑器配置 */
+        readonly config: Et.EditorConfig
+
 
         /** 是否光标跳跃，当`selectionchange`时若`anchorNode`不是同一个`node`节点，将视为光标跳跃 */
         // caretLeap: boolean
@@ -197,7 +200,7 @@ export namespace Et {
         undoEffector?: UndoEffector
         /** 编辑器插件 */
         plugins?: EffitorPlugin[]
-        /** 配置项 */
+        /** 编辑器配置项 */
         config?: Partial<EditorConfig>
     }
     /**

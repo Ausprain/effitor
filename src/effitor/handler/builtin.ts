@@ -1,7 +1,6 @@
 import { BuiltinElType, type Et } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
-import { defaultConfig } from "../config";
 import { 
     checkRemoveSelectionToCollapsed, 
     checkTargetRangePosition, 
@@ -767,14 +766,14 @@ const handleIndent = (ctx: Et.EditorContext, idSet: Set<string>, outdent = false
                 if (!dom.isEtParagraph(p)) return
 
                 const newIndext = p.indent + val
-                if (newIndext > defaultConfig.MAX_INDENT) {
+                if (newIndext > ctx.config.MAX_INDENT) {
                     console.error('max: ', p.indent, newIndext, outdent, val)
                     return
                 }
 
                 p.indent = newIndext
                 Object.assign(p.style, {
-                    marginLeft: `${newIndext * defaultConfig.INDENT_PIXEL}px`
+                    marginLeft: `${newIndext * ctx.config.INDENT_PIXEL}px`
                 } as CSSStyleDeclaration)
             })
         },
@@ -787,7 +786,7 @@ const handleIndent = (ctx: Et.EditorContext, idSet: Set<string>, outdent = false
                 const newIndext = p.indent - val
                 p.indent = newIndext
                 Object.assign(p.style, {
-                    marginLeft: newIndext === 0 ? '-3px' : `${newIndext * defaultConfig.INDENT_PIXEL}px`
+                    marginLeft: newIndext === 0 ? '-3px' : `${newIndext * ctx.config.INDENT_PIXEL}px`
                 } as CSSStyleDeclaration)
             })
         },
@@ -945,7 +944,7 @@ export const builtinHandler: Partial<Et.EffectHandlerDeclaration> = {
                 while (nextP) {
                     const nextIndent = nextP.indent
                     // 达到最大缩进 禁止
-                    if (nextIndent >= defaultConfig.MAX_INDENT) return ev.preventDefault()
+                    if (nextIndent >= ctx.config.MAX_INDENT) return ev.preventDefault()
                     if (nextIndent > currP.indent) {
                         idSet.add(nextP.id)
                     }
@@ -977,7 +976,7 @@ export const builtinHandler: Partial<Et.EffectHandlerDeclaration> = {
                 let nextP = p2.nextElementSibling as EtParagraphElement | null
                 while (nextP) {
                     const nextIndent = nextP.indent
-                    if (nextIndent >= defaultConfig.MAX_INDENT) return ev.preventDefault()
+                    if (nextIndent >= ctx.config.MAX_INDENT) return ev.preventDefault()
                     if (nextIndent > p2.indent) {
                         idSet.add(nextP.id)
                     }

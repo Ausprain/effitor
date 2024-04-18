@@ -173,10 +173,13 @@ const elMap = new WeakMap<HTMLDivElement, AbortController>()
 export const createEditor = ({
     schemaInit = {},
     mainEffector = getMainEffector(),
-    undoEffector = useUndoEffector(defaultConfig.DEFAULT_UNDO_LENGTH),
-    plugins = []
+    undoEffector = undefined,
+    plugins = [],
+    config = {},
 }: Et.CreateEditorOptions = {}): Et.Editor => {
-    undoEffector && plugins.push({ effector: undoEffector })
+    const _config = { ...defaultConfig, ...config }
+    if (!undoEffector) undoEffector = useUndoEffector(_config.UNDO_LENGTH)
+    plugins.push({ effector: undoEffector })
     const schema: Et.EditorSchema = {
         editor: builtinEl.EtEditorElement,
         body: builtinEl.EtBodyElement,
@@ -184,7 +187,7 @@ export const createEditor = ({
         ...schemaInit,
     }
     /** 初始化编辑器上下文 */
-    const context = initContext(schema, undoEffector.commandUndoHandler)
+    const context = initContext(schema, _config, undoEffector.commandUndoHandler)
     // 记录需要注册的EtElement
     const elCtors: EffectElementCtor[] = Object.values(schema)
     /** 从plugins中提取出effector对应处理器 及 自定义元素 */

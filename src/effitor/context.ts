@@ -9,6 +9,7 @@ class EtContext implements Et.EditorContext {
     [s: symbol]: any
 
     readonly schema: Et.EditorSchema
+    readonly config: Et.EditorConfig
     el: HTMLDivElement = null as any
     root: Et.EtShadow = null as any
     body: EtBodyElement = null as any
@@ -36,9 +37,11 @@ class EtContext implements Et.EditorContext {
 
     constructor(
         schema: Et.EditorSchema,
+        config: Et.EditorConfig,
         cmdUndoHandler: Et.CommandUndoHandler,
     ) {
         this.schema = schema
+        this.config = config
         this.commandHandler = initCommandHandler(this, cmdUndoHandler)
     }
 
@@ -116,7 +119,7 @@ function updateContext(this: Et.EditorContext): boolean {
 }
 
 let _ctx: Et.EditorContext
-export const initContext = (schema: Et.EditorSchema, cmdUndoHandler: Et.CommandUndoHandler): Et.EditorContext => {
+export const initContext = (schema: Et.EditorSchema, config: Et.EditorConfig, cmdUndoHandler: Et.CommandUndoHandler): Et.EditorContext => {
     if (_ctx) return _ctx
-    return _ctx = new EtContext(schema, cmdUndoHandler)
+    return _ctx = new EtContext(schema, config, cmdUndoHandler)
 }

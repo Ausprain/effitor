@@ -16,10 +16,11 @@ export const defaultConfig = {
     INDENT_PIXEL: 22,
     /** 页面最大缩进数 */
     MAX_INDENT: 6,
-    // DEFAULT_FONG_SIZE: 16,
+    /** 编辑区字体大小 */
+    FONT_SIZE: 16,
     /** 撤回栈长度 */
-    DEFAULT_UNDO_LENGTH: 1000,
-    // 链接url最大有效长度
+    UNDO_LENGTH: 1000,
+    /** 链接url最大有效长度 */ 
     ALLOW_LINK_URL_MAX_LENGTH: 2048,
 }
 
