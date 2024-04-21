@@ -1,3 +1,0 @@
-export { useUndoEffector } from './effector';
-
-

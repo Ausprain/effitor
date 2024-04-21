@@ -1,4 +1,5 @@
-import { BuiltinElType, type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElType } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
 import { 
@@ -18,7 +19,7 @@ import {
 
 const insertTextAtCaret = (
     data: string,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange
 ) => {
     let destCaretRange: StaticRange
@@ -47,7 +48,7 @@ const insertTextAtCaret = (
 }
 const insertTextAtRange = (
     data: string,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange
 ) => {
     if (ctx.range.toString() === '' || data === '') {
@@ -65,7 +66,7 @@ const insertTextAtRange = (
 }
 const insertTextAtRangeInTheSameTextNode = (
     data: string,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange,
 ) => {
     return (currP: EtParagraphElement, node: Text) => {
@@ -88,7 +89,7 @@ const insertTextAtRangeInTheSameTextNode = (
 }
 const insertTextAtRangeInTheSameParagraph = (
     data: string,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange
 ) => {
     return (currP: EtParagraphElement) => {
@@ -118,7 +119,7 @@ const insertTextAtRangeInTheSameParagraph = (
 }
 const insertTextAtRangeInDifferentParagraph = (
     data: string,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange
 ) => {
     return (startP: EtParagraphElement, endP: EtParagraphElement) => {
@@ -151,7 +152,7 @@ const insertTextAtRangeInDifferentParagraph = (
 }
 
 const insertLineBreakAtCaret = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     const br = document.createElement('br')
@@ -211,7 +212,7 @@ const insertLineBreakAtCaret = (
     }
 }
 const insertLineBreakAtRange = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     // debugger
@@ -232,7 +233,7 @@ const insertLineBreakAtRange = (
  * 在段落内插入软换行<br>
  */
 const insertBrToParagraph = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     currP: EtParagraphElement,
     srcCaretRange: StaticRange,
     br = document.createElement('br')
@@ -242,7 +243,7 @@ const insertBrToParagraph = (
 }
 
 const insertParagraphAtCaret = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     let currP: EtParagraphElement | null = null
@@ -310,7 +311,7 @@ const insertParagraphAtCaret = (
     return true
 }
 const insertParagraphAtRange = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     return checkTargetRangePosition(ctx, srcCaretRange,
@@ -337,7 +338,7 @@ const insertParagraphAtRange = (
 const removeInsertParagraphs = (
     p1: EtParagraphElement,
     p2: EtParagraphElement,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     // 整体移除
@@ -376,7 +377,7 @@ const removeInsertParagraphs = (
 const insertFromPasteAtCaret = (
     fragment: DocumentFragment,
     noParagraph: boolean,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
     // debugger
@@ -401,7 +402,7 @@ const insertFromPasteAtCaret = (
 // const insertFromPasteAtRange = (
 //     fragment: DocumentFragment,
 //     noParagraph: boolean,
-//     ctx: Et.EditorContext,
+//     ctx: Effitor.Editor.Context,
 //     srcCaretRange: StaticRange,
 // ) => {
 // }
@@ -416,7 +417,7 @@ const insertFromPasteAtCaret = (
  */
 const deleteTextAtTextNodeByTargetRange = (
     isBackward: boolean,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     textNode: Text,
     delTargetRange: StaticRange,
     srcCaretRange: StaticRange,
@@ -462,7 +463,7 @@ const deleteTextAtTextNodeByTargetRange = (
 }
 const checkDeleteTextAtCaret = (
     isBackward: boolean,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -475,7 +476,7 @@ const checkDeleteTextAtCaret = (
     return false
 }
 const checkDeleteElemAtCaret = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -505,7 +506,7 @@ const checkDeleteElemAtCaret = (
     return false
 }
 const checkDeleteInSameParagraph = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -523,7 +524,7 @@ const checkDeleteInSameParagraph = (
     return false
 }
 const checkDeleteParagraphBackward = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -567,7 +568,7 @@ const checkDeleteParagraphBackward = (
     return false
 }
 const checkDeleteParagraphForward = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -601,7 +602,7 @@ const checkDeleteParagraphForward = (
 const removeParagraphsToOne = (
     p1: EtParagraphElement,
     p2: EtParagraphElement,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange,
     srcCaretRange: StaticRange
 ) => {
@@ -663,7 +664,7 @@ const removeParagraphsToOne = (
 }
 
 const deleteBackwardAtCaret = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -682,7 +683,7 @@ const deleteBackwardAtCaret = (
     }
 }
 const deleteForwardAtCaret = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startNode: Node,
     endNode: Node,
     delTargetRange: StaticRange,
@@ -701,7 +702,7 @@ const deleteForwardAtCaret = (
     }
 }
 const deleteBackwardAtRange = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange,
     srcCaretRange: StaticRange,
 ) => {
@@ -718,7 +719,7 @@ const deleteBackwardAtRange = (
     )
 }
 const deleteForwardAtRange = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     delTargetRange: StaticRange,
     srcCaretRange: StaticRange,
 ) => {
@@ -738,7 +739,7 @@ const deleteForwardAtRange = (
 /* -------------------------------------------------------------------------- */
 /*                                    paste                                   */
 /* -------------------------------------------------------------------------- */
-const pasteData = (ctx: Et.EditorContext, data: string, srcCaretRange: StaticRange): boolean => {
+const pasteData = (ctx: Effitor.Editor.Context, data: string, srcCaretRange: StaticRange): boolean => {
     // debugger
     const fragment = ctx.range.createContextualFragment(data)
     dom.cleanFragment(fragment)
@@ -755,7 +756,7 @@ const pasteData = (ctx: Et.EditorContext, data: string, srcCaretRange: StaticRan
 /* -------------------------------------------------------------------------- */
 /*                                   indent                                   */
 /* -------------------------------------------------------------------------- */
-const handleIndent = (ctx: Et.EditorContext, idSet: Set<string>, outdent = false) => {
+const handleIndent = (ctx: Effitor.Editor.Context, idSet: Set<string>, outdent = false) => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     const val = outdent ? -1 : 1
     ctx.commandHandler.push('Functional', {
@@ -798,7 +799,7 @@ const handleIndent = (ctx: Et.EditorContext, idSet: Set<string>, outdent = false
 
 const handleInsert = (
     ev: InputEvent,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     caretFn: (targetRange: StaticRange) => void,
     rangeFn: (targetRange: StaticRange) => void
 ) => {
@@ -814,7 +815,7 @@ const handleInsert = (
 const handleDelete = (
     isBackward: boolean,
     ev: InputEvent,
-    ctx: Et.EditorContext
+    ctx: Effitor.Editor.Context
 ) => {
     // fixme 使用beforeinput 事件的targetRange可能造成意外效果, 如将 et-body外边的内容给删除了
     let delTargetRange = ev.getTargetRanges()[0]
@@ -850,7 +851,7 @@ const handleDelete = (
     }
 }
 
-export const builtinHandler: Partial<Et.EffectHandlerDeclaration> = {
+export const builtinHandler: Partial<Effitor.EffectHandlerDeclaration> = {
     EinsertText: (ctx, ev) => {
         const d = ev.data
         if (d === null || d === '') {

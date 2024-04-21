@@ -1,4 +1,5 @@
-import { BuiltinConfig, type Et } from '../@types';
+import type { Effitor, DOM } from '../@types';
+import { BuiltinConfig } from '../@types';
 import { dom } from "../utils";
 
 /**
@@ -22,9 +23,9 @@ import { dom } from "../utils";
  *      createEditor时, 额外提供一个可选参数cmdsHandler, 将挂到ctx上; 每次执行命令时调用ctx.handleEtCommands() 
  *      undoEffector提供额外的cmdsHandler覆盖默认的cmdsHandler
  */
-const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
+const mainBeforeInputTypeSolver: Effitor.Effector.MainInputTypeSolver = {
     default: (ev, ctx) => {
-        ctx.effectInvoker.invoke(BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect, ctx, ev)
+        ctx.effectInvoker.invoke(BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Effitor.Handler.InputTypeEffect, ctx, ev)
         ctx.commandHandler.handle() && ev.preventDefault()
     },
     /** 未声明或不合法的inputType, 执行此回调 */
@@ -39,12 +40,12 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
     // },
 }
 
-export class MainBeforeInputTypeSolver implements Et.InputTypeSolver {
-    [k: string]: Et.InputAction | undefined
+export class MainBeforeInputTypeSolver implements Effitor.Effector.InputTypeSolver {
+    [k: string]: Effitor.Effector.InputAction | undefined
 }
 Object.assign(MainBeforeInputTypeSolver.prototype, mainBeforeInputTypeSolver)
 
-export const runInputSolver = (ev: Et.EtInputEvent, ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solvers: Et.InputTypeSolver[]) => {
+export const runInputSolver = (ev: DOM.InputEvent, ctx: Effitor.Editor.Context, main: MainBeforeInputTypeSolver, solvers: Effitor.Effector.InputTypeSolver[]) => {
     if (!ctx.effectElement) {
         console.error('无效应元素')
         return
@@ -63,8 +64,8 @@ export const runInputSolver = (ev: Et.EtInputEvent, ctx: Et.EditorContext, main:
     typeof fn === 'function' && fn(ev, ctx)
 }
 
-export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solvers: Et.InputTypeSolver[]) => {
-    return (ev: Et.EtInputEvent) => {
+export const getBeforeinputListener = (ctx: Effitor.Editor.Context, main: MainBeforeInputTypeSolver, solvers: Effitor.Effector.InputTypeSolver[]) => {
+    return (ev: DOM.InputEvent) => {
         // console.error('beforeinput', ev.inputType, ctx.effectElement)
         // 移除当前段落状态
         runInputSolver(ev, ctx, main, solvers)
@@ -77,7 +78,7 @@ export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeIn
         else {
             // 默认事件被取消, 手动dispatch input事件
             dom.dispatchInputEvent(ctx.root, 'input', {
-                inputType: ev.inputType as Et.InputType,
+                inputType: ev.inputType as DOM.InputType,
                 data: ev.data,
                 // bubbles: false,   //不可冒泡
             })

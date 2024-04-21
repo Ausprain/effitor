@@ -1,21 +1,26 @@
-import type { IUndoStack, UndoTransaction } from "./@types.undo";
-import type { Et } from "@/effitor";
+import type { Effitor } from "@/effitor/@types";
 import { cmdHandler } from "./handler";
 import { dom } from "@/effitor/utils";
 import { createCommand } from "@/effitor/handler/cmd";
 
+interface UndoTransaction extends Required<Effitor.Handler.CmdCallbackInit> {
+    undoCmds: Effitor.Handler.Command[],
+    redoCmds: Effitor.Handler.Command[],
+    /** 命令长度 */
+    length: number
+}
 type CmdMergeReturns = {
-    cmds: Et.Command[],
-    redoCallbacks: Et.CmdCallback[],
-    undoCallbacks: Et.CmdCallback[],
-    finalCallbacks: Et.CmdCallback[]
+    cmds: Effitor.Handler.Command[],
+    redoCallbacks: Effitor.Handler.CmdCallback[],
+    undoCallbacks: Effitor.Handler.CmdCallback[],
+    finalCallbacks: Effitor.Handler.CmdCallback[]
 }
 
 /**
  * 合并连续的insertCompositionText为insertText或insertNode
  */
-const checkMergeCmdInsertCompositionText = (cmds: Et.Command[], ctx: Et.EditorContext): CmdMergeReturns => {
-    const out: Et.Command[] = []
+const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context): CmdMergeReturns => {
+    const out: Effitor.Handler.Command[] = []
     const res: CmdMergeReturns = {
         cmds: out,
         redoCallbacks: [],
@@ -31,7 +36,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Et.Command[], ctx: Et.EditorCo
         if (cmd.type === 'Insert_Composition_Text') {
             let j = i + 1
             let data = cmd.data
-            let lastCmd: Et.CmdInsertCompositionText | null = null
+            let lastCmd: Effitor.Handler.CmdInsertCompositionText | null = null
             // 浏览器是否插入了一个新的#text节点; 当输入法输入位置不是#text节点时, 浏览器会插入一个#text
             const newTextInserted = !dom.isTextNode(cmd.targetRanges[0].startContainer)
             while (j < cmds.length) {
@@ -127,7 +132,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Et.Command[], ctx: Et.EditorCo
  */
 const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeReturns => {
     const cmds = res.cmds
-    const out: Et.Command[] = []
+    const out: Effitor.Handler.Command[] = []
     for (let i = 0; i < cmds.length; i++) {
         const cmd = cmds[i];
         // 合并连续的insertText
@@ -204,7 +209,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
     }
 }
 
-const buildTransaction = (cmds: Et.Command[], ctx: Et.EditorContext): UndoTransaction => {
+const buildTransaction = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context): UndoTransaction => {
     // console.error('构建事务: ', [...cmds])
 
     // fix. issues. # 由insertCompositionText合并成的insertText与其他insertText挨在一起, 导致撤销/重做时deleteText命令的deleteRange.endOffset位置不对
@@ -236,10 +241,10 @@ const buildTransaction = (cmds: Et.Command[], ctx: Et.EditorContext): UndoTransa
     }
 }
 
-class UndoStack implements IUndoStack {
+export class UndoStack {
     size: number
     pos: number
-    cmdList: Et.Command[]
+    cmdList: Effitor.Handler.Command[]
     transactionStack: UndoTransaction[]
 
     constructor(size: number) {
@@ -249,10 +254,10 @@ class UndoStack implements IUndoStack {
         this.transactionStack = []
     }
 
-    record(cmds: Et.Command[]) {
+    record(cmds: Effitor.Handler.Command[]) {
         cmds.length && this.cmdList.push(...cmds)
     }
-    discard(ctx: Et.EditorContext) {
+    discard(ctx: Effitor.Editor.Context) {
         if (this.cmdList.length == 0) return false
         cmdHandler.handleUndo(this.cmdList, ctx)
         // 丢弃命令时命令已执行，需要执行撤回回调
@@ -260,7 +265,7 @@ class UndoStack implements IUndoStack {
         this.cmdList.length = 0
         return true
     }
-    pushTransaction(ctx: Et.EditorContext) {
+    pushTransaction(ctx: Effitor.Editor.Context) {
         if (!this.cmdList.length) {
             return false
         }
@@ -283,7 +288,7 @@ class UndoStack implements IUndoStack {
         }
         return true
     }
-    redo(ctx: Et.EditorContext) {
+    redo(ctx: Effitor.Editor.Context) {
         if (this.pos >= this.transactionStack.length) {
             return
         }
@@ -294,7 +299,7 @@ class UndoStack implements IUndoStack {
         // console.error(`redoed, length=${this.transactionStack.length}, pos=${this.pos}, cmds=`, redoCmds)
         this.pos++
     }
-    undo(ctx: Et.EditorContext) {
+    undo(ctx: Effitor.Editor.Context) {
         if (this.pos <= 0) {
             return
         }
@@ -304,15 +309,11 @@ class UndoStack implements IUndoStack {
         // console.error(`undoed, length=${this.transactionStack.length}, pos=${this.pos - 1}, cmds=`, undoCmds)
         this.pos--
     }
-    commitAll(ctx: Et.EditorContext) {
+    /**
+     * 清空撤回栈，final所有命令
+     */
+    commitAll(ctx: Effitor.Editor.Context) {
         this.transactionStack.forEach(x => x.finalCallback?.(ctx))
         this.transactionStack.length = 0
     }
 }
-
-export const createUndoStack = (size: number): UndoStack => {
-    return new UndoStack(size)
-}
-
-
-

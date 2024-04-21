@@ -1,8 +1,8 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from "@/effitor/@types";
 import { markState } from "../config";
 
 
-export const selChange: Et.SelChangeAction = (ev, ctx) => {
+export const selChange: Effitor.Effector.SelChangeAction = (ev, ctx) => {
     if (markState.phase) {
         // phase == 2 时为刚刚插入标记节点导致的selectionchange
         if ((markState.phase--) === 1) {

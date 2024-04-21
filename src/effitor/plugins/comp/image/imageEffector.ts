@@ -1,9 +1,9 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from '../../../@types'
 import { dom } from "@/effitor/utils";
 import { EtImageElement } from "./EtImageElement";
 
 
-export const pasteImage: Et.ClipboardAction = (ev, ctx) => {
+export const pasteImage: Effitor.Effector.ClipboardAction = (ev, ctx) => {
     const reader = new FileReader()
     reader.onload = (e) => {
         const dataUrl = e.target?.result as string

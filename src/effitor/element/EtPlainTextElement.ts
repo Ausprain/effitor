@@ -1,14 +1,15 @@
-import { BuiltinElName, BuiltinElType, type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElName, BuiltinElType } from "../@types";
 import { EffectElement } from ".";
 
 /**
  * 纯文本节点
  */
 export class EtPlainTextElement extends EffectElement {
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
-    static readonly elName: Et.ElName = BuiltinElName.ET_PLAINTEXT;
-    readonly elType: Et.ElType = BuiltinElType.PLAINTEXT;
+    static readonly elName: Effitor.Element.ElName = BuiltinElName.ET_PLAINTEXT;
+    readonly elType: Effitor.Element.ElType = BuiltinElType.PLAINTEXT;
 
     connectedCallback(this: EffectElement): void {
         this.setAttribute('contenteditable', 'plaintext-only')

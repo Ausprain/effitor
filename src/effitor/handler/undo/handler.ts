@@ -1,24 +1,24 @@
-import type { Et } from "@/effitor";
+import type { DOM, Effitor } from "@/effitor/@types";
 import { createCommand } from "@/effitor/handler/cmd";
 import { dom } from "@/effitor/utils";
 
 
-const handleInsertText = (cmd: Et.CmdInsertText, ctx: Et.EditorContext) => {
+const handleInsertText = (cmd: Effitor.Handler.CmdInsertText, ctx: Effitor.Editor.Context) => {
     cmd.text.insertData(cmd.offset, cmd.data)
     // dom.selectRange会导致2次selectionchange(sel.empty()+sel.addRange()), 因此要跳过2次; 仅chrome, 不同浏览器情况不同
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
-const handleDeleteText = (cmd: Et.CmdDeleteText, ctx: Et.EditorContext) => {
+const handleDeleteText = (cmd: Effitor.Handler.CmdDeleteText, ctx: Effitor.Editor.Context) => {
     const removeRange = dom.rangeFromStatic(cmd.deleteRange)
     // 仅删除文本
     removeRange.deleteContents()
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
-const handleReplaceText = (cmd: Et.CmdReplaceText, ctx: Et.EditorContext) => {
+const handleReplaceText = (cmd: Effitor.Handler.CmdReplaceText, ctx: Effitor.Editor.Context) => {
     cmd.text.replaceData(cmd.offset, cmd.replacedData.length, cmd.data)
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
-const handleInsertCompositionText = (cmd: Et.CmdInsertCompositionText, ctx: Et.EditorContext) => {
+const handleInsertCompositionText = (cmd: Effitor.Handler.CmdInsertCompositionText, ctx: Effitor.Editor.Context) => {
     // console.error('handle insert composition text', cmd)
     // fix.issue. # 解决跨节点Range状态下插入字符, 执行removeContent后cmd.targetRanges[0]还是删除内容前的节点位置的问题, 即命令记录时与真正执行时的初始光标位置不同  
     // 重置输入法会话的第一次输入的targetRange, 保证insertCompositionText命令执行前的准确光标位置
@@ -32,14 +32,14 @@ const handleInsertCompositionText = (cmd: Et.CmdInsertCompositionText, ctx: Et.E
         else ctx.node = null
     }
 }
-const handleInsertNode = (cmd: Et.CmdInsertNode, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleInsertNode = (cmd: Effitor.Handler.CmdInsertNode, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     const range = dom.rangeFromStatic(cmd.insertAt)
     range.insertNode(cmd.node)
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
     // 首次执行 && 插入了元素 && 不强制事务 ->> 记录;  当插入文本节点时应当保留，以便命令合并后再commit
     isFresh && !dom.isTextNode(cmd.node) && ctx.commandHandler.commit()
 }
-const handleRemoveNode = (cmd: Et.CmdRemoveNode, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleRemoveNode = (cmd: Effitor.Handler.CmdRemoveNode, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     cmd.node.remove()
     /**
      * 如果ctx.node就是cmd.node, 应当将ctx.node置空  
@@ -51,15 +51,15 @@ const handleRemoveNode = (cmd: Et.CmdRemoveNode, ctx: Et.EditorContext, isFresh?
     // 删除了元素, 记录事务
     isFresh && !dom.isTextNode(cmd.node) && ctx.commandHandler.commit()
 }
-const handleReplaceNode = (cmd: Et.CmdReplaceNode, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleReplaceNode = (cmd: Effitor.Handler.CmdReplaceNode, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     cmd.node.replaceWith(cmd.newNode)
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1])
     isFresh && ctx.commandHandler.commit()
 }
-const handleInsertContent = (cmd: Et.CmdInsertContent, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleInsertContent = (cmd: Effitor.Handler.CmdInsertContent, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     const range = dom.rangeFromStatic(cmd.insertAt)
     // 计算光标位置, 若设置了collapseTo
-    let anchor: Et.NullableNode = null
+    let anchor: DOM.NullableNode = null
     let offset: -1 | 0 | 1 = 1
     if (cmd.collapseTo !== undefined) {
         let i = 0
@@ -95,20 +95,21 @@ const handleInsertContent = (cmd: Et.CmdInsertContent, ctx: Et.EditorContext, is
     // 记录事务
     isFresh && ctx.commandHandler.commit()
 }
-const handleRemoveContent = (cmd: Et.CmdRemoveContent, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleRemoveContent = (cmd: Effitor.Handler.CmdRemoveContent, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     const removeRange = dom.rangeFromStatic(cmd.removeRange)
     cmd.removeFragment = removeRange.extractContents()
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
     // 记录事务
     isFresh && ctx.commandHandler.commit()
 }
-const handleFunctional = (cmd: Et.CmdFunctional, ctx: Et.EditorContext, isFresh?: boolean) => {
+const handleFunctional = (cmd: Effitor.Handler.CmdFunctional, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1])
     isFresh && ctx.commandHandler.commit()
 }
 
 
-const cmdHandleMap: { [k in Et.Command['type']]: (cmd: ExtractUnionObjectByProp<Et.Command, 'type', k>, ctx: Et.EditorContext, isFresh?: boolean) => void } = {
+// const cmdHandleMap: { [k in Effitor.Handler.Command['type']]: (cmd: ExtractUnionObjectByProp<Effitor.Handler.Command, 'type', k>, ctx: Effitor.Editor.Context, isFresh?: boolean) => void } = {
+const cmdHandleMap: { [k in Effitor.Handler.Command['type']]: (cmd: Extract<Effitor.Handler.Command, { type: k }>, ctx: Effitor.Editor.Context, isFresh?: boolean) => void } = {
     Insert_Node: handleInsertNode,
     Remove_Node: handleRemoveNode,
     Replace_Node: handleReplaceNode,
@@ -120,7 +121,7 @@ const cmdHandleMap: { [k in Et.Command['type']]: (cmd: ExtractUnionObjectByProp<
     Remove_Content: handleRemoveContent,
     Functional: handleFunctional,
 }
-const handleCmds = (cmds: Et.Command[], ctx: Et.EditorContext) => {
+const handleCmds = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context) => {
     if (!cmds.length) return
     for (const cmd of cmds) {
         cmdHandleMap[cmd.type](cmd as any, ctx)
@@ -132,7 +133,7 @@ export const cmdHandler = {
     /**
      * 生成一个命令的逆命令
      */
-    deCmd: (cmd: Et.Command): Et.Command | null => {
+    deCmd: (cmd: Effitor.Handler.Command): Effitor.Handler.Command | null => {
         let deCmd = null
         switch (cmd.type) {
             case 'Insert_Node': {
@@ -239,7 +240,7 @@ export const cmdHandler = {
     /**
      * 首次执行命令
      */
-    handle: (cmds: Et.Command[], ctx: Et.EditorContext) => {
+    handle: (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context) => {
         if (!cmds.length) return
         for (const cmd of cmds) {
             cmdHandleMap[cmd.type](cmd as any, ctx, true)   // 首次执行命令, isFresh为true
@@ -249,8 +250,8 @@ export const cmdHandler = {
     /**
      * 构建undo命令执行
      */
-    handleUndo(redoCmds: Et.Command[], ctx: Et.EditorContext) {
-        const undoCmds: Et.Command[] = []
+    handleUndo(redoCmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context) {
+        const undoCmds: Effitor.Handler.Command[] = []
         for (let i = redoCmds.length - 1; i >= 0; i--) {
             const deCmd = this.deCmd(redoCmds[i])
             if (deCmd) {
@@ -267,8 +268,8 @@ export const cmdHandler = {
     /**
      * 构建redo命令并执行
      */
-    handleRedo(undoCmds: Et.Command[], ctx: Et.EditorContext) {
-        const redoCmds: Et.Command[] = []
+    handleRedo(undoCmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context) {
+        const redoCmds: Effitor.Handler.Command[] = []
         for (let i = undoCmds.length - 1; i >= 0; i--) {
             const deCmd = this.deCmd(undoCmds[i])
             if (deCmd) {

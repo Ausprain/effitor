@@ -1,24 +1,25 @@
-import { BuiltinElType, type Et } from "../@types"
+import type { Effitor } from '../@types'
+import { BuiltinElType } from "../@types"
 
 /**
  * 效应元素, 通过绑在类名上的 EffectHandle 处理编辑器逻辑
  */
-export abstract class EffectElement extends HTMLElement implements Et.ElementCallbacks {
+export abstract class EffectElement extends HTMLElement implements Effitor.Element.ElementCallbacks {
     /** 绑在类名上的效应处理器 */
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
     /** 元素名, 应与实例的tagName或nodeName的小写完全相同, 即Element.localName */
-    static readonly elName: Et.ElName
+    static readonly elName: Effitor.Element.ElName
     /** style对象, 用于构建<style>标签字符串, 插入到shadownRoot中的内置样式表, 为元素设置内定样式; 最终以`${elName} { ... }`形式追加到cssText中 */
-    static readonly cssStyle: Et.ElStyle = {}
+    static readonly cssStyle: Effitor.Element.ElStyle = {}
     /** style字符串, 作为cssStyle的补充, 如添加:focus等的样式 */
     static readonly cssText: string = ''
     static readonly observedAttributes: string[] = []
 
     /** 元素类型, 绑在this上用于判断是否是效应元素 */
-    readonly elType: Et.ElType = BuiltinElType.UNDEFINED
+    readonly elType: Effitor.Element.ElType = BuiltinElType.UNDEFINED
 
     /** 效应拦截器, 当非空 且执行返回true时, 阻止对应效应 */
-    effectBlocker?: Et.EffectBlocker
+    effectBlocker?: Effitor.Element.EffectBlocker
 
     connectedCallback?(this: EffectElement): void
     disconnectedCallback?(this: EffectElement): void
@@ -29,10 +30,10 @@ export abstract class EffectElement extends HTMLElement implements Et.ElementCal
     replaceToNativeElement?(this: EffectElement) { return }
     /** 光标位于当前Effect元素的直接子孙内（即中间无其他Effect元素）时调用; 即赋值到ctx.effectElement时调用 */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    focusinCallback?(_ctx: Et.EditorContext) { }
+    focusinCallback?(_ctx: Effitor.Editor.Context) { }
     /** 当前Effect元素从ctx.effectElement移除（被赋新值）时调用 */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    focusoutCallback?(_ctx: Et.EditorContext) { }
+    focusoutCallback?(_ctx: Effitor.Editor.Context) { }
 }
 export type EffectElementCtor = typeof EffectElement
 
@@ -48,7 +49,7 @@ const globalDefinedElement: { [k: string]: EffectElementCtor } = {}
  */
 export const extentEtElement = (
     ctor: EffectElementCtor,
-    extention: Partial<Et.EffectHandlerDeclaration>
+    extention: Partial<Effitor.EffectHandlerDeclaration>
 ) => {
     // 将新的EffectHandle绑到构造函数上
     Object.assign(ctor, extention)

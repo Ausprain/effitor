@@ -1,14 +1,14 @@
-import { type Et } from '../@types'
+import type { Effitor } from '../@types'
 import { EffectElement, type EffectElementCtor } from '../element';
 
 
 /**
  * 效应调度器
  */
-export const initEffectInvoker = (ctx: Et.EditorContext): Et.EffectInvoker => {
+export const initEffectInvoker = (ctx: Effitor.Editor.Context): Effitor.Handler.EffectInvoker => {
     return {
         getEffectElCtor(el: EffectElement) {
-            return (<Et.Prototype<EffectElementCtor>>Object.getPrototypeOf(el)).constructor
+            return (<Prototype<EffectElementCtor>>Object.getPrototypeOf(el)).constructor
         },
         invoke(e: string, ...args: any[]) {
             if (ctx.effectElement.effectBlocker && ctx.effectElement.effectBlocker(e)) {
@@ -16,7 +16,7 @@ export const initEffectInvoker = (ctx: Et.EditorContext): Et.EffectInvoker => {
                 return false
             }
             const Cls = this.getEffectElCtor(ctx.effectElement)
-            // const handle = Cls[e as Et.Effect]
+            // const handle = Cls[e as Effitor.Effect]
             const handle = Reflect.get(Cls, e)
             // console.log('invoke', e, !!handle)
             if (typeof handle === 'function') {
@@ -33,6 +33,6 @@ export const initEffectInvoker = (ctx: Et.EditorContext): Et.EffectInvoker => {
 //         }
 //     }
 // }
-// const effectInvoker: Et.EffectInvoker = {}
+// const effectInvoker: Effitor.EffectInvoker = {}
 
 // effectInvoker.invoke('aaaa', )

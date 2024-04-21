@@ -1,8 +1,8 @@
-import { Et } from "@/effitor";
-import { MarkElName, MarkStatus, MarkType } from "./@type.mark";
+import { CssClassEnum } from "@/effitor/@types";
+import { MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 
 const enum M {
-    N = MarkElName,
+    N = MarkEnum.ElName,
     C = MarkType.CODE,
     B = MarkType.BOLD,
     D = MarkType.DELETE,
@@ -79,8 +79,8 @@ ${M.N}.${M.TEMP}::after {
     color: #dde
 }
 
-.${Et.CssClass.SelectionRange} ${M.N}::before,
-.${Et.CssClass.SelectionRange} ${M.N}::after {
+.${CssClassEnum.SelectionRange} ${M.N}::before,
+.${CssClassEnum.SelectionRange} ${M.N}::after {
     display: none;
 }
 

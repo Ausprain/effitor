@@ -1,9 +1,10 @@
-import { BuiltinElName, BuiltinElType, Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElName, BuiltinElType, CssClassEnum } from "../@types";
 import { EffectElement } from ".";
 
 const enum P {
-    // TAG = BuiltinElName.ET_PARAGRAPH,
-    TAG = 'et-p',
+    TAG = BuiltinElName.ET_PARAGRAPH,
+    // TAG = 'et-p',
     X = '3px',
     C = '#336699',
 }
@@ -36,18 +37,18 @@ ${P.TAG}::before {
 ${P.TAG}:hover::before {
     color: ${P.C};
 }
-${P.TAG}.${Et.CssClass.Active}::before {
+${P.TAG}.${CssClassEnum.Active}::before {
     color: ${P.C};
 }
-${P.TAG}.${Et.CssClass.Dragging} {
+${P.TAG}.${CssClassEnum.Dragging} {
     border: 1px dashed;
     opacity: .5;
 }
-${P.TAG}.${Et.CssClass.Dragover} {
+${P.TAG}.${CssClassEnum.Dragover} {
     border: 1px dotted;
     opacity: .8;
 }
-${P.TAG}.${Et.CssClass.Heading} {
+${P.TAG}.${CssClassEnum.Heading} {
     font-weight: bold;
     font-size: 1.1em;
 }
@@ -57,12 +58,12 @@ ${P.TAG}.${Et.CssClass.Heading} {
  * 段落
  */
 export class EtParagraphElement extends EffectElement {
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
-    static readonly elName: Et.ElName = BuiltinElName.ET_PARAGRAPH;
+    static readonly elName: Effitor.Element.ElName = BuiltinElName.ET_PARAGRAPH;
     static readonly cssText: string = paragraphCssText;
 
-    readonly elType: Et.ElType = BuiltinElType.PARAGRAPH;
+    readonly elType: Effitor.Element.ElType = BuiltinElType.PARAGRAPH;
 
     get pid(): string {
         return this.getAttribute('pid')
@@ -88,11 +89,11 @@ export class EtParagraphElement extends EffectElement {
 
     focusinCallback(): void {
         // console.log('paragraph focusin', this)
-        this.classList.add(Et.CssClass.Active)
+        this.classList.add(CssClassEnum.Active)
     }
     focusoutCallback(): void {
         // console.log('paragraph focusout', this)
-        this.classList.remove(Et.CssClass.Active)
+        this.classList.remove(CssClassEnum.Active)
     }
 
     replaceToNativeElement(): void {

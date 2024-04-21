@@ -1,31 +1,34 @@
-import { type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { commandUndoHandler } from './undo';
 
-
-export const createCommand = <T extends keyof Et.CommandMap>(type: T, init: Et.CommandInit[T]): Et.CommandMap[T] => {
-    return { type, ...init } as Et.CommandMap[T];
+export const createCommand = <T extends keyof Effitor.Handler.CommandMap>(type: T, init: Effitor.Handler.CommandInit[T]): Effitor.Handler.CommandMap[T] => {
+    return { type, ...init } as Effitor.Handler.CommandMap[T];
 }
 
-export const initCommandHandler = (ctx: Et.EditorContext, cmdUndoHandler: Et.CommandUndoHandler): Et.CommandHandler => {
+export const initCommandHandler = (ctx: Effitor.Editor.Context): Effitor.Handler.CommandHandler => {
     let _inTransaction = false;
+    const _cmds: Effitor.Handler.Command[] = []
     return {
-        cmds: [],
+        // cmds: [],
         get inTransaction() {
             return _inTransaction
         },
-        push<T extends keyof Et.CommandMap>(cmdOrType: Et.Command | T, init?: Et.CommandInit[T]) {
-            if (typeof cmdOrType === 'object') this.cmds.push(cmdOrType)
-            else this.cmds.push(createCommand(cmdOrType, init!))
+        push<T extends keyof Effitor.Handler.CommandMap>(cmdOrType: Effitor.Handler.Command | T, init?: Effitor.Handler.CommandInit[T]) {
+            if (typeof cmdOrType === 'object') _cmds.push(cmdOrType)
+            else _cmds.push(createCommand(cmdOrType, init!))
         },
         handle(cmds?) {
-            return cmdUndoHandler.handle.call(this, ctx, cmds)
+            cmds = cmds || _cmds
+            if (!cmds.length) return false
+            return commandUndoHandler.handle(ctx, cmds)
         },
         commit() {
             if (_inTransaction) return false
-            return cmdUndoHandler.commit.call(this, ctx)
+            return commandUndoHandler.commit(ctx)
         },
         discard() {
             _inTransaction = false
-            return cmdUndoHandler.discard.call(this, ctx)
+            return commandUndoHandler.discard(ctx)
         },
         startTransaction() {
             this.commit()
@@ -36,7 +39,7 @@ export const initCommandHandler = (ctx: Et.EditorContext, cmdUndoHandler: Et.Com
             this.commit()
         },
         commitAll(ctx) {
-            cmdUndoHandler.commitAll.call(this, ctx)
+            commandUndoHandler.commitAll(ctx)
         },
     }
 }

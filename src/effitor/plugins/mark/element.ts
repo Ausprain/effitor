@@ -3,16 +3,16 @@
  * @email: ausprain@qq.com 
  * @date: 2024-01-10 07:56:43 
  */
+import type { Effitor } from "@/effitor/@types";
 
-import { Et } from "@/effitor";
 import { EtRichTextElement } from "@/effitor/element";
-import { MarkElName, MarkStatus, MarkType } from "./@type.mark";
+import { MarkElName, MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 import { markCssText } from "./config";
-import { BuiltinElType } from "@/effitor/@types";
+import { BuiltinElType, HtmlCharEnum, type DOM } from "@/effitor/@types";
 
 
 export class EtMarkElement extends EtRichTextElement {
-    // static [k: Et.Effect]: Et.EffectHandler | undefined
+    // static [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
     static readonly elName = MarkElName
     static readonly cssText: string = markCssText
@@ -26,7 +26,7 @@ export class EtMarkElement extends EtRichTextElement {
             this.markType = markType
         }
     }
-    focusinCallback(ctx: Et.EditorContext): void {
+    focusinCallback(ctx: Effitor.Editor.Context): void {
         if (ctx.range.collapsed) {
             this.classList.add(MarkStatus.HINTING)
         }
@@ -35,7 +35,7 @@ export class EtMarkElement extends EtRichTextElement {
         this.classList.remove(MarkStatus.HINTING)
     }
 }
-export type EtMarkElementCtor = typeof EtMarkElement
+export type EffitorMarkElementCtor = typeof EtMarkElement
 // export type Instance = InstanceType<typeof EtMarkElement>
 
 /**
@@ -60,8 +60,9 @@ export const createMarkNode = (
     markType: `${MarkType}`,
     data: string = '',
 ): [EtMarkElement, Text] => {
-    const markEl = document.createElement('et-mark')
-    const text = document.createTextNode(Et.HtmlChar.ZERO_WIDTH_SPACE + data)
+    // const markEl = document.createElement('et-mark')
+    const markEl = document.createElement(MarkEnum.ElName)
+    const text = document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE + data)
     markEl.appendChild(text)
     markEl.changeMarkType(markType)
     // 没有data, 标记临时节点
@@ -71,8 +72,8 @@ export const createMarkNode = (
 /**
  * 判断一个节点是否为 EtMarkElement
  */
-export const isMarkElement = (node: Et.NullableNode): node is EtMarkElement => (node as Element)?.localName === EtMarkElement.elName
+export const isMarkElement = (node: DOM.NullableNode): node is EtMarkElement => (node as Element)?.localName === EtMarkElement.elName
 /**
  * 判断是否为空 mark节点
  */
-export const isTempMarkElement = (el: EtMarkElement): boolean => el.textContent === Et.HtmlChar.ZERO_WIDTH_SPACE
+export const isTempMarkElement = (el: EtMarkElement): boolean => el.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE

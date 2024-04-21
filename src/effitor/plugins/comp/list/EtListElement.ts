@@ -1,4 +1,4 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from '../../../@types'
 import { BuiltinElName } from "@/effitor/@types";
 import { EtComponentElement } from "@/effitor/element";
 import { dom } from "@/effitor/utils";
@@ -56,7 +56,7 @@ ${L.TAG} ol ol {
 // }
 
 export class EtListElement extends EtComponentElement {
-    static readonly elName: Et.ElName = L.TAG;
+    static readonly elName: Effitor.Element.ElName = L.TAG;
     static readonly cssText: string = cssText;
 
     static create(ordered: boolean, start = 1) {
@@ -109,4 +109,4 @@ export class EtListElement extends EtComponentElement {
     }
 
 }
-export type EtListElementCtor = typeof EtListElement
+export type EffitorListElementCtor = typeof EtListElement

@@ -3,16 +3,15 @@
  * @email: ausprain@qq.com 
  * @date: 2024-04-04 16:39:08 
  */
-import { Et } from "@/effitor";
+import { HtmlCharEnum, type Effitor } from '../../../@types'
 import { dom } from "@/effitor/utils";
 import { EtListElement } from "./EtListElement";
-import { HtmlChar } from "@/effitor/@types";
 
-export const listKeydownSpaceCallback: Et.KeyboardAction = (ev, ctx) => {
+export const listKeydownSpaceCallback: Effitor.Effector.KeyboardAction = (ev, ctx) => {
     // 当前效应元素不是段落，跳过
     if (ctx.effectElement !== ctx.paragraphEl) return
     if (!dom.isTextNode(ctx.node)) return
-    let flag: Et.booleanvoid = false
+    let flag: boolean | void = false
     const text = ctx.node.data
     if (text === '-') {
         // 插入无序列表
@@ -26,12 +25,12 @@ export const listKeydownSpaceCallback: Et.KeyboardAction = (ev, ctx) => {
     return flag && ctx.commandHandler.handle() && (ev.preventDefault(), ctx.skipDefault = true)
 }
 
-export const listKeydownEnterCallback: Et.KeyboardAction = (ev, ctx) => {
+export const listKeydownEnterCallback: Effitor.Effector.KeyboardAction = (ev, ctx) => {
     if (ctx.effectElement.localName !== EtListElement.elName) return
     const node = ctx.node ?? ctx.range.startContainer
     const li = dom.closestUnderTheNode(node, 'li', ctx.effectElement) as HTMLLIElement
     if (!li) return
-    let flag: Et.booleanvoid = false
+    let flag: boolean | void = false
     // shift enter直接插入li
     if (ev.shiftKey) {
         flag = ctx.effectInvoker.invoke('insertLi', ctx, li, true)
@@ -39,7 +38,7 @@ export const listKeydownEnterCallback: Et.KeyboardAction = (ev, ctx) => {
     else {
         const text = li.textContent?.trim()
         // null, '', '\u200b'
-        if (!text || text === HtmlChar.ZERO_WIDTH_SPACE) {
+        if (!text || text === HtmlCharEnum.ZERO_WIDTH_SPACE) {
             // 空白li
             if (li === li.parentElement?.lastChild) {
                 // 最后一个

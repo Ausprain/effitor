@@ -1,0 +1,7 @@
+{
+    "include": ["*.ts", "*.d.ts"],
+    "compilerOptions": {
+        "declaration": true,
+        "emitDeclarationOnly": true
+    }
+}

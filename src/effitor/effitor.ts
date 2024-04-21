@@ -1,4 +1,5 @@
-import { BuiltinElName, type Et } from './@types';
+import type { DOM, Effitor } from './@types';
+import { BuiltinElName } from './@types';
 import { getMainEffector } from "./effector";
 import { getBeforeinputListener } from './effector/beforeinput';
 import { getCopyListener, getCutListener, getPasteListener } from "./effector/clipboard";
@@ -11,11 +12,11 @@ import { getSelectionChangeListener } from './effector/selchange';
 import { builtinEl, registerEtElement, type EffectElementCtor } from "./element";
 import { cssStyle2cssText } from "./utils";
 import { initContext } from './context';
-import { useUndoEffector } from './plugins/undo';
 import { defaultConfig, shadowCssText } from './config';
+import { useUndoEffector } from './handler/undo';
 
 /** 格式化容器div为Effitor初始化结构 */
-const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssText: string) => {
+const formatEffitorStructure = (el: HTMLDivElement, ctx: Effitor.Editor.Context, cssText: string) => {
     const editor = document.createElement(BuiltinElName.ET_APP)
     // 在editor下创建一个shadowRoot
     const shadow = editor.attachShadow({ mode: 'open' })
@@ -40,10 +41,16 @@ const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssTe
         shadow.append(body)
     })
 
-    return shadow as Et.EtShadow
+    return shadow as DOM.ShadowRoot
 }
 
-const reducePlugins = (plugins: Et.EffitorPlugin[], elCtors: EffectElementCtor[], ctx: Et.EditorContext): Et.EffectorConfigs => {
+type PluginConfigs = {
+    /** 自定义元素, 统一注册到customElements */
+    readonly etElementCtors: Effitor.EtElementCtor[];
+} & {
+    [K in keyof Effitor.Effector.Solvers as `${K}s`]: Effitor.Effector.Solvers[K][];
+};
+const reducePlugins = (plugins: Effitor.Editor.Plugin[], elCtors: EffectElementCtor[], ctx: Effitor.Editor.Context): PluginConfigs => {
     return plugins.reduce((pre, cur) => {
         cur.elements && pre.etElementCtors.push(...cur.elements)
         const ef = cur.effector
@@ -65,9 +72,9 @@ const reducePlugins = (plugins: Et.EffitorPlugin[], elCtors: EffectElementCtor[]
         copyCallbacks: [],
         pasteCallbacks: [],
         selChangeCallbacks: [],
-    } as Et.EffectorConfigs)
+    } as PluginConfigs)
 }
-const initListeners = (ctx: Et.EditorContext, mainEffector: Et.MainEffector, pluginConfigs: Et.EffectorConfigs): { [k in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[k]) => void } => ({
+const initListeners = (ctx: Effitor.Editor.Context, mainEffector: Effitor.Effector.MainEffector, pluginConfigs: PluginConfigs): { [k in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[k]) => void } => ({
     keydown: getKeydownListener(ctx, mainEffector.keydownSolver, pluginConfigs.keydownSolvers),
     keyup: getKeyupListener(ctx, mainEffector.keyupSolver, pluginConfigs.keyupSolvers),
     beforeinput: getBeforeinputListener(ctx, mainEffector.beforeInputSolver, pluginConfigs.beforeInputSolvers),
@@ -96,7 +103,7 @@ const initListeners = (ctx: Et.EditorContext, mainEffector: Et.MainEffector, plu
     selectionchange: getSelectionChangeListener(ctx, pluginConfigs.selChangeCallbacks),
 
 })
-const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, root: Et.EtShadow, listeners: ReturnType<typeof initListeners>, ac: AbortController, htmlEventSolvers: Et.HTMLEventSolver[]) => {
+const addListenersToShadowRoot = (ctx: Effitor.Editor.Context, el: HTMLDivElement, root: DOM.ShadowRoot, listeners: ReturnType<typeof initListeners>, ac: AbortController, htmlEventSolvers: Effitor.Effector.HTMLEventSolver[]) => {
     // 绑在shadowRoot上
     root.addEventListener('focusin', () => {
         console.error('focus ')
@@ -118,7 +125,7 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
     root.addEventListener('focusout', () => {
         console.error('blur ')
         // ctx.focused = false
-        // ctx.paragraphEl?.classList.remove(Et.CssClass.Active)
+        // ctx.paragraphEl?.classList.remove(CssClassEnum.Active)
         // ctx.paragraphEl = null as any
         // ctx.effectElement = null as any
         // ctx.range = null as any
@@ -173,21 +180,20 @@ const elMap = new WeakMap<HTMLDivElement, AbortController>()
 export const createEditor = ({
     schemaInit = {},
     mainEffector = getMainEffector(),
-    undoEffector = undefined,
     plugins = [],
     config = {},
-}: Et.CreateEditorOptions = {}): Et.Editor => {
+}: Effitor.Editor.CreateEditorOptions = {}): Effitor.Editor => {
     const _config = { ...defaultConfig, ...config }
-    if (!undoEffector) undoEffector = useUndoEffector(_config.UNDO_LENGTH)
+    const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
     plugins.push({ effector: undoEffector })
-    const schema: Et.EditorSchema = {
+    const schema: Effitor.Editor.Schema = {
         editor: builtinEl.EtEditorElement,
         body: builtinEl.EtBodyElement,
         paragraph: builtinEl.EtParagraphElement,
         ...schemaInit,
     }
     /** 初始化编辑器上下文 */
-    const context = initContext(schema, _config, undoEffector.commandUndoHandler)
+    const context = initContext(schema, _config)
     // 记录需要注册的EtElement
     const elCtors: EffectElementCtor[] = Object.values(schema)
     /** 从plugins中提取出effector对应处理器 及 自定义元素 */

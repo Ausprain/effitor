@@ -20,7 +20,7 @@ export const defaultConfig = {
     FONT_SIZE: 16,
     /** 撤回栈长度 */
     UNDO_LENGTH: 1000,
-    /** 链接url最大有效长度 */ 
+    // 链接url最大有效长度
     ALLOW_LINK_URL_MAX_LENGTH: 2048,
 }
 

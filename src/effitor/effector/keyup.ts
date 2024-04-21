@@ -1,12 +1,12 @@
+import type { Effitor } from '../@types';
 import { runKeyboardSolver } from './keydown';
-import type { Et } from '../@types';
 
-export class MainKeyupSolver implements Et.KeyboardSolver {
-    [k: string]: Et.KeyboardAction | undefined
+export class MainKeyupSolver implements Effitor.Effector.KeyboardSolver {
+    [k: string]: Effitor.Effector.KeyboardAction | undefined
 }
 
 let doubleKeyTimer: number | undefined = undefined
-export const getKeyupListener = (ctx: Et.EditorContext, main: MainKeyupSolver, solvers: Et.KeyboardSolver[]) => {
+export const getKeyupListener = (ctx: Effitor.Editor.Context, main: MainKeyupSolver, solvers: Effitor.Effector.KeyboardSolver[]) => {
     return (ev: KeyboardEvent) => {
         runKeyboardSolver(ev, ctx, main, solvers)
 

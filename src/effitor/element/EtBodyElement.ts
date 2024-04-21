@@ -1,14 +1,15 @@
-import { BuiltinElName, type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElName } from "../@types";
 import { EffectElement } from ".";
 
 /**
  * 编辑区
  */
 export class EtBodyElement extends EffectElement {
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
     static readonly elName = BuiltinElName.ET_BODY
-    static readonly cssStyle: Et.ElStyle = {
+    static readonly cssStyle: Effitor.Element.ElStyle = {
         display: 'block',
         minHeight: '64px',
         outline: 'none',

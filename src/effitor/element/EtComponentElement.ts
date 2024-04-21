@@ -1,18 +1,19 @@
-import { BuiltinElName, BuiltinElType, type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElName, BuiltinElType } from "../@types";
 import { EffectElement } from "./EffectElement";
 
 /**
  * 组件节点
  */
 export class EtComponentElement extends EffectElement {
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
-    static readonly elName: Et.ElName = BuiltinElName.ET_COMPONENT
+    static readonly elName: Effitor.Element.ElName = BuiltinElName.ET_COMPONENT
     /**
      * 是否嵌套contenteditable, 即组件内是否有contenteditable=true的节点
      */
     readonly nestedEditable: boolean = false;
-    readonly elType: Et.ElType = BuiltinElType.COMPONENT;
+    readonly elType: Effitor.Element.ElType = BuiltinElType.COMPONENT;
 
     connectedCallback?(): void {
         this.setAttribute('contenteditable', 'false')

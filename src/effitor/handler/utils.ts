@@ -1,4 +1,5 @@
-import { BuiltinElType, type Et, HtmlChar } from "../@types";
+import type { Effitor, DOM } from '../@types'
+import { BuiltinElType, HtmlCharEnum } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
 
@@ -29,7 +30,7 @@ export const getRangeOutermostContainerUnderTheParagraph = (
  * @param inDifferentParagraphFn 不同段落回调
  */
 export const checkTargetRangePosition = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     targetRange: StaticRange | Range,
     inTheSameTextFn: (currP: EtParagraphElement, node: Text) => boolean,
     inTheSameParagraphFn: (currP: EtParagraphElement) => boolean,
@@ -182,7 +183,7 @@ export const mergeFragments = (
  * @param insertNode 插入到光标位置或替换选区的节点
  */
 export const expandRemoveInsert = (
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     startExpandNode: Node,
     endExpandNode: Node,
     delTargetRange: Range | StaticRange,
@@ -245,8 +246,8 @@ export const expandRemoveInsert = (
  * @param srcCaretRange 必须是collapsed的
  */
 export const insertNodeAtCaret = (
-    ctx: Et.EditorContext,
-    node: Et.HTMLNode,
+    ctx: Effitor.Editor.Context,
+    node: DOM.HTMLNode,
     srcCaretRange: StaticRange
 ) => {
     if (!ctx.node) {
@@ -259,7 +260,7 @@ export const insertNodeAtCaret = (
     }
     // 在开头
     else if (srcCaretRange.startOffset === 0 || (
-        srcCaretRange.startOffset === 1 && ctx.node.data[0] === HtmlChar.ZERO_WIDTH_SPACE
+        srcCaretRange.startOffset === 1 && ctx.node.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE
     )) {
         const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'start')
         const insertAt = dom.caretStaticRangeOutNode(outermost, -1)
@@ -272,7 +273,7 @@ export const insertNodeAtCaret = (
     }
     // 在结尾
     else if (srcCaretRange.startOffset === ctx.node.length || (
-        srcCaretRange.startOffset === ctx.node.length - 1 && ctx.node.data.slice(-1) === HtmlChar.ZERO_WIDTH_SPACE
+        srcCaretRange.startOffset === ctx.node.length - 1 && ctx.node.data.slice(-1) === HtmlCharEnum.ZERO_WIDTH_SPACE
     )) {
         const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'end')
         const insertAt = dom.caretStaticRangeOutNode(outermost, 1)
@@ -290,9 +291,9 @@ export const insertNodeAtCaret = (
     }
 }
 /**
- * 移除选取让光标collapsed
+ * 移除选区让光标collapsed
  */
-export const checkRemoveSelectionToCollapsed = (ctx: Et.EditorContext) => {
+export const checkRemoveSelectionToCollapsed = (ctx: Effitor.Editor.Context) => {
     if (!ctx.range.collapsed) {
         dom.dispatchInputEvent(ctx.root, 'beforeinput', {
             inputType: 'deleteContentBackward',

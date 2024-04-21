@@ -1,11 +1,13 @@
-import { Et, HtmlChar } from "../@types";
+
+import type { Effitor, DOM } from "../@types";
 import type { EffectElement } from "../element";
+import { HtmlCharEnum, MIMETypeEnum } from "../@types";
 import { dom } from "../utils";
 
-type NotEmptyClipboardEvent = Et.EtClipboardEvent & { clipboardData: DataTransfer };
-type EmptyClipboardEvent = Et.EtClipboardEvent & { clipboardData: null };
+type NotEmptyClipboardEvent = DOM.ClipboardEvent & { clipboardData: DataTransfer };
+type EmptyClipboardEvent = DOM.ClipboardEvent & { clipboardData: null };
 
-export const getCopyListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
+export const getCopyListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.log('copy', ev.clipboardData?.types, ev)
         if (!ev.clipboardData) return
@@ -19,7 +21,7 @@ export const getCopyListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAc
         copySelectionToClipboard(ctx, ev.clipboardData)
     }
 }
-export const getCutListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
+export const getCutListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.log('cut', ev.clipboardData?.types, ev)
         if (!ev.clipboardData) return
@@ -38,7 +40,7 @@ export const getCutListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAct
         })
     }
 }
-export const getPasteListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
+export const getPasteListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.error('paste', ev.clipboardData?.types, ev)
         // // todo remove
@@ -48,7 +50,7 @@ export const getPasteListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardA
 
         if (!ev.clipboardData) return
         // 判断是否粘贴编辑器复制内容
-        const etHtml = ev.clipboardData.getData(Et.MIMEType.ET_COPY_METADATA)
+        const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_COPY_METADATA)
         // 否则尝试调用插件回调
         if (!etHtml) {
             for (const cb of callbacks) {
@@ -79,7 +81,7 @@ export const getPasteListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardA
         //     img.src = ev.target!.result as string
         //     img.alt = 'pasted image'
         //     const dataTransfer = new DataTransfer()
-        //     dataTransfer.setData(Et.MIMEType.TEXT_HTML, img.outerHTML)
+        //     dataTransfer.setData(MIMETypeEnum.TEXT_HTML, img.outerHTML)
         //     dom.dispatchInputEvent(ctx.root, 'beforeinput', {
         //         inputType: 'insertFromPaste',
         //         dataTransfer,
@@ -101,7 +103,7 @@ export const getPasteListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardA
 /**
  * 复制`or`剪切时添加数据到clipboardData
  */
-const copySelectionToClipboard = (ctx: Et.EditorContext, clipboardData: Et.EtDataTransfer) => {
+const copySelectionToClipboard = (ctx: Effitor.Editor.Context, clipboardData: DOM.DataTransfer) => {
     const sel = ctx.selection ?? (ctx.root.getSelection ? ctx.root.getSelection() : getSelection())
     const range = sel?.getRangeAt(0)
     if (!range || !sel) return
@@ -119,17 +121,17 @@ const copySelectionToClipboard = (ctx: Et.EditorContext, clipboardData: Et.EtDat
         whatToShow: NodeFilter.SHOW_ELEMENT
     })
 
-    clipboardData!.setData('text/plain', range.toString().replace(HtmlChar.ZERO_WIDTH_SPACE, ''))
-    clipboardData!.setData(Et.MIMEType.ET_TEXT_HTML, dom.fragmentHTML(fragment))
+    clipboardData!.setData('text/plain', range.toString().replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
+    clipboardData!.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentHTML(fragment))
     etElList.forEach(el => el.replaceToNativeElement?.())
-    clipboardData!.setData('text/html', dom.fragmentHTML(fragment).replace(HtmlChar.ZERO_WIDTH_SPACE, ''))
+    clipboardData!.setData('text/html', dom.fragmentHTML(fragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
 }
 
 
 // /**
 //  * 尝试从clipboardData中提取出<a></a>, 判断是否粘贴链接
 //  */
-// const extractLink = (clipboard: DataTransfer): Et.EtLink | null => {
+// const extractLink = (clipboard: DataTransfer): Effitor.EtLink | null => {
 //     const htmlLinkPattern = /<!--StartFragment--><a.*?href="(http[s]?:\/\/[\w]+.*?)">(.+?)<\/a><!--EndFragment-->/
 //     const html = clipboard.getData('text/html')
 //     if (!html) return null
@@ -143,14 +145,14 @@ const copySelectionToClipboard = (ctx: Et.EditorContext, clipboardData: Et.EtDat
 
 
 // const defaultPasteHTML = (clipboard: DataTransfer) => {
-//     let html = clipboard.getData(Et.MIMEType.ET_TEXT_HTML)
+//     let html = clipboard.getData(MIMETypeEnum.ET_TEXT_HTML)
 //     if (html === '') {
-//         html = clipboard.getData(Et.MIMEType.TEXT_HTML)
+//         html = clipboard.getData(MIMETypeEnum.TEXT_HTML)
 //         if (html !== '') {
 //             html = extractPlainHTMLFromPaste(html)
 //         }
 //         else {
-//             html = clipboard.getData(Et.MIMEType.TEXT_PLAIN)
+//             html = clipboard.getData(MIMETypeEnum.TEXT_PLAIN)
 //         }
 //     }
 //     return html

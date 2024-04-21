@@ -1,30 +1,29 @@
-import type { Et } from "@/effitor";
-import type { UndoEffector, IUndoStack } from "./@types.undo";
-import { createUndoStack } from "./undoStack";
+import type { Effitor } from "@/effitor/@types";
+import { UndoStack } from "./undoStack";
 import { cmdHandler } from "./handler";
 
 
 /**
  * 根据上下文对象, 为当前编辑器记录事务
  */
-const recordTransaction = (ctx: Et.EditorContext) => {
+const recordTransaction = (ctx: Effitor.Editor.Context) => {
     // 输入法会话中禁止记录事务; 防止selchange将单个insertCompositionText记录入事务
     if (ctx.inCompositionSession) return false
     return undoStackMap.get(ctx.el)?.pushTransaction(ctx) || false
 }
-const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
+const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
     // console.error('keydown  --------------------- 记录事务')
     if (!ev.repeat && ev.key !== ctx.currDownKey) {
         recordTransaction(ctx)
     }
     return false
 }
-// const markTransactionNeeded = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
+// const markTransactionNeeded = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
 //     ctx[TRANSACTION_NEEDED] = true
 //     return false
 // }
 
-const keydownSolver: Et.KeyboardKeySolver = {
+const keydownSolver: Effitor.Effector.KeyboardKeySolver = {
     // 空格按下, 记录一次撤回事务
     ' ': recordTransactionOnKeydown,
     Enter: recordTransactionOnKeydown,
@@ -32,7 +31,7 @@ const keydownSolver: Et.KeyboardKeySolver = {
     Backspace: recordTransactionOnKeydown,
     Delete: recordTransactionOnKeydown,
 }
-const keyupSolver: Et.KeyboardKeySolver = {
+const keyupSolver: Effitor.Effector.KeyboardKeySolver = {
     // 空格抬起, 记录一次撤回事务
     // Space: markTransactionNeeded,
     // Enter: markTransactionNeeded,
@@ -50,7 +49,7 @@ const keyupSolver: Et.KeyboardKeySolver = {
     PageDown: (ev, ctx) => recordTransaction(ctx),
 
 }
-const afterInputSolver: Et.InputTypeSolver = {
+const afterInputSolver: Effitor.Effector.InputTypeSolver = {
     insertParagraph: (ev, ctx) => recordTransaction(ctx),
     insertLineBreak: (ev, ctx) => recordTransaction(ctx),
     insertFromPaste: (ev, ctx) => recordTransaction(ctx),
@@ -58,7 +57,7 @@ const afterInputSolver: Et.InputTypeSolver = {
     deleteWordBackward: (ev, ctx) => recordTransaction(ctx),
     deleteWordForward: (ev, ctx) => recordTransaction(ctx),
 }
-const beforeInputSolver: Et.InputTypeSolver = {
+const beforeInputSolver: Effitor.Effector.InputTypeSolver = {
     // default: (ev, ctx) => {
     //     // 输入法输入不可取消, 且会在所有监听器执行前执行; 要跳过, 否则会让insertCompositionText命令在事务中单独出现
     //     // if (ev.inputType !== 'inputCompositionText' && ctx[TRANSACTION_NEEDED]) {
@@ -83,11 +82,11 @@ const beforeInputSolver: Et.InputTypeSolver = {
         return true
     }
 }
-// const selChangeCallback = debounce((e: Event, ctx: Et.EditorContext) => {
+// const selChangeCallback = debounce((e: Event, ctx: Effitor.Editor.Context) => {
 //     console.error('sel change  --------------------- 记录事务')
 //     recordTransaction(ctx)
 // }, 1000)
-const htmlEventSolver: Et.HTMLEventSolver = {
+const htmlEventSolver: Effitor.Effector.HTMLEventSolver = {
     compositionend: (ev, ctx) => {
         // console.error('compsoiton end----------------------------- 记录事务')
         undoStackMap.get(ctx.el)?.pushTransaction(ctx)
@@ -102,11 +101,10 @@ const htmlEventSolver: Et.HTMLEventSolver = {
     },
 }
 
+const undoStackMap = new WeakMap<HTMLDivElement, UndoStack>()
 
-const commandUndoHandler: Et.CommandUndoHandler = {
+export const commandUndoHandler: Effitor.Handler.CommandUndoHandler = {
     handle(ctx, cmds) {
-        cmds = cmds || this.cmds
-        if (!cmds.length) return false
         undoStackMap.get(ctx.el)?.record(cmds)
         cmdHandler.handle(cmds, ctx)
         cmds.length = 0
@@ -123,11 +121,8 @@ const commandUndoHandler: Et.CommandUndoHandler = {
     },
 }
 
-const undoStackMap = new WeakMap<HTMLDivElement, IUndoStack>()
-
-export const useUndoEffector = (undoLength: number): UndoEffector & Et.UndoEffector => {
+export const useUndoEffector = (undoLength: number): Effitor.Effector => {
     return {
-        undoLength,
         keydownSolver,
         keyupSolver,
         beforeInputSolver,
@@ -135,7 +130,7 @@ export const useUndoEffector = (undoLength: number): UndoEffector & Et.UndoEffec
         htmlEventSolver,
         // selChangeCallback,
         mounted(el: HTMLDivElement) {
-            undoStackMap.set(el, createUndoStack(this.undoLength))
+            undoStackMap.set(el, new UndoStack(undoLength))
         },
         /**
          * 卸载时移除对应撤回栈并 确认所有事务
@@ -144,12 +139,8 @@ export const useUndoEffector = (undoLength: number): UndoEffector & Et.UndoEffec
             undoStackMap.get(el)?.commitAll(ctx)
             undoStackMap.delete(el)
         },
-
-        commandUndoHandler,
     }
 }
-
-
 
 // 防止编辑器外ctrl+z时对编辑器内容撤销
 document.addEventListener('beforeinput', (ev) => {

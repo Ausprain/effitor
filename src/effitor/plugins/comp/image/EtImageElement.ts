@@ -46,4 +46,4 @@ export class EtImageElement extends EtComponentElement {
     }
 
 }
-export type EtImageElementCtor = typeof EtImageElement
+export type EffitorImageElementCtor = typeof EtImageElement

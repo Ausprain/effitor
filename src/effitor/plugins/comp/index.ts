@@ -1,4 +1,4 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from "@/effitor/@types";
 import { getCompEffector } from "./effector";
 import { EtParagraphElement, type EtParagraphCtor } from "@/effitor/element";
 import { imageComp } from "./image";
@@ -25,7 +25,7 @@ type CompNames = keyof typeof compMap
  * @param paragraphCtor 编辑器段落元素的构造函数
  * @returns 
  */
-export const useCompPlugin = (compNames: CompNames[], paragraphCtor: EtParagraphCtor = EtParagraphElement): Et.EffitorPlugin => {
+export const useCompPlugin = (compNames: CompNames[], paragraphCtor: EtParagraphCtor = EtParagraphElement): Effitor.Editor.Plugin => {
     let codeSum = 0
     const elements = []
 
@@ -34,7 +34,7 @@ export const useCompPlugin = (compNames: CompNames[], paragraphCtor: EtParagraph
         codeSum += comp.code
         elements.push(comp.element)
     }
-    const effector: Et.Effector = getCompEffector(codeSum)
+    const effector: Effitor.Effector = getCompEffector(codeSum)
 
     return {
         elements,

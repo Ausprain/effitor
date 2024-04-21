@@ -1,10 +1,11 @@
-import { Et } from "@/effitor";
+import type { Effitor } from '../../../@types'
+import { MIMETypeEnum } from "@/effitor/@types";
 import { dom } from "@/effitor/utils";
 import { EtLinkElement } from "./EtLinkElement";
 
 
-export const pasteLink: Et.ClipboardAction = (ev, ctx) => {
-    const html = ev.clipboardData.getData(Et.MIMEType.TEXT_HTML)
+export const pasteLink: Effitor.Effector.ClipboardAction = (ev, ctx) => {
+    const html = ev.clipboardData.getData(MIMETypeEnum.TEXT_HTML)
     if (!html || html.length > ctx.config.ALLOW_LINK_URL_MAX_LENGTH) return
     const fragment = ctx.range.createContextualFragment(html)
     const alink = fragment.querySelector('a')

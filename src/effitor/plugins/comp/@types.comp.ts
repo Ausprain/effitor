@@ -1,4 +1,4 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from '../../@types'
 import type { EtParagraphCtor } from "@/effitor/element";
 
 export const enum CompCode {
@@ -9,7 +9,7 @@ export const enum CompCode {
 
 export interface EtComponent {
     code: CompCode,
-    element: Et.EtElementCtor,
+    element: Effitor.Element.EffectElementCtor,
     /**
      * 组件注册回调
      * @param pCtor 段落元素构造器
@@ -17,8 +17,8 @@ export interface EtComponent {
     registry?: (pCtor: EtParagraphCtor) => void
 }
 
-declare module '../../../effitor' {
-    module Et {
+declare module '../../../effitor/@types' {
+    namespace Effitor {
         interface EffectHandlerDeclaration {
             /* -------------------------------------------------------------------------- */
             /*                                    挂到段落上                                   */
@@ -28,7 +28,7 @@ declare module '../../../effitor' {
              * @param ordered 是否有序
              * @param start 有序列表的初始序号
              */
-            createList: (ctx: Et.EditorContext, ordered: boolean, start?: number) => Et.booleanvoid
+            createList: (ctx: Effitor.Editor.Context, ordered: boolean, start?: number) => boolean
 
             /* -------------------------------------------------------------------------- */
             /*                              挂到EtListElement上                              */
@@ -37,11 +37,11 @@ declare module '../../../effitor' {
              * 在当前li后边插入li
              * @param blank 无视光标位置，插入空白li
              */
-            insertLi: (ctx: Et.EditorContext, currLi: HTMLLIElement, blank: boolean) => Et.booleanvoid
+            insertLi: (ctx: Effitor.Editor.Context, currLi: HTMLLIElement, blank: boolean) => boolean
             /**
              * 末尾空li回车，删除该li并跳出列表
              */
-            trimTail: (ctx: Et.EditorContext, currLi: HTMLLIElement) => Et.booleanvoid
+            trimTail: (ctx: Effitor.Editor.Context, currLi: HTMLLIElement) => boolean
         }
     }
 }

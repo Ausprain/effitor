@@ -1,10 +1,10 @@
-import type { Et } from "@/effitor";
+import type { Effitor } from "@/effitor/@types";
 import { markState } from "../config";
 import { isMarkElement } from "../element";
 import { MarkStatus } from "../@type.mark";
 
 
-export const inputSolver: Et.InputTypeSolver = {
+export const inputSolver: Effitor.Effector.InputTypeSolver = {
     default: (ev, ctx) => {
         if (markState.phase) {
             // 只要触发了input, 说明临时节点插入了内容

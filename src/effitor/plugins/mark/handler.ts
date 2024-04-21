@@ -4,30 +4,31 @@
  * @date: 2024-01-10 10:31:19 
  */
 
-import type { Et } from "@/effitor";
+import type { Effitor } from "@/effitor/@types";
+
 import { dom } from "@/effitor/utils";
 import { markState, markerMap, type Marker } from "./config";
 import { EtMarkElement, createMarkNode, isMarkElement, nestedMarkMap } from "./element";
-import { HtmlChar } from "@/effitor/@types";
+import { HtmlCharEnum } from "@/effitor/@types";
 
-type CheckInsertMark = (ctx: Et.EditorContext, marker: Marker) => boolean;
+type CheckInsertMark = (ctx: Effitor.Editor.Context, marker: Marker) => boolean;
 /**
  * 根据后一节点, 判断插入标记节点时是否需要跟随一个zws
  * @returns {boolean} 是否需要尾随zws
  */
-const checkNeedFollowingZWS = (node: Text, ctx: Et.EditorContext): boolean => {
+const checkNeedFollowingZWS = (node: Text, ctx: Effitor.Editor.Context): boolean => {
     const nextNode = node.nextSibling
     if (nextNode) {
         const nextFirst = dom.innermostEditableStartingNode(nextNode)
         // debugger  // 有无准确着到下一个\u200b
         if (dom.isTextNode(nextFirst)) {
             // 若下一节点的可编辑的最里层第一个节点是#text, 判断是否zws开头, 不是则插入zws
-            if (nextFirst.data[0] !== HtmlChar.ZERO_WIDTH_SPACE) {
+            if (nextFirst.data[0] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
                 const srcCaretRange = dom.staticFromRange(ctx.range)
                 ctx.commandHandler.push('Insert_Text', {
                     text: nextFirst,
                     offset: 0,
-                    data: HtmlChar.ZERO_WIDTH_SPACE,
+                    data: HtmlCharEnum.ZERO_WIDTH_SPACE,
                     targetRanges: [srcCaretRange, srcCaretRange],
                 })
                 return false
@@ -40,7 +41,7 @@ const checkNeedFollowingZWS = (node: Text, ctx: Et.EditorContext): boolean => {
  * 根据前一节点, 判断插入标记节点时是否需要先插入一个zws
  * @returns {boolean} 当前一节点最内层lastChild为可编辑#text时返回false（不需要前导zws）
  */
-const checkNeedPrecedingZWS = (node: Text, ctx: Et.EditorContext): boolean => {
+const checkNeedPrecedingZWS = (node: Text, ctx: Effitor.Editor.Context): boolean => {
     const prev = ctx.node!.previousSibling
     if (prev) {
         const prevLast = dom.innermostEditableStartingNode(prev)
@@ -102,7 +103,7 @@ const checkInsertMarkAtTextEnd: CheckInsertMark = (ctx, marker) => {
     const followingZwsNeeded = checkNeedFollowingZWS(currText, ctx)
 
     df.append(markEl)
-    followingZwsNeeded && df.append(HtmlChar.ZERO_WIDTH_SPACE)
+    followingZwsNeeded && df.append(HtmlCharEnum.ZERO_WIDTH_SPACE)
     ctx.commandHandler.push('Insert_Content', {
         fragment: df,
         insertAt,
@@ -117,7 +118,7 @@ const checkInsertMarkAtTextEnd: CheckInsertMark = (ctx, marker) => {
  */
 const checkCurrentNodeRemovedAtEnd = (
     node: Text,
-    ctx: Et.EditorContext,
+    ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ): StaticRange | null => {
     let removeAt: StaticRange | null = null
@@ -131,7 +132,7 @@ const checkCurrentNodeRemovedAtEnd = (
             ctx.commandHandler.push('Replace_Text', {
                 text: node,
                 offset: 0,
-                data: HtmlChar.ZERO_WIDTH_SPACE,
+                data: HtmlCharEnum.ZERO_WIDTH_SPACE,
                 replacedData: node.data,
                 targetRanges: [srcCaretRange, srcCaretRange],
             })
@@ -180,35 +181,35 @@ const checkInsertMarkAtTextStart: CheckInsertMark = (ctx, marker) => {
     const currText = ctx.node!
     if (marker.marker.length === 1) {
         // check end 已经判断
-        // if (currText.data === HtmlChar.ZERO_WIDTH_SPACE) {
+        // if (currText.data === HtmlCharEnum.ZERO_WIDTH_SPACE) {
         //     // 当前节点为zws, 在后方插入
         // }
-        if (offset === 0 || (offset === 1 && currText.data[0] === HtmlChar.ZERO_WIDTH_SPACE)) {
+        if (offset === 0 || (offset === 1 && currText.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE)) {
             return insertSingleMarkNodeAtStart(currText, ctx, marker)
         }
     }
     else {
         if ((offset === 1 && currText.data[0] === marker.char) ||
-            (offset === 2 && currText.data[0] === HtmlChar.ZERO_WIDTH_SPACE && currText.data[1] === marker.char)
+            (offset === 2 && currText.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE && currText.data[1] === marker.char)
         ) {
             return insertDoubleMarkNodeAtStart(currText, offset, ctx, marker)
         }
     }
     return false
 }
-const insertSingleMarkNodeAtStart = (currText: Text, ctx: Et.EditorContext, marker: Marker) => {
+const insertSingleMarkNodeAtStart = (currText: Text, ctx: Effitor.Editor.Context, marker: Marker) => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     const [markEl, text] = createMarkNode(marker.type)
     const df = document.createDocumentFragment()
-    if (currText.data[0] !== HtmlChar.ZERO_WIDTH_SPACE) {
+    if (currText.data[0] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
         ctx.commandHandler.push('Insert_Text', {
             text: currText,
             offset: 0,
-            data: HtmlChar.ZERO_WIDTH_SPACE,
+            data: HtmlCharEnum.ZERO_WIDTH_SPACE,
             targetRanges: [srcCaretRange, srcCaretRange]
         })
     }
-    checkNeedPrecedingZWS(currText, ctx) && df.append(HtmlChar.ZERO_WIDTH_SPACE)
+    checkNeedPrecedingZWS(currText, ctx) && df.append(HtmlCharEnum.ZERO_WIDTH_SPACE)
     df.appendChild(markEl)
     const outermost = dom.outermostInlineAncestorAtEdge(currText, 'start', EtMarkElement.elName)
     ctx.commandHandler.push('Insert_Content', {
@@ -222,13 +223,13 @@ const insertSingleMarkNodeAtStart = (currText: Text, ctx: Et.EditorContext, mark
     })
     return true
 }
-const insertDoubleMarkNodeAtStart = (currText: Text, offset: number, ctx: Et.EditorContext, marker: Marker) => {
+const insertDoubleMarkNodeAtStart = (currText: Text, offset: number, ctx: Effitor.Editor.Context, marker: Marker) => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     if (offset === 1) {
         // 将已输入的第一个标记符替换为zws
         ctx.commandHandler.push('Replace_Text', {
             text: currText,
-            data: HtmlChar.ZERO_WIDTH_SPACE,
+            data: HtmlCharEnum.ZERO_WIDTH_SPACE,
             offset: 0,
             replacedData: currText.data[0],
             targetRanges: [srcCaretRange, srcCaretRange]
@@ -250,7 +251,7 @@ const insertDoubleMarkNodeAtStart = (currText: Text, offset: number, ctx: Et.Edi
     }
     const [markEl, text] = createMarkNode(marker.type)
     const df = document.createDocumentFragment()
-    checkNeedPrecedingZWS(currText, ctx) && df.append(HtmlChar.ZERO_WIDTH_SPACE)
+    checkNeedPrecedingZWS(currText, ctx) && df.append(HtmlCharEnum.ZERO_WIDTH_SPACE)
     df.append(markEl)
 
     const insertAt = dom.caretStaticRangeOutNode(currText, -1)
@@ -269,7 +270,7 @@ const insertDoubleMarkNodeAtStart = (currText: Text, offset: number, ctx: Et.Edi
 /**
  * 光标位于中间插入标记节点, 该函数须在checkEnd和checkStart后调用
  */
-const insertMarkAtTextMiddle = (ctx: Et.EditorContext, marker: Marker, data = '') => {
+const insertMarkAtTextMiddle = (ctx: Effitor.Editor.Context, marker: Marker, data = '') => {
     // 已判断光标不在开头也不在末尾, 将当前文本整体移除
     let removeOffset = 0
     if (marker.marker.length > 1) {
@@ -286,8 +287,8 @@ const insertMarkAtTextMiddle = (ctx: Et.EditorContext, marker: Marker, data = ''
     })
     const formerPart = currText.data.slice(0, ctx.range.startOffset - removeOffset)   // 若为双标记符则排除刚刚插入的第一个标记字符
     let latterPart = currText.data.slice(ctx.range.endOffset)
-    if (latterPart[0] !== HtmlChar.ZERO_WIDTH_SPACE) {
-        latterPart = HtmlChar.ZERO_WIDTH_SPACE + latterPart
+    if (latterPart[0] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
+        latterPart = HtmlCharEnum.ZERO_WIDTH_SPACE + latterPart
     }
     const [markEl, text] = createMarkNode(marker.type, data)
     const df = document.createDocumentFragment()
@@ -318,7 +319,7 @@ const checkCaretPositionAndInsertMarkNode: CheckInsertMark = (ctx, marker) => {
 /**
  * 移除标记节点, 并插回文本
  */
-const removeMarkNode = (ctx: Et.EditorContext) => {
+const removeMarkNode = (ctx: Effitor.Editor.Context) => {
     // 不是纯文本标记节点, 退出
     if (ctx.effectElement.children.length) {
         return false
@@ -331,7 +332,7 @@ const removeMarkNode = (ctx: Et.EditorContext) => {
     let text = markEl.innerText
     let startOffset = ctx.range.startOffset
     let endOffset = ctx.range.endOffset
-    if (text[0] === HtmlChar.ZERO_WIDTH_SPACE) {
+    if (text[0] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
         text = text.slice(1)
         startOffset = Math.max(startOffset - 1, 0)
         endOffset = Math.max(endOffset - 1, 0)
@@ -342,14 +343,14 @@ const removeMarkNode = (ctx: Et.EditorContext) => {
     const removeR = document.createRange()
 
     if (dom.isTextNode(prev)) {
-        const prevData = prev.data.replace(HtmlChar.ZERO_WIDTH_SPACE, '')
+        const prevData = prev.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
         text = prevData + text
         startOffset += prevData.length
         endOffset += prevData.length
         omitPrev = true
     }
     if (dom.isTextNode(next)) {
-        text += next.data.replace(HtmlChar.ZERO_WIDTH_SPACE, '')
+        text += next.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
         omitNext = true
     }
 
@@ -396,7 +397,7 @@ const removeMarkNode = (ctx: Et.EditorContext) => {
 /**
  * 绑到需要支持插入标记节点的Et元素构造器上
  */
-export const markHandler: Partial<Et.EffectHandlerDeclaration> = {
+export const markHandler: Partial<Effitor.EffectHandlerDeclaration> = {
     // 上游判断光标为Caret状态
     insertMarkNode(ctx, markType) {
         // 插入临时节点到成为正式节点之间 为一个事务
@@ -417,7 +418,7 @@ export const markHandler: Partial<Et.EffectHandlerDeclaration> = {
     // 选区状态下添加样式标记
     formatMark(ctx, markType) {
         const selectedString = ctx.range.toString()
-        if (!selectedString || selectedString === HtmlChar.ZERO_WIDTH_SPACE) return false
+        if (!selectedString || selectedString === HtmlCharEnum.ZERO_WIDTH_SPACE) return false
         // 跨节点禁用
         if (!ctx.node || ctx.range.startContainer !== ctx.range.endContainer) return false
 
@@ -443,7 +444,7 @@ export const markHandler: Partial<Et.EffectHandlerDeclaration> = {
 /**
  * 绑到et-mark节点构造器上
  */
-export const inMarkHandler: Partial<Et.EffectHandlerDeclaration> = {
+export const inMarkHandler: Partial<Effitor.EffectHandlerDeclaration> = {
     regressToMarkChar(ctx, markType) {
         markState.endMarking()
         // 不可直接撤销临时节点, 需手动删除
@@ -472,12 +473,12 @@ export const inMarkHandler: Partial<Et.EffectHandlerDeclaration> = {
         const f2 = document.createDocumentFragment()
         // prevInnermost, nextInnermost 必定存在且为#text节点
         if (dom.isTextNode(nextInnermost)) {
-            if (nextInnermost.data[0] === HtmlChar.ZERO_WIDTH_SPACE) {
+            if (nextInnermost.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
                 nextInnermost.deleteData(0, 1)
             }
         }
         if (dom.isTextNode(prevInnermost)) {
-            if (prevInnermost.data[prevInnermost.length - 1] === HtmlChar.ZERO_WIDTH_SPACE) {
+            if (prevInnermost.data[prevInnermost.length - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
                 prevInnermost.replaceData(prevInnermost.length - 1, 1, markerChars)
             }
             else {
@@ -507,11 +508,11 @@ export const inMarkHandler: Partial<Et.EffectHandlerDeclaration> = {
             const nextFirst = dom.innermostEditableStartingNode(nextNode)
             if (dom.isTextNode(nextFirst)) {
                 // 若下一节点的可编辑的最里层第一个节点是#text, 判断是否zws开头, 不是则插入zws
-                if (nextFirst.data[0] !== HtmlChar.ZERO_WIDTH_SPACE) {
+                if (nextFirst.data[0] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
                     ctx.commandHandler.push('Insert_Text', {
                         text: nextFirst,
                         offset: 0,
-                        data: HtmlChar.ZERO_WIDTH_SPACE,
+                        data: HtmlCharEnum.ZERO_WIDTH_SPACE,
                         setCaret: true,
                         targetRanges: [
                             dom.staticFromRange(ctx.range),

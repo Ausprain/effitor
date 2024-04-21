@@ -1,4 +1,4 @@
-import type { Et } from '../@types';
+import type { Effitor } from "@/effitor/@types";
 export * as dom from './dom'
 
 
@@ -10,7 +10,7 @@ export const camel2kebab = (str: string) => str.replace(/([a-z])([A-Z])/g, '$1-$
  *  若有, 则返回用于<style>标签的css字符串
  *  若没有, 则返回用于style属性的css字符串
  */
-export const cssStyle2cssText = (cssStyle: Partial<Et.ElStyle>, selector?: string) => {
+export const cssStyle2cssText = (cssStyle: Partial<Effitor.Element.ElStyle>, selector?: string) => {
     const entries = Object.entries(cssStyle)
     if (!entries.length) return ''
 

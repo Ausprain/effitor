@@ -1,11 +1,12 @@
-import { BuiltinElName, type Et } from "../@types";
+import type { Effitor } from '../@types'
+import { BuiltinElName } from "../@types";
 import { EffectElement } from ".";
 
 /**
  * 编辑器主体
  */
 export class EtEditorElement extends EffectElement {
-    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
+    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
     static readonly elName = BuiltinElName.ET_APP
     // static readonly cssStyle: Partial<CSSStyleDeclaration> = {
@@ -25,7 +26,7 @@ export class EtEditorElement extends EffectElement {
             display: 'flow-root',
             overflow: 'clip',
             overflowClipMargin: 'padding-box',
-        } as Et.ElStyle)
+        } as Effitor.Element.ElStyle)
 
 
         // 插入一个标题

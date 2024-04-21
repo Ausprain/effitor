@@ -56,5 +56,5 @@ export class EtLinkElement extends EtComponentElement {
         this.setAttribute('contenteditable', 'false')
     }
 }
-export type EtLinkElementCtor = typeof EtLinkElement;
+export type EffitorLinkElementCtor = typeof EtLinkElement;
 
