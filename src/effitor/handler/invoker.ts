@@ -1,4 +1,4 @@
-import type { Effitor } from '../@types'
+import type { Effitor, Prototype } from '../@types'
 import { EffectElement, type EffectElementCtor } from '../element';
 
 

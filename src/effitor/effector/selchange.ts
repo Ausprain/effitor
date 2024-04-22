@@ -9,7 +9,7 @@ export const getSelectionChangeListener = (ctx: Effitor.Editor.Context, callback
         if (ctx.inCompositionSession) {
             return
         }
-        console.error('sel change')
+        // console.error('sel change')
         ctx.forceUpdate()
         if (ctx.range.collapsed) ctx.body.classList.remove(CssClassEnum.SelectionRange)
         else ctx.body.classList.add(CssClassEnum.SelectionRange)

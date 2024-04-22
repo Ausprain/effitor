@@ -5,7 +5,7 @@
  */
 
 import { BuiltinConfig, BuiltinElName, BuiltinElType, CmdTypeEnum, CssClassEnum, HtmlCharEnum, MIMETypeEnum } from './constant';
-import { DOM, LowerLetter } from './declare';
+import { DOM, LowerLetter, Prettify } from './declare';
 
 export namespace Effitor {
 
@@ -385,8 +385,10 @@ export namespace Effitor {
              */
             setCaret?: boolean;
             /**
-             * [0]: 添加命令时光标位置
-             * [1]: 执行命令后光标位置, 包含范围, 用于更新Selection */
+             * 数组[0, 1]  
+             * 0: 添加命令时光标位置  
+             * 1: 执行命令后光标位置, 包含范围, 用于更新Selection  
+             */
             readonly targetRanges: [StaticRange, StaticRange?];
         }
         interface CmdInsertNode extends Cmd {

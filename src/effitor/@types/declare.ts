@@ -7,6 +7,10 @@ type DOMClipboardEvent = ClipboardEvent
 type DOMShadowRoot = ShadowRoot
 
 export type LowerLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+export type Prototype<C extends Function> = { constructor: C };
+export type Prettify<T> = {
+    [k in keyof T]: T[k]
+} & {};
 
 export declare namespace DOM {
     type HTMLNode = Text | HTMLElement;

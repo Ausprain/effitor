@@ -28,7 +28,7 @@ export const debounce = <F extends (...args: any[]) => void>(fn: F, timeout: num
     let timer: number | undefined
     return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
         if (timer !== undefined) clearTimeout(timer)
-        timer = setTimeout(() => {
+        timer = window.setTimeout(() => {
             fn.apply(this, args)
         }, timeout)
     }
@@ -40,14 +40,14 @@ export const throttle = <F extends (...args: any[]) => void>(fn: F, timeout: num
         ? function (this: ThisParameterType<F>, ...args: Parameters<F>) {
             if (timer !== undefined) return
             fn.apply(this, args)
-            timer = setTimeout(() => {
+            timer = window.setTimeout(() => {
                 timer = undefined
             }, timeout);
 
         }
         : function (this: ThisParameterType<F>, ...args: Parameters<F>) {
             if (timer !== undefined) return
-            timer = setTimeout(() => {
+            timer = window.setTimeout(() => {
                 fn.apply(this, args)
                 timer = undefined
             }, timeout);

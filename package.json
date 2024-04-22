@@ -1,12 +1,17 @@
 {
   "name": "effitor",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "description": "a web editor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node esbuild.config.js",
+    "build-dts": "tsc -p tsconfig.json && npx rollup -c rollup.dts.config.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +28,10 @@
   },
   "homepage": "https://github.com/Ausprain/effitor#readme",
   "devDependencies": {
+    "@types/node": "^20.12.7",
     "esbuild": "^0.20.2",
+    "rollup": "^4.16.1",
+    "rollup-plugin-dts": "^6.1.0",
     "typescript": "^5.4.5"
   }
 }
