@@ -131,7 +131,7 @@ const keydownKeySolver: Effitor.Effector.KeyboardKeySolver = {
         if (ctx.prevUpKey === ev.key) {
             ctx.effectInvoker.invoke('dblSpace', ctx) && ctx.commandHandler.handle() && ev.preventDefault()
         }
-        if (ctx.range.collapsed && ctx.range.endOffset === 1 && ctx.paragraphEl.textContent === '#') {
+        else if (ctx.range.collapsed && ctx.range.endOffset === 1 && ctx.paragraphEl.textContent === '#') {
             // console.error('atx #')
             ctx.effectInvoker.invoke('atxHeading', ctx) && ctx.commandHandler.handle() && ev.preventDefault()
         }

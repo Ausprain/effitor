@@ -26,29 +26,30 @@ export const addonHandler: Partial<Effitor.EffectHandlerDeclaration> = {
         return true
     },
     dblSpace(ctx) {
-        // console.error('double space effect')
+        console.error('double space effect')
         let receiver: EffectElement | null = null
         let el = ctx.effectElement
         while (el.elType === BuiltinElType.RICHTEXT || el.elType === BuiltinElType.COMPONENT) {
             receiver = el
             el = el.parentElement as EffectElement
-            if (!dom.isEtElement(el)) break
+            // if (!dom.isEtElement(el)) break
         }
         if (receiver) {
+            // 有文本节点且上一个字符为空格
             if (ctx.node && ctx.node.data[ctx.range.startOffset - 1] === '\x20') {
                 const srcTr = dom.staticFromRange(ctx.range)
+                const delTr = new StaticRange({
+                    startContainer: ctx.node,
+                    startOffset: ctx.range.startOffset - 1,
+                    endContainer: ctx.node,
+                    endOffset: ctx.range.startOffset
+                })
                 ctx.commandHandler.push('Delete_Text', {
                     data: '\x20',
                     isBackward: true,
-                    deleteRange: new StaticRange({
-                        startContainer: ctx.node,
-                        startOffset: ctx.range.startOffset - 1,
-                        endContainer: ctx.node,
-                        endOffset: ctx.range.startOffset
-                    }),
-                    targetRanges: [srcTr, srcTr]
+                    deleteRange: delTr,
+                    targetRanges: [srcTr, delTr]
                 })
-                ctx.commandHandler.handle()
             }
             const next = receiver.nextSibling
             // 下一节点是#text则定位到下一节点开头, 用以处理mark节点定位到 节点外结尾无效的问题（会自动定位到内结尾）
