@@ -150,5 +150,5 @@ const effitor = et.createEditor({
 })
 // mount a div
 const editorHost = document.getElementById('editor') as HTMLDivElement
-effitor.mount(editorHost)
+editorHost && effitor.mount(editorHost)
 ```

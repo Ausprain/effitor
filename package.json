@@ -1,7 +1,7 @@
 {
   "name": "effitor",
-  "version": "1.0.0-alpha.1",
-  "description": "a web editor",
+  "version": "0.1.0",
+  "description": "A web editor based on `Input Events Level 2`",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -9,9 +9,10 @@
     "dist"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node esbuild.config.js",
-    "build-dts": "tsc -p tsconfig.json && npx rollup -c rollup.dts.config.js"
+    "dev": "vite",
+    "build": "run-p bundle-js bundle-dts",
+    "bundle-js": "node esbuild.config.js",
+    "bundle-dts": "tsc -p tsconfig.json && npx rollup -c rollup.dts.config.js"
   },
   "repository": {
     "type": "git",
@@ -30,8 +31,10 @@
   "devDependencies": {
     "@types/node": "^20.12.7",
     "esbuild": "^0.20.2",
+    "npm-run-all2": "^6.1.2",
     "rollup": "^4.16.1",
     "rollup-plugin-dts": "^6.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
   }
 }
