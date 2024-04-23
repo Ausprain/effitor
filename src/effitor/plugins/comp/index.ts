@@ -25,7 +25,7 @@ type CompNames = keyof typeof compMap
  * @param paragraphCtor 编辑器段落元素的构造函数
  * @returns 
  */
-export const useCompPlugin = (compNames: CompNames[], paragraphCtor: EtParagraphCtor = EtParagraphElement): Effitor.Editor.Plugin => {
+export const useCompPlugin = (compNames: CompNames[]): Effitor.Editor.Plugin => {
     let codeSum = 0
     const elements = []
 
@@ -37,10 +37,11 @@ export const useCompPlugin = (compNames: CompNames[], paragraphCtor: EtParagraph
     const effector: Effitor.Effector = getCompEffector(codeSum)
 
     return {
+        name: 'comp',
         elements,
         effector,
-        registry() {
-            codeSum & listComp.code && listComp.registry?.(paragraphCtor)
+        registry(ctx) {
+            codeSum & listComp.code && listComp.registry?.(ctx.schema.paragraph)
         },
     }
 }

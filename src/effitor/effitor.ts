@@ -51,7 +51,14 @@ type PluginConfigs = {
     [K in keyof Effitor.Effector.Solvers as `${K}s`]: Effitor.Effector.Solvers[K][];
 };
 const reducePlugins = (plugins: Effitor.Editor.Plugin[], elCtors: EffectElementCtor[], ctx: Effitor.Editor.Context): PluginConfigs => {
+    const pSet = new Set<Effitor.Editor.Plugin['name']>()
     return plugins.reduce((pre, cur) => {
+        if (pSet.has(cur.name)) {
+            console.warn(`Duplicate plug-in named '${cur.name}'.`)
+            return pre
+        }
+        pSet.add(cur.name)
+
         cur.elements && pre.etElementCtors.push(...cur.elements)
         const ef = cur.effector
         for (const k in ef) {
@@ -185,7 +192,7 @@ export const createEditor = ({
 }: Effitor.Editor.CreateEditorOptions = {}): Effitor.Editor => {
     const _config = { ...defaultConfig, ...config }
     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
-    plugins.push({ effector: undoEffector })
+    plugins.push({ name: 'undo', effector: undoEffector })
     const schema: Effitor.Editor.Schema = {
         editor: builtinEl.EtEditorElement,
         body: builtinEl.EtBodyElement,

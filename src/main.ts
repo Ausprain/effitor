@@ -3,7 +3,7 @@ import et from './effitor'
 const effitor = et.createEditor({
     plugins: [
         et.plugins.useCompPlugin(['image', 'link', 'list']),
-        et.plugins.useMarkPlugin([et.element.EtParagraphElement])
+        et.plugins.useMarkPlugin()
     ]
 })
 

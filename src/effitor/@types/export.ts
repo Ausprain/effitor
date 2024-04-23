@@ -92,6 +92,8 @@ export namespace Effitor {
          * 编辑器插件
          */
         type Plugin = {
+            /** 插件唯一名字 */
+            readonly name: string;
             /**
              * 将注册在编辑器上的效应器列表
              * 按顺序绑定, 并按顺序触发响应,
