@@ -376,7 +376,7 @@ export namespace Effitor {
             readonly getEffectElCtor: (el: EtElement) => EtElementCtor;
             /** 调用EffectElement类对象上绑定的Effect EtHandler */
             invoke(e: keyof DefaultEffectHandlerMap, ...args: Parameters<InputEffectHandler>): ReturnType<InputEffectHandler>;
-            invoke<E extends keyof EffectHandlerDeclaration>(e: E, ...args: EffectHandlerDeclaration[E] extends (...args: infer P) => any ? P : []): ReturnType<EffectHandlerDeclaration[E]> | boolean | void;
+            invoke<E extends keyof EffectHandlerDeclaration>(e: E, ...args: EffectHandlerDeclaration[E] extends (...args: infer P) => any ? P : []): ReturnType<EffectHandlerDeclaration[E]>;
         }
         type CmdType = `${CmdTypeEnum}`
         /** 更新dom统一命令 */
@@ -614,7 +614,7 @@ export namespace Effitor {
         /**
          * 双击空格跳出样式节点, 在keydown内触发
          */
-        dblSpace: (ctx: Editor.Context) => void;
+        dblSpace: (ctx: Editor.Context) => boolean;
         /**
          * 键入'# ' 把当前段落设置为一个atx标题（仅支持一层）,
          */

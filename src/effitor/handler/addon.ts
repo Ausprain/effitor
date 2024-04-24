@@ -62,6 +62,7 @@ export const addonHandler: Partial<Effitor.EffectHandlerDeclaration> = {
             }
             return true
         }
+        return false
     },
     atxHeading(ctx) {
         if (!ctx.node) throw Error('没有文本节点')
