@@ -344,6 +344,10 @@ export const movedStaticRange = (staticRange: StaticRange, offset: number): Stat
  * 获取collapsed到某个节点内部的StaticRange
  */
 export const caretStaticRangeInNode = (node: Node, offset = 0): StaticRange => {
+    if (offset === Infinity) {
+        offset = isTextNode(node) ? node.length : node.childNodes.length
+    }
+    console.log('caretStaticRangeInNode: ', node, offset)
     return new StaticRange({
         startContainer: node,
         startOffset: offset,
