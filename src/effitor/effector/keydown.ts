@@ -1,4 +1,4 @@
-import type { Effitor } from "../@types";
+import type { DOM, Effitor } from "../@types";
 import { dom } from "../utils";
 
 /**
@@ -225,11 +225,11 @@ export class MainKeydownSolver implements Effitor.Effector.KeyboardSolver {
 }
 Object.assign(MainKeydownSolver.prototype, keydownKeySolver)
 
-export const runKeyboardSolver = (ev: KeyboardEvent, ctx: Effitor.Editor.Context, main: Effitor.Effector.KeyboardSolver, solvers: Effitor.Effector.KeyboardKeySolver[]) => {
+export const runKeyboardSolver = (ev: DOM.KeyboardEvent, ctx: Effitor.Editor.Context, main: Effitor.Effector.KeyboardSolver, solvers: Effitor.Effector.KeyboardKeySolver[]) => {
     const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
 
     for (const mapping of solvers) {
-        const fn = mapping[key] ?? mapping.default
+        const fn = mapping[key as keyof typeof mapping] ?? mapping.default
         // 其中一个效应器返回true, 跳过后续
         if (typeof fn === 'function' && fn(ev, ctx)) {
             break
@@ -244,7 +244,7 @@ export const runKeyboardSolver = (ev: KeyboardEvent, ctx: Effitor.Editor.Context
 }
 
 export const getKeydownListener = (ctx: Effitor.Editor.Context, main: MainKeydownSolver, solvers: Effitor.Effector.KeyboardSolver[]) => {
-    return (ev: KeyboardEvent) => {
+    return (ev: DOM.KeyboardEvent) => {
         // console.log('keydown:', ev.key, ev.code, ctx.currDownKey)
 
         // 没有effectElement 阻止后续输入

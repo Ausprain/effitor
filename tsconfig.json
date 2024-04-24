@@ -1,7 +1,9 @@
 {
   "include": ["src/**/*"],
   "compilerOptions": {
-    "alwaysStrict": true,   // use strict
+    "strict": true,
+    // "alwaysStrict": true,   // use strict
+    // "strictNullChecks": true,
     "composite": true,
     // "noEmit": true,
     "baseUrl": ".",

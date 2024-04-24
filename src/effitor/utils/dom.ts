@@ -1,6 +1,7 @@
 import type { DOM } from "@/effitor/@types";
 import { BuiltinElName, BuiltinElType, CssClassEnum, HtmlCharEnum } from '../@types';
 import { EffectElement, EtParagraphElement } from '../element/index';
+import { Effitor } from "@/effitor";
 
 export const isTextNode = (node?: DOM.NullableNode): node is Text => node?.nodeType === Node.TEXT_NODE
 export const isElementNode = (node?: DOM.NullableNode): node is HTMLElement => node?.nodeType === Node.ELEMENT_NODE
@@ -347,7 +348,6 @@ export const caretStaticRangeInNode = (node: Node, offset = 0): StaticRange => {
     if (offset === Infinity) {
         offset = isTextNode(node) ? node.length : node.childNodes.length
     }
-    console.log('caretStaticRangeInNode: ', node, offset)
     return new StaticRange({
         startContainer: node,
         startOffset: offset,

@@ -1,6 +1,7 @@
 import { InputTypeEnum, KeyboardCodeEnum, KeyboardKeyEnum, MIMETypeEnum } from "./constant";
 import { Effitor } from "./export";
 
+type DOMKeyboardEvent = KeyboardEvent
 type DOMInputEvent = InputEvent
 type DOMDataTransfer = DataTransfer
 type DOMClipboardEvent = ClipboardEvent
@@ -23,6 +24,10 @@ export declare namespace DOM {
     type KeyboardKey = `${KeyboardKeyEnum}`;
     type InputType = `${InputTypeEnum}`;
 
+    type KeyboardEvent = DOMKeyboardEvent & {
+        code: KeyboardCode
+        key: KeyboardKey
+    }
     type InputEvent = DOMInputEvent & {
         inputType: InputType;
     };
@@ -52,6 +57,8 @@ export declare namespace DOM {
 
 declare global {
     interface HTMLElementEventMap {
+        keydown: DOM.KeyboardEvent;
+        keyup: DOM.KeyboardEvent;
         beforeinput: DOM.InputEvent;
         input: DOM.InputEvent;
         copy: DOM.ClipboardEvent;

@@ -2,21 +2,33 @@ import type { DOM, Effitor } from "@/effitor/@types";
 import { createCommand } from "@/effitor/handler/cmd";
 import { dom } from "@/effitor/utils";
 
+/**
+ * 定位Selection到StaticRange位置, 并更新编辑器ctx.range和ctx.node  
+ * **!!仅小范围定位光标时使用此方法, 若定位光标可能导致`段落`或`效应元素`的变化, 应使用selectRange() + ctx.forceUpdate()组合**
+ */
+const selectRangeWithCtx = (ctx: Effitor.Editor.Context, range: StaticRange | Range) => {
+    dom.selectRange(ctx.selection, range)
+    ctx.range = ctx.selection.getRangeAt(0)
+    const focusNode = ctx.selection.focusNode
+    ctx.oldNode = ctx.node
+    ctx.node = dom.isTextNode(focusNode) ? focusNode : null
+    return true
+}
 
 const handleInsertText = (cmd: Effitor.Handler.CmdInsertText, ctx: Effitor.Editor.Context) => {
     cmd.text.insertData(cmd.offset, cmd.data)
     // dom.selectRange会导致2次selectionchange(sel.empty()+sel.addRange()), 因此要跳过2次; 仅chrome, 不同浏览器情况不同
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && selectRangeWithCtx(ctx, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
 const handleDeleteText = (cmd: Effitor.Handler.CmdDeleteText, ctx: Effitor.Editor.Context) => {
     const removeRange = dom.rangeFromStatic(cmd.deleteRange)
     // 仅删除文本
     removeRange.deleteContents()
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && selectRangeWithCtx(ctx, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
 const handleReplaceText = (cmd: Effitor.Handler.CmdReplaceText, ctx: Effitor.Editor.Context) => {
     cmd.text.replaceData(cmd.offset, cmd.replacedData.length, cmd.data)
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && selectRangeWithCtx(ctx, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
 const handleInsertCompositionText = (cmd: Effitor.Handler.CmdInsertCompositionText, ctx: Effitor.Editor.Context) => {
     // console.error('handle insert composition text', cmd)
@@ -28,14 +40,15 @@ const handleInsertCompositionText = (cmd: Effitor.Handler.CmdInsertCompositionTe
         const r = sel?.getRangeAt(0)
         if (!r) return
         cmd.targetRanges[0] = dom.staticFromRange(r)
-        if (dom.isTextNode(r.startContainer)) ctx.node = r.startContainer
-        else ctx.node = null
+        const node = r.startContainer
+        ctx.oldNode = ctx.node
+        ctx.node = dom.isTextNode(node) ? node : null
     }
 }
 const handleInsertNode = (cmd: Effitor.Handler.CmdInsertNode, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     const range = dom.rangeFromStatic(cmd.insertAt)
     range.insertNode(cmd.node)
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     // 首次执行 && 插入了元素 && 不强制事务 ->> 记录;  当插入文本节点时应当保留，以便命令合并后再commit
     isFresh && !dom.isTextNode(cmd.node) && ctx.commandHandler.commit()
 }
@@ -47,13 +60,13 @@ const handleRemoveNode = (cmd: Effitor.Handler.CmdRemoveNode, ctx: Effitor.Edito
      *  原因在于浏览器发送了一个deleteContentBackward事件将这个#text节点删掉了, 而ctx.node依然非null, 从而导致insertText命令判断为插入文本而非文本节点
      * fix. 通过更新上下文实现
      */
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     // 删除了元素, 记录事务
     isFresh && !dom.isTextNode(cmd.node) && ctx.commandHandler.commit()
 }
 const handleReplaceNode = (cmd: Effitor.Handler.CmdReplaceNode, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     cmd.node.replaceWith(cmd.newNode)
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1])
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     isFresh && ctx.commandHandler.commit()
 }
 const handleInsertContent = (cmd: Effitor.Handler.CmdInsertContent, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
@@ -91,19 +104,19 @@ const handleInsertContent = (cmd: Effitor.Handler.CmdInsertContent, ctx: Effitor
         cmd.targetRanges[1] = dom.caretStaticRangeOutNode(anchor, offset)
     }
 
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     // 记录事务
     isFresh && ctx.commandHandler.commit()
 }
 const handleRemoveContent = (cmd: Effitor.Handler.CmdRemoveContent, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
     const removeRange = dom.rangeFromStatic(cmd.removeRange)
     cmd.removeFragment = removeRange.extractContents()
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) // && ctx.forceUpdate()
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     // 记录事务
     isFresh && ctx.commandHandler.commit()
 }
 const handleFunctional = (cmd: Effitor.Handler.CmdFunctional, ctx: Effitor.Editor.Context, isFresh?: boolean) => {
-    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1])
+    cmd.setCaret && dom.selectRange(ctx.selection, cmd.targetRanges[1]) && ctx.forceUpdate()
     isFresh && ctx.commandHandler.commit()
 }
 

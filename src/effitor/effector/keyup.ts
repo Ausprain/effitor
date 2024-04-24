@@ -1,4 +1,4 @@
-import type { Effitor } from '../@types';
+import type { DOM, Effitor } from '../@types';
 import { runKeyboardSolver } from './keydown';
 
 export class MainKeyupSolver implements Effitor.Effector.KeyboardSolver {
@@ -7,7 +7,8 @@ export class MainKeyupSolver implements Effitor.Effector.KeyboardSolver {
 
 let doubleKeyTimer: number | undefined = undefined
 export const getKeyupListener = (ctx: Effitor.Editor.Context, main: MainKeyupSolver, solvers: Effitor.Effector.KeyboardKeySolver[]) => {
-    return (ev: KeyboardEvent) => {
+    return (ev: DOM.KeyboardEvent) => {
+        // console.error('keyup', ev.key)
         runKeyboardSolver(ev, ctx, main, solvers)
 
         // 用于判定双击按键, range时禁用

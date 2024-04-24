@@ -296,7 +296,7 @@ export class UndoStack {
         // 每次重做时都从undoCmds中重新构建命令, 避免insertContent命令的fragment执行后为空的问题; 撤销时同理
         tranx.redoCmds = cmdHandler.handleRedo(tranx.undoCmds, ctx)
         tranx.redoCallback(ctx)
-        // console.error(`redoed, length=${this.transactionStack.length}, pos=${this.pos}, cmds=`, redoCmds)
+        // console.error(`redoed, length=${this.transactionStack.length}, pos=${this.pos}, cmds=`, tranx.redoCmds)
         this.pos++
     }
     undo(ctx: Effitor.Editor.Context) {
@@ -306,7 +306,7 @@ export class UndoStack {
         const tranx = this.transactionStack[this.pos - 1]
         tranx.undoCmds = cmdHandler.handleUndo(tranx.redoCmds, ctx)
         tranx.undoCallback(ctx)
-        // console.error(`undoed, length=${this.transactionStack.length}, pos=${this.pos - 1}, cmds=`, undoCmds)
+        // console.error(`undoed, length=${this.transactionStack.length}, pos=${this.pos - 1}, cmds=`, tranx.undoCmds)
         this.pos--
     }
     /**
