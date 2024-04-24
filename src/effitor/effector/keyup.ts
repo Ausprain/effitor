@@ -6,7 +6,7 @@ export class MainKeyupSolver implements Effitor.Effector.KeyboardSolver {
 }
 
 let doubleKeyTimer: number | undefined = undefined
-export const getKeyupListener = (ctx: Effitor.Editor.Context, main: MainKeyupSolver, solvers: Effitor.Effector.KeyboardSolver[]) => {
+export const getKeyupListener = (ctx: Effitor.Editor.Context, main: MainKeyupSolver, solvers: Effitor.Effector.KeyboardKeySolver[]) => {
     return (ev: KeyboardEvent) => {
         runKeyboardSolver(ev, ctx, main, solvers)
 
