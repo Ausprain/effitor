@@ -15,11 +15,11 @@ export class EtComponentElement extends EffectElement {
     readonly nestedEditable: boolean = false;
     readonly elType: Effitor.Element.ElType = BuiltinElType.COMPONENT;
 
-    connectedCallback?(): void {
+    connectedCallback(this: EtComponentElement): void {
         this.setAttribute('contenteditable', 'false')
     }
 
-    replaceToNativeElement?(): void {
+    replaceToNativeElement(): void {
         const div = document.createElement('div')
         div.append(...this.childNodes)
         this.replaceWith(div)

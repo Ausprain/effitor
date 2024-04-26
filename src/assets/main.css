@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "ubuntu";
+  font-stretch: 100%;
+  font-style: normal;
+  font-weight: 100 800;
+  src: url("./ubuntu-font.woff2") format("woff2-variations");
+}
+
+et-editor::part(ps-prefix),
+et-editor::part(ps-suffix),
+et-editor::part(ps-block) {
+  /* ref */
+  background-color: #eee3af99;
+  /* ps */
+  background-color: #cccccc99;
+}
+
+et-editor::part(rel-prefix),
+et-editor::part(rel-suffix),
+et-editor::part(rel-block) {
+  /* rel */
+  background-color: #c7bee699;
+}

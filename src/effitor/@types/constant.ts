@@ -324,6 +324,13 @@ export const enum CssClassEnum {
     SelectionRange = "selection-range",
     /** 用于et-p 标记为标题段落 */
     Heading = "heading",
+
+    /** 前缀缩写符 */
+    Prefix = "prefix",
+    /** 后缀缩写符 */
+    Suffix = "suffix",
+    /** 块级缩写符 */
+    Block = "block",
 }
 export const enum CmdTypeEnum  {
     Insert_Node = "Insert_Node",

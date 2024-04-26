@@ -9,6 +9,7 @@ import { createCommand } from "./handler/cmd";
 import { useMarkPlugin } from "./plugins/mark";
 import { useCompPlugin } from "./plugins/comp";
 import { builtinHandler } from "./handler";
+import { useAbbrPlugin } from "./plugins/abbr";
 
 const et = {
     /** 创建一个编辑器对象 */
@@ -40,8 +41,9 @@ const et = {
         builtinHandler,
     },
     plugins: {
-        useMarkPlugin,
+        useAbbrPlugin,
         useCompPlugin,
+        useMarkPlugin,
     },
 }
 

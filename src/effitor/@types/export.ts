@@ -481,7 +481,7 @@ export namespace Effitor {
             readonly collapseTo?: number;
             /**
              * 刚好完全包含插入到fragment内容的范围, 用于逆命令的removeRange;
-             * *在命令执行时必须赋值该属性
+             * *在命令执行时必须赋值该属性, 否则无法构建逆命令; 命令创建时忽略
              */
             fragmentRange?: StaticRange;
             readonly targetRanges: [StaticRange, StaticRange];
@@ -590,6 +590,10 @@ export namespace Effitor {
         Selected: CssClassEnum.Selected,
         SelectionRange: CssClassEnum.SelectionRange,
         Heading: CssClassEnum.Heading,
+
+        Prefix: CssClassEnum.Prefix,
+        Suffix: CssClassEnum.Suffix,
+        Block: CssClassEnum.Block,
     }
     export const BUILTIN_EFFECT_PREFFIX = BuiltinConfig.BUILTIN_EFFECT_PREFFIX
 
