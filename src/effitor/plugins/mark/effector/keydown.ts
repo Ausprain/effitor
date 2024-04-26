@@ -28,16 +28,14 @@ const checkNesting = (ctx: Effitor.Editor.Context, markType: MarkType) => {
  * 判断光标并插入标记节点
  */
 const checkInsertMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
-    if (ctx.range.collapsed) {
-        return ctx.effectInvoker.invoke('insertMarkNode', ctx, markType)
-    }
-    return false
+    return ctx.effectInvoker.invoke('insertMarkNode', ctx, markType)
 }
 /**
  * 是否插入标记节点
  */
 const checkMarking = (ev: KeyboardEvent, ctx: Effitor.Editor.Context, markType: MarkType) => {
-    return checkAllowed(ctx)
+    return ctx.range.collapsed 
+        && checkAllowed(ctx)
         && checkNesting(ctx, markType)
         && checkInsertMark(ctx, markType)
         && (ev.preventDefault(), ctx.skipDefault = true)
@@ -144,7 +142,7 @@ export const keydownSolver: Effitor.Effector.KeyboardKeySolver = {
             ev.preventDefault()
             return ctx.skipDefault = true
         }
-        return checkNesting(ctx, MarkType.ITALIC) && checkInsertMark(ctx, MarkType.ITALIC) && (ev.preventDefault(), ctx.skipDefault = true)
+        return ctx.range.collapsed && checkNesting(ctx, MarkType.ITALIC) && checkInsertMark(ctx, MarkType.ITALIC) && (ev.preventDefault(), ctx.skipDefault = true)
     },
     // 选区状态下ctrl+b标记样式 或光标状态下ctrl+b切换样式
     B: checkHotKeyToMark(MarkType.BOLD),
