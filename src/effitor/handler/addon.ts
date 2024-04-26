@@ -6,8 +6,8 @@ import { dom } from "../utils";
 
 const caretToNextTextStart = (ctx: Effitor.Editor.Context, effectEl: Effitor.EtElement, srcTr: StaticRange): boolean => {
     let next: DOM.NullableNode = effectEl.nextSibling
-    if (!next) {
-        // 没有下一节点, 插入零宽字符; 以解决mark节点定位到 节点外结尾无效的问题（会自动定位到内结尾）
+    if (!next || next.nodeName === 'BR') {
+        // 没有下一节点`or`下一节点是<br>, 插入零宽字符; 以解决mark节点定位到 节点外结尾无效的问题（会自动定位到内结尾）
         const zws = dom.zwsText()
         ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: zws,
