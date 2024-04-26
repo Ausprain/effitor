@@ -2,14 +2,14 @@ import type { Effitor } from '../@types'
 import { BuiltinElType } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
-import { 
-    checkRemoveSelectionToCollapsed, 
-    checkTargetRangePosition, 
-    expandRemoveInsert, 
-    getRangeOutermostContainerUnderTheParagraph, 
-    getUnselectedCloneFragment, 
-    mergeFragments, 
-    mergeFragmentsWithText 
+import {
+    checkRemoveSelectionToCollapsed,
+    checkTargetRangePosition,
+    expandRemoveInsert,
+    getRangeOutermostContainerUnderTheParagraph,
+    getUnselectedCloneFragment,
+    mergeFragments,
+    mergeFragmentsWithText
 } from "./utils";
 
 
@@ -251,13 +251,17 @@ const insertParagraphAtCaret = (
     if (ctx.node) {
         currP = dom.findParagraphParent(ctx.node, ctx.schema.paragraph.elName)
         if (!currP) throw Error('当前段落不存在')
-        // 有文本节点 && 光标在文本节点末尾 && 文本节点是段落最后一个可视节点
-        if (ctx.node.length === srcCaretRange.endOffset
-            && (
-                ctx.node === currP.lastChild ||
-                (ctx.node === currP.lastChild?.previousSibling && currP.lastChild.nodeName === 'BR')
-            )
-        ) isParagraphEnd = true
+        // 有文本节点 && 光标在文本节点末尾 && 文本节点或以其为lastChild的最外层元素 是段落最后一个可视节点
+        if (ctx.node.length === srcCaretRange.endOffset) {
+            const outermost = dom.outermostAncestorAtEdge(ctx.node, 'end', currP.localName)
+            if (
+                outermost === currP ||
+                outermost === currP.lastChild ||
+                (outermost === currP.lastChild?.previousSibling && currP.lastChild.nodeName === 'BR')
+            ) {
+                isParagraphEnd = true
+            }
+        }
     }
     else {
         currP = dom.findParagraphParent(srcCaretRange.startContainer, ctx.schema.paragraph.elName)

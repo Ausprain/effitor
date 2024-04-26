@@ -63,7 +63,8 @@ export const closestUnderTheNode = (node: DOM.NullableNode, selectors: string, p
     return null
 }
 /**
- * 递归查找以当前节点为firstChild/lastChild的最近祖先节点, 若node不是firstChild/lastChild, 则返回自己
+ * 递归查找以当前节点为`firstChild/lastChild`的最近祖先节点, 若node不是`firstChild/lastChild`, 则返回自己;   
+ * 返回的节点可能匹配 `stopTag`, 
  */
 export const outermostAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopTag: string = BuiltinElName.ET_BODY): Node => {
     // todo need refactor
@@ -75,7 +76,7 @@ export const outermostAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopT
     return node
 }
 /**
- * 递归查找以当前节点为firstChild/lastChild的最近内联祖先节点, 若node不是firstChild/lastChild或不是内联节点, 则返回自身(即可能返回块节点)
+ * 递归查找以当前节点为`firstChild/lastChild`的最近内联祖先节点, 若node不是`firstChild/lastChild`或不是内联节点, 则返回自身(即可能返回块节点)
  */
 export const outermostInlineAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopTag: string = BuiltinElName.ET_BODY): Node => {
     // todo need refactor
