@@ -270,11 +270,11 @@ export const collapse = (sel: Selection, node: DOM.NullableNode, offset: number)
         return
     }
     if (offset <= 0) {
-        r.selectNode(node)
+        r.selectNodeContents(node)
         r.collapse(true)
     }
     else if (offset > node.childNodes.length) {
-        r.selectNode(node)
+        r.selectNodeContents(node)
         r.collapse(false)
     }
     else {
@@ -475,7 +475,7 @@ export const escapeHTML = (str: string, parseLFToBr = false) => {
 export const fragmentHTML = (fragment: DocumentFragment) => {
     let html = ''
     for (const child of fragment.childNodes) {
-        html += isElementNode(child) ? child.outerHTML : child.textContent
+        html += isElementNode(child) ? child.outerHTML : (child.textContent ?? '')
     }
     return html
 }

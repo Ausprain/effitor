@@ -424,6 +424,7 @@ export namespace Effitor {
         interface CmdInsertText extends Cmd {
             readonly type: `${CmdTypeEnum.Insert_Text}`;
             readonly text: Text;
+            /** 文本插入位置偏移量, 0则插入至开头 */
             readonly offset: number;
             /** 将插入的文本 */
             readonly data: string;
@@ -615,8 +616,14 @@ export namespace Effitor {
      */
     export interface EffectHandlerDeclaration extends Handler.DefaultEffectHandlerMap {
         replaceText: (ctx: Editor.Context, data: string, targetRange: DOM.TextStaticRange, setCaret?: boolean) => boolean;
+        /** 
+         * 按下tab将光标跳至当前效应元素（richtext或component）外结尾（即下一节点文本开头, 
+         * 若光标无法定位到下一节点文本开头, 则会插入一个零宽字符 
+         */
+        tabout: (ctx: Editor.Context) => boolean;
         /**
-         * 双击空格跳出样式节点, 在keydown内触发
+         * 双击空格跳出最外层样式节点(richtext, component), 在keydown内触发;  
+         * 类似的, Tab只跳出当前样式节点
          */
         dblSpace: (ctx: Editor.Context) => boolean;
         /**

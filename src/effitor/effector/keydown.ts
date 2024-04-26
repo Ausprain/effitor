@@ -1,4 +1,4 @@
-import type { DOM, Effitor } from "../@types";
+import { BuiltinElType, type DOM, type Effitor } from "../@types";
 import { dom } from "../utils";
 
 /**
@@ -166,14 +166,19 @@ const keydownKeySolver: Effitor.Effector.KeyboardKeySolver = {
     },
 
     Tab: (ev, ctx) => {
-        if (ev.ctrlKey || ev.altKey) return
-        // 非选区状态下, 效应元素不是段落, 退出
-        if (ctx.range.collapsed && ctx.effectElement !== ctx.paragraphEl) return
-        dom.dispatchInputEvent(ctx.root, 'beforeinput', {
-            inputType: ev.shiftKey ? 'formatOutdent' : 'formatIndent',
-            bubbles: false,
-        })
         ev.preventDefault()
+        if (ev.ctrlKey || ev.altKey) return
+        if (!ctx.range.collapsed || ctx.effectElement === ctx.paragraphEl) {
+            // 选区状态下, 或效应元素是段落: 处理缩进
+            dom.dispatchInputEvent(ctx.root, 'beforeinput', {
+                inputType: ev.shiftKey ? 'formatOutdent' : 'formatIndent',
+                bubbles: false,
+            })
+        }
+        else if (ctx.effectElement.elType === BuiltinElType.RICHTEXT || ctx.effectElement.elType === BuiltinElType.COMPONENT) {
+            // 在富文本`or`组件节点内, 跳到下一节点开头
+            return ctx.effectInvoker.invoke('tabout', ctx) && ctx.commandHandler.handle()
+        }
     },
 
     Enter: (ev, ctx) => {

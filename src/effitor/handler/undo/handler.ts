@@ -16,7 +16,10 @@ const selectRangeWithCtx = (ctx: Effitor.Editor.Context, range: StaticRange | Ra
 }
 
 const handleInsertText = (cmd: Effitor.Handler.CmdInsertText, ctx: Effitor.Editor.Context) => {
-    cmd.text.insertData(cmd.offset, cmd.data)
+    let offset = cmd.offset
+    if (offset < 0 ) offset = 0
+    else if (offset > cmd.text.length) offset = cmd.text.length
+    cmd.text.insertData(offset, cmd.data)
     // dom.selectRange会导致2次selectionchange(sel.empty()+sel.addRange()), 因此要跳过2次; 仅chrome, 不同浏览器情况不同
     cmd.setCaret && selectRangeWithCtx(ctx, cmd.targetRanges[1]) // && ctx.forceUpdate()
 }
