@@ -45,7 +45,7 @@ export const abbrHandler: Partial<Et.EffectHandlerDeclaration> = {
 const insertPrefixNode = (ctx: NotNullContext, abbr: Abbr): EtAbbrElement | null => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     // 插入前先删除trigger文本, 获取删除后光标的位置
-    const insertAt = checkInsertPrefixAtStart(ctx, srcCaretRange) || checkInsertPrefixAtEnd(ctx, abbr.inputedTriggerString, srcCaretRange)
+    const insertAt = checkInsertPrefixAtEnd(ctx, abbr.inputedTriggerString, srcCaretRange)
     if (!insertAt) {
         return insertPrefixAtMiddle(ctx, abbr, srcCaretRange)
     }
@@ -62,7 +62,7 @@ const insertPrefixNode = (ctx: NotNullContext, abbr: Abbr): EtAbbrElement | null
 const insertSuffixNode = (ctx: NotNullContext, abbr: Abbr): EtAbbrElement | null => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     // 截取字符至上一个双空格
-    const ret = checkInsertSuffixAtStart(ctx, srcCaretRange) || checkInsertSuffixAtEnd(ctx, abbr.inputedTriggerString, srcCaretRange)
+    const ret = checkInsertSuffixAtEnd(ctx, abbr.inputedTriggerString, srcCaretRange)
     if (!ret) {
         return insertSuffixAtMiddle(ctx, abbr, srcCaretRange)
     }
@@ -129,13 +129,6 @@ const checkInsertPrefixAtEnd = (ctx: NotNullContext, triggerString: string, srcC
     }
     return removeAt
 }
-const checkInsertPrefixAtStart = (ctx: NotNullContext, srcCaretRange: StaticRange): StaticRange | null => {
-    if (srcCaretRange.endOffset === 0) {
-        // 直接在前边插入节点
-        return dom.caretStaticRangeOutNode(ctx.node, -1)
-    }
-    return null
-}
 const insertPrefixAtMiddle = (ctx: NotNullContext, abbr: Abbr, srcCaretRange: StaticRange): EtAbbrElement => {
     // 先移除再插入
     const removeAt = dom.caretStaticRangeOutNode(ctx.node, -1)
@@ -183,7 +176,7 @@ const checkInsertSuffixAtEnd = (ctx: NotNullContext, triggerString: string, srcC
         const [startPos, endPos] = findDoubleSpaceAndRemoveText(text, text.length)
 
         const deleteStr = text.slice(startPos)
-        const suffixStr = text.slice(endPos)
+        const suffixStr = text.slice(endPos, text.length - triggerString.length)
         const remainStr = text.slice(0, startPos)
 
         if (startPos === 0 || remainStr === HtmlCharEnum.ZERO_WIDTH_SPACE) {
@@ -212,12 +205,6 @@ const checkInsertSuffixAtEnd = (ctx: NotNullContext, triggerString: string, srcC
             })
         }
         return [suffixStr, removeAt]
-    }
-    return null
-}
-const checkInsertSuffixAtStart = (ctx: NotNullContext, srcCaretRange: StaticRange): [string, StaticRange] | null => {
-    if (srcCaretRange.endOffset === 0) {
-        return ['', dom.caretStaticRangeOutNode(ctx.node, -1)]
     }
     return null
 }
