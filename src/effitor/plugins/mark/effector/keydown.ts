@@ -116,6 +116,9 @@ const checkTabToNextText = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
 export const keydownSolver: Effitor.Effector.KeyboardKeySolver = {
     /** `: code */
     [markerMap.code.char]: (ev, ctx) => {
+        if (ev.ctrlKey) {
+            return checkHotKeyToMark(MarkType.CODE)(ev, ctx)
+        }
         return checkMarking(ev, ctx, MarkType.CODE)
     },
     /** ~: delete */
