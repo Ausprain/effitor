@@ -29,10 +29,16 @@ const checkCaretFollowsTriggerString = (ctx: Et.Editor.Context, triggerString: s
 }
 /**
  * 判断段落文本是否为触发串文本, 仅空段落能触发块级符
- * @param triggerString 已插入dom的触发串
  */
-const checkParagraphTextEqualsTriggerString = (ctx: Et.Editor.Context, triggerString: string): ctx is NotNullContext => {
-    return ctx.range.collapsed && ctx.node && ctx.paragraphEl.textContent === triggerString || false
+const checkTriggerBlockAbbr = (ev: KeyboardEvent, ctx: NotNullContext) => {
+    const pText = ctx.paragraphEl.textContent
+    for (const abbr of abbrContext.blockAbbrs) {
+        if (pText === abbr.inputedTriggerString) {
+            // to remove
+            // console.warn('trigger block abbr')
+            return onKeydownTriggerAbbr(ev, ctx, abbr)
+        }
+    }
 }
 
 const keydownSolver: Et.Effector.KeyboardKeySolver = {
@@ -48,12 +54,8 @@ const keydownSolver: Et.Effector.KeyboardKeySolver = {
         }
     },
     Enter: (ev, ctx) => {
-        // 监听（块级符）最后一个触发字符: \n
-        abbrListener.listen('\n')
-        const abbr = abbrContext.readyAbbr
-        // 仅在空段落可以触发块级缩写符
-        if (abbr && checkParagraphTextEqualsTriggerString(ctx, abbr.inputedTriggerString)) {
-            onKeydownTriggerAbbr(ev, ctx, abbr)
+        if (ctx.range.collapsed && ctx.node && ctx.paragraphEl === ctx.effectElement) {
+            return checkTriggerBlockAbbr(ev, ctx as NotNullContext)
         }
     }
 }

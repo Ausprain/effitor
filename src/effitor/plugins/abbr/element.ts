@@ -17,12 +17,10 @@ ${A.Tag} {
     margin: 0 4px;
     padding: 4px 6px;
     border-radius: 3px;
-
 }
 ${A.Tag}::before,
 ${A.Tag}::after {
     display: inline-block;
-
     font-style: italic;
     font-size: .83em;
     font-family: Cascadia Code, Consolas;
@@ -47,10 +45,14 @@ ${A.Tag}.${A.Suf}::after {
 
 ${A.Tag}.${A.Blk} {
     display: block;
+    padding: 8px 16px;
+    border-radius: 6px;
 }
 ${A.Tag}.${A.Blk}::before {
     content: attr(${A.Attr_display});
-    display: inline;  /* inline-block会导致white-space: pre-wrap生效 */
+    display: block;
+    transform: translate(-6px, -4px);
+    text-decoration: underline;
 }
 `
 

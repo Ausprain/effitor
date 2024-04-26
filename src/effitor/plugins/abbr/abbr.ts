@@ -1,7 +1,7 @@
 import type { LowerLetter } from "@/effitor/@types"
 import type { EtAbbrElement } from "./element"
 import type { NotNullContext } from "./handler";
-import { blockTriggerChars, prefixTriggerChars, suffixTriggerChars, abbrContext, prefixAbbrDisplay, suffixAbbrDisplay, blockAbbrDisplay } from './config';
+import { prefixTriggerChars, suffixTriggerChars, abbrContext, prefixAbbrDisplay, suffixAbbrDisplay } from './config';
 
 type Letters = `${LowerLetter | Uppercase<LowerLetter>}`
 export type AbbrName = `${Letters}${string}`
@@ -51,13 +51,13 @@ type CreateAbbrOptions = {
 const triggerCharsCreators: Record<AbbrType, (name: AbbrName) => string> = {
     1: prefixTriggerChars,
     2: suffixTriggerChars,
-    4: blockTriggerChars
+    4: prefixTriggerChars
 }
 
 const abbrDisplayGetters: Record<AbbrType, (name: AbbrName) => string> = {
     1: prefixAbbrDisplay,
     2: suffixAbbrDisplay,
-    4: blockAbbrDisplay
+    4: prefixAbbrDisplay
 }
 
 export class Abbr implements CreateAbbrOptions {
@@ -174,10 +174,15 @@ export const abbrListener = (() => {
         },
         registerAbbrs: (abbrs: Abbr[]) => {
             for (const abbr of abbrs) {
+                // todo remove
+                console.log('reigster abbr', abbr.display)
+                if (abbr.type & 4) {
+                    // 块级符不参与judge
+                    abbrContext.blockAbbrs.push(abbr)
+                    continue
+                }
                 const triggerString = triggerCharsCreators[abbr.type](abbr.name)
                 if (!abbrJudgeMap.has(triggerString)) {
-                    // todo remove
-                    console.log('reigster abbr', abbr.display)
                     abbrJudgeMap.set(triggerString, new AbbrJudge(abbr, triggerString))
                 }
             }
