@@ -198,7 +198,8 @@ export const cleanFragment = (f: DocumentFragment) => {
     const arr: ChildNode[] = []
     traverseNode(f, (node) => {
         if (
-            isElementNode(node) && node.elType === undefined && node.innerText === '' && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR'
+            // isElementNode(node) && node.elType === undefined && node.innerText === '' && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR' / 'IMG'
+            isElementNode(node) && node.innerText === '' && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR' / 'IMG'
             || isTextNode(node) && node.length === 0
         ) arr.push(node)
     })
