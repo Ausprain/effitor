@@ -50,7 +50,7 @@ export const getPasteListener = (ctx: Effitor.Editor.Context, callbacks: Effitor
 
         if (!ev.clipboardData) return
         // 判断是否粘贴编辑器复制内容
-        const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_COPY_METADATA)
+        const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_TEXT_HTML)
         // 否则尝试调用插件回调
         if (!etHtml) {
             for (const cb of callbacks) {
