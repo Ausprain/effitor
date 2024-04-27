@@ -10,6 +10,11 @@ import { useMarkPlugin } from "./plugins/mark";
 import { useCompPlugin } from "./plugins/comp";
 import { builtinHandler } from "./handler";
 import { useAbbrPlugin } from "./plugins/abbr";
+import { EtAbbrElement } from "./plugins/abbr/element";
+import { EtImageElement } from "./plugins/comp/image/EtImageElement";
+import { EtLinkElement } from "./plugins/comp/link/EtLinkElement";
+import { EtListElement } from "./plugins/comp/list/EtListElement";
+import { EtMarkElement } from "./plugins/mark/element";
 
 const et = {
     /** 创建一个编辑器对象 */
@@ -32,6 +37,11 @@ const et = {
     /** 自定义元素 */
     element: {
         ...builtinEl,
+        EtAbbrElement,
+        EtImageElement,
+        EtLinkElement,
+        EtListElement,
+        EtMarkElement,
     },
     /** 效应处理器 */
     handler: {

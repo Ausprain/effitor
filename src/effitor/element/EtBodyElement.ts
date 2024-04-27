@@ -17,7 +17,7 @@ export class EtBodyElement extends EffectElement {
         whiteSpace: 'pre-wrap',
         fontFamily: 'ubuntu',
         fontWeight: '449',
-        fontSize: '16.6px'
+        fontSize: '15px'
     }
 
     connectedCallback(): void {

@@ -17,6 +17,7 @@ ${A.Tag} {
     margin: 0 4px;
     padding: 4px 6px;
     border-radius: 3px;
+    word-break: break-all;   /* 缩写符内边缘截断所有文本 */
 }
 ${A.Tag}::before,
 ${A.Tag}::after {

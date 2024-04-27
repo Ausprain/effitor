@@ -1,9 +1,9 @@
 import './assets/main.css'
 
-import et from './effitor'
+import type { AbbrInit } from './effitor/plugins/abbr'
 import { EtParagraphElement } from './effitor/element'
-import { AbbrInit, useAbbrPlugin } from './effitor/plugins/abbr'
 import { EtAbbrElement } from './effitor/plugins/abbr/element'
+import et from './effitor'
 
 const abbrInits: AbbrInit[] = [{
     name: 'ps',
@@ -23,13 +23,22 @@ const abbrInits: AbbrInit[] = [{
 }, {
     name: 'rel',
     config: { 1: {}, 2: {}, 4: {} }
+}, {
+    name: 'ref',
+    config: { 1: {}, 2: {}, 4: {} }
+}, {
+    name: 'prer',
+    config: { 4: {} }
+}, {
+    name: 'app',
+    config: { 4: {} }
 }]
 
 const effitor = et.createEditor({
     plugins: [
         et.plugins.useMarkPlugin([EtAbbrElement, EtParagraphElement]),
-        // et.plugins.useCompPlugin(['image', 'link', 'list']),
-        useAbbrPlugin({ abbrInits })
+        et.plugins.useCompPlugin(['image', 'link', 'list']),
+        et.plugins.useAbbrPlugin({ abbrInits }),
     ]
 })
 

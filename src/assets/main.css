@@ -9,10 +9,15 @@
 et-editor::part(ps-prefix),
 et-editor::part(ps-suffix),
 et-editor::part(ps-block) {
-  /* ref */
-  background-color: #eee3af99;
   /* ps */
   background-color: #cccccc99;
+}
+
+et-editor::part(ref-prefix),
+et-editor::part(ref-suffix),
+et-editor::part(ref-block) {
+  /* ref */
+  background-color: #eee3af99;
 }
 
 et-editor::part(rel-prefix),
@@ -20,4 +25,13 @@ et-editor::part(rel-suffix),
 et-editor::part(rel-block) {
   /* rel */
   background-color: #c7bee699;
+}
+
+et-editor::part(prer-block) {
+  border: 1px solid #b3d4fc;
+  background-color: #eef9fd;
+}
+et-editor::part(app-block) {
+  border: 1px solid #b0f5c5;
+  background-color: #e6f6e6;
 }

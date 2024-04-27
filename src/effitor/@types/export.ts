@@ -4,6 +4,7 @@
  * @date: 2024-04-20 20:09:55 
  */
 
+import { AbbrInit as _AbbrInit } from '../plugins/abbr';
 import { BuiltinConfig, BuiltinElName, BuiltinElType, CmdTypeEnum, CssClassEnum, HtmlCharEnum, MIMETypeEnum } from './constant';
 import { DOM, LowerLetter, Prettify } from './declare';
 
@@ -603,6 +604,7 @@ export namespace Effitor {
     export type Effector = Effector.Effector
     export type EtElement = Element.EffectElement
     export type EtElementCtor = Element.EffectElementCtor
+    export type AbbrInit = _AbbrInit
     /**
      * 定义的EtElement映射表, 用于document.createElement()的提示 
      * @expandable
