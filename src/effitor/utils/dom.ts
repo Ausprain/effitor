@@ -199,11 +199,19 @@ export const cleanFragment = (f: DocumentFragment) => {
     traverseNode(f, (node) => {
         if (
             // isElementNode(node) && node.elType === undefined && node.innerText === '' && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR' / 'IMG'
-            isElementNode(node) && node.innerText === '' && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR' / 'IMG'
+            isElementNode(node) && node.childNodes.length === 0 && !['BR', 'IMG'].includes(node.nodeName)  // node.nodeName !== 'BR' / 'IMG'
             || isTextNode(node) && node.length === 0
         ) arr.push(node)
     })
-    arr.forEach(node => node.remove())
+    arr.forEach(node => {
+        let p = node.parentElement
+        node.remove()
+        while (p && p.childNodes.length === 0) {
+            let t = p
+            p.remove()
+            p = t.parentElement
+        }
+    })
     f.normalize()
 }
 /**

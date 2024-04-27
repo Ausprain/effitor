@@ -1,9 +1,12 @@
-import type { Effitor } from '../../../@types'
+import { MIMETypeEnum, type Effitor } from '../../../@types'
 import { dom } from "@/effitor/utils";
 import { EtImageElement } from "./EtImageElement";
 
 
 export const pasteImage: Effitor.Effector.ClipboardAction = (ev, ctx) => {
+    // 有文本内容, 退出
+    if (ev.clipboardData.getData(MIMETypeEnum.TEXT_PLAIN)) return false
+    // 仅当clipboardData只有图片时粘贴图片
     const reader = new FileReader()
     reader.onload = (e) => {
         const dataUrl = e.target?.result as string
