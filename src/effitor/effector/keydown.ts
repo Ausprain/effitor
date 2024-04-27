@@ -1,4 +1,4 @@
-import { BuiltinElType, type DOM, type Effitor } from "../@types";
+import { BuiltinElType, HtmlCharEnum, type DOM, type Effitor } from "../@types";
 import { dom } from "../utils";
 
 /**
@@ -218,9 +218,18 @@ const keydownKeySolver: Effitor.Effector.KeyboardKeySolver = {
         }
     },
     Backspace: (ev, ctx) => {
+        // 毗邻零宽字符, 移动光标
+        if (dom.checkAbutZeroWidthSpace(ctx.range, true)) {
+            console.warn('backspace move caret')
+            ctx.selection.modify('move', 'backward', 'character')
+        }
         checkBackspaceInUneditable(ev, ctx)
     },
     Delete: (ev, ctx) => {
+        if (dom.checkAbutZeroWidthSpace(ctx.range, false)) {
+            console.warn('delete move caret')
+            ctx.selection.modify('move', 'forward', 'character')
+        }
         checkDeleteInUneditable(ev, ctx)
     },
 }

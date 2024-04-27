@@ -6,7 +6,7 @@
 import type { Effitor } from "@/effitor/@types";
 
 import { EtRichTextElement } from "@/effitor/element";
-import { MarkElName, MarkEnum, MarkStatus, MarkType } from "./@type.mark";
+import { MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 import { markCssText } from "./config";
 import { BuiltinElType, HtmlCharEnum, type DOM } from "@/effitor/@types";
 
@@ -14,7 +14,7 @@ import { BuiltinElType, HtmlCharEnum, type DOM } from "@/effitor/@types";
 export class EtMarkElement extends EtRichTextElement {
     // static [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 
-    static readonly elName = MarkElName
+    static readonly elName = MarkEnum.ElName
     static readonly cssText: string = markCssText
 
     readonly elType = BuiltinElType.RICHTEXT;

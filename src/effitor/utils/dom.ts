@@ -1,7 +1,6 @@
 import type { DOM } from "@/effitor/@types";
 import { BuiltinElName, BuiltinElType, CssClassEnum, HtmlCharEnum } from '../@types';
 import { EffectElement, EtParagraphElement } from '../element/index';
-import { Effitor } from "@/effitor";
 
 export const isTextNode = (node?: DOM.NullableNode): node is Text => node?.nodeType === Node.TEXT_NODE
 export const isElementNode = (node?: DOM.NullableNode): node is HTMLElement => node?.nodeType === Node.ELEMENT_NODE
@@ -216,7 +215,7 @@ export const cleanFragment = (f: DocumentFragment) => {
 }
 /**
  * 合并两个DocumentFragment, 以start的节点为主
- * @param clone 是否克隆副本进行合并, 否则返回合并了end的start, `默认false`
+ * @param clone 是否克隆副本进行合并, 否则返回合并了`end`的`start`, 默认`false`
  */
 export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, clone = false): DocumentFragment => {
     // console.log('mergeFragment: ', start, end)
@@ -224,9 +223,17 @@ export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, cl
         start = start.cloneNode(true) as DocumentFragment
         end = end.cloneNode(true) as DocumentFragment
     }
-    if (isElementNode(start.lastChild) && isElementNode(end.firstChild)) {
+    const startLast = start.lastChild
+    const endFirst = end.firstChild
+    // #text合并时, 后者开头的零宽字符去掉
+    if (isTextNode(startLast) && isTextNode(endFirst)) {
+        let count = 0
+        while (endFirst.data[count] === HtmlCharEnum.ZERO_WIDTH_SPACE) count++
+        count && endFirst.replaceData(0, count, '')
+    }
+    else if (isElementNode(startLast) && isElementNode(endFirst)) {
         // merge element
-        const node = mergeElement(start.lastChild, end.firstChild)
+        const node = mergeElement(startLast, endFirst)
         if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
             // 返回片段, 说明未合并, 提取到了DocumentFragment中, 需手动插回start
             start.appendChild(node)
@@ -238,10 +245,12 @@ export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, cl
     return start
 }
 /**
- * 合并两个元素节点(会改变原来节点), 若两个元素不同名, 则返回包含两个元素的DocuemntFragment
+ * 合并两个元素节点(会改变原来节点), 若两个元素不同名, 则返回包含两个元素的`DocuemntFragment`;   
+ * 特别的, et组件元素（`elType=='component'`）永不合并, 即使同名
  */
 export const mergeElement = (start: Element, end: Element): Node => {
-    if (start.localName !== end.localName) {
+    // et组件不可合并, 即使同名
+    if (start.tagName !== end.tagName || isEtElement(start) && start.elType === BuiltinElType.COMPONENT) {
         const frag = document.createDocumentFragment()
         frag.append(start, end)
         return frag
@@ -458,6 +467,19 @@ export const traverseNode = <T extends number>(
 /* -------------------------------------------------------------------------- */
 /*                                    html                                    */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * 判断光标前/后方是否为零宽字符
+ */
+export const checkAbutZeroWidthSpace = (range: Range, isBackward: boolean) => {
+    const node = range.startContainer
+    if (!range.collapsed || !isTextNode(node)) return false
+    const offset = range.endOffset
+    if (isBackward) {
+        return offset > 0 && node.data[offset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE ? true : false
+    }
+    return offset < node.length && node.data[offset] === HtmlCharEnum.ZERO_WIDTH_SPACE ? true : false
+}
 
 
 /**

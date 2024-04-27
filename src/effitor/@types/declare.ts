@@ -6,6 +6,7 @@ type DOMInputEvent = InputEvent
 type DOMDataTransfer = DataTransfer
 type DOMClipboardEvent = ClipboardEvent
 type DOMShadowRoot = ShadowRoot
+type DOMSelection = Selection
 
 export type LowerLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type Prototype<C extends Function> = { constructor: C };
@@ -52,6 +53,17 @@ export declare namespace DOM {
         addEventListener<K extends keyof ShadowRootEventMap>(type: K, listener: (this: ShadowRoot, ev: ShadowRootEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
         addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
         getElementById(elementId: string): HTMLElement | null;
+        getSelection?: () => Selection | null;
+    }
+    /**
+     * [Selection](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection)
+     */
+    type Selection = DOMSelection & {
+        /**
+         * [MDN Reference](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection/modify)  
+         * [Selection API W3C Working Draft 16 May 2023](https://www.w3.org/TR/selection-api/#dom-selection-modify)
+         */
+        modify(alter: "extend" | "move", direction: "forward" | "backward" | "left" | "right", granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "sentenceboundary" | "paragraphboundary" | "documentboundary"): void;
     }
 }
 

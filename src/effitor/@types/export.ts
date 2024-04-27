@@ -46,13 +46,11 @@ export namespace Effitor {
             /** 当前活跃编辑器所属的div, root.host的父节点 */
             el: HTMLDivElement;
             /** 当前触发编辑逻辑的ShadowRoot */
-            root: ShadowRoot & {
-                getSelection?: () => Selection | null;
-            };
+            root: DOM.ShadowRoot;
             /** 当前编辑区 */
             body: Element.EtBodyElement;
             /** 当前`Selection`对象 */
-            selection: Selection;
+            selection: DOM.Selection;
             /** 对应的`Range`对象 */
             range: Range;
             /** 当且仅当`Selection.anchorNode`是TextNode时非空  */
@@ -476,13 +474,14 @@ export namespace Effitor {
              */
             readonly insertAt: StaticRange;
             /**
-             * 一个fragment.childNodes的索引, 当命令结束光标需要定位到该节点前时, 需配置该属性,
-             * 命令执行时构造StaticRange并覆盖targetRanges[1]
-             * 否则光标落点直接用targetRanges[1]
+             * 一个`fragment.childNodes`的索引偏移量,   
+             * 当命令执行后光标需要定位到该索引指向的节点前时（即执行命令时无法取得准确的`targetRanges[1]`时）必须配置该属性,  
+             * 命令执行时会根据该值构造`StaticRange`并覆盖`targetRanges[1]`  
+             * 未配置时，光标落点直接用`targetRanges[1]`  
              */
             readonly collapseTo?: number;
             /**
-             * 刚好完全包含插入到fragment内容的范围, 用于逆命令的removeRange;
+             * 刚好完全包含插入到fragment内容的范围, 用于逆命令的removeRange;  
              * *在命令执行时必须赋值该属性, 否则无法构建逆命令; 命令创建时忽略
              */
             fragmentRange?: StaticRange;
@@ -496,7 +495,8 @@ export namespace Effitor {
              */
             readonly removeRange: StaticRange;
             /**
-             * 此项用于暂存removeRange extract出来的片段, 用于逆命令的fragment; 命令执行时必须赋值该属性
+             * 此项用于暂存removeRange extract出来的片段, 用于逆命令的fragment;   
+             * *在命令执行时必须赋值该属性, 否则无法构建逆命令; 命令创建时忽略
              */
             removeFragment?: DocumentFragment;
             readonly targetRanges: [StaticRange, StaticRange];

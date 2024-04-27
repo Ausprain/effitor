@@ -2,6 +2,7 @@ import type { Effitor, DOM } from '../@types'
 import { BuiltinElType, HtmlCharEnum } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
+import { CmdTypeEnum } from '@/effitor/@types';
 
 /* -------------------------------------------------------------------------- */
 /*                            handler utils                                   */
@@ -127,11 +128,9 @@ export const mergeFragmentsWithText = (
 }
 /**
  * 合并两个片段, 返回合并后片段及其中间位置
- * @param f1 
- * @param f2 
- * @returns 元组 或undefined（f1/f2均空）   
- *  [0]: 合并后的片段
- *  [1]: 合并后中间落点, 如果落点是#text, 则返回一个StaticRange, 否则返回该节点在片段中的treeWalker顺序索引
+ * @returns 元组 或`undefined`（`f1/f2`均为空时）   
+ *  `[0]:` 合并后的片段  
+ *  `[1]:` 合并后中间落点, 如果落点是`#text`, 则返回一个`StaticRange`, 否则返回该节点在片段中的`treeWalker`顺序索引
  */
 export const mergeFragments = (
     f1: DocumentFragment,
@@ -155,14 +154,14 @@ export const mergeFragments = (
         // anchor = dom.innermostEndingNode(f1)
         anchor = dom.innermostEditableEndingNode(f1)
         if (dom.isTextNode(anchor)) offset = anchor.length
-        // else indexOffset = 1    // 定于开始末尾, 相当于下一节点开头, index偏移+1  !由于使用treeWalker, 下一节点可能是anchor子节点而非下一兄弟
+        // else indexOffset = 1    // 定于开始末尾, 相当于下一节点开头, index偏移+1  !!!由于使用treeWalker, 下一节点可能是anchor子节点而非下一兄弟
     }
     const fragment = dom.mergeFragment(f1, f2)
     if (dom.isTextNode(anchor)) {
         // 光标定位于文本节点
         return [fragment, dom.caretStaticRangeInNode(anchor, offset)]
     }
-    else {
+    else if (anchor) {
         // 光标定位于非文本节点
         let i = 0
         dom.traverseNode(fragment, (node: Node) => {
@@ -210,7 +209,7 @@ export const expandRemoveInsert = (
     }
     const out = mergeFragments(f1, f2)
     // 合并片段为空, 无需插入直接返回，光标置于删除后的位置
-    ctx.commandHandler.push('Remove_Content', {
+    ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
         removeRange,
         setCaret: !out ? true : false,
         targetRanges: [srcCaretRange, removeAt]
@@ -223,7 +222,7 @@ export const expandRemoveInsert = (
         if (el.elType === BuiltinElType.PARAGRAPH) dom.removeStatusClassOfEl(el)
     }, { whatToShow: NodeFilter.SHOW_ELEMENT })
     if (typeof dest === 'number') {
-        ctx.commandHandler.push('Insert_Content', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
             fragment,
             insertAt: removeAt,
             collapseTo: dest,
@@ -232,7 +231,7 @@ export const expandRemoveInsert = (
         })
     }
     else {
-        ctx.commandHandler.push('Insert_Content', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
             fragment,
             insertAt: removeAt,
             setCaret: true,
@@ -251,7 +250,7 @@ export const insertNodeAtCaret = (
     srcCaretRange: StaticRange
 ) => {
     if (!ctx.node) {
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: node,
             insertAt: srcCaretRange,
             setCaret: true,
@@ -264,7 +263,7 @@ export const insertNodeAtCaret = (
     )) {
         const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'start')
         const insertAt = dom.caretStaticRangeOutNode(outermost, -1)
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: node,
             insertAt,
             setCaret: true,
@@ -277,7 +276,7 @@ export const insertNodeAtCaret = (
     )) {
         const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'end')
         const insertAt = dom.caretStaticRangeOutNode(outermost, 1)
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: node,
             insertAt,
             setCaret: true,
@@ -291,7 +290,7 @@ export const insertNodeAtCaret = (
     }
 }
 /**
- * 移除选区让光标collapsed
+ * 删除选区内容并让光标collapsed
  */
 export const checkRemoveSelectionToCollapsed = (ctx: Effitor.Editor.Context) => {
     if (!ctx.range.collapsed) {

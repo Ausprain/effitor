@@ -84,14 +84,15 @@ function updateContext(this: Effitor.Editor.Context): boolean {
         return false
     }
     this.range = r
-    this.oldNode = this.node
-    // const focusNode = r.endContainer   // 即 sel.focusNode
+    // const focusNode = r.endContainer   // 不一定是 sel.focusNode 
     const focusNode = sel.focusNode
     this.node = dom.isTextNode(focusNode) ? focusNode : null
     if (this.oldNode !== null && this.oldNode === this.node) {
-        // console.error('同一个节点, 更新完毕', this)
+        // console.error('同一个节点, 更新完毕', this.oldNode, this.node)
         return true
     }
+    // fix. 后置更新oldNode, 因为 handle命令时也更新了一次, 避免一直出现'同一节点内'的情况
+    this.oldNode = this.node
 
     const effectEl = dom.findEffectParent(focusNode)
     if (!effectEl) {

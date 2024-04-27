@@ -3,7 +3,7 @@ export const enum MarkEnum {
     ElName = 'et-mark'
 }
 // export const MarkElName = 'et-mark';
-export const MarkElName = MarkEnum.ElName;
+// export const MarkElName = MarkEnum.ElName;
 export const enum MarkType {
     CODE = 'code',
     BOLD = 'bold',
