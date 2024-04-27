@@ -2,9 +2,7 @@ import type { Effitor } from '../@types'
 import { BuiltinElName } from "../@types";
 import { EffectElement } from ".";
 
-/**
- * 编辑器主体
- */
+/** 编辑器, shadow-root容器 */
 export class EtEditorElement extends EffectElement {
     // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
 

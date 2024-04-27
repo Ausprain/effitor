@@ -1,4 +1,4 @@
-import { extentEtElement, builtinEl } from "./element";
+import { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement, extentEtElement } from "./element";
 import { MainKeydownSolver } from "./effector";
 import { MainKeyupSolver } from './effector/keyup';
 import { MainBeforeInputTypeSolver } from './effector/beforeinput';
@@ -36,7 +36,13 @@ const et = {
     },
     /** 自定义元素 */
     element: {
-        ...builtinEl,
+        EtEditorElement,
+        EtBodyElement,
+        EtParagraphElement,
+        EtPlainTextElement,
+        EtRichTextElement,
+        EtComponentElement,
+        
         EtAbbrElement,
         EtImageElement,
         EtLinkElement,

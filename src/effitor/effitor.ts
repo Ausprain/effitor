@@ -9,7 +9,7 @@ import { getInputListener } from './effector/input';
 import { getKeydownListener } from './effector/keydown';
 import { getKeyupListener } from './effector/keyup';
 import { getSelectionChangeListener } from './effector/selchange';
-import { builtinEl, registerEtElement, type EffectElementCtor } from "./element";
+import { EtBodyElement, EtEditorElement, EtParagraphElement, registerEtElement, type EffectElementCtor } from "./element";
 import { cssStyle2cssText } from "./utils";
 import { initContext } from './context';
 import { defaultConfig, shadowCssText } from './config';
@@ -194,9 +194,9 @@ export const createEditor = ({
     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
     plugins.push({ name: 'undo', effector: undoEffector })
     const schema: Effitor.Editor.Schema = {
-        editor: builtinEl.EtEditorElement,
-        body: builtinEl.EtBodyElement,
-        paragraph: builtinEl.EtParagraphElement,
+        editor: EtEditorElement,
+        body: EtBodyElement,
+        paragraph: EtParagraphElement,
         ...schemaInit,
     }
     /** 初始化编辑器上下文 */

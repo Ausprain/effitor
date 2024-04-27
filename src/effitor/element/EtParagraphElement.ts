@@ -83,8 +83,15 @@ export class EtParagraphElement extends EffectElement {
     connectedCallback(this: EtParagraphElement): void {
         // console.log('p connected callback')
         // console.log('pid: ', this.pid)
-        this.id = Date.now().toString()
-        this.indent = 0
+        // 给新段落赋予id
+        if (!this.id) {
+            this.id = Date.now().toString()
+            this.indent = 0
+        }
+        if (this.innerText === '') {
+            // 空段落, 使用<br>占位
+            this.append(document.createElement('br'))
+        }
     }
 
     focusinCallback(): void {

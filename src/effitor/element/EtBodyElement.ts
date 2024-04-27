@@ -3,7 +3,7 @@ import { BuiltinElName } from "../@types";
 import { EffectElement } from ".";
 
 /**
- * 编辑区
+ * 编辑区, 编辑器主体
  */
 export class EtBodyElement extends EffectElement {
     // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined

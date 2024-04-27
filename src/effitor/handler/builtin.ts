@@ -1,7 +1,8 @@
 import type { Effitor } from '../@types'
-import { BuiltinElType } from "../@types";
+import { BuiltinElName, BuiltinElType } from "../@types";
 import { dom } from "../utils";
 import { EtParagraphElement } from '../element';
+import { CmdTypeEnum } from '@/effitor/@types';
 import {
     checkRemoveSelectionToCollapsed,
     checkTargetRangePosition,
@@ -26,7 +27,7 @@ const insertTextAtCaret = (
     // 光标在#text节点, 直接插入文本
     if (ctx.node) {
         destCaretRange = dom.movedStaticRange(srcCaretRange, data.length)
-        ctx.commandHandler.push('Insert_Text', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Text, {
             text: ctx.node,
             offset: srcCaretRange.startOffset,
             data: data,
@@ -38,7 +39,7 @@ const insertTextAtCaret = (
     else {
         const node = document.createTextNode(data)
         destCaretRange = dom.caretStaticRangeInNode(node, node.length)
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node,
             insertAt: srcCaretRange,
             setCaret: true,
@@ -71,13 +72,13 @@ const insertTextAtRangeInTheSameTextNode = (
 ) => {
     return (currP: EtParagraphElement, node: Text) => {
         const deleteAt = dom.caretStaticRangeInNode(node, delTargetRange.startOffset)
-        ctx.commandHandler.push('Delete_Text', {
+        ctx.commandHandler.push(CmdTypeEnum.Delete_Text, {
             data: node.data.slice(delTargetRange.startOffset, delTargetRange.endOffset),
             isBackward: true,
             deleteRange: delTargetRange,
             targetRanges: [delTargetRange, deleteAt]
         })
-        ctx.commandHandler.push('Insert_Text', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Text, {
             text: node,
             offset: deleteAt.startOffset,
             data: data,
@@ -95,7 +96,7 @@ const insertTextAtRangeInTheSameParagraph = (
     return (currP: EtParagraphElement) => {
         // 移除整个段落
         const currRemoveAt = dom.caretStaticRangeOutNode(currP, -1)
-        ctx.commandHandler.push('Remove_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
             node: currP,
             removeAt: currRemoveAt,
             targetRanges: [delTargetRange, currRemoveAt]
@@ -108,7 +109,7 @@ const insertTextAtRangeInTheSameParagraph = (
         const newP = dom.cloneParagraph(currP)
         newP.appendChild(fragment)
 
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: newP,
             insertAt: currRemoveAt,
             setCaret: true,
@@ -129,7 +130,7 @@ const insertTextAtRangeInDifferentParagraph = (
         r.setEndAfter(endP)
         const removeRange = dom.staticFromRange(r)
         const removeAt = dom.caretStaticRangeOutNode(startP, -1)
-        ctx.commandHandler.push('Remove_Content', {
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
             removeRange,
             targetRanges: [delTargetRange, removeAt]
         })
@@ -141,7 +142,7 @@ const insertTextAtRangeInDifferentParagraph = (
         const newP = dom.cloneParagraph(startP)
         newP.appendChild(fragment)
 
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: newP,
             insertAt: removeAt,
             setCaret: true,
@@ -158,7 +159,7 @@ const insertLineBreakAtCaret = (
     const br = document.createElement('br')
     if (!ctx.node) {
         // 直接插入<br>
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: br,
             insertAt: srcCaretRange,
             setCaret: true,
@@ -171,7 +172,7 @@ const insertLineBreakAtCaret = (
             // 开头插入
             const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'start')
             const insertAt = dom.caretStaticRangeOutNode(outermost, -1)
-            ctx.commandHandler.push('Insert_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
                 node: br,
                 insertAt,
                 setCaret: true,
@@ -183,7 +184,7 @@ const insertLineBreakAtCaret = (
             const outermost = dom.outermostInlineAncestorAtEdge(ctx.node, 'end')
             const insertAt = dom.caretStaticRangeOutNode(outermost, 1)
             const destCaretRange = dom.movedStaticRange(insertAt, 1)
-            ctx.commandHandler.push('Insert_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
                 node: br,
                 insertAt,
                 setCaret: true,
@@ -195,7 +196,7 @@ const insertLineBreakAtCaret = (
                 // 段落末尾插入两个<br>
                 const br2 = document.createElement('br')
                 const destCaretRange2 = dom.movedStaticRange(destCaretRange, 1)
-                ctx.commandHandler.push('Insert_Node', {
+                ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
                     node: br2,
                     insertAt: destCaretRange,
                     setCaret: true,
@@ -242,46 +243,63 @@ const insertBrToParagraph = (
     return expandRemoveInsert(ctx, startOutermost, endOutermost, srcCaretRange, srcCaretRange, true, br)
 }
 
+/**
+ * 在当前段落前方插入空段落
+ */
+const prependParagraph = (ctx: Effitor.Editor.Context, currP: EtParagraphElement, srcCaretRange: StaticRange) => {
+    const newP = document.createElement(ctx.schema.paragraph.elName)
+    ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
+        node: newP,
+        insertAt: dom.caretStaticRangeOutNode(currP, -1),
+        setCaret: true,
+        targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(newP, 0)]
+    })
+}
 const insertParagraphAtCaret = (
     ctx: Effitor.Editor.Context,
     srcCaretRange: StaticRange,
 ) => {
-    let currP: EtParagraphElement | null = null
-    let isParagraphEnd = false
+    const currP: EtParagraphElement = ctx.paragraphEl
+    // 插入位置, -1:前插, 0:中间, 1:后插
+    let insertPos: -1 | 0 | 1 = 0
+
     if (ctx.node) {
-        currP = dom.findParagraphParent(ctx.node, ctx.schema.paragraph.elName)
-        if (!currP) throw Error('当前段落不存在')
-        // 有文本节点 && 光标在文本节点末尾 && 文本节点或以其为lastChild的最外层元素 是段落最后一个可视节点
-        if (ctx.node.length === srcCaretRange.endOffset) {
+        // 有文本节点
+        if (srcCaretRange.endOffset === 0) {
+            const outermost = dom.outermostAncestorAtEdge(ctx.node, 'start', currP.localName)
+            if (outermost === currP || outermost === currP.firstChild) insertPos = -1
+        }
+        // 光标在文本节点末尾 && 文本节点或以其为lastChild的最外层元素 是段落最后一个可视节点
+        else if (srcCaretRange.endOffset === ctx.node.length) {
             const outermost = dom.outermostAncestorAtEdge(ctx.node, 'end', currP.localName)
             if (
                 outermost === currP ||
                 outermost === currP.lastChild ||
                 (outermost === currP.lastChild?.previousSibling && currP.lastChild.nodeName === 'BR')
-            ) {
-                isParagraphEnd = true
-            }
+            ) insertPos = 1
         }
     }
-    else {
-        currP = dom.findParagraphParent(srcCaretRange.startContainer, ctx.schema.paragraph.elName)
-        if (!currP) throw Error('当前段落不存在')
-        // 无文本节点 && 光标选中段落最后一个节点
-        if (srcCaretRange.startContainer === currP && srcCaretRange.startOffset >= currP.childNodes.length) {
-            isParagraphEnd = true
-        }
-        else {
-            const currNode = srcCaretRange.startContainer.childNodes[srcCaretRange.startOffset] as Node | undefined  // 可能无子节点
-            if (currNode?.nodeName === 'BR' && currNode === currP.lastChild)
-                isParagraphEnd = true
-        }
+    else if (currP === srcCaretRange.startContainer) {
+        // 无文本节点
+        // 空段落 || 光标选中段落最后一个节点
+        const len = currP.childNodes.length
+        if (
+            (len === 1 && currP.innerText === '\n')  // 仅有一个<br>时, innerText === '\n'
+            ||
+            (srcCaretRange.startOffset >= len)
+            ||
+            (srcCaretRange.startOffset === len - 1 && currP.childNodes[srcCaretRange.startOffset]?.nodeName === 'BR')
+        ) insertPos = 1
     }
 
+    if (insertPos === -1) {
+        prependParagraph(ctx, currP, srcCaretRange)
+    }
     // 段落末尾插入新段落
-    if (isParagraphEnd) {
+    else if (insertPos === 1) {
         const newP = document.createElement(ctx.schema.paragraph.elName)
         newP.append(document.createElement('br'))
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: newP,
             insertAt: dom.caretStaticRangeOutNode(currP, 1),
             setCaret: true,
@@ -291,7 +309,7 @@ const insertParagraphAtCaret = (
     // 在中间, 当前段落一并移除; 这里也可用removeInsertParagraphs函数代替
     else {
         const removeAt = dom.caretStaticRangeOutNode(currP, -1)
-        ctx.commandHandler.push('Remove_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
             node: currP,
             removeAt,
             targetRanges: [srcCaretRange, removeAt]
@@ -305,7 +323,7 @@ const insertParagraphAtCaret = (
         // f1已经清空, 重复利用
         f1.append(p1, p2)
         const destCaretRange = dom.caretStaticRangeInNode(p2, 0)
-        ctx.commandHandler.push('Insert_Content', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
             fragment: f1,
             insertAt: removeAt,
             setCaret: true,
@@ -332,7 +350,8 @@ const insertParagraphAtRange = (
 }
 /**
  * 删除段落p1/p2及其中间段落, 并将前半未选内容插入段落1, 后半插入段落2, 再插回页面  
- * 该函数最终会插入2个段落
+ * 该函数最终会插入2个段落; 主要用于跨段落`Enter`,   
+ * rel. removeParagraphsToOne
  * @param p1 
  * @param p2 
  * @param ctx 
@@ -351,7 +370,7 @@ const removeInsertParagraphs = (
     r.setEndAfter(p2)
     const removeRange = dom.staticFromRange(r)
     const removeAt = dom.caretStaticRangeOutNode(p1, -1)
-    ctx.commandHandler.push('Remove_Content', {
+    ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
         removeRange,
         targetRanges: [srcCaretRange, removeAt]
     })
@@ -364,7 +383,7 @@ const removeInsertParagraphs = (
     p2.append(f2)
     f1.append(p1, p2)
 
-    ctx.commandHandler.push('Insert_Content', {
+    ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
         fragment: f1,
         insertAt: removeAt,
         setCaret: true,
@@ -431,7 +450,7 @@ const deleteTextAtTextNodeByTargetRange = (
         // 删除节点, 连带删除空父节点
         const removeNode = dom.outermostAncestorWithSelfAsOnlyChild(textNode, ctx.schema.paragraph.elName)
         const removeAt = dom.caretStaticRangeOutNode(removeNode, -1)
-        ctx.commandHandler.push('Remove_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
             node: removeNode,
             removeAt,
             setCaret: true,
@@ -443,7 +462,7 @@ const deleteTextAtTextNodeByTargetRange = (
         if (!currP) return false
         if (removeNode === currP.lastChild && removeNode.previousSibling?.nodeName === 'BR') {
             const insertAt = dom.caretStaticRangeOutNode(removeNode, -1)
-            ctx.commandHandler.push('Insert_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
                 node: document.createElement('br'),
                 insertAt,
                 setCaret: true,
@@ -454,7 +473,7 @@ const deleteTextAtTextNodeByTargetRange = (
     }
     else {
         // 删除文本
-        ctx.commandHandler.push('Delete_Text', {
+        ctx.commandHandler.push(CmdTypeEnum.Delete_Text, {
             data: textNode.substringData(delTargetRange.startOffset, deleteLength),
             isBackward,
             deleteRange: delTargetRange,
@@ -496,7 +515,7 @@ const checkDeleteElemAtCaret = (
         // 有一个兄弟不存在, 或不是同名节点, 直接删除即可
         if (!prevSibling || prevSibling.nodeName !== nextSibling?.nodeName) {
             const removeAt = dom.caretStaticRangeOutNode(currNode, -1)
-            ctx.commandHandler.push('Remove_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
                 node: currNode as HTMLElement,
                 removeAt,
                 targetRanges: [srcCaretRange, removeAt]
@@ -544,7 +563,7 @@ const checkDeleteParagraphBackward = (
         // 段落无内容, 直接删除
         if (currP.textContent === '') {
             const removeAt = dom.caretStaticRangeOutNode(currP, -1)
-            ctx.commandHandler.push('Remove_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
                 node: currP,
                 removeAt,
                 setCaret: true,
@@ -556,7 +575,7 @@ const checkDeleteParagraphBackward = (
         // 上一段落不可编辑, 直接移除, 光标不动
         if (!prevP.isContentEditable) {
             const removeAt = dom.caretStaticRangeOutNode(prevP, -1)
-            ctx.commandHandler.push('Remove_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
                 node: prevP,
                 removeAt,
                 targetRanges: [srcCaretRange, srcCaretRange]
@@ -585,7 +604,7 @@ const checkDeleteParagraphForward = (
 
         // 下一段落不可编辑, 直接移除, 光标不动
         if (!nextP.isContentEditable) {
-            ctx.commandHandler.push('Remove_Node', {
+            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
                 node: nextP,
                 removeAt: dom.caretStaticRangeOutNode(nextP, -1),
                 targetRanges: [srcCaretRange, srcCaretRange]
@@ -601,7 +620,8 @@ const checkDeleteParagraphForward = (
 }
 /**
  * 删除p1/p2及其中间段落, 将剩余内容合并入新段落插回原来位置  
- * 该函数最终会插入1个段落
+ * 该函数最终会插入1个段落; 主要用于跨段落`Backspace/Delete`   
+ * rel. removeInsertParagraphs
  */
 const removeParagraphsToOne = (
     p1: EtParagraphElement,
@@ -615,7 +635,7 @@ const removeParagraphsToOne = (
     r.setEndAfter(p2)
     const removeRange = dom.staticFromRange(r)
     const removeAt = dom.caretStaticRangeOutNode(p1, -1)
-    ctx.commandHandler.push('Remove_Content', {
+    ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
         removeRange,
         targetRanges: [srcCaretRange, removeAt]
     })
@@ -625,7 +645,7 @@ const removeParagraphsToOne = (
     const newP = dom.cloneParagraph(p1)
     if (!out) {
         // 内容全选删除, 插入空段落
-        ctx.commandHandler.push('Insert_Node', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
             node: newP,
             insertAt: removeAt,
             setCaret: true,
@@ -633,7 +653,7 @@ const removeParagraphsToOne = (
         })
         return true
     }
-    const [fragment, dest] = out
+    let [fragment, dest] = out
     newP.append(fragment)
 
     if (typeof dest === 'number') {
@@ -646,24 +666,16 @@ const removeParagraphsToOne = (
             }
             i++
         })
-        const destCaretRange = anchor === null
+        dest = anchor === null
             ? dom.caretStaticRangeInNode(newP, newP.childNodes.length)
             : dom.caretStaticRangeOutNode(anchor, -1)
-        ctx.commandHandler.push('Insert_Node', {
-            node: newP,
-            insertAt: removeAt,
-            setCaret: true,
-            targetRanges: [srcCaretRange, destCaretRange]
-        })
     }
-    else {
-        ctx.commandHandler.push('Insert_Node', {
-            node: newP,
-            insertAt: removeAt,
-            setCaret: true,
-            targetRanges: [srcCaretRange, dest]
-        })
-    }
+    ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
+        node: newP,
+        insertAt: removeAt,
+        setCaret: true,
+        targetRanges: [srcCaretRange, dest]
+    })
     return true
 }
 
@@ -763,7 +775,7 @@ const pasteData = (ctx: Effitor.Editor.Context, data: string, srcCaretRange: Sta
 const handleIndent = (ctx: Effitor.Editor.Context, idSet: Set<string>, outdent = false) => {
     const srcCaretRange = dom.staticFromRange(ctx.range)
     const val = outdent ? -1 : 1
-    ctx.commandHandler.push('Functional', {
+    ctx.commandHandler.push(CmdTypeEnum.Functional, {
         targetRanges: [srcCaretRange, srcCaretRange],
         redoCallback: (ctx) => {
             idSet.forEach(id => {
@@ -877,7 +889,7 @@ export const builtinHandler: Partial<Effitor.EffectHandlerDeclaration> = {
             console.log('insert composition text at Range delete -----------------------------', ctx.compositionupdateCount)
             deleteBackwardAtRange(ctx, srcCaretRange, srcCaretRange)
         }
-        ctx.commandHandler.push('Insert_Composition_Text', {
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Composition_Text, {
             data: ev.data!,
             targetRanges: [srcCaretRange,]
         })
