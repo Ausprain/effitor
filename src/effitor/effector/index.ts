@@ -1,9 +1,3 @@
-export { MainKeydownKeySolver } from './keydown';
-export { MainKeyupKeySolver } from './keyup'
-export { MainBeforeInputTypeSolver } from './beforeinput'
-export { MainAfterInputTypeSolver } from './input';
-
-
 import type * as Et from '../@types';
 import { MainKeydownKeySolver } from './keydown';
 import { MainKeyupKeySolver } from './keyup';
@@ -22,3 +16,5 @@ export const getMainEffector = (options?: Partial<Et.MainEffector>): Et.MainEffe
     }
     return defaultEffector
 }
+
+export { MainKeydownKeySolver, MainKeyupKeySolver, MainBeforeInputTypeSolver, MainAfterInputTypeSolver }

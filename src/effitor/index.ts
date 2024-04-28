@@ -1,21 +1,10 @@
 import './augment'
 import { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement, extentEtElement } from "./element";
-import { MainKeydownKeySolver } from "./effector";
-import { MainKeyupKeySolver } from './effector/keyup';
-import { MainBeforeInputTypeSolver } from './effector/beforeinput';
-import { MainAfterInputTypeSolver } from './effector/input';
+import { getMainEffector, MainKeydownKeySolver, MainKeyupKeySolver, MainBeforeInputTypeSolver, MainAfterInputTypeSolver } from './effector';
+import { builtinHandler, createCommand } from "./handler";
 import { createEditor } from './effitor';
-import { getMainEffector } from './effector/index';
-import { createCommand } from "./handler/cmd";
-import { useMarkPlugin } from "./plugins/mark";
-import { useCompPlugin } from "./plugins/comp";
-import { builtinHandler } from "./handler";
-import { useAbbrPlugin } from "./plugins/abbr";
-import { EtAbbrElement } from "./plugins/abbr/element";
-import { EtImageElement } from "./plugins/comp/image/EtImageElement";
-import { EtLinkElement } from "./plugins/comp/link/EtLinkElement";
-import { EtListElement } from "./plugins/comp/list/EtListElement";
-import { EtMarkElement } from "./plugins/mark/element";
+import { EtAbbrElement, EtImageElement, EtLinkElement, EtListElement, EtMarkElement, useAbbrPlugin, useCompPlugin, useMarkPlugin } from './plugins';
+
 
 const et = {
     /** 创建一个编辑器对象 */

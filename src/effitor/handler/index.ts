@@ -4,6 +4,7 @@ import { addonHandler } from './addon'
 
 export * from './invoker'
 export { builtinHandler }
+export { createCommand } from './cmd'
 
 extentEtElement(EffectElement, builtinHandler)
 extentEtElement(EffectElement, addonHandler)
