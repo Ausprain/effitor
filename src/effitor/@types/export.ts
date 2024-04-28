@@ -65,6 +65,8 @@ export type EditorConfig = {
 export interface EditorContext {
     /** symbol索引, 用于给扩展effector添加自定义属性 */
     [k: symbol]: any;
+    /** 编辑器对象本身 */
+    readonly editor: Editor;
     readonly schema: EditorSchema;
     /** 当前活跃编辑器所属的div, root.host的父节点 */
     el: HTMLDivElement;

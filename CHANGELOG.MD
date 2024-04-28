@@ -7,3 +7,4 @@
 ## Features
 - [x] 编辑：若删除文本后节点仅剩零宽字符，则连同该节点（以及以其为唯一节点的祖先）一起删除，并合并前后可合并节点
 - [ ] 笔记数据：内容（`json`）与展示（`html`）的相互转换
+  - docs. [OneNote](onenote:https://d.docs.live.net/4e02a194e6772771/文档/All-Index/项目.one#@effitor&section-id={A73E8398-C8FE-44F5-913E-CCF10C7C2CFE}&page-id={B1A67D1C-A2F7-4BF0-8340-2C41BA660783}&object-id={9609E4BE-ACF3-47DF-A107-013482D39912}&13)

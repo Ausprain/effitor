@@ -8,6 +8,7 @@ import { dom } from "./utils"
 class EtContext implements Et.EditorContext {
     [s: symbol]: any
 
+    readonly editor: Et.Editor;
     readonly schema: Et.EditorSchema
     readonly config: Et.EditorConfig
     el: HTMLDivElement = null as any
@@ -36,9 +37,11 @@ class EtContext implements Et.EditorContext {
     commandHandler: Et.CommandHandler = initCommandHandler(this);
 
     constructor(
+        editor: Et.Editor,
         schema: Et.EditorSchema,
         config: Et.EditorConfig,
     ) {
+        this.editor = editor
         this.schema = schema
         this.config = config
     }
@@ -118,7 +121,7 @@ function updateContext(this: EtContext): boolean {
 }
 
 let _ctx: EtContext
-export const initContext = (schema: Et.EditorSchema, config: Et.EditorConfig): EtContext => {
+export const initContext = (editor: Et.Editor, schema: Et.EditorSchema, config: Et.EditorConfig): EtContext => {
     if (_ctx) return _ctx
-    return _ctx = new EtContext(schema, config)
+    return _ctx = new EtContext(editor, schema, config)
 }

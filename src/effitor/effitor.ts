@@ -190,6 +190,8 @@ export const createEditor = ({
     plugins = [],
     config = {},
 }: Et.CreateEditorOptions = {}): Et.Editor => {
+    // 先初始化编辑器对象, 让插件可以扩展编辑器
+    const _editor: Et.Editor = {} as Et.Editor
     const _config = { ...defaultConfig, ...config }
     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
     plugins.push({ name: 'undo', effector: undoEffector })
@@ -200,7 +202,7 @@ export const createEditor = ({
         ...schemaInit,
     }
     /** 初始化编辑器上下文 */
-    const context = initContext(schema, _config)
+    const context = initContext(_editor, schema, _config)
     // 记录需要注册的EtElement
     const elCtors: EffectElementCtor[] = Object.values(schema)
     /** 从plugins中提取出effector对应处理器 及 自定义元素 */
@@ -219,7 +221,7 @@ export const createEditor = ({
     }, []).join('\n')
 
 
-    return {
+    return Object.assign(_editor, {
         /**
          * 给编辑器挂载一个div时执行
          */
@@ -252,7 +254,7 @@ export const createEditor = ({
                 el.innerHTML = ''
             }
         },
-    }
+    } as Et.Editor)
 }
 
 
