@@ -1,11 +1,12 @@
-import { CmdTypeEnum, DOM, HtmlCharEnum, type Effitor } from "@/effitor/@types";
+import type * as Et from '../../../@types'
+import { CmdTypeEnum, HtmlCharEnum } from "@/effitor/@types/constant";
 import { markState } from "../config";
 import { isMarkElement } from "../element";
 import { MarkEnum, MarkStatus } from "../@type.mark";
 import { dom } from "@/effitor/utils";
 import { mergeFragments } from "@/effitor/handler/utils";
 
-const checkRemoveMarkNodeAfterDeleteContent = (ev: DOM.InputEvent, ctx: Effitor.Editor.Context) => {
+const checkRemoveMarkNodeAfterDeleteContent = (ev: Et.InputEvent, ctx: Et.EditorContext) => {
     if (ctx.effectElement.localName !== MarkEnum.ElName) return
     if (ctx.effectElement.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE) {
         // console.warn('remove empty mark')
@@ -63,7 +64,7 @@ const checkRemoveMarkNodeAfterDeleteContent = (ev: DOM.InputEvent, ctx: Effitor.
     }
 }
 
-export const inputSolver: Effitor.Effector.InputTypeSolver = {
+export const inputSolver: Et.InputTypeSolver = {
     default: (ev, ctx) => {
         if (markState.phase) {
             // 只要触发了input, 说明临时节点插入了内容

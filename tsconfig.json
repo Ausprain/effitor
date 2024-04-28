@@ -2,10 +2,7 @@
   "include": ["src/**/*"],
   "compilerOptions": {
     "strict": true,
-    // "alwaysStrict": true,   // use strict
-    // "strictNullChecks": true,
     "composite": true,
-    // "noEmit": true,
     "baseUrl": ".",
     "target": "ESNext",
     "module": "ESNext",
@@ -14,11 +11,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-
-    "outDir": "temp/",
-    "declaration": true,
-    // "declarationDir": "temp/types",
-    "declarationMap": false,
-    "emitDeclarationOnly": true
+    "noEmit": true
   }
 }

@@ -1,4 +1,4 @@
-import { BuiltinElName } from "@/effitor/@types"
+import { BuiltinElName } from "@/effitor/@types/constant"
 import { EtComponentElement } from "@/effitor/element"
 
 const enum I {

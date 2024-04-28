@@ -1,8 +1,7 @@
-import type { Effitor, DOM } from '../@types'
-import { BuiltinElType, HtmlCharEnum } from "../@types";
+import type * as Et from '../@types'
+import type { EtParagraphElement } from '../element';
+import { BuiltinElType, HtmlCharEnum, CmdTypeEnum } from "../@types/constant";
 import { dom } from "../utils";
-import { EtParagraphElement } from '../element';
-import { CmdTypeEnum } from '@/effitor/@types';
 
 /* -------------------------------------------------------------------------- */
 /*                            handler utils                                   */
@@ -31,7 +30,7 @@ export const getRangeOutermostContainerUnderTheParagraph = (
  * @param inDifferentParagraphFn 不同段落回调
  */
 export const checkTargetRangePosition = (
-    ctx: Effitor.Editor.Context,
+    ctx: Et.EditorContext,
     targetRange: StaticRange | Range,
     inTheSameTextFn: (currP: EtParagraphElement, node: Text) => boolean,
     inTheSameParagraphFn: (currP: EtParagraphElement) => boolean,
@@ -182,7 +181,7 @@ export const mergeFragments = (
  * @param insertNode 插入到光标位置或替换选区的节点
  */
 export const expandRemoveInsert = (
-    ctx: Effitor.Editor.Context,
+    ctx: Et.EditorContext,
     startExpandNode: Node,
     endExpandNode: Node,
     delTargetRange: Range | StaticRange,
@@ -245,8 +244,8 @@ export const expandRemoveInsert = (
  * @param srcCaretRange 必须是collapsed的
  */
 export const insertNodeAtCaret = (
-    ctx: Effitor.Editor.Context,
-    node: DOM.HTMLNode,
+    ctx: Et.EditorContext,
+    node: Et.HTMLNode,
     srcCaretRange: StaticRange
 ) => {
     if (!ctx.node) {
@@ -292,7 +291,7 @@ export const insertNodeAtCaret = (
 /**
  * 删除选区内容并让光标collapsed
  */
-export const checkRemoveSelectionToCollapsed = (ctx: Effitor.Editor.Context) => {
+export const checkRemoveSelectionToCollapsed = (ctx: Et.EditorContext) => {
     if (!ctx.range.collapsed) {
         dom.dispatchInputEvent(ctx.root, 'beforeinput', {
             inputType: 'deleteContentBackward',

@@ -1,6 +1,6 @@
 import { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement, extentEtElement } from "./element";
-import { MainKeydownSolver } from "./effector";
-import { MainKeyupSolver } from './effector/keyup';
+import { MainKeydownKeySolver } from "./effector";
+import { MainKeyupKeySolver } from './effector/keyup';
 import { MainBeforeInputTypeSolver } from './effector/beforeinput';
 import { MainAfterInputTypeSolver } from './effector/input';
 import { createEditor } from './effitor';
@@ -25,13 +25,13 @@ const et = {
     effector: {
         /** 获取一个主效应器 */
         getMainEffector,
-        /** 继承该类, 以自定义keydown 的按键处理 */
-        MainKeydownSolver,
-        /** 继承该类, 以自定义keyup 的按键处理 */
-        MainKeyupSolver,
-        /** 继承该类, 以自定义beforeinput 的inputType处理 */
+        /** 继承该类, 以自定义keydown 的默认按键处理 */
+        MainKeydownKeySolver,
+        /** 继承该类, 以自定义keyup 的默认按键处理 */
+        MainKeyupKeySolver,
+        /** 继承该类, 以自定义beforeinput 的默认inputType处理 */
         MainBeforeInputTypeSolver,
-        /** 继承该类, 以自定义input 的inputType */
+        /** 继承该类, 以自定义input 的默认inputType处理 */
         MainAfterInputTypeSolver,
     },
     /** 自定义元素 */
@@ -42,7 +42,7 @@ const et = {
         EtPlainTextElement,
         EtRichTextElement,
         EtComponentElement,
-        
+
         EtAbbrElement,
         EtImageElement,
         EtLinkElement,
@@ -64,6 +64,7 @@ const et = {
 }
 
 export default et;
-export { Effitor } from "./@types";
+export * from './@types/export';
+export * as Et from "./@types/export";
 export * as utils from './utils'
 export * as handlerUtils from './handler/utils'

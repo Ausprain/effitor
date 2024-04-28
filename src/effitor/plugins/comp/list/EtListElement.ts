@@ -1,5 +1,5 @@
-import type { Effitor } from '../../../@types'
-import { BuiltinElName } from "@/effitor/@types";
+import type * as Et from '../../../@types'
+import { BuiltinElName } from "@/effitor/@types/constant";
 import { EtComponentElement } from "@/effitor/element";
 import { dom } from "@/effitor/utils";
 
@@ -56,7 +56,7 @@ ${L.TAG} ol ol {
 // }
 
 export class EtListElement extends EtComponentElement {
-    static readonly elName: Effitor.Element.ElName = L.TAG;
+    static readonly elName: Et.ElName = L.TAG;
     static readonly cssText: string = cssText;
 
     static create(ordered: boolean, start = 1) {

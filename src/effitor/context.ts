@@ -1,23 +1,23 @@
-import type { DOM, Effitor } from "@/effitor/@types";
-import { EffectElement, EtBodyElement, type EtParagraphElement } from "./element"
+import type * as Et from "@/effitor/@types";
+import type { EffectElement, EtBodyElement, EtParagraphElement } from "./element"
 import { initEffectInvoker } from "./handler"
 import { initCommandHandler } from "./handler/cmd"
 import { dom } from "./utils"
 
 
-class EtContext implements Effitor.Editor.Context {
+class EtContext implements Et.EditorContext {
     [s: symbol]: any
 
-    readonly schema: Effitor.Editor.Schema
-    readonly config: Effitor.Editor.Config
+    readonly schema: Et.EditorSchema
+    readonly config: Et.EditorConfig
     el: HTMLDivElement = null as any
-    root: DOM.ShadowRoot = null as any
+    root: Et.ShadowRoot = null as any
     body: EtBodyElement = null as any
 
     selection: Selection = null as any
     range: Range = null as any
-    node: DOM.NullableText = null
-    oldNode: DOM.NullableText = null
+    node: Et.NullableText = null
+    oldNode: Et.NullableText = null
     private _effectElement: EffectElement = null as any;
     private _paragraphEl: EtParagraphElement = null as any;
 
@@ -31,13 +31,13 @@ class EtContext implements Effitor.Editor.Context {
     skipDefault: boolean = false
     // isEtElBegining: false
 
-    forceUpdate: (this: Effitor.Editor.Context) => void = updateContext.bind(this);
-    effectInvoker: Effitor.Handler.EffectInvoker = initEffectInvoker(this);
-    commandHandler: Effitor.Handler.CommandHandler = initCommandHandler(this);
+    forceUpdate: (this: Et.EditorContext) => void = updateContext.bind(this);
+    effectInvoker: Et.EffectInvoker = initEffectInvoker(this);
+    commandHandler: Et.CommandHandler = initCommandHandler(this);
 
     constructor(
-        schema: Effitor.Editor.Schema,
-        config: Effitor.Editor.Config,
+        schema: Et.EditorSchema,
+        config: Et.EditorConfig,
     ) {
         this.schema = schema
         this.config = config
@@ -64,7 +64,7 @@ class EtContext implements Effitor.Editor.Context {
 
 }
 
-function updateContext(this: Effitor.Editor.Context): boolean {
+function updateContext(this: EtContext): boolean {
     // if (!this.focused) return false
     // console.log('update context')
 
@@ -117,8 +117,8 @@ function updateContext(this: Effitor.Editor.Context): boolean {
     return true
 }
 
-let _ctx: Effitor.Editor.Context
-export const initContext = (schema: Effitor.Editor.Schema, config: Effitor.Editor.Config): Effitor.Editor.Context => {
+let _ctx: EtContext
+export const initContext = (schema: Et.EditorSchema, config: Et.EditorConfig): EtContext => {
     if (_ctx) return _ctx
     return _ctx = new EtContext(schema, config)
 }

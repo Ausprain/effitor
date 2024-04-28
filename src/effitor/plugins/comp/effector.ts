@@ -1,4 +1,4 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 import { imageComp } from "./image";
 import { pasteImage } from "./image/imageEffector";
 import { linkComp } from "./link";
@@ -7,8 +7,8 @@ import { listComp } from "./list";
 import { listKeydownEnterCallback, listKeydownSpaceCallback } from "./list/listEffector";
 
 
-export const getCompEffector = (codeSum: number): Effitor.Effector => {
-    const effector: Effitor.Effector = {
+export const getCompEffector = (codeSum: number): Et.Effector => {
+    const effector: Et.Effector = {
         keydownSolver: {
             ' ': (ev, ctx) => {
                 console.error('comp keydown solve')

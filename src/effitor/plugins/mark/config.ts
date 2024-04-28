@@ -1,4 +1,4 @@
-import { CssClassEnum } from "@/effitor/@types";
+import { CssClassEnum } from "@/effitor/@types/constant";
 import { MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 
 const enum M {

@@ -1,7 +1,7 @@
 import type { Abbr } from "./abbr";
 import { EtComponentElement } from "@/effitor/element";
 import { AbbrConfigEnum } from "./config";
-import { CssClassEnum } from "@/effitor/@types";
+import { CssClassEnum } from "@/effitor/@types/constant";
 
 const enum A {
     Tag = AbbrConfigEnum.EL_NAME,

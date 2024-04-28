@@ -3,11 +3,12 @@
  * @email: ausprain@qq.com 
  * @date: 2024-04-04 16:39:08 
  */
-import { HtmlCharEnum, type Effitor } from '../../../@types'
+import type * as Et from '../../../@types'
+import { HtmlCharEnum} from '../../../@types/constant'
 import { dom } from "@/effitor/utils";
 import { EtListElement } from "./EtListElement";
 
-export const listKeydownSpaceCallback: Effitor.Effector.KeyboardAction = (ev, ctx) => {
+export const listKeydownSpaceCallback: Et.KeyboardAction = (ev, ctx) => {
     // 当前效应元素不是段落，跳过
     if (ctx.effectElement !== ctx.paragraphEl) return
     if (!dom.isTextNode(ctx.node)) return
@@ -25,7 +26,7 @@ export const listKeydownSpaceCallback: Effitor.Effector.KeyboardAction = (ev, ct
     return flag && ctx.commandHandler.handle() && (ev.preventDefault(), ctx.skipDefault = true)
 }
 
-export const listKeydownEnterCallback: Effitor.Effector.KeyboardAction = (ev, ctx) => {
+export const listKeydownEnterCallback: Et.KeyboardAction = (ev, ctx) => {
     if (ctx.effectElement.localName !== EtListElement.elName) return
     const node = ctx.node ?? ctx.range.startContainer
     const li = dom.closestUnderTheNode(node, 'li', ctx.effectElement) as HTMLLIElement

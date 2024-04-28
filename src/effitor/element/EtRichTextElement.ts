@@ -1,5 +1,5 @@
-import type { Effitor } from '../@types'
-import { BuiltinElName, BuiltinElType } from "../@types";
+import type * as Et from '../@types'
+import { BuiltinElName, BuiltinElType } from "../@types/constant";
 import { EffectElement } from ".";
 import { cssStyle2cssText } from "../utils";
 
@@ -7,15 +7,15 @@ import { cssStyle2cssText } from "../utils";
  * 富文本节点
  */
 export class EtRichTextElement extends EffectElement {
-    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
+    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
 
-    static readonly elName: Effitor.Element.ElName = BuiltinElName.ET_RICHTEXT;
-    readonly elType: Effitor.Element.ElType = BuiltinElType.RICHTEXT;
+    static readonly elName: Et.ElName = BuiltinElName.ET_RICHTEXT;
+    readonly elType: Et.ElType = BuiltinElType.RICHTEXT;
 
     replaceToNativeElement(): void {
         const computedMap = this.computedStyleMap();
         const isBlock = computedMap.get('display') === 'block';
-        const cssStyle: Effitor.Element.ElStyle = {
+        const cssStyle: Et.ElStyle = {
             color: computedMap.get('color')?.toString() ?? '',
             backgroundColor: computedMap.get('background-color')?.toString() ?? '',
             fontFamily: computedMap.get('font-family')?.toString() ?? '',

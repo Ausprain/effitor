@@ -1,5 +1,5 @@
-import type { DOM, Effitor } from './@types';
-import { BuiltinElName } from './@types';
+import type * as Et from './@types';
+import { BuiltinElName } from './@types/constant';
 import { getMainEffector } from "./effector";
 import { getBeforeinputListener } from './effector/beforeinput';
 import { getCopyListener, getCutListener, getPasteListener } from "./effector/clipboard";
@@ -16,7 +16,7 @@ import { defaultConfig, shadowCssText } from './config';
 import { useUndoEffector } from './handler/undo';
 
 /** 格式化容器div为Effitor初始化结构 */
-const formatEffitorStructure = (el: HTMLDivElement, ctx: Effitor.Editor.Context, cssText: string) => {
+const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssText: string) => {
     const editor = document.createElement(BuiltinElName.ET_APP)
     // 在editor下创建一个shadowRoot
     const shadow = editor.attachShadow({ mode: 'open' })
@@ -41,17 +41,17 @@ const formatEffitorStructure = (el: HTMLDivElement, ctx: Effitor.Editor.Context,
         shadow.append(body)
     })
 
-    return shadow as DOM.ShadowRoot
+    return shadow as Et.ShadowRoot
 }
 
 type PluginConfigs = {
     /** 自定义元素, 统一注册到customElements */
-    readonly etElementCtors: Effitor.EtElementCtor[];
+    readonly etElementCtors: Et.EtElementCtor[];
 } & {
-    [K in keyof Effitor.Effector.Solvers as `${K}s`]: Effitor.Effector.Solvers[K][];
+    [K in keyof Et.Solvers as `${K}s`]: Et.Solvers[K][];
 };
-const reducePlugins = (plugins: Effitor.Editor.Plugin[], elCtors: EffectElementCtor[], ctx: Effitor.Editor.Context): PluginConfigs => {
-    const pSet = new Set<Effitor.Editor.Plugin['name']>()
+const reducePlugins = (plugins: Et.EditorPlugin[], elCtors: EffectElementCtor[], ctx: Et.EditorContext): PluginConfigs => {
+    const pSet = new Set<Et.EditorPlugin['name']>()
     return plugins.reduce((pre, cur) => {
         if (pSet.has(cur.name)) {
             console.warn(`Duplicate plug-in named '${cur.name}'.`)
@@ -81,7 +81,7 @@ const reducePlugins = (plugins: Effitor.Editor.Plugin[], elCtors: EffectElementC
         selChangeCallbacks: [],
     } as PluginConfigs)
 }
-const initListeners = (ctx: Effitor.Editor.Context, mainEffector: Effitor.Effector.MainEffector, pluginConfigs: PluginConfigs): { [k in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[k]) => void } => ({
+const initListeners = (ctx: Et.EditorContext, mainEffector: Et.MainEffector, pluginConfigs: PluginConfigs): { [k in keyof HTMLElementEventMap]?: (ev: HTMLElementEventMap[k]) => void } => ({
     keydown: getKeydownListener(ctx, mainEffector.keydownSolver, pluginConfigs.keydownSolvers),
     keyup: getKeyupListener(ctx, mainEffector.keyupSolver, pluginConfigs.keyupSolvers),
     beforeinput: getBeforeinputListener(ctx, mainEffector.beforeInputSolver, pluginConfigs.beforeInputSolvers),
@@ -110,7 +110,7 @@ const initListeners = (ctx: Effitor.Editor.Context, mainEffector: Effitor.Effect
     selectionchange: getSelectionChangeListener(ctx, pluginConfigs.selChangeCallbacks),
 
 })
-const addListenersToShadowRoot = (ctx: Effitor.Editor.Context, el: HTMLDivElement, root: DOM.ShadowRoot, listeners: ReturnType<typeof initListeners>, ac: AbortController, htmlEventSolvers: Effitor.Effector.HTMLEventSolver[]) => {
+const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, root: Et.ShadowRoot, listeners: ReturnType<typeof initListeners>, ac: AbortController, htmlEventSolvers: Et.HTMLEventSolver[]) => {
     // 绑在shadowRoot上
     root.addEventListener('focusin', () => {
         console.error('focus ')
@@ -189,11 +189,11 @@ export const createEditor = ({
     mainEffector = getMainEffector(),
     plugins = [],
     config = {},
-}: Effitor.Editor.CreateEditorOptions = {}): Effitor.Editor => {
+}: Et.CreateEditorOptions = {}): Et.Editor => {
     const _config = { ...defaultConfig, ...config }
     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
     plugins.push({ name: 'undo', effector: undoEffector })
-    const schema: Effitor.Editor.Schema = {
+    const schema: Et.EditorSchema = {
         editor: EtEditorElement,
         body: EtBodyElement,
         paragraph: EtParagraphElement,

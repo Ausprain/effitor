@@ -1,26 +1,24 @@
-import type { Effitor as Et } from "@/effitor"
+import type * as Et from "@/effitor/@types"
 import type { Abbr } from "./abbr"
+import { CmdTypeEnum, HtmlCharEnum } from "@/effitor/@types/constant"
 import { createEtAbbrElement, type EtAbbrElement } from "./element"
 import { dom } from "@/effitor/utils"
-import { CmdTypeEnum, HtmlCharEnum } from "@/effitor/@types"
 
-declare module '@/effitor' {
-    namespace Effitor {
-        interface EffectHandlerDeclaration {
-            /* ------------------------------- abbrHandler ------------------------------ */
-            /**
-             * 插入一个缩写符节点, 添加插入命令成功返回元素对象, 返回null时说明不符合插入条件
-             */
-            insertAbbrNode: (ctx: NotNullContext, abbr: Abbr) => EtAbbrElement | null
+declare module '@/effitor/@types' {
+    interface EffectHandlerDeclaration {
+        /* ------------------------------- abbrHandler ------------------------------ */
+        /**
+         * 插入一个缩写符节点, 添加插入命令成功返回元素对象, 返回null时说明不符合插入条件
+         */
+        insertAbbrNode: (ctx: NotNullContext, abbr: Abbr) => EtAbbrElement | null
 
 
-            /* ------------------------------ inAbbrHandler ----------------------------- */
+        /* ------------------------------ inAbbrHandler ----------------------------- */
 
-        }
     }
 }
 
-export type NotNullContext = Et.Editor.Context & { node: Text }
+export type NotNullContext = Et.EditorContext & { node: Text }
 
 /**
  * 触发缩写符效应handler, 绑到段落上

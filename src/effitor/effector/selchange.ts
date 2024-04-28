@@ -1,9 +1,9 @@
-import type { Effitor } from '../@types'
-import { CssClassEnum } from "../@types";
+import type * as Et from '../@types'
+import { CssClassEnum } from "../@types/constant";
 import { debounce } from "../utils";
 
 
-export const getSelectionChangeListener = (ctx: Effitor.Editor.Context, callbacks: ((e: Event, c: Effitor.Editor.Context) => void)[]) => {
+export const getSelectionChangeListener = (ctx: Et.EditorContext, callbacks: ((e: Event, c: Et.EditorContext) => void)[]) => {
     return debounce((e: Event) => {
         // 在输入法会话中, 跳过
         if (ctx.inCompositionSession) {

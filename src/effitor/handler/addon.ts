@@ -1,11 +1,11 @@
-import type { DOM, Effitor } from '../@types'
+import type * as Et from '../@types'
 import type { EffectElement } from "../element";
-import { BuiltinConfig, BuiltinElType, CmdTypeEnum, CssClassEnum, HtmlCharEnum } from "../@types";
+import { BuiltinConfig, BuiltinElType, CmdTypeEnum, CssClassEnum, HtmlCharEnum } from "../@types/constant";
 import { dom } from "../utils";
 
 
-const caretToNextTextStart = (ctx: Effitor.Editor.Context, effectEl: Effitor.EtElement, srcTr: StaticRange): boolean => {
-    let next: DOM.NullableNode = effectEl.nextSibling
+const caretToNextTextStart = (ctx: Et.EditorContext, effectEl: Et.EtElement, srcTr: StaticRange): boolean => {
+    let next: Et.NullableNode = effectEl.nextSibling
     if (!next || next.nodeName === 'BR') {
         // 没有下一节点`or`下一节点是<br>, 插入零宽字符; 以解决mark节点定位到 节点外结尾无效的问题（会自动定位到内结尾）
         const zws = dom.zwsText()
@@ -39,7 +39,7 @@ const caretToNextTextStart = (ctx: Effitor.Editor.Context, effectEl: Effitor.EtE
     return true
 }
 
-export const addonHandler: Partial<Effitor.EffectHandlerDeclaration> = {
+export const addonHandler: Partial<Et.EffectHandlerDeclaration> = {
     replaceText(ctx, data, textRange, setCaret = false) {
         if (!data) {
             return false;
@@ -122,7 +122,7 @@ export const addonHandler: Partial<Effitor.EffectHandlerDeclaration> = {
  * 赋值给EffectElement的 effectBlocker属性上, 用于过滤希望阻止的效应
  */
 const onlyBuiltinEffectBlocker = (e: string) => {
-    // console.error('effect blocker: ', e, 'blocked:', !e.startsWith(Effitor.Const.BUILTIN_EFFECT_PREFFIX))
+    // console.error('effect blocker: ', e, 'blocked:', !e.startsWith(Et.Const.BUILTIN_EFFECT_PREFFIX))
     if (e.startsWith(BuiltinConfig.BUILTIN_EFFECT_PREFFIX)) return false
     // 非内置效应 返回true 阻止效应
     return true

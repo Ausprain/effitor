@@ -1,5 +1,5 @@
-import type { Effitor } from '../@types'
-import { BuiltinElName, BuiltinElType, CssClassEnum } from "../@types";
+import type * as Et from '../@types'
+import { BuiltinElName, BuiltinElType, CssClassEnum } from "../@types/constant";
 import { EffectElement } from ".";
 
 const enum P {
@@ -58,12 +58,12 @@ ${P.TAG}.${CssClassEnum.Heading} {
  * 段落
  */
 export class EtParagraphElement extends EffectElement {
-    // static readonly [k: Effitor.Effect]: Effitor.EffectHandler | undefined
+    // static readonly [k: Et.Effect]: Et.EffectHandler | undefined
 
-    static readonly elName: Effitor.Element.ElName = BuiltinElName.ET_PARAGRAPH;
+    static readonly elName: Et.ElName = BuiltinElName.ET_PARAGRAPH;
     static readonly cssText: string = paragraphCssText;
 
-    readonly elType: Effitor.Element.ElType = BuiltinElType.PARAGRAPH;
+    readonly elType: Et.ElType = BuiltinElType.PARAGRAPH;
 
     get pid(): string {
         return this.getAttribute('pid')

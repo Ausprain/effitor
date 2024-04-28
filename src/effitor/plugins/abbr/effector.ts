@@ -1,8 +1,7 @@
-import type { Effitor as Et } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 import type { NotNullContext } from "./handler";
 import { Abbr, abbrListener } from "./abbr";
 import { AbbrConfigEnum, abbrContext } from "./config";
-import { dom } from "@/effitor/utils";
 
 /**
  * 触发缩写符  
@@ -22,7 +21,7 @@ const onKeydownTriggerAbbr = (ev: KeyboardEvent, ctx: NotNullContext, abbr: Abbr
  * 判断光标前边是否为缩写符触发串, 以确保在正确位置插入缩写符
  * @param triggerString 已插入dom的缩写符触发串文本
  */
-const checkCaretFollowsTriggerString = (ctx: Et.Editor.Context, triggerString: string): ctx is NotNullContext => {
+const checkCaretFollowsTriggerString = (ctx: Et.EditorContext, triggerString: string): ctx is NotNullContext => {
     return ctx.range.collapsed && ctx.node && (
         ctx.node.data.slice(0, ctx.range.startOffset).endsWith(triggerString)
     ) || false
@@ -41,7 +40,7 @@ const checkTriggerBlockAbbr = (ev: KeyboardEvent, ctx: NotNullContext) => {
     }
 }
 
-const keydownSolver: Et.Effector.KeyboardKeySolver = {
+const keydownSolver: Et.KeyboardKeySolver = {
     default: (ev) => {
         abbrContext.readyAbbr = null
     },
@@ -60,7 +59,7 @@ const keydownSolver: Et.Effector.KeyboardKeySolver = {
     }
 }
 
-const afterInputSolver: Et.Effector.InputTypeSolver = {
+const afterInputSolver: Et.InputTypeSolver = {
     default: () => {
         abbrListener.needResetBeforeJudge()
     },

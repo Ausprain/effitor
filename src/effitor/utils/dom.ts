@@ -1,14 +1,14 @@
-import type { DOM } from "@/effitor/@types";
-import { BuiltinElName, BuiltinElType, CssClassEnum, HtmlCharEnum } from '../@types';
+import type * as Et from "@/effitor/@types";
+import { BuiltinElName, BuiltinElType, CssClassEnum, HtmlCharEnum } from '../@types/constant';
 import { EffectElement, EtParagraphElement } from '../element/index';
 
-export const isTextNode = (node?: DOM.NullableNode): node is Text => node?.nodeType === Node.TEXT_NODE
-export const isElementNode = (node?: DOM.NullableNode): node is HTMLElement => node?.nodeType === Node.ELEMENT_NODE
-export const isBlockElement = (node?: DOM.NullableNode): node is HTMLElement => isElementNode(node) && node.computedStyleMap().get('display')?.toString() === 'block'
-export const isBrElement = (node?: DOM.NullableNode): node is HTMLBRElement => isElementNode(node) && node.localName === 'BR'
+export const isTextNode = (node?: Et.NullableNode): node is Text => node?.nodeType === Node.TEXT_NODE
+export const isElementNode = (node?: Et.NullableNode): node is HTMLElement => node?.nodeType === Node.ELEMENT_NODE
+export const isBlockElement = (node?: Et.NullableNode): node is HTMLElement => isElementNode(node) && node.computedStyleMap().get('display')?.toString() === 'block'
+export const isBrElement = (node?: Et.NullableNode): node is HTMLBRElement => isElementNode(node) && node.localName === 'BR'
 
-export const isEtElement = (node?: DOM.NullableNode): node is EffectElement => isElementNode(node) && node.elType !== undefined
-export const isEtParagraph = (node?: DOM.NullableNode | EventTarget): node is EtParagraphElement => node instanceof HTMLElement && node.elType === BuiltinElType.PARAGRAPH
+export const isEtElement = (node?: Et.NullableNode): node is EffectElement => isElementNode(node) && node.elType !== undefined
+export const isEtParagraph = (node?: Et.NullableNode | EventTarget): node is EtParagraphElement => node instanceof HTMLElement && node.elType === BuiltinElType.PARAGRAPH
 
 export const isEditableNode = (node: Node) => isElementNode(node) ? node.isContentEditable : node.parentElement?.isContentEditable
 
@@ -21,7 +21,7 @@ export const zwsText = () => new Text(HtmlCharEnum.ZERO_WIDTH_SPACE)
 /**
  * 让target发送一个InputEvent, 可冒泡/可取消
  */
-export const dispatchInputEvent = (target: EventTarget, type: 'beforeinput' | 'input', init: InputEventInit & { inputType: `${DOM.InputType}` }) => {
+export const dispatchInputEvent = (target: EventTarget, type: 'beforeinput' | 'input', init: InputEventInit & { inputType: `${Et.InputType}` }) => {
     return target.dispatchEvent(new InputEvent(type, {
         bubbles: true,
         cancelable: true,
@@ -31,7 +31,7 @@ export const dispatchInputEvent = (target: EventTarget, type: 'beforeinput' | 'i
 /**
  * 向上（包括自身）找第一个EffectElement
  */
-export const findEffectParent = (node: DOM.NullableNode, stopTag: string = BuiltinElName.ET_BODY): EffectElement | null => {
+export const findEffectParent = (node: Et.NullableNode, stopTag: string = BuiltinElName.ET_BODY): EffectElement | null => {
     if (!node) return null
     if (isEtElement(node)) return node
     if (isElementNode(node) && node.localName === stopTag) return null
@@ -40,7 +40,7 @@ export const findEffectParent = (node: DOM.NullableNode, stopTag: string = Built
 /**
  * 向上（包括自身）找段落父节点
  */
-export const findParagraphParent = (node: DOM.NullableNode, pTag: string, stopTag: string = BuiltinElName.ET_BODY): EtParagraphElement | null => {
+export const findParagraphParent = (node: Et.NullableNode, pTag: string, stopTag: string = BuiltinElName.ET_BODY): EtParagraphElement | null => {
     if (!node) return null
     if (isElementNode(node)) {
         if (node.localName === stopTag) return null
@@ -52,7 +52,7 @@ export const findParagraphParent = (node: DOM.NullableNode, pTag: string, stopTa
  * 从当前节点向上找最近的匹配选择器的祖先元素，包括自身  
  * @param pNode 限定在指定祖先之下查找，null时不限制
  */
-export const closestUnderTheNode = (node: DOM.NullableNode, selectors: string, pNode: DOM.NullableNode): DOM.NullableElement => {
+export const closestUnderTheNode = (node: Et.NullableNode, selectors: string, pNode: Et.NullableNode): Et.NullableElement => {
     if (!node) return null
     if (isElementNode(node) && node.matches(selectors)) return node
     while (node && node !== pNode) {
@@ -118,7 +118,7 @@ export const outermostAncestorUnderTheNode = (node: Node, stopNode: Node): Node 
 /**
  * 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
  */
-export const outermostAncestorWithSelfAsOnlyChild = (node: DOM.HTMLNode, stopTag: string = BuiltinElName.ET_BODY): DOM.HTMLNode => {
+export const outermostAncestorWithSelfAsOnlyChild = (node: Et.HTMLNode, stopTag: string = BuiltinElName.ET_BODY): Et.HTMLNode => {
     if (node.parentElement
         && node.parentElement.childNodes.length === 1
         && node.parentElement.tagName !== stopTag
@@ -278,7 +278,7 @@ export const mergeElement = (start: Element, end: Element): Node => {
  * 定位光标
  * @param offset 非负整数, Infinity则定位到末尾
  */
-export const collapse = (sel: Selection, node: DOM.NullableNode, offset: number) => {
+export const collapse = (sel: Selection, node: Et.NullableNode, offset: number) => {
     const r = sel.rangeCount && sel.getRangeAt(0)
     if (!node || !r) return
     if (isTextNode(node)) {
@@ -301,7 +301,7 @@ export const collapse = (sel: Selection, node: DOM.NullableNode, offset: number)
 /**
  * 聚焦并移动光标至开头`or`末尾
  */
-export const focus = (el: DOM.NullableElement, sel: Selection, toEnd = true) => {
+export const focus = (el: Et.NullableElement, sel: Selection, toEnd = true) => {
     if (!el) return
     sel.selectAllChildren(el)
     if (toEnd) sel.collapseToEnd()
@@ -311,13 +311,13 @@ export const focus = (el: DOM.NullableElement, sel: Selection, toEnd = true) => 
 /**
  * 获取始末节点都是同一#text节点的StaticRange
  */
-export const textStaticRange = (text: Text, startOffset: number, endOffset: number): DOM.TextStaticRange => {
+export const textStaticRange = (text: Text, startOffset: number, endOffset: number): Et.TextStaticRange => {
     return new StaticRange({
         startContainer: text,
         startOffset: startOffset,
         endContainer: text,
         endOffset: endOffset,
-    }) as DOM.TextStaticRange
+    }) as Et.TextStaticRange
 }
 /**
  * 获取Range对应的StaticRange

@@ -1,4 +1,4 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 import { markEffector } from "./effector"
 import { EtMarkElement } from "./element"
 import { EtParagraphElement, extentEtElement, type EffectElementCtor } from "@/effitor/element"
@@ -8,7 +8,7 @@ import { inMarkHandler, markHandler } from "./handler"
  * mark标记节点插件
  * @param needMarkEffectElementCtors 需要mark effect的元素构造器列表
  */
-export const useMarkPlugin = (needMarkEffectElementCtors: EffectElementCtor[] = [EtParagraphElement]): Effitor.Editor.Plugin => {
+export const useMarkPlugin = (needMarkEffectElementCtors: EffectElementCtor[] = [EtParagraphElement]): Et.EditorPlugin => {
     return {
         name: 'mark',
         effector: markEffector,

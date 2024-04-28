@@ -32,7 +32,7 @@ project
     |- effitor-plugins
         |- fontred
             |- effector.ts
-            |- element.ts
+            |- element.ts   // custom elements or omit
             |- handler.ts
             |- index.ts
     |- index.ts
@@ -40,7 +40,7 @@ project
 #### coding
 ```ts
 // fontred/effector.ts
-import { Effitor as Et } from "effitor";
+import type { Et } from "effitor";
 
 const tokenChecker = {
     pos: 0,
@@ -50,7 +50,8 @@ const tokenChecker = {
             this.pos++
         }
         else {
-            this.pos = 0
+            // 重新匹配第一个字符，避免`pps.`不匹配`ps.`的情况
+            this.pos = this.chars[0] === char ? 1 : 0
         }
         if (this.pos === this.chars.length) {
             // console.log('check success: fontred')
@@ -62,7 +63,7 @@ const tokenChecker = {
         this.pos = 0
     }
 }
-const afterInputSolver: Et.Effector.InputTypeSolver = {
+const afterInputSolver: Et.InputTypeSolver = {
     default: (ev, ctx) => {
         if (ev.data && ev.data.length === 1) {
             tokenChecker.checkChar(ev.data, () => {
@@ -83,15 +84,13 @@ export const fontredEffector: Et.Effector = {
 ```
 ```ts
 // fontred/handler.ts
-import { utils, Effitor as Et } from "effitor";
+import { utils, type Et } from "effitor";
 const domUtils = utils.dom
 
 declare module 'effitor' {
-    namespace Effitor {
-        interface EffectHandlerDeclaration {
-            // 添加自定义效果处理函数
-            fontred: (ctx: Et.Editor.Context) => boolean
-        }
+    interface EffectHandlerDeclaration {
+        // 添加自定义效果处理函数
+        fontred: (ctx: Et.EditorContext) => boolean
     }
 }
 
@@ -103,7 +102,7 @@ export const fontredHandler: Partial<Et.EffectHandlerDeclaration> = {
 
         // with undo
         const srcCaretRange = domUtils.staticFromRange(ctx.range)
-        ctx.commandHandler.push(Et.CmdType.Functional, {
+        ctx.commandHandler.push('Functional', {
             redoCallback: () => {
                 // console.log('check success: fontred')
                 Object.assign(ctx.paragraphEl.style, {
@@ -124,12 +123,13 @@ export const fontredHandler: Partial<Et.EffectHandlerDeclaration> = {
 ```
 ```ts
 // fontred/index.ts
-import et, { type Effitor as Et } from "effitor";
+import et, { type Et } from 'effitor'
 import { fontredEffector } from "./effector";
 import { fontredHandler } from "./handler";
 
-export const useFontred = (): Et.Editor.Plugin => {
+export const useFontred = (): Et.EditorPlugin => {
     return {
+        name: 'fontred',
         effector: fontredEffector,
         registry(ctx) {
             et.handler.extentEtElement(ctx.schema.paragraph, fontredHandler)

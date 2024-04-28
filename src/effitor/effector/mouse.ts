@@ -1,5 +1,5 @@
-import type { Effitor } from '../@types'
-import { BuiltinElName, CssClassEnum } from "../@types";
+import type * as Et from '../@types'
+import { BuiltinElName, CssClassEnum } from "../@types/constant";
 import { dom } from "../utils";
 
 
@@ -11,7 +11,7 @@ let draggingFragment: DocumentFragment | null = null;
 /*                                    mouse                                   */
 /* -------------------------------------------------------------------------- */
 
-export const getMouseDownListener = (ctx: Effitor.Editor.Context) => {
+export const getMouseDownListener = (ctx: Et.EditorContext) => {
     return (ev: MouseEvent) => {
         // 点击段落左侧段落符号
         if (dom.isEtParagraph(ev.target) && ev.offsetX < 0) {
@@ -20,7 +20,7 @@ export const getMouseDownListener = (ctx: Effitor.Editor.Context) => {
         }
     }
 }
-export const getMouseUpListener = (ctx: Effitor.Editor.Context) => {
+export const getMouseUpListener = (ctx: Et.EditorContext) => {
     // 若触发了拖拽, 则不会再触发mouseup
     return (ev: MouseEvent) => {
         // fixed #1
@@ -29,12 +29,12 @@ export const getMouseUpListener = (ctx: Effitor.Editor.Context) => {
         // ctx.root?.querySelector(BuiltinElName.ET_BODY)?.setAttribute('contenteditable', '')
     }
 }
-export const getClickListener = (ctx: Effitor.Editor.Context) => {
+export const getClickListener = (ctx: Et.EditorContext) => {
     return (ev: MouseEvent) => {
 
     }
 }
-export const getDblClickListener = (ctx: Effitor.Editor.Context) => {
+export const getDblClickListener = (ctx: Et.EditorContext) => {
     return (ev: MouseEvent) => {
 
     }
@@ -45,7 +45,7 @@ export const getDblClickListener = (ctx: Effitor.Editor.Context) => {
 /*                                    drag                                    */
 /* -------------------------------------------------------------------------- */
 
-export const getDragStartListener = (ctx: Effitor.Editor.Context) => {
+export const getDragStartListener = (ctx: Et.EditorContext) => {
     // 拖拽文本选区时由selectionchange更新ctx, 拖拽元素节点时, 无需更新ctx
     return (ev: DragEvent) => {
         // console.error('drag start', ev)
@@ -63,12 +63,12 @@ export const getDragStartListener = (ctx: Effitor.Editor.Context) => {
         }
     }
 }
-export const getDragListener = (ctx: Effitor.Editor.Context) => {
+export const getDragListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         // console.log('drag ', ev)
     }
 }
-export const getDragEndListener = (ctx: Effitor.Editor.Context) => {
+export const getDragEndListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         console.error('drag end', ev)
         ctx.root?.querySelector(BuiltinElName.ET_BODY)?.setAttribute('contenteditable', '')
@@ -85,7 +85,7 @@ export const getDragEndListener = (ctx: Effitor.Editor.Context) => {
 /*                                    drop                                    */
 /* -------------------------------------------------------------------------- */
 
-export const getDragEnterListener = (ctx: Effitor.Editor.Context) => {
+export const getDragEnterListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         // console.error('drag enter', ev)
         if (dom.isEtParagraph(ev.target)) {
@@ -93,7 +93,7 @@ export const getDragEnterListener = (ctx: Effitor.Editor.Context) => {
         }
     }
 }
-export const getDragOverListener = (ctx: Effitor.Editor.Context) => {
+export const getDragOverListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         if (draggingEl) {
             // 拖拽节点时drop target限制为段落
@@ -112,7 +112,7 @@ export const getDragOverListener = (ctx: Effitor.Editor.Context) => {
         }
     }
 }
-export const getDragLeaveListener = (ctx: Effitor.Editor.Context) => {
+export const getDragLeaveListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         // console.error('drag leave', ev)
         if (dom.isEtParagraph(ev.target)) {
@@ -121,7 +121,7 @@ export const getDragLeaveListener = (ctx: Effitor.Editor.Context) => {
     }
 }
 
-export const getDropListener = (ctx: Effitor.Editor.Context) => {
+export const getDropListener = (ctx: Et.EditorContext) => {
     return (ev: DragEvent) => {
         console.error('drop ', ev)
 

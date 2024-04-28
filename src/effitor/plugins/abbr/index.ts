@@ -1,4 +1,4 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 import type { AbbrConfig, AbbrName } from "./abbr";
 import { abbrListener, createAbbrs } from "./abbr";
 import { getAbbrEffector } from "./effector";
@@ -19,7 +19,7 @@ type UseAbbrOptions = {
     abbrInits: AbbrInit[]
 }
 
-export const useAbbrPlugin = (options?: UseAbbrOptions): Effitor.Editor.Plugin => {
+export const useAbbrPlugin = (options?: UseAbbrOptions): Et.EditorPlugin => {
     abbrContext.triggerChar = options?.triggerChar ?? abbrContext.triggerChar
     options?.abbrInits.forEach(init => {
         abbrListener.registerAbbrs(createAbbrs(init.name, init.config))

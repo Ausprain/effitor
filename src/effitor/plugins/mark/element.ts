@@ -3,16 +3,16 @@
  * @email: ausprain@qq.com 
  * @date: 2024-01-10 07:56:43 
  */
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 
 import { EtRichTextElement } from "@/effitor/element";
 import { MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 import { markCssText } from "./config";
-import { BuiltinElType, HtmlCharEnum, type DOM } from "@/effitor/@types";
+import { BuiltinElType, HtmlCharEnum } from "@/effitor/@types/constant";
 
 
 export class EtMarkElement extends EtRichTextElement {
-    // static [k: Effitor.Effect]: Effitor.EffectHandler | undefined
+    // static [k: Et.Effect]: Et.EffectHandler | undefined
 
     static readonly elName = MarkEnum.ElName
     static readonly cssText: string = markCssText
@@ -26,7 +26,7 @@ export class EtMarkElement extends EtRichTextElement {
             this.markType = markType
         }
     }
-    focusinCallback(ctx: Effitor.Editor.Context): void {
+    focusinCallback(ctx: Et.EditorContext): void {
         if (ctx.range.collapsed) {
             this.classList.add(MarkStatus.HINTING)
         }
@@ -72,7 +72,7 @@ export const createMarkNode = (
 /**
  * 判断一个节点是否为 EtMarkElement
  */
-export const isMarkElement = (node: DOM.NullableNode): node is EtMarkElement => (node as Element)?.localName === EtMarkElement.elName
+export const isMarkElement = (node: Et.NullableNode): node is EtMarkElement => (node as Element)?.localName === EtMarkElement.elName
 /**
  * 判断是否为空 mark节点
  */

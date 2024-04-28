@@ -1,4 +1,4 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
 import { keydownSolver } from "./keydown";
 import { inputSolver } from './input';
 import { selChange } from "./selchange";
@@ -6,7 +6,7 @@ import { selChange } from "./selchange";
 
 
 
-export const markEffector: Effitor.Effector = {
+export const markEffector: Et.Effector = {
     keydownSolver,
     afterInputSolver: inputSolver,
     selChangeCallback: selChange,

@@ -1,26 +1,27 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
+import { CmdTypeEnum } from "@/effitor/@types/constant";
 import { cmdHandler } from "./handler";
 import { dom } from "@/effitor/utils";
 import { createCommand } from "@/effitor/handler/cmd";
 
-interface UndoTransaction extends Required<Effitor.Handler.CmdCallbackInit> {
-    undoCmds: Effitor.Handler.Command[],
-    redoCmds: Effitor.Handler.Command[],
+interface UndoTransaction extends Required<Et.CmdCallbackInit> {
+    undoCmds: Et.Command[],
+    redoCmds: Et.Command[],
     /** 命令长度 */
     length: number
 }
 type CmdMergeReturns = {
-    cmds: Effitor.Handler.Command[],
-    redoCallbacks: Effitor.Handler.CmdCallback[],
-    undoCallbacks: Effitor.Handler.CmdCallback[],
-    finalCallbacks: Effitor.Handler.CmdCallback[]
+    cmds: Et.Command[],
+    redoCallbacks: Et.CmdCallback[],
+    undoCallbacks: Et.CmdCallback[],
+    finalCallbacks: Et.CmdCallback[]
 }
 
 /**
  * 合并连续的insertCompositionText为insertText或insertNode
  */
-const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context): CmdMergeReturns => {
-    const out: Effitor.Handler.Command[] = []
+const checkMergeCmdInsertCompositionText = (cmds: Et.Command[], ctx: Et.EditorContext): CmdMergeReturns => {
+    const out: Et.Command[] = []
     const res: CmdMergeReturns = {
         cmds: out,
         redoCallbacks: [],
@@ -33,15 +34,15 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
         cmd.redoCallback && res.redoCallbacks.push(cmd.redoCallback)
         cmd.undoCallback && res.undoCallbacks.push(cmd.undoCallback)
         cmd.finalCallback && res.finalCallbacks.push(cmd.finalCallback)
-        if (cmd.type === 'Insert_Composition_Text') {
+        if (cmd.type === CmdTypeEnum.Insert_Composition_Text) {
             let j = i + 1
             let data = cmd.data
-            let lastCmd: Effitor.Handler.CmdInsertCompositionText | null = null
+            let lastCmd: Et.CmdInsertCompositionText | null = null
             // 浏览器是否插入了一个新的#text节点; 当输入法输入位置不是#text节点时, 浏览器会插入一个#text
             const newTextInserted = !dom.isTextNode(cmd.targetRanges[0].startContainer)
             while (j < cmds.length) {
                 const nextCmd = cmds[j]
-                if (nextCmd.type === 'Insert_Composition_Text') {
+                if (nextCmd.type === CmdTypeEnum.Insert_Composition_Text) {
                     data = nextCmd.data   // 输入法每次输入都是整体更新, 而不是叠加
                     // node = nextCmd.targetRanges[0].startContainer as Text   // 同一个事务内, 后续的光标位置必是文本节点
                     lastCmd = nextCmd
@@ -65,7 +66,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
                     : dom.caretStaticRangeInNode(node, srcCaretRange.startOffset + data.length)
                 // 插入新#text
                 if (newTextInserted) {
-                    out.push(createCommand('Insert_Node', {
+                    out.push(createCommand(CmdTypeEnum.Insert_Node, {
                         node,
                         insertAt: srcCaretRange,
                         targetRanges: [srcCaretRange, destCaretRange],
@@ -73,7 +74,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
                 }
                 // 插入文本
                 else {
-                    out.push(createCommand('Insert_Text', {
+                    out.push(createCommand(CmdTypeEnum.Insert_Text, {
                         text: node,
                         offset: srcCaretRange.startOffset,
                         data: data,
@@ -96,7 +97,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
                 let node: Node | undefined | null = cmd.targetRanges[0].startContainer
                 // 插入文本
                 if (dom.isTextNode(node)) {
-                    out.push(createCommand('Insert_Text', {
+                    out.push(createCommand(CmdTypeEnum.Insert_Text, {
                         text: node,
                         offset: cmd.targetRanges[0].startOffset,
                         data: data,
@@ -111,7 +112,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
                     if (!node || !dom.isTextNode(node)) {
                         throw Error('insertCompositionText单独出现, 且无#text')
                     }
-                    out.push(createCommand('Insert_Node', {
+                    out.push(createCommand(CmdTypeEnum.Insert_Node, {
                         node,
                         insertAt: srcCaretRange,
                         targetRanges: [
@@ -132,11 +133,11 @@ const checkMergeCmdInsertCompositionText = (cmds: Effitor.Handler.Command[], ctx
  */
 const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeReturns => {
     const cmds = res.cmds
-    const out: Effitor.Handler.Command[] = []
+    const out: Et.Command[] = []
     for (let i = 0; i < cmds.length; i++) {
         const cmd = cmds[i];
         // 合并连续的insertText
-        if (cmd.type === 'Insert_Text') {
+        if (cmd.type === CmdTypeEnum.Insert_Text) {
             const currNode = cmd.text
             let j = i + 1;
             let insertedDataBuffer = ''
@@ -144,7 +145,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
             while (j < cmds.length) {
                 const nextCmd = cmds[j]
                 // // fixme 这里需要判断是否还是对同一个位置编辑, 当用鼠标点击另一个文本时, 也会被叠加; 或者监听selectionchange记录一次transaction
-                if (nextCmd.type === 'Insert_Text' && currNode === nextCmd.targetRanges[0].startContainer) {
+                if (nextCmd.type === CmdTypeEnum.Insert_Text && currNode === nextCmd.targetRanges[0].startContainer) {
                     insertedDataBuffer += nextCmd.data
                     lastCmd = nextCmd
                     j++
@@ -153,7 +154,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
                 break
             }
             if (insertedDataBuffer !== '') {
-                out.push(createCommand('Insert_Text', {
+                out.push(createCommand(CmdTypeEnum.Insert_Text, {
                     text: currNode,
                     offset: cmd.targetRanges[0].startOffset,
                     data: cmd.data + insertedDataBuffer,
@@ -164,7 +165,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
             }
         }
         // 合并连续的deleteText
-        else if (cmd.type === 'Delete_Text') {
+        else if (cmd.type === CmdTypeEnum.Delete_Text) {
             const currNode = cmd.deleteRange.startContainer
             let j = i + 1
             let lastCmd = cmd
@@ -173,7 +174,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
             let endOffset = cmd.deleteRange.endOffset
             while (j < cmds.length) {
                 const nextCmd = cmds[j]
-                if (nextCmd.type === 'Delete_Text' && nextCmd.deleteRange.startContainer === currNode && nextCmd.isBackward === cmd.isBackward) {
+                if (nextCmd.type === CmdTypeEnum.Delete_Text && nextCmd.deleteRange.startContainer === currNode && nextCmd.isBackward === cmd.isBackward) {
                     startOffset = Math.min(startOffset, nextCmd.deleteRange.startOffset)
                     endOffset = Math.max(endOffset, nextCmd.deleteRange.endOffset)
                     lastCmd = nextCmd
@@ -186,7 +187,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
             }
             if (deletedDataBuffer !== '') {
                 // 删除叠加文本
-                out.push(createCommand('Delete_Text', {
+                out.push(createCommand(CmdTypeEnum.Delete_Text, {
                     data: deletedDataBuffer,
                     isBackward: cmd.isBackward,
                     deleteRange: new StaticRange({
@@ -209,7 +210,7 @@ const checkMergeCmdInsertTextOrDeleteText = (res: CmdMergeReturns): CmdMergeRetu
     }
 }
 
-const buildTransaction = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.Context): UndoTransaction => {
+const buildTransaction = (cmds: Et.Command[], ctx: Et.EditorContext): UndoTransaction => {
     // console.error('构建事务: ', [...cmds])
 
     // fix. issues. # 由insertCompositionText合并成的insertText与其他insertText挨在一起, 导致撤销/重做时deleteText命令的deleteRange.endOffset位置不对
@@ -244,7 +245,7 @@ const buildTransaction = (cmds: Effitor.Handler.Command[], ctx: Effitor.Editor.C
 export class UndoStack {
     size: number
     pos: number
-    cmdList: Effitor.Handler.Command[]
+    cmdList: Et.Command[]
     transactionStack: UndoTransaction[]
 
     constructor(size: number) {
@@ -254,10 +255,10 @@ export class UndoStack {
         this.transactionStack = []
     }
 
-    record(cmds: Effitor.Handler.Command[]) {
+    record(cmds: Et.Command[]) {
         cmds.length && this.cmdList.push(...cmds)
     }
-    discard(ctx: Effitor.Editor.Context) {
+    discard(ctx: Et.EditorContext) {
         if (this.cmdList.length == 0) return false
         cmdHandler.handleUndo(this.cmdList, ctx)
         // 丢弃命令时命令已执行，需要执行撤回回调
@@ -265,7 +266,7 @@ export class UndoStack {
         this.cmdList.length = 0
         return true
     }
-    pushTransaction(ctx: Effitor.Editor.Context) {
+    pushTransaction(ctx: Et.EditorContext) {
         if (!this.cmdList.length) {
             return false
         }
@@ -288,7 +289,7 @@ export class UndoStack {
         }
         return true
     }
-    redo(ctx: Effitor.Editor.Context) {
+    redo(ctx: Et.EditorContext) {
         if (this.pos >= this.transactionStack.length) {
             return
         }
@@ -299,7 +300,7 @@ export class UndoStack {
         // console.error(`redoed, length=${this.transactionStack.length}, pos=${this.pos}, cmds=`, tranx.redoCmds)
         this.pos++
     }
-    undo(ctx: Effitor.Editor.Context) {
+    undo(ctx: Et.EditorContext) {
         if (this.pos <= 0) {
             return
         }
@@ -312,7 +313,7 @@ export class UndoStack {
     /**
      * 清空撤回栈，final所有命令
      */
-    commitAll(ctx: Effitor.Editor.Context) {
+    commitAll(ctx: Et.EditorContext) {
         this.transactionStack.forEach(x => x.finalCallback?.(ctx))
         this.transactionStack.length = 0
     }

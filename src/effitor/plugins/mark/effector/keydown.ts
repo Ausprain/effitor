@@ -1,8 +1,8 @@
-import type { Effitor } from "@/effitor/@types";
+import type * as Et from "@/effitor/@types";
+import { BuiltinElType, HtmlCharEnum } from "@/effitor/@types/constant";
 import { MarkType } from "../@type.mark";
 import { isTempMarkElement, isMarkElement, nestedMarkMap } from "../element";
 import { markState, markerMap } from "../config";
-import { BuiltinElType, HtmlCharEnum } from "@/effitor/@types";
 
 /* -------------------------------------------------------------------------- */
 /*                                   插入标记节点                                   */
@@ -10,7 +10,7 @@ import { BuiltinElType, HtmlCharEnum } from "@/effitor/@types";
 /**
  * 检查是否允许富文本
  */
-const checkAllowed = (ctx: Effitor.Editor.Context) => {
+const checkAllowed = (ctx: Et.EditorContext) => {
     if (!ctx.effectElement) return false
     if (ctx.effectElement.elType === BuiltinElType.PLAINTEXT) return false
     return true
@@ -18,7 +18,7 @@ const checkAllowed = (ctx: Effitor.Editor.Context) => {
 /**
  * 检查是否临时节点 或是否允许嵌套
  */
-const checkNesting = (ctx: Effitor.Editor.Context, markType: MarkType) => {
+const checkNesting = (ctx: Et.EditorContext, markType: MarkType) => {
     const markEl = ctx.effectElement
     if (!isMarkElement(markEl)) return true
     if (markEl.markType && nestedMarkMap[markEl.markType]?.includes(markType)) return true
@@ -27,13 +27,13 @@ const checkNesting = (ctx: Effitor.Editor.Context, markType: MarkType) => {
 /**
  * 判断光标并插入标记节点
  */
-const checkInsertMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
+const checkInsertMark = (ctx: Et.EditorContext, markType: MarkType) => {
     return ctx.effectInvoker.invoke('insertMarkNode', ctx, markType)
 }
 /**
  * 是否插入标记节点
  */
-const checkMarking = (ev: KeyboardEvent, ctx: Effitor.Editor.Context, markType: MarkType) => {
+const checkMarking = (ev: KeyboardEvent, ctx: Et.EditorContext, markType: MarkType) => {
     return ctx.range.collapsed 
         && checkAllowed(ctx)
         && checkNesting(ctx, markType)
@@ -48,7 +48,7 @@ const checkMarking = (ev: KeyboardEvent, ctx: Effitor.Editor.Context, markType: 
 /**
  * 判断选区，并将划选内容标记样式
  */
-const checkSurroundMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
+const checkSurroundMark = (ctx: Et.EditorContext, markType: MarkType) => {
     if (ctx.range.collapsed) return false
     if (ctx.node && ctx.range.startContainer === ctx.range.endContainer && ctx.range.endOffset === ctx.node.length &&
         (ctx.range.startOffset === 0 || ctx.range.startOffset === 1 && ctx.node.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE)
@@ -63,13 +63,13 @@ const checkSurroundMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
 /**
  * 光标在标记节点内试图添加相同标记时, 移除标记
  */
-const checkUnmark = (ctx: Effitor.Editor.Context) => {
+const checkUnmark = (ctx: Et.EditorContext) => {
     return ctx.effectInvoker.invoke('unformatMark', ctx)
 }
 /**
  * 光标状态下切换标记节点样式
  */
-const checkChangeMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
+const checkChangeMark = (ctx: Et.EditorContext, markType: MarkType) => {
     if (!isMarkElement(ctx.effectElement)) return false
     if (ctx.effectElement.markType === markType) return checkUnmark(ctx)
     ctx.effectElement.changeMarkType(markType)
@@ -79,7 +79,7 @@ const checkChangeMark = (ctx: Effitor.Editor.Context, markType: MarkType) => {
  * ctrl+b等热键插入/更改/format样式
  */
 const checkHotKeyToMark = (markType: MarkType) => {
-    return (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
+    return (ev: KeyboardEvent, ctx: Et.EditorContext) => {
         if (!ev.ctrlKey || ev.shiftKey || ev.altKey) return
         ev.preventDefault()
         ev.stopPropagation()
@@ -95,7 +95,7 @@ const checkHotKeyToMark = (markType: MarkType) => {
 /**
  * 是否撤销标记节点并插入对应标记字符
  */
-const checkRegress = (ev: KeyboardEvent, ctx: Effitor.Editor.Context): boolean => {
+const checkRegress = (ev: KeyboardEvent, ctx: Et.EditorContext): boolean => {
     return markState.phase && markState.markingType
         && isMarkElement(ctx.effectElement)
         && ctx.effectInvoker.invoke('regressToMarkChar', ctx, markState.markingType)
@@ -105,7 +105,7 @@ const checkRegress = (ev: KeyboardEvent, ctx: Effitor.Editor.Context): boolean =
 /** 
  * 按下tab跳到标记节点的下一个#text开头, 若以zws开头则顺移
  */
-const checkTabToNextText = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
+const checkTabToNextText = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
     if (!isMarkElement(ctx.effectElement)) return false
     return ctx.effectInvoker.invoke('tabToNextText', ctx) && (ev.preventDefault(), ctx.skipDefault = true)
 }
@@ -113,7 +113,7 @@ const checkTabToNextText = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
 /**
  * 这里负责判断要不要插入的问题；markHandler.insertMarkNode 负责如何插的问题
  */
-export const keydownSolver: Effitor.Effector.KeyboardKeySolver = {
+export const keydownSolver: Et.KeyboardKeySolver = {
     /** `: code */
     [markerMap.code.char]: (ev, ctx) => {
         if (ev.ctrlKey) {

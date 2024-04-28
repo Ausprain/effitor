@@ -1,11 +1,11 @@
-import type { Effitor } from '../../../@types'
+import type * as Et from '../../../@types'
 import { EtListElement } from "./EtListElement";
 import { extentEtElement } from "@/effitor/element";
 import { getUnselectedCloneFragment } from "@/effitor/handler/utils";
 import { builtinHandler } from "@/effitor/handler";
 import { dom } from "@/effitor/utils";
 
-export const overrideHandler: Partial<Effitor.Handler.DefaultEffectHandlerMap> = {
+export const overrideHandler: Partial<Et.DefaultEffectHandlerMap> = {
     EinsertFromPaste: (ctx, ev) => {
         console.error('被增强的 insertFromPaste')
         // todo 
@@ -14,7 +14,7 @@ export const overrideHandler: Partial<Effitor.Handler.DefaultEffectHandlerMap> =
     }
 }
 
-export const listHandler: Partial<Effitor.EffectHandlerDeclaration> = {
+export const listHandler: Partial<Et.EffectHandlerDeclaration> = {
     createList(ctx, ordered, start) {
         const [etl, zws] = EtListElement.create(ordered, start)
         // const etl = EtListElement.create(ordered)
@@ -31,7 +31,7 @@ export const listHandler: Partial<Effitor.EffectHandlerDeclaration> = {
     },
 }
 
-export const inListHandler: Partial<Effitor.EffectHandlerDeclaration> = {
+export const inListHandler: Partial<Et.EffectHandlerDeclaration> = {
     insertLi(ctx, currLi, blank) {
         const srcCaretRange = dom.staticFromRange(ctx.range)
         if (blank) {

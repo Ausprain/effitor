@@ -306,7 +306,7 @@ export const enum HtmlCharEnum {
 }
 export const enum MIMETypeEnum {
     /** effitor复制元信息, 以json字符串存储 */
-    ET_COPY_METADATA = "application/effitor.copy.metadata",
+    ET_COPY_METADATA = "application/Et.copy.metadata",
     ET_TEXT_HTML = "text/et-html",
     TEXT_PLAIN = "text/plain",
     TEXT_HTML = "text/html",

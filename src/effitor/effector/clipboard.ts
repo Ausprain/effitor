@@ -1,13 +1,13 @@
 
-import type { Effitor, DOM } from "../@types";
+import type * as Et from "../@types";
 import type { EffectElement } from "../element";
-import { HtmlCharEnum, MIMETypeEnum } from "../@types";
+import { HtmlCharEnum, MIMETypeEnum } from "../@types/constant";
 import { dom } from "../utils";
 
-type NotEmptyClipboardEvent = DOM.ClipboardEvent & { clipboardData: DataTransfer };
-type EmptyClipboardEvent = DOM.ClipboardEvent & { clipboardData: null };
+type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer };
+type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null };
 
-export const getCopyListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
+export const getCopyListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.log('copy', ev.clipboardData?.types, ev)
         if (!ev.clipboardData) return
@@ -21,7 +21,7 @@ export const getCopyListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.
         copySelectionToClipboard(ctx, ev.clipboardData)
     }
 }
-export const getCutListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
+export const getCutListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.log('cut', ev.clipboardData?.types, ev)
         if (!ev.clipboardData) return
@@ -40,7 +40,7 @@ export const getCutListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.E
         })
     }
 }
-export const getPasteListener = (ctx: Effitor.Editor.Context, callbacks: Effitor.Effector.ClipboardAction[]) => {
+export const getPasteListener = (ctx: Et.EditorContext, callbacks: Et.ClipboardAction[]) => {
     return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
         // console.error('paste', ev.clipboardData?.types, ev)
         // // todo remove
@@ -103,7 +103,7 @@ export const getPasteListener = (ctx: Effitor.Editor.Context, callbacks: Effitor
 /**
  * 复制`or`剪切时添加数据到clipboardData
  */
-const copySelectionToClipboard = (ctx: Effitor.Editor.Context, clipboardData: DOM.DataTransfer) => {
+const copySelectionToClipboard = (ctx: Et.EditorContext, clipboardData: Et.DataTransfer) => {
     const sel = ctx.selection ?? (ctx.root.getSelection ? ctx.root.getSelection() : getSelection())
     const range = sel?.getRangeAt(0)
     if (!range || !sel) return
@@ -131,7 +131,7 @@ const copySelectionToClipboard = (ctx: Effitor.Editor.Context, clipboardData: DO
 // /**
 //  * 尝试从clipboardData中提取出<a></a>, 判断是否粘贴链接
 //  */
-// const extractLink = (clipboard: DataTransfer): Effitor.EtLink | null => {
+// const extractLink = (clipboard: DataTransfer): Et.EtLink | null => {
 //     const htmlLinkPattern = /<!--StartFragment--><a.*?href="(http[s]?:\/\/[\w]+.*?)">(.+?)<\/a><!--EndFragment-->/
 //     const html = clipboard.getData('text/html')
 //     if (!html) return null

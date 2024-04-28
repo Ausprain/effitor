@@ -1,11 +1,12 @@
-import { BuiltinElType, HtmlCharEnum, type DOM, type Effitor } from "../@types";
+import type * as Et from '../@types'
+import { BuiltinElType } from "../@types/constant";
 import { dom } from "../utils";
 
 /**
  * 判断用户Backspace期望删除的内容是否为uneditable的内容; 是则需手动构造targetRange发送 beforeinput事件（ inputType="deleteContentBackward" ）,    
  *  因为chromium会直接找上一个可编辑节点, 然后删除中间所有内容, 而不是只删除上一个  
  */
-const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
+const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
     if (!ctx.range.collapsed) return
     const offset = ctx.range.startOffset
     let delTargetRange: StaticRange
@@ -65,7 +66,7 @@ const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Effitor.Editor.Conte
 /**
  * 判断用户Delete期望删除的内容是否为uneditable内容, 是则需手动构造targetRange 发送beforeinput事件（ inputType="deleteContentForward" ）  
  */
-const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Effitor.Editor.Context) => {
+const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
     if (!ctx.range.collapsed) return
     let nextNode: Node | null
     let delTargetRange: StaticRange
@@ -126,7 +127,7 @@ const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Effitor.Editor.Context)
 }
 
 
-const keydownKeySolver: Effitor.Effector.KeyboardKeySolver = {
+const keydownKeySolver: Et.KeyboardKeySolver = {
     ' ': (ev, ctx) => {
         if (ctx.prevUpKey === ev.key) {
             ctx.effectInvoker.invoke('dblSpace', ctx) && ctx.commandHandler.handle() && ev.preventDefault()
@@ -234,12 +235,12 @@ const keydownKeySolver: Effitor.Effector.KeyboardKeySolver = {
     },
 }
 
-export class MainKeydownSolver implements Effitor.Effector.KeyboardSolver {
-    [k: string]: Effitor.Effector.KeyboardAction | undefined
+export class MainKeydownKeySolver implements Et.KeyboardKeySolver {
+    [k: string]: Et.KeyboardAction | undefined
 }
-Object.assign(MainKeydownSolver.prototype, keydownKeySolver)
+Object.assign(MainKeydownKeySolver.prototype, keydownKeySolver)
 
-export const runKeyboardSolver = (ev: DOM.KeyboardEvent, ctx: Effitor.Editor.Context, main: Effitor.Effector.KeyboardSolver, solvers: Effitor.Effector.KeyboardKeySolver[]) => {
+export const runKeyboardSolver = (ev: Et.KeyboardEvent, ctx: Et.EditorContext, main: Et.KeyboardKeySolver, solvers: Et.KeyboardKeySolver[]) => {
     const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
 
     for (const mapping of solvers) {
@@ -253,12 +254,12 @@ export const runKeyboardSolver = (ev: DOM.KeyboardEvent, ctx: Effitor.Editor.Con
     if (ctx.skipDefault) return (ctx.skipDefault = false)
 
     // mainKeydownSolver需要在其他效应器后执行, 因为会dispatch beforeinput事件；如果先执行, 就会先执行beforeinput再执行其他keydownSolver
-    const fn = main[key] || main['default']
+    const fn = main[key as keyof typeof main] || main['default']
     typeof fn === 'function' && fn(ev, ctx)
 }
 
-export const getKeydownListener = (ctx: Effitor.Editor.Context, main: MainKeydownSolver, solvers: Effitor.Effector.KeyboardSolver[]) => {
-    return (ev: DOM.KeyboardEvent) => {
+export const getKeydownListener = (ctx: Et.EditorContext, main: MainKeydownKeySolver, solvers: Et.KeyboardKeySolver[]) => {
+    return (ev: Et.KeyboardEvent) => {
         // console.log('keydown:', ev.key, ev.code, ctx.currDownKey)
 
         // 没有effectElement 阻止后续输入
