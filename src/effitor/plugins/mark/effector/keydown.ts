@@ -173,7 +173,7 @@ export const keydownSolver: Et.KeyboardKeySolver = {
         if (markState.phase) {
             console.error('backspace 撤销临时节点')
             markState.endMarking()
-            ctx.commandHandler.discard()
+            return ctx.commandHandler.discard() && (ev.preventDefault(), ctx.skipDefault = true)
         }
     },
     Delete: (ev, ctx) => {

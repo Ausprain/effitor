@@ -836,11 +836,16 @@ const handleDelete = (
     let delTargetRange = ev.getTargetRanges()[0]
     // sol. 若浏览器判断删除内容为#Fragment, 则替换掉
     if (delTargetRange.startContainer.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-        // * 若非选区状态下，将不删除任何内容
+        // * ctx.range若非选区状态下，将不删除任何内容
         delTargetRange = dom.staticFromRange(ctx.range)
     }
     if (!delTargetRange) {
         throw Error('delete 的 targetRange不存在0')
+    }
+    if (dom.rangeFromStatic(delTargetRange).toString() === '') {
+        // todo remove
+        console.error(`${isBackward ? 'Backspace' : 'Delete'} will remove nothing`)
+        return ev.preventDefault()
     }
     // 第一个段落开头Backspace`or`最后段落末尾Delete, 不处理
     if (delTargetRange.startContainer === delTargetRange.endContainer && delTargetRange.startOffset === delTargetRange.endOffset) {

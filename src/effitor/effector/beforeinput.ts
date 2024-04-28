@@ -71,6 +71,7 @@ export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeIn
         runInputSolver(ev, ctx, main, solvers)
 
         if (!ev.defaultPrevented && ev.inputType !== 'insertCompositionText') {
+            // todo remove
             console.error(`There's unhandled input:`, ev.inputType, ev.getTargetRanges()[0], ev)
             // 阻止所有beforeinput默认行为
             ev.preventDefault()
