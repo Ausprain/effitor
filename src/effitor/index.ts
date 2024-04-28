@@ -1,3 +1,4 @@
+import './augment'
 import { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement, extentEtElement } from "./element";
 import { MainKeydownKeySolver } from "./effector";
 import { MainKeyupKeySolver } from './effector/keyup';

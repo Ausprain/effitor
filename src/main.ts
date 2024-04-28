@@ -1,9 +1,9 @@
 import './assets/main.css'
 
 import type { AbbrInit } from './effitor/plugins/abbr'
+import et from './effitor'
 import { EtParagraphElement } from './effitor/element'
 import { EtAbbrElement } from './effitor/plugins/abbr/element'
-import et from './effitor'
 
 const abbrInits: AbbrInit[] = [{
     name: 'ps',

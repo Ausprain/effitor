@@ -3,16 +3,16 @@ import { BuiltinElType } from "../@types/constant";
 import { dom } from "../utils";
 
 /**
- * 判断用户Backspace期望删除的内容是否为uneditable的内容; 是则需手动构造targetRange发送 beforeinput事件（ inputType="deleteContentBackward" ）,    
+ * 判断用户Backspace期望删除的内容是否为`uneditable`的内容; 是则需手动构造targetRange发送 beforeinput事件（`inputType="deleteContentBackward"`）,    
  *  因为chromium会直接找上一个可编辑节点, 然后删除中间所有内容, 而不是只删除上一个  
+ * * **调用前提`ctx.range.collapsed === true`**
  */
 const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
-    if (!ctx.range.collapsed) return
     const offset = ctx.range.startOffset
     let delTargetRange: StaticRange
     let prevNode: Node | null
     if (ctx.node) {
-        // 大部分情况不是#text节点开头, 让chromium默认行为构建targetRange发送beforeinput
+        // 大部分情况 光标不会在#text节点开头, 若在, 则让chromium默认行为构建targetRange发送beforeinput
         if (offset !== 0) return
         // 文档树的上一节点
         prevNode = dom.treePrevNode(ctx.node)
@@ -65,9 +65,9 @@ const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) =>
 }
 /**
  * 判断用户Delete期望删除的内容是否为uneditable内容, 是则需手动构造targetRange 发送beforeinput事件（ inputType="deleteContentForward" ）  
+ * * **调用前提`ctx.range.collapsed === true`**
  */
 const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
-    if (!ctx.range.collapsed) return
     let nextNode: Node | null
     let delTargetRange: StaticRange
     const offset = ctx.range.endOffset
@@ -220,18 +220,24 @@ const keydownKeySolver: Et.KeyboardKeySolver = {
     },
     Backspace: (ev, ctx) => {
         // 毗邻零宽字符, 移动光标
+        if (!ctx.range.collapsed) return
         if (dom.checkAbutZeroWidthSpace(ctx.range, true)) {
             console.warn('backspace move caret')
             ctx.selection.modify('move', 'backward', 'character')
         }
-        checkBackspaceInUneditable(ev, ctx)
+        else {
+            checkBackspaceInUneditable(ev, ctx)
+        }
     },
     Delete: (ev, ctx) => {
+        if (!ctx.range.collapsed) return
         if (dom.checkAbutZeroWidthSpace(ctx.range, false)) {
             console.warn('delete move caret')
             ctx.selection.modify('move', 'forward', 'character')
         }
-        checkDeleteInUneditable(ev, ctx)
+        else {
+            checkDeleteInUneditable(ev, ctx)
+        }
     },
 }
 

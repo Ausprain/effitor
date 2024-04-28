@@ -211,7 +211,8 @@ export const cleanFragment = (f: DocumentFragment) => {
             p = t.parentElement
         }
     })
-    f.normalize()
+    // f.normalize()
+    f.normalizeAndCleanZWS()
 }
 /**
  * 合并两个DocumentFragment, 以start的节点为主
@@ -226,12 +227,12 @@ export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, cl
     const startLast = start.lastChild
     const endFirst = end.firstChild
     // #text合并时, 后者开头的零宽字符去掉
-    if (isTextNode(startLast) && isTextNode(endFirst)) {
-        let count = 0
-        while (endFirst.data[count] === HtmlCharEnum.ZERO_WIDTH_SPACE) count++
-        count && endFirst.replaceData(0, count, '')
-    }
-    else if (isElementNode(startLast) && isElementNode(endFirst)) {
+    // if (isTextNode(startLast) && isTextNode(endFirst)) {
+    //     let count = 0
+    //     while (endFirst.data[count] === HtmlCharEnum.ZERO_WIDTH_SPACE) count++
+    //     count && endFirst.replaceData(0, count, '')
+    // }
+    if (isElementNode(startLast) && isElementNode(endFirst)) {
         // merge element
         const node = mergeElement(startLast, endFirst)
         if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
@@ -241,7 +242,8 @@ export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, cl
     }
     // 直接合并
     start.appendChild(end)
-    start.normalize()
+    // start.normalize()
+    start.normalizeAndCleanZWS()
     return start
 }
 /**
@@ -444,24 +446,24 @@ export const traverseRange = (range: Range, fn: (node: Node) => void | true, { w
 /**
  * 遍历节点
  * @param fn 回调, 返回true时终止遍历
- * @param options  
- * ```
+ * @param options
+ * ```ts
  *      whatToShow {NodeFilter} default to 5 (SHOW_ELEMENT and SHOW_TEXT)
  * ``` 
  */
 export const traverseNode = <T extends number>(
     node: Node,
-    fn: (node: T extends 1 ? HTMLElement : Node) => void | true,
+    fn: (node: ElTextNode<T>) => void | true,
     {
         whatToShow = (NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT) as T
     }: { whatToShow?: T } = {}
 ) => {
     const treeWalker = document.createTreeWalker(node, whatToShow)
     while (treeWalker.nextNode()) {
-        if (fn(treeWalker.currentNode as (T extends 1 ? HTMLElement : Node))) return
+        if (fn(treeWalker.currentNode as ElTextNode<T>)) return
     }
 }
-
+type ElTextNode<T> = T extends 1 ? HTMLElement : T extends 4 ? Text : Node
 
 
 /* -------------------------------------------------------------------------- */
@@ -470,10 +472,11 @@ export const traverseNode = <T extends number>(
 
 /**
  * 判断光标前/后方是否为零宽字符
+ *  * **调用前提`range.collapsed === true`**
  */
 export const checkAbutZeroWidthSpace = (range: Range, isBackward: boolean) => {
     const node = range.startContainer
-    if (!range.collapsed || !isTextNode(node)) return false
+    if (!isTextNode(node)) return false
     const offset = range.endOffset
     if (isBackward) {
         return offset > 0 && node.data[offset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE ? true : false
