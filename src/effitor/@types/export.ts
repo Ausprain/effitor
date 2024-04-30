@@ -546,12 +546,6 @@ declare global {
          */
         modify(alter: "extend" | "move", direction: "forward" | "backward" | "left" | "right", granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "sentenceboundary" | "paragraphboundary" | "documentboundary"): void;
     }
-    interface DocumentFragment extends Node {
-        /**
-         * 标准化节点, 先执行原本的`Node.prototype.normalize`再清理内部`#text`节点的非开头/结尾零宽字符
-         */
-        normalizeAndCleanZWS: (this: DocumentFragment) => void
-    }
 }
 
 
