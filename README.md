@@ -17,8 +17,36 @@ effitor.mount(div)
 
 ## Featrues
 
+### 缩写符
+> 通过缩写词加前/后缀的方式触发的，插入特定样式和功能的节点  
+> Insert some specific style and function node by inputed abbreviation word with prefix or suffix(default as `.`) and trigger Key(default as `Space` or `Enter`).  
+- [api](#useabbrplugin)
+
+### 图片、链接、列表、(代码块、表格)
+> 目前仅支持粘贴图片、链接，创建列表  
+- [api](#usecompplugin)
+
+### 部分markdown（`/*/**/==/~~）
+> 支持代码、粗体、斜体、高亮、删除线五种样式
+- [api](#usemarkplugin)
+
+
 
 ## Plugins
+
+### 内置插件
+#### useAbbrPlugin
+```ts
+// 
+```
+#### useCompPlugin
+```ts
+// 
+```
+#### useMarkPlugin
+```ts
+// 
+```
 
 ### Write a plugin
 > Consider writting a plugin for effitor to change font color to `red` of current paragraph after input `fontred`.
