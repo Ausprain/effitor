@@ -382,7 +382,7 @@ export const caretStaticRangeInNode = (node: Node, offset = 0): StaticRange => {
  * ```
  *  -1: collapsed to start
  *  1: collapsed to end
- *  0: no collapse
+ *  0: no collapse 就包含这个节点
  * ```
  */
 export const caretStaticRangeOutNode = (node: Node, focusTo: -1 | 0 | 1): StaticRange => {

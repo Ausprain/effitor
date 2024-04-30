@@ -172,12 +172,11 @@ export const mergeFragments = (
 }
 /**
  * 扩大选区整体删除, 并将未选取的前半和后半部分内容克隆, 合并插入删除位置（可选在该位置插入节点）
- * @param startExpandNode `delTargetRange.startContainer`的扩大节点
- * @param endExpandNode `delTargetRange.endContainer`的扩大节点
- * @param cmds 
+ * @param startExpandNode `delTargetRange.startContainer`的扩大节点（要一并移除的最前节点）
+ * @param endExpandNode `delTargetRange.endContainer`的扩大节点（要一并删除的最后节点）
  * @param delTargetRange 原本要删除内容的区域
  * @param srcCaretRange 原来光标位置
- * @param includes 克隆片段是否包含扩大节点边缘
+ * @param includes 克隆片段是否包含扩大节点边缘（true: 插入内容将包含边缘节点`<tag>`, false: 插入的内容不会出现边缘节点`<tag>`）
  * @param insertNode 插入到光标位置或替换选区的节点
  */
 export const expandRemoveInsert = (
@@ -287,6 +286,32 @@ export const insertNodeAtCaret = (
         const outermost = dom.outermostAncestorWithSelfAsOnlyChild(ctx.node, ctx.schema.paragraph.elName)
         expandRemoveInsert(ctx, outermost, outermost, srcCaretRange, srcCaretRange, true, node)
     }
+}
+/**
+ * 移除一个节点，并合并前后可合并节点
+ * @param node 要移除的节点
+ */
+export const removeNodeAndMerge = (
+    ctx: Et.EditorContext,
+    node: Et.HTMLNode,
+) => {
+    const srcTr = dom.staticFromRange(ctx.range),
+        prev = node.previousSibling,
+        next = node.nextSibling
+    // 没有前/后节点 或 前后节点不同类, 直接删除, 不用考虑合并
+    if (!prev || !next || prev.nodeName !== next.nodeName) {
+        const removeAt = dom.caretStaticRangeOutNode(node, -1)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
+            node,
+            removeAt,
+            setCaret: true,
+            targetRanges: [srcTr, removeAt]
+        })
+        ctx.commandHandler.handle()
+        return true
+    }
+    const delTr = dom.caretStaticRangeOutNode(node, 0)
+    return expandRemoveInsert(ctx, prev, next, delTr, srcTr, true)
 }
 /**
  * 删除选区内容并让光标collapsed
