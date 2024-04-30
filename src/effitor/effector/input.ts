@@ -8,20 +8,21 @@ import { runInputSolver } from './beforeinput';
  * 删除内容后（更新上下文前），若当前效应元素内容为零宽字符，则一起删除，并合并前后可合并节点
  */
 const checkRemoveZWSNodeAfterDeleteContent = (ev: Et.InputEvent, ctx: Et.EditorContext) => {
-    // console.warn('check zws')
-    // 段落不应参与
-    if (ctx.effectElement === ctx.paragraphEl) return
-    if (ctx.effectElement.textContent !== HtmlCharEnum.ZERO_WIDTH_SPACE) return
-
+    // console.warn('check zws', ctx.range, ctx.node)
+    // fix. issues.3 命令handler中已经更新了ctx.range和ctx.node, 应直接从ctx.node向上找EtElement，因为ctrl删除时ctx.effectElement可能是段落
+    // 若剩下零宽字符，则ctx.node必定存在
+    if (ctx.node?.data !== HtmlCharEnum.ZERO_WIDTH_SPACE) return
+    const etElement = dom.findEffectParent(ctx.node)
+    if (!etElement || etElement === ctx.paragraphEl) return  // 段落不应参与
     // console.warn('remove empty node')
     const srcTr = dom.staticFromRange(ctx.range),
-        prev = ctx.effectElement.previousSibling,
-        next = ctx.effectElement.nextSibling
+        prev = etElement.previousSibling,
+        next = etElement.nextSibling
     // 没有前/后节点 或 前后节点不同类, 直接删除, 不用考虑合并
     if (!prev || !next || prev.nodeName !== next.nodeName) {
-        const removeAt = dom.caretStaticRangeOutNode(ctx.effectElement, -1)
+        const removeAt = dom.caretStaticRangeOutNode(etElement, -1)
         ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
-            node: ctx.effectElement,
+            node: etElement,
             removeAt,
             setCaret: true,
             targetRanges: [srcTr, removeAt]
