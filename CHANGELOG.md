@@ -1,5 +1,6 @@
 # 0.1.0
 ## Bug Fixes
+- [ ] issues.4 空段落输入法输入时会删掉`<br>`，导致删除最后一文本时会连同段落删除
 - [x] issues.3 在非样式节点外`Ctrl + Backspace/Delete`删除一个word后，若样式节点仅剩零宽字符，未能正确将其一并删除
 - [x] issues.2 `Backspace`删除块级符开头`&ZeroWidthSpace;`时异常，与预期不符，可能与`modify()`有关
   - orig. `modify`移动一个`Character`无法跨越换行或`display::block`节点，导致删除判定为【同段落跨节点删除】`or`【跨段落删除】，然后整体删除、合并
@@ -20,6 +21,7 @@
   - [x] `useMarkPlugin`: [部分markdown](./README.md#部分markdown)
 ## Todos
 - [x] 编辑：若删除文本后节点仅剩零宽字符，则连同该节点（以及以其为唯一节点的祖先）一起删除，并合并前后可合并节点
-- [ ] `mark`: mark节点仅剩零宽字符时，光标离开时应当将标记节点移除，rel.issues.3
+- [x] `mark`: mark节点仅剩零宽字符时，光标离开时应当将标记节点移除，rel.issues.3
 - [ ] `abbr`：前缀/块级符内开头Backspace或后缀符内末尾Delete时，将缩写符节点`regress`
 - [ ] `Backspace|Delete`：修复并优化`br`和段落的删除
+  - [ ] 删除内容前应当也判断当前节点是否仅剩零宽字符，是则删除节点，而不是`modify`光标  

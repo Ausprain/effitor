@@ -178,6 +178,7 @@ export const mergeFragments = (
  * @param srcCaretRange 原来光标位置
  * @param includes 克隆片段是否包含扩大节点边缘（true: 插入内容将包含边缘节点`<tag>`, false: 插入的内容不会出现边缘节点`<tag>`）
  * @param insertNode 插入到光标位置或替换选区的节点
+ * @param setCaret 是否设置光标位置, 默认true
  */
 export const expandRemoveInsert = (
     ctx: Et.EditorContext,
@@ -186,7 +187,8 @@ export const expandRemoveInsert = (
     delTargetRange: Range | StaticRange,
     srcCaretRange: StaticRange,
     includes: boolean,
-    insertNode: Node | null = null
+    insertNode: Node | null = null,
+    setCaret = true,
 ) => {
     const r = document.createRange()
     r.setStartBefore(startExpandNode)
@@ -209,7 +211,7 @@ export const expandRemoveInsert = (
     // 合并片段为空, 无需插入直接返回，光标置于删除后的位置
     ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
         removeRange,
-        setCaret: !out ? true : false,
+        setCaret: !out ? setCaret : false,
         targetRanges: [srcCaretRange, removeAt]
     })
     if (!out) return false
@@ -224,7 +226,7 @@ export const expandRemoveInsert = (
             fragment,
             insertAt: removeAt,
             collapseTo: dest,
-            setCaret: true,
+            setCaret,
             targetRanges: [srcCaretRange, srcCaretRange]
         })
     }
@@ -232,7 +234,7 @@ export const expandRemoveInsert = (
         ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
             fragment,
             insertAt: removeAt,
-            setCaret: true,
+            setCaret,
             targetRanges: [srcCaretRange, dest]
         })
     }
@@ -290,12 +292,15 @@ export const insertNodeAtCaret = (
 /**
  * 移除一个节点，并合并前后可合并节点
  * @param node 要移除的节点
+ * @param setCaret 是否设置光标位置, 默认true
  */
 export const removeNodeAndMerge = (
     ctx: Et.EditorContext,
     node: Et.HTMLNode,
+    setCaret = true,
+    srcCaretRange?: StaticRange,
 ) => {
-    const srcTr = dom.staticFromRange(ctx.range),
+    const srcTr = srcCaretRange || dom.staticFromRange(ctx.range),
         prev = node.previousSibling,
         next = node.nextSibling
     // 没有前/后节点 或 前后节点不同类, 直接删除, 不用考虑合并
@@ -310,8 +315,67 @@ export const removeNodeAndMerge = (
         ctx.commandHandler.handle()
         return true
     }
+    if (!setCaret && checkRemoveNodeAndMergeTextNode(ctx, node, prev, next, srcTr)) return true
     const delTr = dom.caretStaticRangeOutNode(node, 0)
-    return expandRemoveInsert(ctx, prev, next, delTr, srcTr, true)
+    return expandRemoveInsert(ctx, prev, next, delTr, srcTr, true, null, setCaret)
+}
+/**
+ * 移除节点并合并前后文本节点, 保持原有光标位置
+ */
+const checkRemoveNodeAndMergeTextNode = (ctx: Et.EditorContext, removeNode: Et.HTMLNode, prev: Node, next: Node, srcTr: StaticRange) => {
+    if (!dom.isTextNode(prev) || !dom.isTextNode(next)) return false
+    // 光标在前节点, 删除后节点, 补充前节点
+    if (ctx.range.startContainer === prev) {
+        const delTr = document.createRange()
+        delTr.setStartBefore(removeNode)
+        delTr.setEndAfter(next)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
+            removeRange: delTr,
+            targetRanges: [srcTr, srcTr]
+        })
+        const data = next.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Text, {
+            data,
+            text: prev,
+            offset: prev.length,
+            targetRanges: [srcTr, srcTr]
+        })
+    }
+    // 光标在后节点, 删除前节点, 补充后节点
+    else if (ctx.range.startContainer === next) {
+        const delTr = document.createRange()
+        delTr.setStartBefore(prev)
+        delTr.setEndAfter(removeNode)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
+            removeRange: delTr,
+            targetRanges: [srcTr, srcTr]
+        })
+        const data = (prev.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE ? HtmlCharEnum.ZERO_WIDTH_SPACE : '') + prev.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Text, {
+            data,
+            text: next,
+            offset: 0,
+            targetRanges: [srcTr, srcTr]
+        })
+    }
+    // 一起删除
+    else {
+        const delTr = document.createRange()
+        delTr.setStartBefore(prev)
+        delTr.setEndAfter(next)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
+            removeRange: delTr,
+            targetRanges: [srcTr, srcTr]
+        })
+        const data = (prev.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE ? HtmlCharEnum.ZERO_WIDTH_SPACE : '') + prev.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '') + next.data.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+        const text = document.createTextNode(data)
+        ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
+            node: text,
+            insertAt: dom.caretStaticRangeOutNode(prev, -1),
+            targetRanges: [srcTr, srcTr]
+        })
+    }
+    return true
 }
 /**
  * 删除选区内容并让光标collapsed

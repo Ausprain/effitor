@@ -51,9 +51,12 @@ class EtContext implements Et.EditorContext {
     }
     set effectElement(v) {
         if (this._effectElement === v) return
-        this._effectElement?.localName !== this.schema.paragraph.elName && this._effectElement?.focusoutCallback?.(this)
+        // this._effectElement?.localName !== this.schema.paragraph.elName && this._effectElement?.focusoutCallback?.(this)
+        // fix. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback
+        const old = this._effectElement
         this._effectElement = v
-        this._effectElement.localName !== this.schema.paragraph.elName && this._effectElement.focusinCallback?.(this)
+        old && old.localName !== this.schema.paragraph.elName && old.focusoutCallback(this)
+        this._effectElement.localName !== this.schema.paragraph.elName && this._effectElement.focusinCallback(this)
     }
     get paragraphEl() {
         return this._paragraphEl

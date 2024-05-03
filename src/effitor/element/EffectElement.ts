@@ -27,13 +27,13 @@ export abstract class EffectElement extends HTMLElement implements Et.ElementCal
     attributeChangedCallback?(this: EffectElement, name: string, oldValue: string, newValue: string): void
 
     /** 替换当前节点, 并转移其后代到新节点; 在DocumentFragment内使用 */
-    replaceToNativeElement?(this: EffectElement) { return }
+    replaceToNativeElement(this: EffectElement) { return }
     /** 光标位于当前Effect元素的直接子孙内（即中间无其他Effect元素）时调用; 即赋值到ctx.effectElement时调用 */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    focusinCallback?(_ctx: Et.EditorContext) { }
+    focusinCallback(_ctx: Et.EditorContext) { }
     /** 当前Effect元素从ctx.effectElement移除（被赋新值）时调用 */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    focusoutCallback?(_ctx: Et.EditorContext) { }
+    focusoutCallback(_ctx: Et.EditorContext) { }
 }
 export type EffectElementCtor = typeof EffectElement
 

@@ -9,6 +9,8 @@ import { EtRichTextElement } from "@/effitor/element";
 import { MarkEnum, MarkStatus, MarkType } from "./@type.mark";
 import { markCssText } from "./config";
 import { BuiltinElType, HtmlCharEnum } from "@/effitor/@types/constant";
+import { removeNodeAndMerge } from "@/effitor/handler/utils";
+import { dom } from "@/effitor/utils";
 
 
 export class EtMarkElement extends EtRichTextElement {
@@ -31,8 +33,16 @@ export class EtMarkElement extends EtRichTextElement {
             this.classList.add(MarkStatus.HINTING)
         }
     }
-    focusoutCallback(): void {
-        this.classList.remove(MarkStatus.HINTING)
+    focusoutCallback(ctx: Et.EditorContext): void {
+        // 若标记节点仅剩零宽字符，应当将其移除
+        if (this.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+            // 回调在selchange之后触发，光标已不在this节点; 标记节点内光标位置，以便撤回删除时能让光标落于this节点内
+            const srcTr = dom.caretStaticRangeInNode(this, this.childNodes.length)
+            removeNodeAndMerge(ctx, this, false, srcTr) && ctx.commandHandler.handle()
+        }
+        else {
+            this.classList.remove(MarkStatus.HINTING)
+        }
     }
 }
 export type EffitorMarkElementCtor = typeof EtMarkElement
