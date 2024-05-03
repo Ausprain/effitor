@@ -457,9 +457,7 @@ const deleteTextAtTextNodeByTargetRange = (
         })
         // 如果是段落末尾节点, 且上一个节点是<br>, 则插入一个<br>  
         // <br>aI  ->  <br><br>, 否则该行会坍缩
-        const currP = dom.findParagraphParent(removeNode, ctx.schema.paragraph.elName)
-        if (!currP) return false
-        if (removeNode === currP.lastChild && removeNode.previousSibling?.nodeName === 'BR') {
+        if (removeNode === ctx.paragraphEl.lastChild && removeNode.previousSibling?.nodeName === 'BR') {
             const insertAt = dom.caretStaticRangeOutNode(removeNode, -1)
             ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
                 node: document.createElement('br'),
@@ -467,7 +465,6 @@ const deleteTextAtTextNodeByTargetRange = (
                 setCaret: true,
                 targetRanges: [srcCaretRange, insertAt]
             })
-            return true
         }
     }
     else {
@@ -479,9 +476,8 @@ const deleteTextAtTextNodeByTargetRange = (
             setCaret: true,
             targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(textNode, delTargetRange.startOffset)]
         })
-        return true
     }
-    return false
+    return true
 }
 const checkDeleteTextAtCaret = (
     isBackward: boolean,
@@ -836,17 +832,17 @@ const handleDelete = (
     let delTargetRange = ev.getTargetRanges()[0]
     // sol. 若浏览器判断删除内容为#Fragment, 则替换掉
     if (delTargetRange.startContainer.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-        // * ctx.range若非选区状态下，将不删除任何内容
+        // * ctx.range若非选区状态，将不删除任何内容
         delTargetRange = dom.staticFromRange(ctx.range)
     }
     if (!delTargetRange) {
         throw Error('delete 的 targetRange不存在0')
     }
-    if (dom.rangeFromStatic(delTargetRange).toString() === '') {
-        // todo remove
-        console.error(`${isBackward ? 'Backspace' : 'Delete'} will remove nothing`)
-        return ev.preventDefault()
-    }
+    // if (dom.rangeFromStatic(delTargetRange).toString() === '') {
+    //     // todo remove
+    //     console.error(`${isBackward ? 'Backspace' : 'Delete'} will remove nothing`)
+    //     return ev.preventDefault()
+    // }
     // 第一个段落开头Backspace`or`最后段落末尾Delete, 不处理
     if (delTargetRange.startContainer === delTargetRange.endContainer && delTargetRange.startOffset === delTargetRange.endOffset) {
         console.log('首段落开头back, 终末尾delete')

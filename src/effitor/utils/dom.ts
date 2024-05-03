@@ -29,7 +29,9 @@ export const dispatchInputEvent = (target: EventTarget, type: 'beforeinput' | 'i
     }));
 }
 /**
- * 向上（包括自身）找第一个EffectElement
+ * 向上（包括自身）找第一个`EffectElement`
+ * @param stopTag 小写元素标签名
+ * 返回的节点可能匹配 `stopTag`, 
  */
 export const findEffectParent = (node: Et.NullableNode, stopTag: string = BuiltinElName.ET_BODY): EffectElement | null => {
     if (!node) return null
@@ -39,6 +41,8 @@ export const findEffectParent = (node: Et.NullableNode, stopTag: string = Builti
 }
 /**
  * 向上（包括自身）找段落父节点
+ * @param pTag 段落小写标签名
+ * @param stopTag 小写元素标签名
  */
 export const findParagraphParent = (node: Et.NullableNode, pTag: string, stopTag: string = BuiltinElName.ET_BODY): EtParagraphElement | null => {
     if (!node) return null
@@ -64,6 +68,7 @@ export const closestUnderTheNode = (node: Et.NullableNode, selectors: string, pN
 /**
  * 递归查找以当前节点为`firstChild/lastChild`的最近祖先节点, 若node不是`firstChild/lastChild`, 则返回自己;   
  * 返回的节点可能匹配 `stopTag`, 
+ * @param stopTag 小写元素标签名
  */
 export const outermostAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopTag: string = BuiltinElName.ET_BODY): Node => {
     // todo need refactor
@@ -75,7 +80,9 @@ export const outermostAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopT
     return node
 }
 /**
- * 递归查找以当前节点为`firstChild/lastChild`的最近内联祖先节点, 若node不是`firstChild/lastChild`或不是内联节点, 则返回自身(即可能返回块节点)
+ * 递归查找以当前节点为`firstChild/lastChild`的最近内联祖先节点, 若node不是`firstChild/lastChild`或不是内联节点, 则返回自身(即可能返回块节点)  
+ * 返回的节点可能匹配 `stopTag`,  
+ * @param stopTag 小写元素标签名
  */
 export const outermostInlineAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopTag: string = BuiltinElName.ET_BODY): Node => {
     // todo need refactor
@@ -116,12 +123,15 @@ export const outermostAncestorUnderTheNode = (node: Node, stopNode: Node): Node 
     return node
 }
 /**
- * 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
+ * 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身  
+ * @param stopTag 小写元素标签名
+ * * **仅当返回节点是`node`时可能匹配`stopTag`**
  */
 export const outermostAncestorWithSelfAsOnlyChild = (node: Et.HTMLNode, stopTag: string = BuiltinElName.ET_BODY): Et.HTMLNode => {
+    if ((node as HTMLElement).localName === stopTag) return node
     if (node.parentElement
         && node.parentElement.childNodes.length === 1
-        && node.parentElement.tagName !== stopTag
+        && node.parentElement.localName !== stopTag
     )
         return outermostAncestorWithSelfAsOnlyChild(node.parentElement)
     return node

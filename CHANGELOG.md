@@ -1,8 +1,9 @@
 # 0.1.0
 ## Bug Fixes
-- [ ] issues.4 空段落输入法输入时会删掉`<br>`，导致删除最后一文本时会连同段落删除
+- [x] issues.4 空段落输入法输入时会删掉`<br>`，导致删除最后一文本时会连同段落删除
+  - orig. `dom.outermostAncestorWithSelfAsOnlyChild`中错把`tagName`当`localName`使用
 - [x] issues.3 在非样式节点外`Ctrl + Backspace/Delete`删除一个word后，若样式节点仅剩零宽字符，未能正确将其一并删除
-- [x] issues.2 `Backspace`删除块级符开头`&ZeroWidthSpace;`时异常，与预期不符，可能与`modify()`有关
+- [ ] issues.2 `Backspace`删除块级符开头`&ZeroWidthSpace;`时异常，与预期不符，可能与`modify()`有关
   - orig. `modify`移动一个`Character`无法跨越换行或`display::block`节点，导致删除判定为【同段落跨节点删除】`or`【跨段落删除】，然后整体删除、合并
 - [x] issues.1 `markPlugin`: 撤销临时节点时前一个字符也被删除了
   - orig. 忘记`skipDefault`
