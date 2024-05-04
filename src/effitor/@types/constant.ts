@@ -266,7 +266,74 @@ export const enum InputTypeEnum {
     /** 增加缩进（仅段落 */
     formatIndent = "formatIndent",
     /** 减少缩进（仅段落 */
-    formatOutdent = "formatOutdent"
+    formatOutdent = "formatOutdent",
+
+    /* 草案中定义的 inputType 共三大类
+
+    // 插入类
+
+    insertText = "insertText",
+    insertReplacementText = "insertReplacementText",
+    insertCompositionText = "insertCompositionText",
+
+    insertLineBreak = "insertLineBreak",
+    insertParagraph = "insertParagraph",
+
+    insertOrderedList = "insertOrderedList",
+    insertUnorderedList = "insertUnorderedList",
+    insertHorizontalRule = "insertHorizontalRule",
+    insertLink = "insertLink",
+
+    insertFromDrop = "insertFromDrop",
+    insertFromPaste = "insertFromPaste",
+    insertFromPasteAsQuotation = "insertFromPasteAsQuotation",
+    insertFromYank = "insertFromYank",
+    insertTranspose = "insertTranspose",
+
+    // 删除类
+
+    deleteWordBackward = "deleteWordBackward",
+    deleteWordForward = "deleteWordForward",
+    deleteContentBackward = "deleteContentBackward",
+    deleteContentForward = "deleteContentForward",
+
+    deleteSoftLineBackward = "deleteSoftLineBackward",
+    deleteSoftLineForward = "deleteSoftLineForward",
+    deleteHardLineBackward = "deleteHardLineBackward",
+    deleteHardLineForward = "deleteHardLineForward",
+    deleteEntireSoftLine = "deleteEntireSoftLine",
+
+    deleteByDrag = "deleteByDrag",
+    deleteByCut = "deleteByCut",
+    deleteContent = "deleteContent",
+
+    // 功能类
+
+    historyUndo = "historyUndo",
+    historyRedo = "historyRedo",
+
+    formatBold = "formatBold",
+    formatItalic = "formatItalic",
+    formatUnderline = "formatUnderline",
+    formatStrikeThrough = "formatStrikeThrough",
+    formatSuperscript = "formatSuperscript",
+    formatSubscript = "formatSubscript",
+
+    formatIndent = "formatIndent",
+    formatOutdent = "formatOutdent",
+    formatJustifyFull = "formatJustifyFull",
+    formatJustifyCenter = "formatJustifyCenter",
+    formatJustifyRight = "formatJustifyRight",
+    formatJustifyLeft = "formatJustifyLeft",
+    formatSetBlockTextDirection = "formatSetBlockTextDirection",
+    formatSetInlineTextDirection = "formatSetInlineTextDirection",
+
+    formatBackColor = "formatBackColor",
+    formatFontColor = "formatFontColor",
+    formatFontName = "formatFontName",
+    formatRemove = "formatRemove",
+
+    */
 }
 
 /* -------------------------------------------------------------------------- */
@@ -332,7 +399,7 @@ export const enum CssClassEnum {
     /** 块级缩写符 */
     Block = "block",
 }
-export const enum CmdTypeEnum  {
+export const enum CmdTypeEnum {
     Insert_Node = "Insert_Node",
     Remove_Node = "Remove_Node",
     Replace_Node = "Replace_Node",

@@ -119,18 +119,19 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
         ctx.root = root
         ctx.body = root.querySelector(ctx.schema.body.elName)!
 
-        const sel = ctx.selection || (ctx.root.getSelection ? ctx.root.getSelection() : getSelection())
-        if (sel?.rangeCount) {
-            const r = sel.getRangeAt(0)
-            sel.removeAllRanges()
-            sel.addRange(r)
-        }
-
+        // const sel = ctx.selection || (ctx.root.getSelection ? ctx.root.getSelection() : getSelection())
+        // fixme 这里手动刷新selection的用意? 
+        // if (sel?.rangeCount) {
+        //     const r = sel.getRangeAt(0)
+        //     sel.removeAllRanges()
+        //     sel.addRange(r)
+        // }
         // 注册selectionchange
         document.addEventListener('selectionchange', listeners.selectionchange!, { signal: ac.signal })
     }, { signal: ac.signal })
     root.addEventListener('focusout', () => {
         console.error('blur ')
+        ctx.el = null as any   // 通过el是否为空来判断光标是否聚焦编辑器内
         // ctx.focused = false
         // ctx.paragraphEl?.classList.remove(CssClassEnum.Active)
         // ctx.paragraphEl = null as any

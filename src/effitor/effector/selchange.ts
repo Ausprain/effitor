@@ -9,7 +9,7 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callbacks: ((e
         if (ctx.inCompositionSession) {
             return
         }
-        // console.error('sel change')
+        console.error('sel change')
         ctx.forceUpdate()
         if (ctx.range.collapsed) ctx.body.classList.remove(CssClassEnum.SelectionRange)
         else ctx.body.classList.add(CssClassEnum.SelectionRange)
