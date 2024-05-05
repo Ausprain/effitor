@@ -189,9 +189,7 @@ const insertLineBreakAtCaret = (
                 setCaret: true,
                 targetRanges: [srcCaretRange, destCaretRange]
             })
-            const p = dom.findParagraphParent(outermost, ctx.schema.paragraph.elName)
-            if (!p) throw Error('当前段落不存在')
-            if (p.lastChild === outermost) {
+            if (ctx.paragraphEl.lastChild === outermost) {
                 // 段落末尾插入两个<br>
                 const br2 = document.createElement('br')
                 const destCaretRange2 = dom.movedStaticRange(destCaretRange, 1)
@@ -205,9 +203,7 @@ const insertLineBreakAtCaret = (
         }
         else {
             // 中间插入, 段落整体移除
-            const currP = dom.findParagraphParent(srcCaretRange.startContainer, ctx.schema.paragraph.elName)
-            if (!currP) throw Error('当前段落不存在')
-            insertBrToParagraph(ctx, currP, srcCaretRange, br)
+            insertBrToParagraph(ctx, ctx.paragraphEl, srcCaretRange, br)
         }
     }
 }
@@ -407,8 +403,7 @@ const insertFromPasteAtCaret = (
         return insertTextAtCaret(fragment.textContent!, ctx, srcCaretRange)
     }
     const currNode = ctx.node || srcCaretRange.startContainer.childNodes[srcCaretRange.startOffset] || srcCaretRange.startContainer
-    const currP = dom.findParagraphParent(srcCaretRange.startContainer, ctx.schema.paragraph.elName)
-    if (!currP) return
+    const currP = ctx.paragraphEl
     // 插入到段落内
     if (noParagraph) {
         const outermost = dom.outermostAncestorUnderTheNode(currNode, currP)
