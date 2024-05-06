@@ -505,13 +505,6 @@ export interface CommandHandler {
      */
     commitAll(this: CommandHandler, ctx: EditorContext): void;
 }
-export type CommandUndoHandler = {
-    handle(ctx: EditorContext, cmds: Command[]): boolean;
-    commit(ctx: EditorContext): boolean;
-    discard(ctx: EditorContext): boolean;
-    commitAll(ctx: EditorContext): void;
-};
-
 
 /* -------------------------------------------------------------------------- */
 /*                            Global Augmentations                            */

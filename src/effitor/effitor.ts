@@ -195,7 +195,8 @@ export const createEditor = ({
     const _editor: Et.Editor = {} as Et.Editor
     const _config = { ...defaultConfig, ...config }
     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
-    plugins.push({ name: 'undo', effector: undoEffector })
+    // undoEffector应放在首位
+    plugins.unshift({ name: 'undo', effector: undoEffector })
     const schema: Et.EditorSchema = {
         editor: EtEditorElement,
         body: EtBodyElement,

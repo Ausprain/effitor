@@ -1,5 +1,5 @@
 import type * as Et from '../@types'
-import { commandUndoHandler } from './undo';
+import { cmdHandler, getUndoStack } from './undo';
 
 export const createCommand = <T extends keyof Et.CommandMap>(type: T, init: Et.CommandInit[T]): Et.CommandMap[T] => {
     return { type, ...init } as Et.CommandMap[T];
@@ -9,7 +9,6 @@ export const initCommandHandler = (ctx: Et.EditorContext): Et.CommandHandler => 
     let _inTransaction = false;
     const _cmds: Et.Command[] = []
     return {
-        // cmds: [],
         get inTransaction() {
             return _inTransaction
         },
@@ -18,19 +17,20 @@ export const initCommandHandler = (ctx: Et.EditorContext): Et.CommandHandler => 
             else _cmds.push(createCommand(cmdOrType, init!))
         },
         handle(cmds?) {
-            cmds = cmds || [..._cmds]
+            cmds = cmds || _cmds
             if (!cmds.length) return false
-            // handle命令时可能有其他异步事件执行，给_cmds添加命令, 遂要先将命令清空
-            _cmds.length = 0
-            return commandUndoHandler.handle(ctx, cmds)
+            getUndoStack(ctx).record(cmds)
+            cmdHandler.handle(cmds, ctx)
+            cmds.length = 0
+            return true
         },
         commit() {
             if (_inTransaction) return false
-            return commandUndoHandler.commit(ctx)
+            return getUndoStack(ctx).pushTransaction(ctx)
         },
         discard() {
             _inTransaction = false
-            return commandUndoHandler.discard(ctx)
+            return getUndoStack(ctx).discard(ctx)
         },
         startTransaction() {
             this.commit()
@@ -41,7 +41,7 @@ export const initCommandHandler = (ctx: Et.EditorContext): Et.CommandHandler => 
             this.commit()
         },
         commitAll(ctx) {
-            commandUndoHandler.commitAll(ctx)
+            getUndoStack(ctx).commitAll(ctx)
         },
     }
 }

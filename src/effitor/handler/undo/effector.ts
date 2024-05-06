@@ -1,13 +1,12 @@
 import type * as Et from "@/effitor/@types";
 import { UndoStack } from "./undoStack";
-import { cmdHandler } from "./handler";
 
 
 /**
  * 根据上下文对象, 为当前编辑器记录事务
  */
 const recordTransaction = (ctx: Et.EditorContext) => {
-    // 输入法会话中禁止记录事务; 防止selchange将单个insertCompositionText记录入事务
+    // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
     if (ctx.inCompositionSession) return false
     return undoStackMap.get(ctx.el)?.pushTransaction(ctx) || false
 }
@@ -102,23 +101,13 @@ const htmlEventSolver: Et.HTMLEventSolver = {
 }
 
 const undoStackMap = new WeakMap<HTMLDivElement, UndoStack>()
+const defaultStack = new UndoStack(100)
 
-export const commandUndoHandler: Et.CommandUndoHandler = {
-    handle(ctx, cmds) {
-        undoStackMap.get(ctx.el)?.record(cmds)
-        cmdHandler.handle(cmds, ctx)
-        cmds.length = 0
-        return true
-    },
-    commit(ctx) {
-        return recordTransaction(ctx)
-    },
-    discard(ctx) {
-        return undoStackMap.get(ctx.el)?.discard(ctx) || false
-    },
-    commitAll(ctx) {
-        undoStackMap.get(ctx.el)?.commitAll(ctx)
-    },
+/**
+ * 获取编辑器对应的撤回栈, 若不存在则返回默认撤回栈
+ */
+export const getUndoStack = (ctx: Et.EditorContext): UndoStack => {
+    return undoStackMap.get(ctx.el) || defaultStack
 }
 
 export const useUndoEffector = (undoLength: number): Et.Effector => {
