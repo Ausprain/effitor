@@ -20,7 +20,7 @@ const checkNeedFollowingZWS = (node: Text, ctx: Et.EditorContext): boolean => {
     const nextNode = node.nextSibling
     if (nextNode) {
         const nextFirst = dom.innermostEditableStartingNode(nextNode)
-        // debugger  // 有无准确着到下一个\u200b
+        // debugger  // 有无准确找到下一个\u200b
         if (dom.isTextNode(nextFirst)) {
             // 若下一节点的可编辑的最里层第一个节点是#text, 判断是否zws开头, 不是则插入zws
             if (nextFirst.data[0] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {

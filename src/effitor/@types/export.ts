@@ -67,6 +67,8 @@ export interface EditorContext {
     [k: symbol]: any;
     /** 编辑器对象本身 */
     readonly editor: Editor;
+    /** 编辑器配置 */
+    readonly config: EditorConfig;
     readonly schema: EditorSchema;
     /** 当前活跃编辑器所属的div, root.host的父节点 */
     el: HTMLDivElement;
@@ -101,11 +103,14 @@ export interface EditorContext {
     /** 跳过n次`selectionchange`回调；如：在手动插入一个`zws`时 +1 */
     /** 是否跳过默认Effector, (在keydown/keyup/beforeinput/input中设置为true时, 都将跳过mainEffector的对应事件监听器) */
     skipDefault: boolean;
-    readonly forceUpdate: (this: EditorContext) => void;
     readonly effectInvoker: EffectInvoker;
     readonly commandHandler: CommandHandler;
-    /** 编辑器配置 */
-    readonly config: EditorConfig;
+    readonly forceUpdate: (this: EditorContext) => void;
+    /**
+     * [Selection.modify](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection/modify) with `ctx.selection` and `ctx.forceUpdate`
+     */
+    readonly modify: (this: EditorContext, alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity) => void;
+
 }
 export interface EditorSchema {
     readonly editor: EtEditorCtor;
@@ -536,6 +541,10 @@ declare global {
         createElement<K extends keyof DefinedEtElementMap>(tagName: K): DefinedEtElementMap[K];
         addEventListener(type: 'beforeinput', listener: (ev: DOM.InputEvent) => any, options?: boolean | EventListenerOptions): void;
     }
+
+    type ModifyAlter = "extend" | "move"
+    type ModifyDirection = "forward" | "backward" | "left" | "right"
+    type ModifyGranularity = "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "sentenceboundary" | "paragraphboundary" | "documentboundary"
     /**
      * [Selection](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection)
      */
@@ -544,7 +553,8 @@ declare global {
          * [MDN Reference](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection/modify)  
          * [Selection API W3C Working Draft 16 May 2023](https://www.w3.org/TR/selection-api/#dom-selection-modify)
          */
-        modify(alter: "extend" | "move", direction: "forward" | "backward" | "left" | "right", granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "sentenceboundary" | "paragraphboundary" | "documentboundary"): void;
+        // modify(alter: ModifyAlter, direction: "forward" | "backward" | "left" | "right", granularity: "character" | "word" | "sentence" | "line" | "paragraph" | "lineboundary" | "sentenceboundary" | "paragraphboundary" | "documentboundary"): void;
+        modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity): void
     }
 }
 

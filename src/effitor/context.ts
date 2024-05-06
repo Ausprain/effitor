@@ -68,6 +68,10 @@ class EtContext implements Et.EditorContext {
         this._paragraphEl.focusinCallback()
     }
 
+    modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity) {
+        this.selection.modify(alter, direction, granularity)
+        this.forceUpdate()
+    }
 }
 
 function updateContext(this: EtContext): boolean {

@@ -5,9 +5,9 @@ import { EffectElement, EtParagraphElement } from '../element/index';
 export const isTextNode = (node?: Et.NullableNode): node is Text => node?.nodeType === Node.TEXT_NODE
 export const isElementNode = (node?: Et.NullableNode): node is HTMLElement => node?.nodeType === Node.ELEMENT_NODE
 export const isBlockElement = (node?: Et.NullableNode): node is HTMLElement => isElementNode(node) && node.computedStyleMap().get('display')?.toString() === 'block'
-export const isBrElement = (node?: Et.NullableNode): node is HTMLBRElement => isElementNode(node) && node.localName === 'BR'
+export const isBrElement = (node?: Et.NullableNode): node is HTMLBRElement => (node as HTMLElement)?.tagName === 'BR'
 
-export const isEtElement = (node?: Et.NullableNode): node is EffectElement => isElementNode(node) && node.elType !== undefined
+export const isEtElement = (node?: Et.NullableNode): node is EffectElement => (node as HTMLElement)?.elType !== undefined
 export const isEtParagraph = (node?: Et.NullableNode | EventTarget): node is EtParagraphElement => node instanceof HTMLElement && node.elType === BuiltinElType.PARAGRAPH
 
 export const isEditableNode = (node: Node) => isElementNode(node) ? node.isContentEditable : node.parentElement?.isContentEditable
@@ -71,14 +71,23 @@ export const closestUnderTheNode = (node: Et.NullableNode, selectors: string, pN
  * @param stopTag 小写元素标签名
  */
 export const outermostAncestorAtEdge = (node: Node, edge: 'start' | 'end', stopTag: string = BuiltinElName.ET_BODY): Node => {
-    // todo need refactor
-    const edgeChild = edge === 'start' ? 'firstChild' : 'lastChild'
-    if (isElementNode(node) && node.localName === stopTag) return node
-    if (node.parentElement?.[edgeChild] === node) {
-        return outermostAncestorAtEdge(node.parentElement, edge, stopTag) ?? node.parentElement
+    return edge === 'end' ? outermostAncestorAtEndEdge(node, stopTag) : outermostAncestorAtStartEdge(node, stopTag)
+}
+const outermostAncestorAtEndEdge = (node: Node, stopTag: string = BuiltinElName.ET_BODY): Node => {
+    if ((node as HTMLElement).localName === stopTag) return node
+    if (node.parentElement?.lastChild === node) {
+        return outermostAncestorAtEndEdge(node.parentElement, stopTag)
     }
     return node
 }
+const outermostAncestorAtStartEdge = (node: Node, stopTag: string = BuiltinElName.ET_BODY): Node => {
+    if ((node as HTMLElement).localName === stopTag) return node
+    if (node.parentElement?.firstChild === node) {
+        return outermostAncestorAtStartEdge(node.parentElement, stopTag)
+    }
+    return node
+}
+
 /**
  * 递归查找以当前节点为`firstChild/lastChild`的最近内联祖先节点, 若node不是`firstChild/lastChild`或不是内联节点, 则返回自身(即可能返回块节点)  
  * 返回的节点可能匹配 `stopTag`,  

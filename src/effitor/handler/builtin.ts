@@ -1,6 +1,6 @@
 import type * as Et from '../@types'
 import type { EtParagraphElement } from '../element';
-import { BuiltinElType, CmdTypeEnum } from "../@types/constant";
+import { BuiltinElType, CmdTypeEnum, HtmlCharEnum } from "../@types/constant";
 import { dom } from "../utils";
 import {
     checkRemoveSelectionToCollapsed,
@@ -9,7 +9,8 @@ import {
     getRangeOutermostContainerUnderTheParagraph,
     getUnselectedCloneFragment,
     mergeFragments,
-    mergeFragmentsWithText
+    mergeFragmentsWithText,
+    removeNodeAndMerge
 } from "./utils";
 
 
@@ -211,7 +212,6 @@ const insertLineBreakAtRange = (
     ctx: Et.EditorContext,
     srcCaretRange: StaticRange,
 ) => {
-    // debugger
     return checkTargetRangePosition(ctx, srcCaretRange,
         (currP) => {
             return insertBrToParagraph(ctx, currP, srcCaretRange)
@@ -398,7 +398,6 @@ const insertFromPasteAtCaret = (
     ctx: Et.EditorContext,
     srcCaretRange: StaticRange,
 ) => {
-    // debugger
     if (fragment.childElementCount === 0) {
         return insertTextAtCaret(fragment.textContent!, ctx, srcCaretRange)
     }
@@ -474,6 +473,9 @@ const deleteTextAtTextNodeByTargetRange = (
     }
     return true
 }
+/**
+ * 判断删除文本并连带删除空父元素节点
+ */
 const checkDeleteTextAtCaret = (
     isBackward: boolean,
     ctx: Et.EditorContext,
@@ -488,7 +490,12 @@ const checkDeleteTextAtCaret = (
     }
     return false
 }
+/**
+ * 判断删除元素节点
+ * * **调用前提: 已判断startNode和endNode至少一个不是#text节点**
+ */
 const checkDeleteElemAtCaret = (
+    isBackward: boolean,
     ctx: Et.EditorContext,
     startNode: Node,
     endNode: Node,
@@ -498,26 +505,34 @@ const checkDeleteElemAtCaret = (
     // 上游已判断startNode不是#text
     if (startNode === endNode && delTargetRange.startOffset + 1 === delTargetRange.endOffset) {
         // 删除一个元素
-        const currNode = startNode.childNodes[delTargetRange.startOffset]
-        if (!currNode) throw Error('节点不存在')
-        const prevSibling = currNode.previousSibling
-        const nextSibling = currNode.nextSibling
-        // 有一个兄弟不存在, 或不是同名节点, 直接删除即可
-        if (!prevSibling || prevSibling.nodeName !== nextSibling?.nodeName) {
-            const removeAt = dom.caretStaticRangeOutNode(currNode, -1)
+        let currNode = startNode.childNodes[delTargetRange.startOffset] as Et.HTMLNode
+        if (!currNode) throw Error('checkDeleteElemAtCaret: 节点不存在')
+        const currP = ctx.paragraphEl
+        // 要删除的是段落唯一个节点 且为`<br>`, 连同段落删除
+        if (dom.isBrElement(currNode) && currP.childNodes.length === 1 && currP.firstChild === currNode) {
+            const nextP = (isBackward ? currP.previousSibling : currP.nextSibling) as EtParagraphElement | null
+            // 没有下一段落, 不执行任何命令, 直接结束
+            if (!nextP) {
+                // todo remove
+                console.log('段落末尾Delete')
+                return true
+            }
             ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
-                node: currNode as HTMLElement,
-                removeAt,
-                targetRanges: [srcCaretRange, removeAt]
+                node: currP,
+                removeAt: dom.caretStaticRangeOutNode(currP, -1),
+                setCaret: true,
+                targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(nextP, isBackward ? nextP.childNodes.length : 0)]
             })
             return true
         }
-        // 上一节点和下一节点都是#text, 或同名元素, 要合并
-        expandRemoveInsert(ctx, prevSibling, nextSibling, delTargetRange, srcCaretRange, true)
-        return true
+        // 删除节点并合并前后可合并节点
+        return removeNodeAndMerge(ctx, currNode, srcCaretRange)
     }
     return false
 }
+/**
+ * 判断同段落内删除内容
+ */
 const checkDeleteInSameParagraph = (
     ctx: Et.EditorContext,
     startNode: Node,
@@ -536,77 +551,91 @@ const checkDeleteInSameParagraph = (
     }
     return false
 }
+/**
+ * 判断段落开头Backspace, 删除当前段落, 将剩余内容插入上一段落
+ */
 const checkDeleteParagraphBackward = (
     ctx: Et.EditorContext,
-    startNode: Node,
-    endNode: Node,
-    delTargetRange: StaticRange,
     srcCaretRange: StaticRange
 ): boolean => {
     // 段落开头backspace时, del选区末端在当前段落开头, 起端在上一段落末尾
-    if (delTargetRange.endOffset === 0 && dom.isElementNode(endNode) && endNode.localName === ctx.schema.paragraph.elName) {
-        const currP = endNode as EtParagraphElement
-        const prevP = currP.previousElementSibling as EtParagraphElement | null
-        // 上游已经判断currP不可能是第一个段落
-        if (!prevP) throw Error('上一段落不存在')
+    // fix. issues.5 delTargetRange有时不准
+    // 用ctx.range判断当前光标位置
+    if (ctx.range.endOffset !== 0) return false
+    const currP = dom.outermostAncestorAtEdge(ctx.range.endContainer, 'start', ctx.schema.paragraph.elName)
+    if (!dom.isEtParagraph(currP)) return false
+    const prevP = currP.previousElementSibling as EtParagraphElement | null
+    // 上游已经判断currP不可能是第一个段落
+    if (!prevP) throw Error('上一段落不存在')
 
-        // 段落无内容, 直接删除
-        if (currP.textContent === '') {
-            const removeAt = dom.caretStaticRangeOutNode(currP, -1)
-            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
-                node: currP,
-                removeAt,
-                setCaret: true,
-                targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(prevP, prevP.childNodes.length)]
-            })
-            return true
-        }
-
-        // 上一段落不可编辑, 直接移除, 光标不动
-        if (!prevP.isContentEditable) {
-            const removeAt = dom.caretStaticRangeOutNode(prevP, -1)
-            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
-                node: prevP,
-                removeAt,
-                targetRanges: [srcCaretRange, srcCaretRange]
-            })
-        }
-        // 连同上一段落一起删除, 剩余内容合并入一个段落
-        else {
-            removeParagraphsToOne(prevP, currP, ctx, delTargetRange, srcCaretRange)
-        }
-
+    // 段落无内容, 直接删除
+    if (['', HtmlCharEnum.ZERO_WIDTH_SPACE].includes(currP.textContent!)) {
+        const removeAt = dom.caretStaticRangeOutNode(currP, -1)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
+            node: currP,
+            removeAt,
+            setCaret: true,
+            targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(prevP, prevP.childNodes.length)]
+        })
         return true
     }
-    return false
+
+    // 上一段落不可编辑, 直接移除, 光标不动
+    if (!prevP.isContentEditable) {
+        const removeAt = dom.caretStaticRangeOutNode(prevP, -1)
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
+            node: prevP,
+            removeAt,
+            targetRanges: [srcCaretRange, srcCaretRange]
+        })
+    }
+    // 连同上一段落一起删除, 剩余内容合并入一个段落（使用上一段落id，即相当于将当前段落内容并入上一段落末尾）
+    else {
+        const delTargetRange = new StaticRange({
+            startContainer: prevP,
+            startOffset: dom.isBrElement(prevP.lastChild) ? prevP.childNodes.length - 1 : prevP.childNodes.length,
+            endContainer: currP,
+            endOffset: 0,
+        })
+        removeParagraphsToOne(prevP, currP, ctx, delTargetRange, srcCaretRange)
+    }
+
+    return true
 }
+/**
+ * 判断段落末尾Delete删除
+ */
 const checkDeleteParagraphForward = (
     ctx: Et.EditorContext,
-    startNode: Node,
-    endNode: Node,
-    delTargetRange: StaticRange,
     srcCaretRange: StaticRange
 ): boolean => {
-    if (delTargetRange.endOffset === 0 && dom.isElementNode(endNode) && endNode.localName === ctx.schema.paragraph.elName) {
-        const nextP = endNode as EtParagraphElement
-        const currP = nextP.previousElementSibling as EtParagraphElement | null
-        if (!currP) throw Error("当前段落不存在")
-
-        // 下一段落不可编辑, 直接移除, 光标不动
-        if (!nextP.isContentEditable) {
-            ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
-                node: nextP,
-                removeAt: dom.caretStaticRangeOutNode(nextP, -1),
-                targetRanges: [srcCaretRange, srcCaretRange]
-            })
-        }
-        // 两个段落一起删除
-        else {
-            removeParagraphsToOne(currP, nextP, ctx, delTargetRange, srcCaretRange)
-        }
+    const r = ctx.range.cloneRange()
+    const currP = ctx.paragraphEl
+    r.setEnd(currP, currP.childNodes.length)
+    if (r.toString() !== '') return false
+    // 光标至段落末尾无文本, 即段落末尾Delete
+    const nextP = currP.nextSibling as EtParagraphElement | null
+    if (!nextP) return false
+    // 空段落, 直接删除, 光标置于下一段落开头
+    if (['', HtmlCharEnum.ZERO_WIDTH_SPACE].includes(currP.textContent!)) {
+        ctx.commandHandler.push(CmdTypeEnum.Remove_Node, {
+            node: currP,
+            removeAt: dom.caretStaticRangeOutNode(currP, -1),
+            setCaret: true,
+            targetRanges: [srcCaretRange, dom.caretStaticRangeInNode(nextP, 0)]
+        })
         return true
     }
-    return false
+    // 非空段落, 连同下一段落一起删除, 剩余内容合并入下一段落
+    else {
+        const delTr = new StaticRange({
+            startContainer: r.startContainer,
+            startOffset: r.startOffset,
+            endContainer: nextP,
+            endOffset: 0
+        })
+        return removeParagraphsToOne(currP, nextP, ctx, delTr, srcCaretRange)
+    }
 }
 /**
  * 删除p1/p2及其中间段落, 将剩余内容合并入新段落插回原来位置  
@@ -646,6 +675,7 @@ const removeParagraphsToOne = (
     let [fragment, dest] = out
     newP.append(fragment)
 
+    // 返回索引, 遍历段落获取光标落点
     if (typeof dest === 'number') {
         let anchor: Node | null = null
         let i = 0
@@ -676,17 +706,15 @@ const deleteBackwardAtCaret = (
     delTargetRange: StaticRange,
     srcCaretRange: StaticRange,
 ) => {
-    // 删除文本? 
-    const checkout = checkDeleteTextAtCaret(true, ctx, startNode, endNode, delTargetRange, srcCaretRange)
+    // fix. issues.5 段落首Backspace时, delTarget有时判定为删除上一段落末尾文本, 遂需先check删除段落
+    // 段落开头backspace ? 删除当前段落
+    return checkDeleteParagraphBackward(ctx, srcCaretRange)
+        // 删除文本?
+        || checkDeleteTextAtCaret(true, ctx, startNode, endNode, delTargetRange, srcCaretRange)
         // 删除元素（<br>）? 
-        || checkDeleteElemAtCaret(ctx, startNode, endNode, delTargetRange, srcCaretRange)
+        || checkDeleteElemAtCaret(true, ctx, startNode, endNode, delTargetRange, srcCaretRange)
         // 同段落内删除
         || checkDeleteInSameParagraph(ctx, startNode, endNode, delTargetRange, srcCaretRange)
-        // 段落开头backspace, 删除当前段落
-        || checkDeleteParagraphBackward(ctx, startNode, endNode, delTargetRange, srcCaretRange)
-    if (!checkout) {
-        throw Error('未穷尽deleteBackward的情况')
-    }
 }
 const deleteForwardAtCaret = (
     ctx: Et.EditorContext,
@@ -696,16 +724,13 @@ const deleteForwardAtCaret = (
     srcCaretRange: StaticRange,
 ) => {
     // 删除文本? 
-    const checkout = checkDeleteTextAtCaret(false, ctx, startNode, endNode, delTargetRange, srcCaretRange)
+    return checkDeleteTextAtCaret(false, ctx, startNode, endNode, delTargetRange, srcCaretRange)
         // 删除元素（<br>）? 
-        || checkDeleteElemAtCaret(ctx, startNode, endNode, delTargetRange, srcCaretRange)
+        || checkDeleteElemAtCaret(false, ctx, startNode, endNode, delTargetRange, srcCaretRange)
         // 同段落内删除
         || checkDeleteInSameParagraph(ctx, startNode, endNode, delTargetRange, srcCaretRange)
-        // 段落开头backspace, 删除当前段落
-        || checkDeleteParagraphForward(ctx, startNode, endNode, delTargetRange, srcCaretRange)
-    if (!checkout) {
-        throw Error('未穷尽deleteForward的情况')
-    }
+        // 段落末尾Delete, 合并段落
+        || checkDeleteParagraphForward(ctx, srcCaretRange)
 }
 const deleteBackwardAtRange = (
     ctx: Et.EditorContext,
@@ -746,7 +771,6 @@ const deleteForwardAtRange = (
 /*                                    paste                                   */
 /* -------------------------------------------------------------------------- */
 const pasteData = (ctx: Et.EditorContext, data: string, srcCaretRange: StaticRange): boolean => {
-    // debugger
     const fragment = ctx.range.createContextualFragment(data)
     dom.cleanFragment(fragment)
     // 跨段落复制必定以段落节点为fragment子节点
@@ -804,7 +828,7 @@ const handleIndent = (ctx: Et.EditorContext, idSet: Set<string>, outdent = false
 
 
 const handleInsert = (
-    ev: InputEvent,
+    ev: Et.InputEvent,
     ctx: Et.EditorContext,
     caretFn: (targetRange: StaticRange) => void,
     rangeFn: (targetRange: StaticRange) => void
@@ -820,7 +844,7 @@ const handleInsert = (
 }
 const handleDelete = (
     isBackward: boolean,
-    ev: InputEvent,
+    ev: Et.InputEvent,
     ctx: Et.EditorContext
 ) => {
     // fixme 使用beforeinput 事件的targetRange可能造成意外效果, 如将 et-body外边的内容给删除了
@@ -842,23 +866,31 @@ const handleDelete = (
     if (delTargetRange.startContainer === delTargetRange.endContainer && delTargetRange.startOffset === delTargetRange.endOffset) {
         console.log('首段落开头back, 终末尾delete')
         ev.preventDefault()
-        return true
+        return
     }
+    // todo remove
+    let checkout = false
     if (isBackward) {
         if (ctx.range.collapsed) {
-            deleteBackwardAtCaret(ctx, delTargetRange.startContainer, delTargetRange.endContainer, delTargetRange, dom.staticFromRange(ctx.range))
+            checkout = deleteBackwardAtCaret(ctx, delTargetRange.startContainer, delTargetRange.endContainer, delTargetRange, dom.staticFromRange(ctx.range))
         }
         else {
-            deleteBackwardAtRange(ctx, delTargetRange, delTargetRange)
+            checkout = deleteBackwardAtRange(ctx, delTargetRange, delTargetRange)
         }
     }
     else {
         if (ctx.range.collapsed) {
-            deleteForwardAtCaret(ctx, delTargetRange.startContainer, delTargetRange.endContainer, delTargetRange, dom.staticFromRange(ctx.range))
+            checkout = deleteForwardAtCaret(ctx, delTargetRange.startContainer, delTargetRange.endContainer, delTargetRange, dom.staticFromRange(ctx.range))
         }
         else {
-            deleteForwardAtRange(ctx, delTargetRange, delTargetRange)
+            checkout = deleteForwardAtRange(ctx, delTargetRange, delTargetRange)
         }
+    }
+    if (checkout) {
+        ev.preventDefault()
+    }
+    else {
+        console.error(`未穷尽${isBackward ? 'Backspace' : 'Delete'}的情况`)
     }
 }
 
@@ -913,18 +945,18 @@ export const builtinHandler: Partial<Et.EffectHandlerDeclaration> = {
         return handleDelete(true, ev, ctx)
     },
     EdeleteContentForward: (ctx, ev) => {
-        return handleDelete(false, ev, ctx)
+        handleDelete(false, ev, ctx)
     },
     EdeleteWordBackward: (ctx, ev) => {
-        return handleDelete(true, ev, ctx)
+        handleDelete(true, ev, ctx)
     },
     EdeleteWordForward: (ctx, ev) => {
-        return handleDelete(false, ev, ctx)
+        handleDelete(false, ev, ctx)
     },
 
     EdeleteByCut: (ctx, ev) => {
         console.log('delete by cut')
-        return handleDelete(true, ev, ctx)
+        handleDelete(true, ev, ctx)
     },
     EinsertFromPaste: (ctx, ev) => {
         // console.error('paste data: ', ev.data)

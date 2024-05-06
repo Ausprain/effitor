@@ -297,8 +297,8 @@ export const insertNodeAtCaret = (
 export const removeNodeAndMerge = (
     ctx: Et.EditorContext,
     node: Et.HTMLNode,
-    setCaret = true,
     srcCaretRange?: StaticRange,
+    setCaret = true,
 ) => {
     const srcTr = srcCaretRange || dom.staticFromRange(ctx.range),
         prev = node.previousSibling,
@@ -312,7 +312,6 @@ export const removeNodeAndMerge = (
             setCaret: true,
             targetRanges: [srcTr, removeAt]
         })
-        ctx.commandHandler.handle()
         return true
     }
     if (!setCaret && checkRemoveNodeAndMergeTextNode(ctx, node, prev, next, srcTr)) return true

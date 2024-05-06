@@ -87,10 +87,10 @@ export class EtParagraphElement extends EffectElement {
         if (!this.id) {
             this.id = Date.now().toString()
             this.indent = 0
-        }
-        if (this.innerText === '') {
-            // 空段落, 使用<br>占位
-            this.append(document.createElement('br'))
+            if (this.innerText === '') {
+                // 空段落, 使用<br>占位
+                this.append(document.createElement('br'))
+            }
         }
     }
 

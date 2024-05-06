@@ -222,8 +222,8 @@ const keydownKeySolver: Et.KeyboardKeySolver = {
         // 毗邻零宽字符, 移动光标
         if (!ctx.range.collapsed) return
         if (dom.checkAbutZeroWidthSpace(ctx.range, true)) {
-            console.warn('backspace move caret')
-            ctx.selection.modify('move', 'backward', 'character')
+            // console.warn('backspace move caret')
+            ctx.modify('move', 'backward', 'character')
         }
         else {
             checkBackspaceInUneditable(ev, ctx)
@@ -232,8 +232,8 @@ const keydownKeySolver: Et.KeyboardKeySolver = {
     Delete: (ev, ctx) => {
         if (!ctx.range.collapsed) return
         if (dom.checkAbutZeroWidthSpace(ctx.range, false)) {
-            console.warn('delete move caret')
-            ctx.selection.modify('move', 'forward', 'character')
+            // console.warn('delete move caret')
+            ctx.modify('move', 'forward', 'character')
         }
         else {
             checkDeleteInUneditable(ev, ctx)

@@ -21,9 +21,8 @@ const checkRemoveZWSNodeAfterDeleteContent = (ev: Et.InputEvent, ctx: Et.EditorC
 const mainAfterInputTypeSolver: Et.InputTypeSolver = {
     deleteContentBackward: checkRemoveZWSNodeAfterDeleteContent,
     deleteContentForward: checkRemoveZWSNodeAfterDeleteContent,
-    // ctrl删除时不清理zws
-    // deleteWordBackward: checkRemoveZWSNodeAfterDeleteContent,
-    // deleteWordForward: checkRemoveZWSNodeAfterDeleteContent,
+    deleteWordBackward: checkRemoveZWSNodeAfterDeleteContent,
+    deleteWordForward: checkRemoveZWSNodeAfterDeleteContent,
 }
 
 export class MainAfterInputTypeSolver implements Et.InputTypeSolver {

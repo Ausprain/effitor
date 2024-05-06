@@ -13,11 +13,11 @@ export declare namespace DOM {
     type InputType = `${InputTypeEnum}`;
 
     type KeyboardEvent = DOMKeyboardEvent & {
-        code: KeyboardCode
-        key: KeyboardKey
+        readonly code: KeyboardCode
+        readonly key: KeyboardKey
     }
     type InputEvent = DOMInputEvent & {
-        inputType: InputType;
+        readonly inputType: InputType;
     };
     type DataTransferFormat = `${MIMETypeEnum}`;
     type DataTransfer = DOMDataTransfer & {
@@ -25,7 +25,7 @@ export declare namespace DOM {
         setData(format: DataTransferFormat, data: string): void;
     };
     type ClipboardEvent = DOMClipboardEvent & {
-        clipboardData: DataTransfer;
+        readonly clipboardData: DataTransfer;
     };
 
     type ShadowListenerMap = {

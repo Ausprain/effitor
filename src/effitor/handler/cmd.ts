@@ -18,8 +18,10 @@ export const initCommandHandler = (ctx: Et.EditorContext): Et.CommandHandler => 
             else _cmds.push(createCommand(cmdOrType, init!))
         },
         handle(cmds?) {
-            cmds = cmds || _cmds
+            cmds = cmds || [..._cmds]
             if (!cmds.length) return false
+            // handle命令时可能有其他异步事件执行，给_cmds添加命令, 遂要先将命令清空
+            _cmds.length = 0
             return commandUndoHandler.handle(ctx, cmds)
         },
         commit() {
