@@ -129,7 +129,9 @@ const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
 
 const keydownKeySolver: Et.KeyboardKeySolver = {
     ' ': (ev, ctx) => {
-        if (ctx.prevUpKey === ev.key) {
+        if (ctx.prevUpKey === ev.key && (
+            ctx.effectElement.elType === BuiltinElType.COMPONENT || ctx.effectElement.elType === BuiltinElType.RICHTEXT)
+        ) {
             ctx.effectInvoker.invoke('dblSpace', ctx) && ctx.commandHandler.handle() && ev.preventDefault()
         }
         else if (ctx.range.collapsed && ctx.range.endOffset === 1 && ctx.paragraphEl.textContent === '#') {
