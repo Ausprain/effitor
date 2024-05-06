@@ -1,7 +1,7 @@
 import type { Abbr, AbbrType } from "./abbr";
 import { EtComponentElement } from "@/effitor/element";
 import { AbbrConfigEnum } from "./config";
-import { CssClassEnum } from "@/effitor/@types/constant";
+import { CssClassEnum, HtmlCharEnum } from "@/effitor/@types/constant";
 
 const enum A {
     Tag = AbbrConfigEnum.EL_NAME,
@@ -92,6 +92,7 @@ export const createEtAbbrElement = (abbr: Abbr, text: string) => {
     el.setAttribute(A.Attr_description, abbr.description)
     el.classList.add(typeName)
     el.abbrType = abbr.type
-    el.textContent = text
+    // 缩写符内容开头用零宽字符与前面节点的文本隔开, 否则Ctrl+Backspace/Delete时 浏览器会将前面节点的连续文本一起判定为一个word
+    el.textContent = text.startsWith(HtmlCharEnum.ZERO_WIDTH_SPACE) ? text : HtmlCharEnum.ZERO_WIDTH_SPACE + text
     return el
 }

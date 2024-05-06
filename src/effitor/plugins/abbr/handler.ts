@@ -49,9 +49,9 @@ const insertPrefixNode = (ctx: NotNullContext, abbr: Abbr): EtAbbrElement | null
     // 插入前先删除trigger文本, 获取删除后光标的位置
     const insertAt = checkInsertPrefixAtEnd(ctx, abbr.inputedTriggerString, srcCaretRange)
     if (!insertAt) {
+        // 在#text中间插入
         return insertPrefixAtMiddle(ctx, abbr, srcCaretRange)
     }
-    // 节点尾插入`or`节点头插入
     const el = createEtAbbrElement(abbr, HtmlCharEnum.ZERO_WIDTH_SPACE)
     ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
         node: el,
@@ -68,7 +68,7 @@ const insertSuffixNode = (ctx: NotNullContext, abbr: Abbr): EtAbbrElement | null
     if (!ret) {
         return insertSuffixAtMiddle(ctx, abbr, srcCaretRange)
     }
-    const el = createEtAbbrElement(abbr, ret[0] || HtmlCharEnum.ZERO_WIDTH_SPACE)
+    const el = createEtAbbrElement(abbr, ret[0])
     ctx.commandHandler.push(CmdTypeEnum.Insert_Node, {
         node: el,
         insertAt: ret[1],
@@ -112,7 +112,7 @@ const checkInsertPrefixAtEnd = (ctx: NotNullContext, triggerString: string, srcC
         })
     }
     else if (ctx.node.length === srcCaretRange.endOffset) {
-        // 在Text节点内末尾插入节点, 会导致空#Text
+        // 在Text节点内末尾插入节点, 会产生多余的空Text节点
         // removeAt = dom.movedStaticRange(srcCaretRange, -triggerString.length)
         // 返回Text节点外末尾
         removeAt = dom.caretStaticRangeOutNode(ctx.node, 1)
