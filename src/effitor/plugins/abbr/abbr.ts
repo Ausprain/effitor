@@ -12,7 +12,7 @@ export type AbbrName = `${Letters}${string}`
  * - 2: 后缀符
  * - 4: 块级符
  */
-type AbbrType = 1 | 2 | 4
+export type AbbrType = 1 | 2 | 4
 
 /**
  * 缩写符触发器, 若符合插入条件, 则添加插入命令并返回将会插入DOM的缩写符元素; 否则返回`null`  

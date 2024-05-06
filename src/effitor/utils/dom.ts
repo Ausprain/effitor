@@ -245,12 +245,7 @@ export const mergeFragment = (start: DocumentFragment, end: DocumentFragment, cl
     }
     const startLast = start.lastChild
     const endFirst = end.firstChild
-    // #text合并时, 后者开头的零宽字符去掉
-    // if (isTextNode(startLast) && isTextNode(endFirst)) {
-    //     let count = 0
-    //     while (endFirst.data[count] === HtmlCharEnum.ZERO_WIDTH_SPACE) count++
-    //     count && endFirst.replaceData(0, count, '')
-    // }
+
     if (isElementNode(startLast) && isElementNode(endFirst)) {
         // merge element
         const node = mergeElement(startLast, endFirst)

@@ -3,6 +3,7 @@ import type { Abbr } from "./abbr"
 import { CmdTypeEnum, HtmlCharEnum } from "@/effitor/@types/constant"
 import { createEtAbbrElement, type EtAbbrElement } from "./element"
 import { dom } from "@/effitor/utils"
+import { replaceNodeAndMerge } from "@/effitor/handler/utils"
 
 declare module '@/effitor/@types' {
     interface EffectHandlerDeclaration {
@@ -14,7 +15,10 @@ declare module '@/effitor/@types' {
 
 
         /* ------------------------------ inAbbrHandler ----------------------------- */
-
+        /**
+         * 将一个缩写符节点转为普通节点
+         */
+        regressAbbr: (ctx: NotNullContext, isBackward: boolean) => boolean
     }
 }
 
@@ -252,5 +256,11 @@ const findDoubleSpaceAndRemoveText = (text: string, caretPos: number): [number, 
  * 在缩写符元素内部触发的效应handler, 绑到EtAbbrElement上
  */
 export const inAbbrHandler: Partial<Et.EffectHandlerDeclaration> = {
-
+    regressAbbr(ctx, isBackward) {
+        console.warn('regress abbr')
+        const r = document.createRange()
+        r.selectNodeContents(ctx.effectElement)
+        replaceNodeAndMerge(ctx, ctx.effectElement, r.cloneContents(), dom.staticFromRange(ctx.range), true, isBackward)
+        return true
+    },
 }

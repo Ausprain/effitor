@@ -2,6 +2,7 @@ import type * as Et from "@/effitor/@types";
 import type { NotNullContext } from "./handler";
 import { Abbr, abbrListener } from "./abbr";
 import { AbbrConfigEnum, abbrContext } from "./config";
+import { HtmlCharEnum } from "@/effitor/@types/constant";
 
 /**
  * 触发缩写符  
@@ -16,7 +17,6 @@ const onKeydownTriggerAbbr = (ev: KeyboardEvent, ctx: NotNullContext, abbr: Abbr
     ctx.commandHandler.handle()
     return (ev.preventDefault(), ctx.skipDefault = true)
 }
-
 /**
  * 判断光标前边是否为缩写符触发串, 以确保在正确位置插入缩写符
  * @param triggerString 已插入dom的缩写符触发串文本
@@ -40,6 +40,25 @@ const checkTriggerBlockAbbr = (ev: KeyboardEvent, ctx: NotNullContext) => {
     }
 }
 
+const checkRegressAbbr = (ev: KeyboardEvent, ctx: Et.EditorContext, isBackspace: boolean) => {
+    if (!ctx.range.collapsed) return false
+    if (ctx.effectElement.localName !== AbbrConfigEnum.EL_NAME) return false
+    if (isBackspace && ctx.node === ctx.effectElement.firstChild && (
+        // 在开头
+        ctx.range.endOffset === 0
+        ||
+        // 开头是零宽字符
+        (ctx.range.endOffset === 1 && ctx.node?.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE)
+    )) {
+        ctx.effectInvoker.invoke('regressAbbr', ctx as NotNullContext, true) && ctx.commandHandler.handle()
+        return (ev.preventDefault(), ctx.skipDefault = true)
+    }
+    if (!isBackspace && ctx.range.endOffset === ctx.node?.length && ctx.node === ctx.effectElement.lastChild) {
+        ctx.effectInvoker.invoke('regressAbbr', ctx as NotNullContext, false) && ctx.commandHandler.handle()
+        return (ev.preventDefault(), ctx.skipDefault = true)
+    }
+}
+
 const keydownSolver: Et.KeyboardKeySolver = {
     default: (ev) => {
         abbrContext.readyAbbr = null
@@ -56,7 +75,13 @@ const keydownSolver: Et.KeyboardKeySolver = {
         if (ctx.range.collapsed && ctx.node && ctx.paragraphEl === ctx.effectElement) {
             return checkTriggerBlockAbbr(ev, ctx as NotNullContext)
         }
-    }
+    },
+    Backspace: (ev, ctx) => {
+        checkRegressAbbr(ev, ctx, true)
+    },
+    Delete: (ev, ctx) => {
+        checkRegressAbbr(ev, ctx, false)
+    },
 }
 
 const afterInputSolver: Et.InputTypeSolver = {

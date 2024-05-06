@@ -1,4 +1,4 @@
-import type { Abbr } from "./abbr";
+import type { Abbr, AbbrType } from "./abbr";
 import { EtComponentElement } from "@/effitor/element";
 import { AbbrConfigEnum } from "./config";
 import { CssClassEnum } from "@/effitor/@types/constant";
@@ -61,6 +61,7 @@ ${A.Tag}.${A.Blk}::before {
 export class EtAbbrElement extends EtComponentElement {
     static readonly elName = A.Tag
     static readonly cssText = cssText
+    abbrType: AbbrType = 1
 
     constructor() { super() }
 
@@ -90,7 +91,7 @@ export const createEtAbbrElement = (abbr: Abbr, text: string) => {
     el.setAttribute(A.Attr_display, abbr.display)
     el.setAttribute(A.Attr_description, abbr.description)
     el.classList.add(typeName)
-
+    el.abbrType = abbr.type
     el.textContent = text
     return el
 }

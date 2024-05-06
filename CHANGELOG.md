@@ -28,5 +28,6 @@
 ## Todos
 - [x] 编辑：若删除文本后节点仅剩零宽字符，则连同该节点（以及以其为唯一节点的祖先）一起删除，并合并前后可合并节点
 - [x] `mark`: mark节点仅剩零宽字符时，光标离开时应当将标记节点移除，rel.issues.3
-- [ ] `abbr`：前缀/块级符内开头Backspace或后缀符内末尾Delete时，将缩写符节点`regress`
+- [x] `abbr`：前缀/块级符内开头Backspace或后缀符内末尾Delete时，将缩写符节点`regress`
 - [x] `Backspace|Delete`：修复并优化`br`和段落的删除
+- [ ] `undo`: 优化handle，减少一层跳转，并将undoEffector内置到mainEffector里，因为这是必须执行的，且`Backspace|Delete`等按键按下时需要记录命令事务，这需要在其他keydownSolver之前执行，因为插件可能在keydown生命周期内添加命令，这会导致事务记录不正确

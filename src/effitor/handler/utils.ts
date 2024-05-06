@@ -377,6 +377,131 @@ const checkRemoveNodeAndMergeTextNode = (ctx: Et.EditorContext, removeNode: Et.H
     return true
 }
 /**
+ * 使用片段替换当前节点, 并合并入前/后节点
+ * @param currNode 被替换的节点
+ * @param fragment 插入的片段
+ * @param srcCaretRange 初始光标位置
+ * @param setCaret 是否设置光标位置
+ * @param caretToStart 光标设置到fragment开始位置
+ */
+export const replaceNodeAndMerge = (
+    ctx: Et.EditorContext,
+    currNode: Et.HTMLNode,
+    fragment: DocumentFragment,
+    srcCaretRange?: StaticRange,
+    setCaret = true,
+    caretToStart = true
+) => {
+    srcCaretRange = srcCaretRange || dom.staticFromRange(ctx.range)
+    if (fragment.childNodes.length === 0) return removeNodeAndMerge(ctx, currNode, srcCaretRange, setCaret)
+
+    const getDestCaretRange = (out: Exclude<ReturnType<typeof mergeFragments>, undefined>): StaticRange => {
+        let sr = srcCaretRange
+        if (typeof out[1] === 'number') {
+            let i = 0
+            dom.traverseNode(out[0], (node: Node) => {
+                if (i++ === out[1]) {
+                    sr = dom.caretStaticRangeInNode(node, caretToStart ? 0 : node.childNodes.length)
+                    return true
+                }
+            })
+        }
+        else {
+            return out[1]
+        }
+        return sr
+    }
+
+    const r = document.createRange(),
+        prev = currNode.previousSibling,
+        next = currNode.nextSibling
+    let removeAt = dom.caretStaticRangeOutNode(currNode, -1),
+        delTr: StaticRange,
+        fg: DocumentFragment = fragment,
+        lastChild: Node,
+        destCaretRange: StaticRange | null = null
+
+    // 无前后节点, 直接删除, 替换
+    if (!prev && !next) {
+        r.selectNode(currNode)
+        delTr = dom.staticFromRange(r)
+        lastChild = fg.lastChild!
+    }
+    // 前后均有
+    else if (prev && next) {
+        r.selectNode(prev)
+        const f1 = r.cloneContents()
+        r.selectNode(next)
+        const f2 = r.cloneContents()
+        r.setStartBefore(prev)
+        delTr = dom.staticFromRange(r)
+        removeAt = dom.caretStaticRangeOutNode(prev, -1)
+        let out = mergeFragments(f1, fragment)!
+        if (setCaret && caretToStart) {
+            destCaretRange = getDestCaretRange(out)
+        }
+        out = mergeFragments(out[0], f2)!
+        if (setCaret && !caretToStart) {
+            destCaretRange = getDestCaretRange(out)
+        }
+        fg = out[0]
+        lastChild = fg.lastChild!
+    }
+    // 只有前
+    else if (prev) {
+        r.selectNode(prev)
+        const f1 = r.cloneContents()
+        r.setEndAfter(currNode)
+        delTr = dom.staticFromRange(r)
+        removeAt = dom.caretStaticRangeOutNode(prev, -1)
+        const out = mergeFragments(f1, fragment)!
+        if (setCaret && caretToStart) {
+            destCaretRange = getDestCaretRange(out)
+        }
+        fg = out[0]
+        lastChild = fg.lastChild!
+    }
+    // 只有后
+    else {
+        r.selectNode(next!)
+        const f1 = r.cloneContents()
+        r.setStartBefore(currNode)
+        delTr = dom.staticFromRange(r)
+        removeAt = dom.caretStaticRangeOutNode(next!, -1)
+        const out = mergeFragments(fragment, f1)!
+        if (setCaret && !caretToStart) {
+            destCaretRange = getDestCaretRange(out)
+        }
+        fg = out[0]
+        lastChild = fg.lastChild!
+    }
+
+    // 整体删除
+    ctx.commandHandler.push(CmdTypeEnum.Remove_Content, {
+        removeRange: delTr,
+        targetRanges: [srcCaretRange, srcCaretRange]
+    })
+    if (!destCaretRange) {
+        if (!setCaret) {
+            destCaretRange = srcCaretRange
+        }
+        else if (caretToStart) {
+            destCaretRange = dom.caretStaticRangeInNode(fg.firstChild!, 0)
+        }
+        else {
+            destCaretRange = dom.caretStaticRangeInNode(lastChild, dom.isTextNode(lastChild) ? lastChild.length : lastChild.childNodes.length)
+        }
+    }
+    // 整体插入
+    ctx.commandHandler.push(CmdTypeEnum.Insert_Content, {
+        fragment: fg,
+        insertAt: removeAt,
+        setCaret,
+        targetRanges: [srcCaretRange, destCaretRange]
+    })
+    return true
+}
+/**
  * 删除选区内容并让光标collapsed
  */
 export const checkRemoveSelectionToCollapsed = (ctx: Et.EditorContext) => {
