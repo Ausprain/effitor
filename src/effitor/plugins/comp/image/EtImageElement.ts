@@ -36,7 +36,7 @@ export class EtImageElement extends EtComponentElement {
             img.src = imgOrSrc
             img.alt = alt
         }
-        const el = document.createElement(EtImageElement.elName)
+        const el = document.createElement(EtImageElement.elName) as EtImageElement
         el.appendChild(img as HTMLImageElement)
         return el
     }
