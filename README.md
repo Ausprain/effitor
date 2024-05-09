@@ -1,5 +1,7 @@
 # Effitor
-a web editor
+A web editor based on [`Input Events Level 2`](https://www.w3.org/TR/input-events-2/).  
+
+Now Effitor only supports basic `WYSIWYG` editing mode.
 
 ## Quick Start
 ```ts
@@ -17,24 +19,23 @@ effitor.mount(div)
 
 ## Featrues
 
-### 缩写符
-> 通过缩写词加前/后缀的方式触发的，插入特定样式和功能的节点  
+### abbr trigger
 > Insert some specific style and function node by inputed abbreviation word with prefix or suffix(default as `.`) and trigger Key(default as `Space` or `Enter`).  
 - [api](#useabbrplugin)
 
-### 图片、链接、列表、(代码块、表格)
-> 目前仅支持粘贴图片、链接，创建列表  
+### image, link, list, (code、table)
+> only support image, link and list now.
 - [api](#usecompplugin)
 
-### 部分markdown（`/*/**/==/~~）
-> 支持代码、粗体、斜体、高亮、删除线五种样式
+### partial markdown（`/*/**/==/~~）
+> support inline-code, bold, italic, highlight and strikethrough.
 - [api](#usemarkplugin)
 
 
 
 ## Plugins
 
-### 内置插件
+### Builtin Plugins
 #### useAbbrPlugin
 ```ts
 // 

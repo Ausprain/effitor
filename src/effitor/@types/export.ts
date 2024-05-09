@@ -28,7 +28,10 @@ export type KeyboardEvent = DOM.KeyboardEvent
 export type InputEvent = DOM.InputEvent
 export type ClipboardEvent = DOM.ClipboardEvent
 export type DataTransfer = DOM.DataTransfer
-export type ShadowRoot = DOM.ShadowRoot
+export interface ShadowRoot extends DOM.ShadowRoot {
+    querySelector<K extends keyof DefinedEtElementMap>(selectors: K): DefinedEtElementMap[K] | null;
+    querySelectorAll<K extends keyof DefinedEtElementMap>(selectors: K): NodeListOf<DefinedEtElementMap[K]>;
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -39,10 +42,28 @@ export type ShadowRoot = DOM.ShadowRoot
  */
 export interface Editor {
     /**
-     * 在一个div下绑定一个辑器
+     * 在一个div下加载一个编辑器
      */
     readonly mount: (el: HTMLDivElement) => void;
+    /**
+     * 从div卸载编辑器
+     */
     readonly unmount: (el: HTMLDivElement) => void;
+    /**
+     * 导出`<et-body>`的outerHTML
+     */
+    toEtHTML: (el: HTMLDivElement) => string | null;
+    /**
+     * 导入html为`<et-body>` 若非以下格式将报错  
+     * ```html
+     * <et-body>
+     *  <et-p>...</et-p>
+     *  ...
+     *  <et-p>...</et-p>
+     * </et-body>
+     * ```
+     */
+    fromEtHTML: (el: HTMLDivElement, html: string) => void;
 }
 /**
  * 编辑器配置
@@ -113,6 +134,7 @@ export interface EditorContext {
 
 }
 export interface EditorSchema {
+    [k: string]: EtElementCtor;
     readonly editor: EtEditorCtor;
     readonly body: EtBodyCtor;
     readonly paragraph: EtParagraphCtor;

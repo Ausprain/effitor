@@ -10,7 +10,7 @@ import { getKeydownListener } from './effector/keydown';
 import { getKeyupListener } from './effector/keyup';
 import { getSelectionChangeListener } from './effector/selchange';
 import { EtBodyElement, EtEditorElement, EtParagraphElement, registerEtElement, type EffectElementCtor } from "./element";
-import { cssStyle2cssText } from "./utils";
+import { cssStyle2cssText, dom } from "./utils";
 import { initContext } from './context';
 import { defaultConfig, shadowCssText } from './config';
 import { useUndoEffector } from './handler/undo';
@@ -180,7 +180,10 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
 /**
  * 绑定的元素map, 对应绑定事件监听器的signal控制器, unmount时abort以自动清除绑定的监听器
  */
-const elMap = new WeakMap<HTMLDivElement, AbortController>()
+const elMap = new WeakMap<HTMLDivElement, {
+    ac: AbortController,
+    root: Et.ShadowRoot,
+}>()
 
 /**
  * 创建一个编辑器对象
@@ -224,9 +227,6 @@ export const createEditor = ({
 
 
     return Object.assign(_editor, {
-        /**
-         * 给编辑器挂载一个div时执行
-         */
         mount(el) {
             console.error('mount el: ', el)
             if (elMap.has(el)) {
@@ -234,7 +234,7 @@ export const createEditor = ({
             }
             const root = formatEffitorStructure(el, context, allCssText)
             const ac = new AbortController()
-            elMap.set(el, ac)
+            elMap.set(el, { ac, root })
 
             addListenersToShadowRoot(context, el, root, listeners, ac, pluginConfigs.htmlEventSolvers)
 
@@ -242,18 +242,40 @@ export const createEditor = ({
                 plugin.effector.mounted?.(el, context)
             })
         },
-        /**
-         * 卸载一个div时执行
-         */
         unmount(el) {
             if (elMap.has(el)) {
                 plugins.forEach((plugin) => {
                     plugin.effector.beforeUnmount?.(el, context)
                 })
                 // abort signal自动清除绑定的监听器
-                elMap.get(el)?.abort()
+                elMap.get(el)?.ac.abort()
                 elMap.delete(el);
                 el.innerHTML = ''
+            }
+        },
+        toEtHTML(el) {
+            const root = elMap.get(el)?.root
+            if (!root) return null
+            return root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
+        },
+        fromEtHTML(el, html) {
+            let root = elMap.get(el)?.root!
+            if (root) {
+                this.mount(el)
+                root = elMap.get(el)!.root!
+            }
+            const df = document.createRange().createContextualFragment(html)
+            if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
+                throw new Error('Invalid html')
+            }
+            for (const p of df.firstChild.childNodes) {
+                if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
+                    throw new Error('Invalid html')
+                }
+            }
+            const body = root.querySelector(BuiltinElName.ET_BODY)
+            if (body) {
+                root.replaceChild(df, body)
             }
         },
     } as Et.Editor)

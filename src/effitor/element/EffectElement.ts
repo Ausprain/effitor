@@ -34,6 +34,13 @@ export abstract class EffectElement extends HTMLElement implements Et.ElementCal
     /** 当前Effect元素从ctx.effectElement移除（被赋新值）时调用 */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     focusoutCallback(_ctx: Et.EditorContext) { }
+
+    /**
+     * 创建一个et元素
+     */
+    static create(): EffectElement {
+        return document.createElement(this.elName) as EffectElement
+    }
 }
 export type EffectElementCtor = typeof EffectElement
 

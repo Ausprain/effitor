@@ -108,6 +108,10 @@ export class EtParagraphElement extends EffectElement {
         div.append(...this.childNodes)
         this.replaceWith(div)
     }
+
+    static create(): EtParagraphElement {
+        return document.createElement(P.TAG)
+    }
 }
 
 export type EtParagraphCtor = typeof EtParagraphElement

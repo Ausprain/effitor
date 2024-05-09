@@ -19,8 +19,7 @@
   - [x] 编辑器内复制粘贴
   - [x] 外部复制粘贴自适应（图片、链接） 
 - 数据
-  - [ ] 内容（`json`）与展示（`html`）的相互转换
-    - docs. [OneNote](onenote:https://d.docs.live.net/4e02a194e6772771/文档/All-Index/项目.one#@effitor&section-id={A73E8398-C8FE-44F5-913E-CCF10C7C2CFE}&page-id={B1A67D1C-A2F7-4BF0-8340-2C41BA660783}&object-id={9609E4BE-ACF3-47DF-A107-013482D39912}&13)
+  - [x] 导入导出et-html
 - 插件支持
   - [x] `useAbbrPlugin`: [缩写符功能](./README.md#缩写符)
   - [x] `useCompPlugin`: [图片、链接、列表](./README.md#图片链接列表代码块表格)
