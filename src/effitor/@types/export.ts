@@ -50,6 +50,10 @@ export interface Editor {
      */
     readonly unmount: (el: HTMLDivElement) => void;
     /**
+     * 返回div上挂载的编辑器影子根
+     */
+    readonly getRoot: (el: HTMLDivElement) => ShadowRoot | null;
+    /**
      * 导出`<et-body>`的outerHTML
      */
     toEtHTML: (el: HTMLDivElement) => string | null;
@@ -187,6 +191,8 @@ export type CreateEditorOptions = {
     plugins?: EditorPlugin[];
     /** 编辑器配置项 */
     config?: Partial<EditorConfig>;
+    /** 自定义样式文件url列表 */
+    customStyleUrls?: [string];
 };
 
 /* -------------------------------------------------------------------------- */

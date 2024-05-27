@@ -5,6 +5,8 @@ import et from './effitor'
 import { EtParagraphElement } from './effitor/element'
 import { EtAbbrElement } from './effitor/plugins/abbr/element'
 
+import customStyleUrl from './assets/editor.less?url'
+
 const abbrInits: AbbrInit[] = [{
     name: 'ps',
     config: {
@@ -35,6 +37,7 @@ const abbrInits: AbbrInit[] = [{
 }]
 
 const effitor = et.createEditor({
+    customStyleUrls: customStyleUrl,
     plugins: [
         et.plugins.useMarkPlugin([EtAbbrElement, EtParagraphElement]),
         et.plugins.useCompPlugin(['image', 'link', 'list']),

@@ -1,3 +1,11 @@
+# 0.2.0
+## Features
+- [x] `editor`: 支持引入自定义样式文件
+## Todos
+- editor api
+  - [x] getRoot: `()=>ShadowRoot`, 获取编辑器的影子根
+  - [x] createEditor 参数options选项添加自定义css路径, 以`<link>`方式插入影子根
+
 # 0.1.0
 ## Bug Fixes
 - [x] issues.5 段落开头`Backspace`时未删除当前段落（合并入上一段落），而是删除上一段落文本或`br`

@@ -16,7 +16,7 @@ import { defaultConfig, shadowCssText } from './config';
 import { useUndoEffector } from './handler/undo';
 
 /** 格式化容器div为Effitor初始化结构 */
-const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssText: string) => {
+const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssText: string, customStyleUrls: string[]) => {
     const editor = document.createElement(BuiltinElName.ET_APP)
     // 在editor下创建一个shadowRoot
     const shadow = editor.attachShadow({ mode: 'open' })
@@ -36,6 +36,14 @@ const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssTe
         // 清空el并挂载editor
         el.innerHTML = ''
         el.append(editor)
+        // link 入自定义样式文件
+        for (const url of customStyleUrls) {
+            if (!url) continue
+            const link = document.createElement('link')
+            link.rel = 'stylesheet'
+            link.href = url
+            shadow.append(link)
+        }
         // 将editor的所有子节点放到shadow下(在body之前, 如编辑栏之类（用户自定义connectedCallback回调在editor挂在到dom上时插入的）; 
         shadow.append(...editor.childNodes)
         shadow.append(body)
@@ -193,6 +201,7 @@ export const createEditor = ({
     mainEffector = getMainEffector(),
     plugins = [],
     config = {},
+    customStyleUrls = [''],
 }: Et.CreateEditorOptions = {}): Et.Editor => {
     // 先初始化编辑器对象, 让插件可以扩展编辑器
     const _editor: Et.Editor = {} as Et.Editor
@@ -232,7 +241,7 @@ export const createEditor = ({
             if (elMap.has(el)) {
                 return
             }
-            const root = formatEffitorStructure(el, context, allCssText)
+            const root = formatEffitorStructure(el, context, allCssText, customStyleUrls)
             const ac = new AbortController()
             elMap.set(el, { ac, root })
 
@@ -252,6 +261,9 @@ export const createEditor = ({
                 elMap.delete(el);
                 el.innerHTML = ''
             }
+        },
+        getRoot(el) {
+            return elMap.get(el)?.root ?? null
         },
         toEtHTML(el) {
             const root = elMap.get(el)?.root

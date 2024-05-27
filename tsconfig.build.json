@@ -1,5 +1,6 @@
 {
     "include": ["src/**/*"],
+    "exclude": ["src/main.ts"],
     "compilerOptions": {
       "strict": true,
       "composite": true,
