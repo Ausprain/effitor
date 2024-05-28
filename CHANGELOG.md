@@ -1,8 +1,12 @@
 # 0.2.0
+## Bug Fixes
+- [x] issues.6 HMR热更新时，重复注册自定义元素，导致热更新失败；这是一个不好的开发体验。 
 ## Features
-- [x] `editor`: 支持引入自定义样式文件
+- [x] `editor`: 支持引入自定义样式文件, 通过与标签名同名的类名 选择该标签
 ## Todos
 - editor api
+  - [x] 改用class方式 创建编辑器实例
+  - [x] 改成单编辑器，一个effitor对象对应一个div
   - [x] getRoot: `()=>ShadowRoot`, 获取编辑器的影子根
   - [x] createEditor 参数options选项添加自定义css路径, 以`<link>`方式插入影子根
 

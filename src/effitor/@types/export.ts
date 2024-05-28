@@ -8,6 +8,7 @@ import { BuiltinConfig, BuiltinElName, BuiltinElType, CmdTypeEnum } from "./cons
 import type { EffectElement, EffectElementCtor, EtBodyCtor, EtBodyElement, EtComponentElement, EtEditorCtor, EtEditorElement, EtParagraphCtor, EtParagraphElement, EtPlainTextElement, EtRichTextElement } from "../element";
 import type { MainAfterInputTypeSolver, MainBeforeInputTypeSolver, MainKeydownKeySolver, MainKeyupKeySolver } from "../effector";
 import type { DOM } from "./declare";
+import type { Effitor } from "../effitor";
 
 export type LowerLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type Prototype<C extends Function> = { constructor: C };
@@ -37,38 +38,39 @@ export interface ShadowRoot extends DOM.ShadowRoot {
 /* -------------------------------------------------------------------------- */
 /*                             Et Editor Namespace                            */
 /* -------------------------------------------------------------------------- */
-/**
- * 编辑器
- */
-export interface Editor {
-    /**
-     * 在一个div下加载一个编辑器
-     */
-    readonly mount: (el: HTMLDivElement) => void;
-    /**
-     * 从div卸载编辑器
-     */
-    readonly unmount: (el: HTMLDivElement) => void;
-    /**
-     * 返回div上挂载的编辑器影子根
-     */
-    readonly getRoot: (el: HTMLDivElement) => ShadowRoot | null;
-    /**
-     * 导出`<et-body>`的outerHTML
-     */
-    toEtHTML: (el: HTMLDivElement) => string | null;
-    /**
-     * 导入html为`<et-body>` 若非以下格式将报错  
-     * ```html
-     * <et-body>
-     *  <et-p>...</et-p>
-     *  ...
-     *  <et-p>...</et-p>
-     * </et-body>
-     * ```
-     */
-    fromEtHTML: (el: HTMLDivElement, html: string) => void;
-}
+export type Editor = Effitor
+// /**
+//  * 编辑器
+//  */
+// export interface Editor {
+//     /**
+//      * 在一个div下加载一个编辑器
+//      */
+//     readonly mount: (el: HTMLDivElement) => void;
+//     /**
+//      * 从div卸载编辑器
+//      */
+//     readonly unmount: (el: HTMLDivElement) => void;
+//     /**
+//      * 返回div上挂载的编辑器影子根
+//      */
+//     readonly getRoot: (el: HTMLDivElement) => ShadowRoot | null;
+//     /**
+//      * 导出`<et-body>`的outerHTML
+//      */
+//     toEtHTML: (el: HTMLDivElement) => string | null;
+//     /**
+//      * 导入html为`<et-body>` 若非以下格式将报错  
+//      * ```html
+//      * <et-body>
+//      *  <et-p>...</et-p>
+//      *  ...
+//      *  <et-p>...</et-p>
+//      * </et-body>
+//      * ```
+//      */
+//     fromEtHTML: (el: HTMLDivElement, html: string) => void;
+// }
 /**
  * 编辑器配置
  */
@@ -95,8 +97,8 @@ export interface EditorContext {
     /** 编辑器配置 */
     readonly config: EditorConfig;
     readonly schema: EditorSchema;
-    /** 当前活跃编辑器所属的div, root.host的父节点 */
-    el: HTMLDivElement;
+    /** 当前编辑器宿主div, root.host的祖父节点  若host为空 则焦点不在编辑器内 */
+    host: HTMLDivElement;
     /** 当前触发编辑逻辑的ShadowRoot */
     root: ShadowRoot;
     /** 当前编辑区 */
@@ -124,7 +126,7 @@ export interface EditorContext {
     /** 是否处于输入法会话中, 即compositionstart与compositionend之间 */
     inCompositionSession: boolean;
     /** 记录composingupdate次数, 用于跳过后续update导致的selectionchange; 当第一次触发输入法事务时, count=1 */
-    compositionupdateCount: number;
+    compositionUpdateCount: number;
     /** 跳过n次`selectionchange`回调；如：在手动插入一个`zws`时 +1 */
     /** 是否跳过默认Effector, (在keydown/keyup/beforeinput/input中设置为true时, 都将跳过mainEffector的对应事件监听器) */
     skipDefault: boolean;
@@ -202,9 +204,9 @@ export type CreateEditorOptions = {
 /** 效应器, 响应用户操作, 执行对应Handler */
 export interface Effector extends Partial<Solvers> {
     /** 编辑器mount一个div时执行 */
-    readonly mounted?: (el: HTMLDivElement, ctx: EditorContext) => void;
+    readonly onMounted?: (el: HTMLDivElement, ctx: EditorContext) => void;
     /** 卸载一个div前执行 */
-    readonly beforeUnmount?: (el: HTMLDivElement, ctx: EditorContext) => void;
+    readonly onBeforeUnmount?: (el: HTMLDivElement, ctx: EditorContext) => void;
 }
 export type Solvers = {
     /** keydown中处理按键响应 ev.key -> action */

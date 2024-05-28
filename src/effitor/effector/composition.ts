@@ -4,13 +4,13 @@ import type * as Et from '../@types';
 export const getCompositionStart = (ctx: Et.EditorContext) => {
     return (e: Event) => {
         ctx.inCompositionSession = true
-        ctx.compositionupdateCount = 0
+        ctx.compositionUpdateCount = 0
     }
 }
 
 export const getCompositionUpdate = (ctx: Et.EditorContext) => {
     return (e: Event) => {
-        ctx.compositionupdateCount++
+        ctx.compositionUpdateCount++
     }
 }
 

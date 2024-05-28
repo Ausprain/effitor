@@ -1,7 +1,7 @@
 import './assets/main.css'
 
 import type { AbbrInit } from './effitor/plugins/abbr'
-import et from './effitor'
+import et, { Effitor } from './effitor'
 import { EtParagraphElement } from './effitor/element'
 import { EtAbbrElement } from './effitor/plugins/abbr/element'
 
@@ -36,8 +36,8 @@ const abbrInits: AbbrInit[] = [{
     config: { 4: {} }
 }]
 
-const effitor = et.createEditor({
-    customStyleUrls: customStyleUrl,
+const effitor = new Effitor({
+    customStyleUrls: [customStyleUrl],
     plugins: [
         et.plugins.useMarkPlugin([EtAbbrElement, EtParagraphElement]),
         et.plugins.useCompPlugin(['image', 'link', 'list']),

@@ -17,7 +17,7 @@ const selectRangeWithCtx = (ctx: Et.EditorContext, range: StaticRange | Range) =
 
 const handleInsertText = (cmd: Et.CmdInsertText, ctx: Et.EditorContext) => {
     let offset = cmd.offset
-    if (offset < 0 ) offset = 0
+    if (offset < 0) offset = 0
     else if (offset > cmd.text.length) offset = cmd.text.length
     cmd.text.insertData(offset, cmd.data)
     // dom.selectRange会导致2次selectionchange(sel.empty()+sel.addRange()), 因此要跳过2次; 仅chrome, 不同浏览器情况不同
@@ -37,7 +37,7 @@ const handleInsertCompositionText = (cmd: Et.CmdInsertCompositionText, ctx: Et.E
     // console.error('handle insert composition text', cmd)
     // fix.issue. # 解决跨节点Range状态下插入字符, 执行removeContent后cmd.targetRanges[0]还是删除内容前的节点位置的问题, 即命令记录时与真正执行时的初始光标位置不同  
     // 重置输入法会话的第一次输入的targetRange, 保证insertCompositionText命令执行前的准确光标位置
-    if (ctx.compositionupdateCount === 1) {
+    if (ctx.compositionUpdateCount === 1) {
         // *命令执行时, 依然在beforeinput内, 是无法拿到文本插入后的光标位置的, input事件还未触发
         const sel = ctx.root.getSelection ? ctx.root.getSelection() : getSelection()
         const r = sel?.getRangeAt(0)

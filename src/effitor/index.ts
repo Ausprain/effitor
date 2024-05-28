@@ -1,37 +1,34 @@
 import './augment'
-import { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement, extentEtElement } from "./element";
-import { getMainEffector, MainKeydownKeySolver, MainKeyupKeySolver, MainBeforeInputTypeSolver, MainAfterInputTypeSolver } from './effector';
+import { extentEtElement } from "./element";
+import { getMainEffector } from './effector';
 import { builtinHandler, createCommand } from "./handler";
-import { createEditor } from './effitor';
 import { EtAbbrElement, EtImageElement, EtLinkElement, EtListElement, EtMarkElement, useAbbrPlugin, useCompPlugin, useMarkPlugin } from './plugins';
 
 
 const et = {
-    /** 创建一个编辑器对象 */
-    createEditor,
     /** 创建一个命令 */
     createCommand,
     /** 效应器 */
     effector: {
         /** 获取一个主效应器 */
         getMainEffector,
-        /** 继承该类, 以自定义keydown 的默认按键处理 */
-        MainKeydownKeySolver,
-        /** 继承该类, 以自定义keyup 的默认按键处理 */
-        MainKeyupKeySolver,
-        /** 继承该类, 以自定义beforeinput 的默认inputType处理 */
-        MainBeforeInputTypeSolver,
-        /** 继承该类, 以自定义input 的默认inputType处理 */
-        MainAfterInputTypeSolver,
+        // /** 继承该类, 以自定义keydown 的默认按键处理 */
+        // MainKeydownKeySolver,
+        // /** 继承该类, 以自定义keyup 的默认按键处理 */
+        // MainKeyupKeySolver,
+        // /** 继承该类, 以自定义beforeinput 的默认inputType处理 */
+        // MainBeforeInputTypeSolver,
+        // /** 继承该类, 以自定义input 的默认inputType处理 */
+        // MainAfterInputTypeSolver,
     },
     /** 自定义元素 */
     element: {
-        EtEditorElement,
-        EtBodyElement,
-        EtParagraphElement,
-        EtPlainTextElement,
-        EtRichTextElement,
-        EtComponentElement,
+        // EtEditorElement,
+        // EtBodyElement,
+        // EtParagraphElement,
+        // EtPlainTextElement,
+        // EtRichTextElement,
+        // EtComponentElement,
 
         EtAbbrElement,
         EtImageElement,
@@ -52,6 +49,10 @@ const et = {
         useMarkPlugin,
     },
 }
+
+export { Effitor } from './effitor'
+export { EtBodyElement, EtComponentElement, EtEditorElement, EtParagraphElement, EtPlainTextElement, EtRichTextElement } from "./element";
+export { MainKeydownKeySolver, MainKeyupKeySolver, MainBeforeInputTypeSolver, MainAfterInputTypeSolver } from './effector';
 
 export default et;
 export * from './@types/export';

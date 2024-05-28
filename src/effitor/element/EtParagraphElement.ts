@@ -1,6 +1,6 @@
 import type * as Et from '../@types'
 import { BuiltinElName, BuiltinElType, CssClassEnum } from "../@types/constant";
-import { EffectElement } from ".";
+import { EffectElement } from "./EffectElement";
 
 const enum P {
     TAG = BuiltinElName.ET_PARAGRAPH,
@@ -65,12 +65,12 @@ export class EtParagraphElement extends EffectElement {
 
     readonly elType: Et.ElType = BuiltinElType.PARAGRAPH;
 
-    get pid(): string {
-        return this.getAttribute('pid')
-    }
-    set pid(v) {
-        this.setAttribute('pid', v)
-    }
+    // get pid(): string {
+    //     return this.getAttribute('pid')
+    // }
+    // set pid(v) {
+    //     this.setAttribute('pid', v)
+    // }
 
     get indent(): number {
         return parseInt(this.getAttribute('indent') || '0')
@@ -81,6 +81,7 @@ export class EtParagraphElement extends EffectElement {
     }
 
     connectedCallback(this: EtParagraphElement): void {
+        this.className = P.TAG
         // console.log('p connected callback')
         // console.log('pid: ', this.pid)
         // 给新段落赋予id
@@ -94,11 +95,11 @@ export class EtParagraphElement extends EffectElement {
         }
     }
 
-    focusinCallback(): void {
+    focusinCallback(_ctx: Et.EditorContext): void {
         // console.log('paragraph focusin', this)
         this.classList.add(CssClassEnum.Active)
     }
-    focusoutCallback(): void {
+    focusoutCallback(_ctx: Et.EditorContext): void {
         // console.log('paragraph focusout', this)
         this.classList.remove(CssClassEnum.Active)
     }

@@ -8,7 +8,7 @@ import { UndoStack } from "./undoStack";
 const recordTransaction = (ctx: Et.EditorContext) => {
     // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
     if (ctx.inCompositionSession) return false
-    return undoStackMap.get(ctx.el)?.pushTransaction(ctx) || false
+    return undoStackMap.get(ctx.host)?.pushTransaction(ctx) || false
 }
 const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
     // console.error('keydown  --------------------- 记录事务')
@@ -69,14 +69,14 @@ const beforeInputSolver: Et.InputTypeSolver = {
     // },
     historyUndo: (ev, ctx) => {
         // 执行undo前先判断是否有未入栈命令
-        const undoStack = undoStackMap.get(ctx.el)
+        const undoStack = undoStackMap.get(ctx.host)
         undoStack?.pushTransaction(ctx)
         undoStack?.undo(ctx)
         ev.preventDefault()
         return true
     },
     historyRedo: (ev, ctx) => {
-        undoStackMap.get(ctx.el)?.redo(ctx)
+        undoStackMap.get(ctx.host)?.redo(ctx)
         ev.preventDefault()
         return true
     }
@@ -88,7 +88,7 @@ const beforeInputSolver: Et.InputTypeSolver = {
 const htmlEventSolver: Et.HTMLEventSolver = {
     compositionend: (ev, ctx) => {
         // console.error('compsoiton end----------------------------- 记录事务')
-        undoStackMap.get(ctx.el)?.pushTransaction(ctx)
+        undoStackMap.get(ctx.host)?.pushTransaction(ctx)
     },
     focusout: (ev, ctx) => {
         // console.log('编辑器失去焦点, 记录事务')
@@ -107,7 +107,7 @@ const defaultStack = new UndoStack(100)
  * 获取编辑器对应的撤回栈, 若不存在则返回默认撤回栈
  */
 export const getUndoStack = (ctx: Et.EditorContext): UndoStack => {
-    return undoStackMap.get(ctx.el) || defaultStack
+    return undoStackMap.get(ctx.host) || defaultStack
 }
 
 export const useUndoEffector = (undoLength: number): Et.Effector => {
@@ -118,13 +118,13 @@ export const useUndoEffector = (undoLength: number): Et.Effector => {
         afterInputSolver,
         htmlEventSolver,
         // selChangeCallback,
-        mounted(el: HTMLDivElement) {
+        onMounted(el: HTMLDivElement) {
             undoStackMap.set(el, new UndoStack(undoLength))
         },
         /**
          * 卸载时移除对应撤回栈并 确认所有事务
          */
-        beforeUnmount(el, ctx) {
+        onBeforeUnmount(el, ctx) {
             undoStackMap.get(el)?.commitAll(ctx)
             undoStackMap.delete(el)
         },

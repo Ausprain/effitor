@@ -28,6 +28,9 @@ export class EtMarkElement extends EtRichTextElement {
             this.markType = markType
         }
     }
+    connectedCallback(this: EtMarkElement): void {
+        this.className = MarkEnum.ElName
+    }
     focusinCallback(ctx: Et.EditorContext): void {
         if (ctx.range.collapsed) {
             this.classList.add(MarkStatus.HINTING)

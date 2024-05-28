@@ -1,6 +1,6 @@
 import type * as Et from '../@types'
 import { BuiltinElName } from "../@types/constant";
-import { EffectElement } from ".";
+import { EffectElement } from "./EffectElement";
 
 /**
  * 编辑区, 编辑器主体
@@ -21,6 +21,7 @@ export class EtBodyElement extends EffectElement {
     }
 
     connectedCallback(): void {
+        this.className = BuiltinElName.ET_BODY
         this.setAttribute('contenteditable', '')
         this.setAttribute('part', BuiltinElName.ET_BODY)
     }

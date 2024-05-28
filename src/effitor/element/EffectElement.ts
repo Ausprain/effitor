@@ -42,7 +42,7 @@ export type EffectElementCtor = typeof EffectElement
 /**
  * 全局记录已注册的元素
  */
-const globalDefinedElement: { [k: string]: EffectElementCtor } = {}
+// const globalDefinedElement: { [k: string]: EffectElementCtor } = {}
 /**
  * 扩展一个内置效应元素, 为其添加或重写handler
  * fixme 思考 为什么一定要挂到构造函数上 而不直接挂到元素原型对象上
@@ -61,8 +61,11 @@ export const extentEtElement = (
 export const registerEtElement = (
     ctor: EffectElementCtor,
 ) => {
-    if (globalDefinedElement[ctor.elName]) {
-        throw new Error(`Effect Element named '${ctor.elName}' already defined`)
-    }
-    customElements.define(ctor.elName, ctor as any)
+    // if (globalDefinedElement[ctor.elName]) {
+    //     throw new Error(`Effect Element named '${ctor.elName}' already defined`)
+    // }
+    customElements.get(ctor.elName) || customElements.define(ctor.elName, ctor as any)
+    // todo 需传入ShadowRoot 对已注册元素进行升级
+    // const root = {} as ShadowRoot 
+    // root.querySelectorAll(ctor.elName).forEach(el => customElements.upgrade(el))
 }

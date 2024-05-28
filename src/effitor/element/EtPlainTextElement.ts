@@ -1,6 +1,6 @@
 import type * as Et from '../@types'
 import { BuiltinElName, BuiltinElType } from "../@types/constant";
-import { EffectElement } from ".";
+import { EffectElement } from "./EffectElement";
 
 /**
  * 纯文本节点
@@ -12,6 +12,7 @@ export class EtPlainTextElement extends EffectElement {
     readonly elType: Et.ElType = BuiltinElType.PLAINTEXT;
 
     connectedCallback(this: EffectElement): void {
+        this.className = BuiltinElName.ET_PLAINTEXT
         this.setAttribute('contenteditable', 'plaintext-only')
     }
 

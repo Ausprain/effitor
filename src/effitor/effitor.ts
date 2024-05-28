@@ -55,6 +55,8 @@ const formatEffitorStructure = (el: HTMLDivElement, ctx: Et.EditorContext, cssTe
 type PluginConfigs = {
     /** 自定义元素, 统一注册到customElements */
     readonly etElementCtors: Et.EtElementCtor[];
+    readonly onMounteds: Et.Effector['onMounted'][],
+    readonly onBeforeUnmounts: Et.Effector['onBeforeUnmount'][],
 } & {
     [K in keyof Et.Solvers as `${K}s`]: Et.Solvers[K][];
 };
@@ -68,6 +70,8 @@ const reducePlugins = (plugins: Et.EditorPlugin[], elCtors: EffectElementCtor[],
         pSet.add(cur.name)
 
         cur.elements && pre.etElementCtors.push(...cur.elements)
+        cur.effector.onMounted && pre.onMounteds.push(cur.effector.onMounted)
+        cur.effector.onBeforeUnmount && pre.onBeforeUnmounts.push(cur.effector.onBeforeUnmount)
         const ef = cur.effector
         for (const k in ef) {
             if ((pre as any)[k + 's']) {
@@ -78,6 +82,9 @@ const reducePlugins = (plugins: Et.EditorPlugin[], elCtors: EffectElementCtor[],
         return pre
     }, {
         etElementCtors: elCtors,
+        onMounteds: [],
+        onBeforeUnmounts: [],
+
         keydownSolvers: [],
         keyupSolvers: [],
         beforeInputSolvers: [],
@@ -118,12 +125,19 @@ const initListeners = (ctx: Et.EditorContext, mainEffector: Et.MainEffector, plu
     selectionchange: getSelectionChangeListener(ctx, pluginConfigs.selChangeCallbacks),
 
 })
-const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, root: Et.ShadowRoot, listeners: ReturnType<typeof initListeners>, ac: AbortController, htmlEventSolvers: Et.HTMLEventSolver[]) => {
+const addListenersToShadowRoot = (
+    host: HTMLDivElement,
+    root: Et.ShadowRoot,
+    ac: AbortController,
+    ctx: Et.EditorContext,
+    listeners: ReturnType<typeof initListeners>,
+    htmlEventSolvers: Et.HTMLEventSolver[]
+) => {
     // 绑在shadowRoot上
     root.addEventListener('focusin', () => {
         console.error('focus ')
         // 编辑器聚焦时绑定上下文
-        ctx.el = el
+        ctx.host = host
         ctx.root = root
         ctx.body = root.querySelector(ctx.schema.body.elName)!
 
@@ -139,7 +153,7 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
     }, { signal: ac.signal })
     root.addEventListener('focusout', () => {
         console.error('blur ')
-        ctx.el = null as any   // 通过el是否为空来判断光标是否聚焦编辑器内
+        ctx.host = null as any   // 通过el是否为空来判断光标是否聚焦编辑器内
         // ctx.focused = false
         // ctx.paragraphEl?.classList.remove(CssClassEnum.Active)
         // ctx.paragraphEl = null as any
@@ -152,7 +166,7 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
 
     root.addEventListener('keydown', listeners.keydown!, { signal: ac.signal })
     root.addEventListener('keyup', listeners.keyup!, { signal: ac.signal })
-    // wran. shadow dom内不会捕获isTrusted=true 的 inputType='insertFromDrop' 的 beforeinput事件
+    // *wran. shadow dom内不会捕获isTrusted=true 的 inputType='insertFromDrop' 的 beforeinput事件
     root.addEventListener('beforeinput', listeners.beforeinput!, { signal: ac.signal })
     root.addEventListener('input', listeners.input!, { signal: ac.signal })
 
@@ -185,112 +199,269 @@ const addListenersToShadowRoot = (ctx: Et.EditorContext, el: HTMLDivElement, roo
     })
 }
 
-/**
- * 绑定的元素map, 对应绑定事件监听器的signal控制器, unmount时abort以自动清除绑定的监听器
- */
-const elMap = new WeakMap<HTMLDivElement, {
-    ac: AbortController,
-    root: Et.ShadowRoot,
-}>()
+// /**
+//  * 绑定的元素map, 对应绑定事件监听器的signal控制器, unmount时abort以自动清除绑定的监听器
+//  */
+// const elMap = new WeakMap<HTMLDivElement, {
+//     ac: AbortController,
+//     root: Et.ShadowRoot,
+// }>()
 
-/**
- * 创建一个编辑器对象
- */
-export const createEditor = ({
-    schemaInit = {},
-    mainEffector = getMainEffector(),
-    plugins = [],
-    config = {},
-    customStyleUrls = [''],
-}: Et.CreateEditorOptions = {}): Et.Editor => {
-    // 先初始化编辑器对象, 让插件可以扩展编辑器
-    const _editor: Et.Editor = {} as Et.Editor
-    const _config = { ...defaultConfig, ...config }
-    const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
-    // undoEffector应放在首位
-    plugins.unshift({ name: 'undo', effector: undoEffector })
-    const schema: Et.EditorSchema = {
-        editor: EtEditorElement,
-        body: EtBodyElement,
-        paragraph: EtParagraphElement,
-        ...schemaInit,
+// /**
+//  * 创建一个编辑器对象
+//  */
+// export const createEditor = ({
+//     schemaInit = {},
+//     mainEffector = getMainEffector(),
+//     plugins = [],
+//     config = {},
+//     customStyleUrls = [''],
+// }: Et.CreateEditorOptions = {}): Et.Editor => {
+//     // 先初始化编辑器对象, 让插件可以扩展编辑器
+//     const _editor: Et.Editor = {} as Et.Editor
+//     const _config = { ...defaultConfig, ...config }
+//     const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
+//     // undoEffector应放在首位
+//     plugins.unshift({ name: 'undo', effector: undoEffector })
+//     const schema: Et.EditorSchema = {
+//         editor: EtEditorElement,
+//         body: EtBodyElement,
+//         paragraph: EtParagraphElement,
+//         ...schemaInit,
+//     }
+//     /** 初始化编辑器上下文 */
+//     const context = initContext(_editor, schema, _config)
+//     // 记录需要注册的EtElement
+//     const elCtors: EffectElementCtor[] = Object.values(schema)
+//     /** 从plugins中提取出effector对应处理器 及 自定义元素 */
+//     const pluginConfigs = reducePlugins(plugins, elCtors, context)
+//     /** 编辑器事件监听器 */
+//     const listeners = initListeners(context, mainEffector, pluginConfigs)
+//     // 注册EtElement 并获取内联样式
+//     const allCssText = elCtors.reduce<string[]>((css, ctor) => {
+//         registerEtElement(ctor)
+//         css.push(
+//             ctor.cssStyle === undefined
+//                 ? ctor.cssText
+//                 : ctor.cssText + '\n' + cssStyle2cssText(ctor.cssStyle, ctor.elName)
+//         )
+//         return css
+//     }, []).join('\n')
+
+
+//     return Object.assign(_editor, {
+//         mount(el) {
+//             console.error('mount el: ', el)
+//             if (elMap.has(el)) {
+//                 return
+//             }
+//             const root = formatEffitorStructure(el, context, allCssText, customStyleUrls)
+//             const ac = new AbortController()
+//             elMap.set(el, { ac, root })
+
+//             addListenersToShadowRoot(context, el, root, listeners, ac, pluginConfigs.htmlEventSolvers)
+
+//             plugins.forEach((plugin) => {
+//                 plugin.effector.onMounted?.(el, context)
+//             })
+//         },
+//         unmount(el) {
+//             if (elMap.has(el)) {
+//                 plugins.forEach((plugin) => {
+//                     plugin.effector.onBeforeUnmount?.(el, context)
+//                 })
+//                 // abort signal自动清除绑定的监听器
+//                 elMap.get(el)?.ac.abort()
+//                 elMap.delete(el);
+//                 el.innerHTML = ''
+//             }
+//         },
+//         getRoot(el) {
+//             return elMap.get(el)?.root ?? null
+//         },
+//         toEtHTML(el) {
+//             const root = elMap.get(el)?.root
+//             if (!root) return null
+//             return root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
+//         },
+//         fromEtHTML(el, html) {
+//             let root = elMap.get(el)?.root!
+//             if (root) {
+//                 this.mount(el)
+//                 root = elMap.get(el)!.root!
+//             }
+//             const df = document.createRange().createContextualFragment(html)
+//             if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
+//                 throw new Error('Invalid html')
+//             }
+//             for (const p of df.firstChild.childNodes) {
+//                 if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
+//                     throw new Error('Invalid html')
+//                 }
+//             }
+//             const body = root.querySelector(BuiltinElName.ET_BODY)
+//             if (body) {
+//                 root.replaceChild(df, body)
+//             }
+//         },
+//     } as Et.Editor)
+// }
+
+class EffitorNoHostError extends Error {
+    constructor() {
+        super(`EffitorNoHostError: Effitor not yet mounted, mount it first.`)
     }
-    /** 初始化编辑器上下文 */
-    const context = initContext(_editor, schema, _config)
-    // 记录需要注册的EtElement
-    const elCtors: EffectElementCtor[] = Object.values(schema)
-    /** 从plugins中提取出effector对应处理器 及 自定义元素 */
-    const pluginConfigs = reducePlugins(plugins, elCtors, context)
-    /** 编辑器事件监听器 */
-    const listeners = initListeners(context, mainEffector, pluginConfigs)
-    // 注册EtElement 并获取内联样式
-    const allCssText = elCtors.reduce<string[]>((css, ctor) => {
-        registerEtElement(ctor)
-        css.push(
-            ctor.cssStyle === undefined
-                ? ctor.cssText
-                : ctor.cssText + '\n' + cssStyle2cssText(ctor.cssStyle, ctor.elName)
-        )
-        return css
-    }, []).join('\n')
-
-
-    return Object.assign(_editor, {
-        mount(el) {
-            console.error('mount el: ', el)
-            if (elMap.has(el)) {
-                return
-            }
-            const root = formatEffitorStructure(el, context, allCssText, customStyleUrls)
-            const ac = new AbortController()
-            elMap.set(el, { ac, root })
-
-            addListenersToShadowRoot(context, el, root, listeners, ac, pluginConfigs.htmlEventSolvers)
-
-            plugins.forEach((plugin) => {
-                plugin.effector.mounted?.(el, context)
-            })
-        },
-        unmount(el) {
-            if (elMap.has(el)) {
-                plugins.forEach((plugin) => {
-                    plugin.effector.beforeUnmount?.(el, context)
-                })
-                // abort signal自动清除绑定的监听器
-                elMap.get(el)?.ac.abort()
-                elMap.delete(el);
-                el.innerHTML = ''
-            }
-        },
-        getRoot(el) {
-            return elMap.get(el)?.root ?? null
-        },
-        toEtHTML(el) {
-            const root = elMap.get(el)?.root
-            if (!root) return null
-            return root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
-        },
-        fromEtHTML(el, html) {
-            let root = elMap.get(el)?.root!
-            if (root) {
-                this.mount(el)
-                root = elMap.get(el)!.root!
-            }
-            const df = document.createRange().createContextualFragment(html)
-            if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
-                throw new Error('Invalid html')
-            }
-            for (const p of df.firstChild.childNodes) {
-                if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
-                    throw new Error('Invalid html')
-                }
-            }
-            const body = root.querySelector(BuiltinElName.ET_BODY)
-            if (body) {
-                root.replaceChild(df, body)
-            }
-        },
-    } as Et.Editor)
 }
+export class Effitor {
+    private __host: HTMLDivElement | undefined
+    private __root: ShadowRoot | undefined
+    private __context: Et.EditorContext
 
+    private __ac: AbortController | undefined
+    private __listeners: ReturnType<typeof initListeners>
+    private __pluginConfigs: PluginConfigs
+    private __cssText: string
+    private __customStyleUrls: string[]
 
+    /**
+     * 编辑器宿主 div元素
+     */
+    get host() {
+        if (!this.__host) {
+            throw new EffitorNoHostError()
+        }
+        return this.__host
+    }
+    /**
+     * 编辑器影子根 ShadowRoot
+     */
+    get root() {
+        if (!this.__root) {
+            throw new EffitorNoHostError()
+        }
+        return this.__root
+    }
+    /**
+     * 编辑器上下文对象
+     */
+    get context() {
+        if (!this.__host) {
+            throw new EffitorNoHostError()
+        }
+        return this.__context
+    }
+
+    constructor({
+        schemaInit = {},
+        mainEffector = getMainEffector(),
+        plugins = [],
+        config = {},
+        customStyleUrls = [''],
+    }: Et.CreateEditorOptions = {}) {
+        const _config = { ...defaultConfig, ...config }
+        const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
+        // undoEffector应放在首位
+        plugins.unshift({ name: 'undo', effector: undoEffector })
+        const schema: Et.EditorSchema = {
+            editor: EtEditorElement,
+            body: EtBodyElement,
+            paragraph: EtParagraphElement,
+            ...schemaInit,
+        }
+        /** 初始化编辑器上下文 */
+        const context = initContext(this, schema, _config)
+        // 记录需要注册的EtElement
+        const elCtors: EffectElementCtor[] = Object.values(schema)
+        /** 从plugins中提取出effector对应处理器 及 自定义元素 */
+        const pluginConfigs = reducePlugins(plugins, elCtors, context)
+        /** 编辑器事件监听器 */
+        const listeners = initListeners(context, mainEffector, pluginConfigs)
+        // 注册EtElement 并获取内联样式
+        const allCssText = elCtors.reduce<string[]>((css, ctor) => {
+            registerEtElement(ctor)
+            css.push(
+                ctor.cssStyle === undefined
+                    ? ctor.cssText
+                    : ctor.cssText + '\n' + cssStyle2cssText(ctor.cssStyle, ctor.elName)
+            )
+            return css
+        }, []).join('\n')
+
+        this.__context = context
+        this.__cssText = allCssText
+        this.__listeners = listeners
+        this.__pluginConfigs = pluginConfigs
+        this.__customStyleUrls = [...customStyleUrls]
+    }
+    /**
+     * 在一个div下加载一个编辑器  若已挂载 则抛出一个异常
+     */
+    mount(host: HTMLDivElement) {
+        if (this.__host) {
+            throw Error('Effitor already mounted')
+        }
+        const root = formatEffitorStructure(host, this.__context, this.__cssText, this.__customStyleUrls)
+        const ac = new AbortController()
+
+        addListenersToShadowRoot(host, root, ac, this.__context, this.__listeners, this.__pluginConfigs.htmlEventSolvers)
+
+        for (const fn of this.__pluginConfigs.onMounteds) {
+            fn?.(host, this.__context)
+
+        }
+
+        this.__ac = ac
+        this.__root = root
+        this.__host = host
+        return this
+    }
+    /**
+     * 卸载编辑器 div宿主内容清空  若未挂载, 则不做任何操作
+     */
+    unmount() {
+        if (!this.__host) return
+        for (const fn of this.__pluginConfigs.onBeforeUnmounts) {
+            fn?.(this.__host, this.__context)
+        }
+        // abort signal自动清除绑定的监听器
+        this.__ac!.abort()
+        this.__host.innerHTML = ''
+    }
+    /**
+     * 导出`<et-body>`的outerHTML
+     */
+    toEtHTML() {
+        if (!this.__root) {
+            throw new EffitorNoHostError()
+        }
+        return this.__root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
+    }
+    /**
+     * 导入html为`<et-body>` 若非以下格式将报错  
+     * ```html
+     * <et-body>
+     *  <et-p>...</et-p>
+     *  ...
+     *  <et-p>...</et-p>
+     * </et-body>
+     * ```
+     */
+    fromEtHTML(html: string) {
+        if (!this.__root) {
+            throw new EffitorNoHostError()
+        }
+        const df = document.createRange().createContextualFragment(html)
+        if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
+            throw new Error('Invalid html for Effitor')
+        }
+        for (const p of df.firstChild.childNodes) {
+            if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
+                throw new Error('Invalid html for Effitor')
+            }
+        }
+        const body = this.__root.querySelector(BuiltinElName.ET_BODY)
+        if (body) {
+            this.__root.replaceChild(df, body)
+        }
+    }
+}

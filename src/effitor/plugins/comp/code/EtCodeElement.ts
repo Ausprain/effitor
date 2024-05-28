@@ -12,4 +12,8 @@ const cssText = `
 export class EtCodeElement extends EtComponentElement {
     static elName = C.TAG
     static cssText = cssText;
+
+    connectedCallback(this: EtCodeElement): void {
+        this.className = C.TAG
+    }
 }

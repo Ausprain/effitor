@@ -912,8 +912,8 @@ export const builtinHandler: Partial<Et.EffectHandlerDeclaration> = {
 
         // 输入法会话刚开始时, 若光标为Range, 则先删除;
         // 由于输入法输入过程会自动selection, 即compositionupdate过程中, 光标是Range状态的
-        if (ctx.compositionupdateCount === 1 && !ctx.range.collapsed) {
-            console.log('insert composition text at Range delete -----------------------------', ctx.compositionupdateCount)
+        if (ctx.compositionUpdateCount === 1 && !ctx.range.collapsed) {
+            console.log('insert composition text at Range delete -----------------------------', ctx.compositionUpdateCount)
             deleteBackwardAtRange(ctx, srcCaretRange, srcCaretRange)
         }
         ctx.commandHandler.push(CmdTypeEnum.Insert_Composition_Text, {

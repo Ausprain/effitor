@@ -11,7 +11,7 @@ class EtContext implements Et.EditorContext {
     readonly editor: Et.Editor;
     readonly schema: Et.EditorSchema
     readonly config: Et.EditorConfig
-    el: HTMLDivElement = null as any
+    host: HTMLDivElement = null as any
     root: Et.ShadowRoot = null as any
     body: EtBodyElement = null as any
 
@@ -27,7 +27,7 @@ class EtContext implements Et.EditorContext {
     prevUpKey: undefined
     // isComposing: false,
     inCompositionSession: boolean = false
-    compositionupdateCount: number = 0
+    compositionUpdateCount: number = 0
     // skipSelChange: 0,
     skipDefault: boolean = false
     // isEtElBegining: false
@@ -63,9 +63,9 @@ class EtContext implements Et.EditorContext {
     }
     set paragraphEl(v) {
         if (this._paragraphEl === v) return
-        this._paragraphEl?.focusoutCallback()
+        this._paragraphEl?.focusoutCallback(this)
         this._paragraphEl = v
-        this._paragraphEl.focusinCallback()
+        this._paragraphEl.focusinCallback(this)
     }
 
     modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity) {

@@ -65,7 +65,9 @@ export class EtAbbrElement extends EtComponentElement {
 
     constructor() { super() }
 
-    connectedCallback(this: EtAbbrElement): void { }
+    connectedCallback(this: EtAbbrElement): void {
+        this.classList.add(A.Tag)
+    }
 
 }
 
