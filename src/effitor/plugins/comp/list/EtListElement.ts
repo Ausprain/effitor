@@ -97,7 +97,6 @@ export class EtListElement extends EtComponentElement {
     }
 
     connectedCallback(): void {
-        this.className = L.TAG
         // this.contentEditable = 'true'
     }
 

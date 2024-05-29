@@ -2,7 +2,8 @@
 
 import esbuild from 'esbuild';
 await esbuild.build({
-    entryPoints: ['src/effitor/index.ts'],
+    // entryPoints: ['src/effitor/index.ts'],
+    entryPoints: ['temp/src/effitor/index.js'],
     bundle: true,
     outbase: 'src/effitor',
     // outdir: 'dist',
@@ -11,4 +12,7 @@ await esbuild.build({
     format: 'esm',
     // target: 'node16',
     platform: 'node',
+    alias: {
+        "@": "temp/src"
+    }
 });

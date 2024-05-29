@@ -8,7 +8,18 @@ export const shadowCssText = `
     padding: 0;
     outline: none;
     box-sizing: border-box;
-}\n
+}
+et-body {
+    position: relative;
+    display: block;
+    white-space: pre-wrap;
+}
+et-p {
+    display: block;
+    min-height: 1.5em;
+    line-height: 1.5em;
+}
+
 `
 
 export const defaultConfig = {

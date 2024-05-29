@@ -42,7 +42,6 @@ export class EtImageElement extends EtComponentElement {
     }
 
     connectedCallback(): void {
-        this.className = I.TAG
         this.setAttribute('contenteditable', 'false')
     }
 

@@ -18,13 +18,20 @@ export abstract class EffectElement extends HTMLElement implements Et.ElementCal
     /** 元素类型, 绑在this上用于判断是否是效应元素 */
     readonly elType: Et.ElType = BuiltinElType.UNDEFINED
 
+    constructor() {
+        super()
+        // 使用标签名作类名, 以在外部style文件中设置自定义样式 （因为外部样式文件的标签选择器优先级不够）
+        // fix. document.createElement 时元素对象不可有属性, 放到事件循环中添加
+        Promise.resolve().then(() => this.classList.add(this.localName))
+    }
+
     /** 效应拦截器, 当非空 且执行返回true时, 阻止对应效应 */
     effectBlocker?: Et.EffectBlocker
 
-    connectedCallback?(this: EffectElement): void
-    disconnectedCallback?(this: EffectElement): void
-    adoptedCallback?(this: EffectElement): void
-    attributeChangedCallback?(this: EffectElement, name: string, oldValue: string, newValue: string): void
+    connectedCallback?(): void
+    disconnectedCallback?(): void
+    adoptedCallback?(): void
+    attributeChangedCallback?(name: string, oldValue: string, newValue: string): void
 
     /** 替换当前节点, 并转移其后代到新节点; 在DocumentFragment内使用 */
     replaceToNativeElement(this: EffectElement) { return }

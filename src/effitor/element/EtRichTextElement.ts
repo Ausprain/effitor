@@ -12,9 +12,6 @@ export class EtRichTextElement extends EffectElement {
     static readonly elName: Et.ElName = BuiltinElName.ET_RICHTEXT;
     readonly elType: Et.ElType = BuiltinElType.RICHTEXT;
 
-    connectedCallback(this: EtRichTextElement): void {
-        this.className = BuiltinElName.ET_RICHTEXT
-    }
     replaceToNativeElement(): void {
         const computedMap = this.computedStyleMap();
         const isBlock = computedMap.get('display') === 'block';

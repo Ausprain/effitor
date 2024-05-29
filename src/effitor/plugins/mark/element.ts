@@ -20,16 +20,15 @@ export class EtMarkElement extends EtRichTextElement {
     static readonly cssText: string = markCssText
 
     readonly elType = BuiltinElType.RICHTEXT;
-    markType: `${MarkType}` | undefined
+    public markType: `${MarkType}` | undefined
+
     changeMarkType(markType: `${MarkType}`) {
-        if (this.markType !== markType) {
-            this.markType && this.classList.remove(this.markType)
+        const currType = this.markType
+        if (currType !== markType) {
+            currType && this.classList.remove(currType)
             this.classList.add(markType)
             this.markType = markType
         }
-    }
-    connectedCallback(this: EtMarkElement): void {
-        this.className = MarkEnum.ElName
     }
     focusinCallback(ctx: Et.EditorContext): void {
         if (ctx.range.collapsed) {

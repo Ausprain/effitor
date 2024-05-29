@@ -15,15 +15,13 @@ export class EtBodyElement extends EffectElement {
         outline: 'none',
         border: 'none',
         whiteSpace: 'pre-wrap',
-        fontFamily: 'ubuntu',
+        fontFamily: 'UbuntuVariable',
         fontWeight: '449',
         fontSize: '15px'
     }
 
     connectedCallback(): void {
-        this.className = BuiltinElName.ET_BODY
         this.setAttribute('contenteditable', '')
-        this.setAttribute('part', BuiltinElName.ET_BODY)
     }
 
     replaceToNativeElement(): void {

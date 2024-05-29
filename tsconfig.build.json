@@ -16,6 +16,6 @@
       "outDir": "temp/",
       "declaration": true,
       "declarationMap": true,
-      "emitDeclarationOnly": true
+      // "emitDeclarationOnly": true
     }
   }

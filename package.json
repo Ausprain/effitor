@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "run-p bundle-js bundle-dts",
-    "bundle-js": "node esbuild.config.js",
-    "bundle-dts": "tsc -p tsconfig.build.json && npx rollup -c rollup.dts.config.js"
+    "build": "tsc -p tsconfig.build.json && run-p bundle-js bundle-dts",
+    "bundle-js": "vite build",
+    "bundle-dts": "npx rollup -c rollup.dts.config.js"
   },
   "repository": {
     "type": "git",

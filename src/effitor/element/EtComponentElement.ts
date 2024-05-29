@@ -16,7 +16,6 @@ export class EtComponentElement extends EffectElement {
     readonly elType: Et.ElType = BuiltinElType.COMPONENT;
 
     connectedCallback(this: EtComponentElement): void {
-        this.className = BuiltinElName.ET_COMPONENT
         this.setAttribute('contenteditable', 'false')
     }
 

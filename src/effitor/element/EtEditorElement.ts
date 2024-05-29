@@ -8,7 +8,6 @@ export class EtEditorElement extends EffectElement {
     static readonly elName = BuiltinElName.ET_APP
 
     connectedCallback(this: EffectElement): void {
-        this.className = BuiltinElName.ET_APP
         this.setAttribute('contenteditable', 'false')
         // et-editor作为shadowRoot的host, 样式需要挂在自己身上
 

@@ -53,7 +53,6 @@ export class EtLinkElement extends EtComponentElement {
     }
 
     connectedCallback(): void {
-        this.className = A.TAG
         this.setAttribute('contenteditable', 'false')
     }
 }

@@ -12,7 +12,6 @@ export class EtPlainTextElement extends EffectElement {
     readonly elType: Et.ElType = BuiltinElType.PLAINTEXT;
 
     connectedCallback(this: EffectElement): void {
-        this.className = BuiltinElName.ET_PLAINTEXT
         this.setAttribute('contenteditable', 'plaintext-only')
     }
 

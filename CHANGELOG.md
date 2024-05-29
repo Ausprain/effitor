@@ -1,9 +1,17 @@
 # 0.2.0
+## Api
+- [ ] `dom.selectRange`: 返回promise 
 ## Bug Fixes
 - [x] issues.6 HMR热更新时，重复注册自定义元素，导致热更新失败；这是一个不好的开发体验。 
 ## Features
 - [x] `editor`: 支持引入自定义样式文件, 通过与标签名同名的类名 选择该标签
 ## Todos
+- cmd
+  - [ ] 命令回调在执行命令时便执行，而不是插入到事务中统一执行
+  - [ ] 命令回调可以是async的
+- clipboard api
+  - [ ] ctrl+shift+c 仅复制纯文本
+  - [ ] ctrl+shift+v 粘贴为纯文本
 - editor api
   - [x] 改用class方式 创建编辑器实例
   - [x] 改成单编辑器，一个effitor对象对应一个div

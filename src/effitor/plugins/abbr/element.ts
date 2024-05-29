@@ -63,10 +63,8 @@ export class EtAbbrElement extends EtComponentElement {
     static readonly cssText = cssText
     abbrType: AbbrType = 1
 
-    constructor() { super() }
-
     connectedCallback(this: EtAbbrElement): void {
-        this.classList.add(A.Tag)
+        // 重写 覆盖EtComponent的 contenteditable=false设定
     }
 
 }

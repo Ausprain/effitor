@@ -16,8 +16,6 @@ ${P.TAG} {
     line-height: 1.5em;
     margin: 4px 0 4px -${P.X};
     padding: ${P.X};
-    border: 1px solid #0000;
-    border-radius: 3px;
 }
 ${P.TAG}::before {
     cursor: move;
@@ -81,7 +79,6 @@ export class EtParagraphElement extends EffectElement {
     }
 
     connectedCallback(this: EtParagraphElement): void {
-        this.className = P.TAG
         // console.log('p connected callback')
         // console.log('pid: ', this.pid)
         // 给新段落赋予id

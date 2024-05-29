@@ -75,56 +75,45 @@ class EtContext implements Et.EditorContext {
 }
 
 function updateContext(this: EtContext): boolean {
-    // if (!this.focused) return false
     // console.log('update context')
+    try {
+        // 每次focus时重新获取selection对象, 更新上下文时直接使用同一个对象即可
+        const sel = this.selection
+        this.range = sel.getRangeAt(0)!    // 光标focus到编辑器内, range必定存在
+        const focusNode = sel.focusNode
+        this.node = dom.isTextNode(focusNode) ? focusNode : null
+        if (this.oldNode !== null && this.oldNode === this.node) {
+            // console.error('同一个节点, 更新完毕', this.oldNode, this.node)
+            return true
+        }
+        // fix. 后置更新oldNode, 因为 handle命令时也更新了一次, 避免一直出现'同一节点内'的情况
+        this.oldNode = this.node
 
-    let sel: Selection | null = this.selection
-    if (!sel) {
-        // chromium通过shadowRoot.getSelection获取shadowRoot内部选区, 其他依旧通过window获取
-        sel = this.root.getSelection ? this.root.getSelection() : window.getSelection()
-        if (!sel) {
-            console.error('no selection')
+        const effectEl = dom.findEffectParent(focusNode)
+        if (!effectEl) {
+            console.error("effect element not found")
             return false
         }
-        this.selection = sel
-    }
-    const r = sel.rangeCount && sel.getRangeAt(0)
-    if (!r) {
-        console.error('no range', sel, r)
-        return false
-    }
-    this.range = r
-    // const focusNode = r.endContainer   // 不一定是 sel.focusNode 
-    const focusNode = sel.focusNode
-    this.node = dom.isTextNode(focusNode) ? focusNode : null
-    if (this.oldNode !== null && this.oldNode === this.node) {
-        // console.error('同一个节点, 更新完毕', this.oldNode, this.node)
+        this.effectElement = effectEl
+
+        const pName = this.schema.paragraph.elName
+        if (effectEl.localName === pName) {
+            this.paragraphEl = effectEl as EtParagraphElement
+        }
+        else {
+            const currP = dom.findParagraphParent(focusNode, pName)
+            if (!currP) {
+                console.error("paragraph element not found")
+                return false
+            }
+            this.paragraphEl = currP
+        }
+        // console.error('update ctx done', this)
         return true
-    }
-    // fix. 后置更新oldNode, 因为 handle命令时也更新了一次, 避免一直出现'同一节点内'的情况
-    this.oldNode = this.node
-
-    const effectEl = dom.findEffectParent(focusNode)
-    if (!effectEl) {
-        console.error("effect element not found")
+    } catch (__) {
+        if (import.meta.env.DEV) console.error(__)
         return false
     }
-    this.effectElement = effectEl
-
-    const pName = this.schema.paragraph.elName
-    if (effectEl.localName === pName) {
-        this.paragraphEl = effectEl as EtParagraphElement
-    }
-    else {
-        const currP = dom.findParagraphParent(focusNode, pName)
-        if (!currP) {
-            console.error("paragraph element not found")
-            return false
-        }
-        this.paragraphEl = currP
-    }
-    // console.error('update ctx done', this)
-    return true
 }
 
 let _ctx: EtContext

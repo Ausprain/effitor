@@ -367,7 +367,7 @@ export const enum BuiltinElName {
 /* -------------------------------------------------------------------------- */
 /*                            for const to export                             */
 /* -------------------------------------------------------------------------- */
-export const enum HtmlCharEnum {
+export enum HtmlCharEnum {
     ZERO_WIDTH_SPACE = '\u200B',
     NBSP = '\u00A0',
 }
@@ -378,7 +378,7 @@ export const enum MIMETypeEnum {
     TEXT_PLAIN = "text/plain",
     TEXT_HTML = "text/html",
 }
-export const enum CssClassEnum {
+export enum CssClassEnum {
     /** 当前活跃 */
     Active = "active",
     /** 当前被拖拽目标 */

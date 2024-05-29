@@ -486,10 +486,13 @@ export interface CmdFunctional extends Cmd {
     readonly type: `${CmdTypeEnum.Functional}`;
     readonly targetRanges: [StaticRange, StaticRange];
 }
-export type CmdCallback = (ctx: EditorContext) => void;
+export type CmdCallback = (ctx: EditorContext) => void | Promise<void>;
 export type CmdCallbackInit = {
+    /** 命令执行 或 redo时回调 */
     redoCallback?: CmdCallback;
+    /** 命令撤销时 回调 */
     undoCallback?: CmdCallback;
+    /** 命令最终回调（撤回栈满导致命令出队时 或保存/退出程序时 执行） */
     finalCallback?: CmdCallback;
 };
 export type Command = CmdCallbackInit & (CmdInsertNode | CmdRemoveNode | CmdReplaceNode | CmdInsertText | CmdDeleteText | CmdReplaceText | CmdInsertCompositionText | CmdInsertContent | CmdRemoveContent | CmdFunctional);

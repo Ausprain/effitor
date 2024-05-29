@@ -87,14 +87,14 @@ ${M.N}.${M.TEMP}::after {
 
 ${M.N}.${M.C} {
     margin: 0px 2px; 
-    padding: 4px 3px 2px;
+    padding: 3px 3px 2px;
     background-color: #f7f7ff;
     color: #ec3639;
     font-size: 14px;
     font-family: "Cascadia Code";
 }
 ${M.N}.${M.C}.${M.HINT} {
-    padding: 4px 0 2px;
+    padding: 3px 0 2px;
 }
 ${M.N}.${M.C}::after, ${M.N}.${M.C}::before {
     content: "${markerMap.code.marker}";

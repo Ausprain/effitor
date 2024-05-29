@@ -124,7 +124,6 @@ const handleFunctional = (cmd: Et.CmdFunctional, ctx: Et.EditorContext, isFresh?
 }
 
 
-// const cmdHandleMap: { [k in Et.Command['type']]: (cmd: ExtractUnionObjectByProp<Et.Command, 'type', k>, ctx: Et.EditorContext, isFresh?: boolean) => void } = {
 const cmdHandleMap: { [k in Et.Command['type']]: (cmd: Extract<Et.Command, { type: k }>, ctx: Et.EditorContext, isFresh?: boolean) => void } = {
     Insert_Node: handleInsertNode,
     Remove_Node: handleRemoveNode,
@@ -137,10 +136,21 @@ const cmdHandleMap: { [k in Et.Command['type']]: (cmd: Extract<Et.Command, { typ
     Remove_Content: handleRemoveContent,
     Functional: handleFunctional,
 }
+const runCmd = (cmd: Et.Command, ctx: Et.EditorContext, isFresh: boolean) => {
+    try {
+        cmdHandleMap[cmd.type](cmd as any, ctx)
+    } catch (error) {
+        if (import.meta.env.DEV) {
+            console.error(error)
+            console.error('error cmd: ', cmd)
+            console.error('error at range', dom.staticFromRange(ctx.range))
+        }
+    }
+}
 const handleCmds = (cmds: Et.Command[], ctx: Et.EditorContext) => {
     if (!cmds.length) return
     for (const cmd of cmds) {
-        cmdHandleMap[cmd.type](cmd as any, ctx)
+        runCmd(cmd, ctx, false)
     }
 }
 
@@ -259,7 +269,8 @@ export const cmdHandler = {
     handle: (cmds: Et.Command[], ctx: Et.EditorContext) => {
         if (!cmds.length) return
         for (const cmd of cmds) {
-            cmdHandleMap[cmd.type](cmd as any, ctx, true)   // 首次执行命令, isFresh为true
+            // cmdHandleMap[cmd.type](cmd as any, ctx, true)   // 首次执行命令, isFresh为true
+            runCmd(cmd, ctx, true)
             cmd.redoCallback?.(ctx)
         }
     },

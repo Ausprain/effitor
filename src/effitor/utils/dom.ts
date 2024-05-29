@@ -338,7 +338,7 @@ export const textStaticRange = (text: Text, startOffset: number, endOffset: numb
 /**
  * 获取Range对应的StaticRange
  */
-export const staticFromRange = (range: Range): StaticRange => {
+export const staticFromRange = (range: Range | StaticRange): StaticRange => {
     return new StaticRange({
         startContainer: range.startContainer,
         startOffset: range.startOffset,
@@ -416,17 +416,13 @@ export const caretStaticRangeOutNode = (node: Node, focusTo: -1 | 0 | 1): Static
     return staticFromRange(r)
 }
 /**
- * Selection定位到StaticRange位置
+ * Selection定位到StaticRange位置  
+ * * 请try cache
  */
 export const selectRange = (sel: Selection, range: StaticRange | Range) => {
-    try {
-        const r = rangeFromStatic(range)
-        sel.empty()
-        sel.addRange(r)
-        return true
-    } catch (error) {
-        console.error(error)
-    }
+    sel.empty()
+    sel.addRange(rangeFromStatic(range))
+    return true
 }
 
 /**
