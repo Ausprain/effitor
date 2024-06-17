@@ -9,6 +9,7 @@ import type { EffectElement, EffectElementCtor, EtBodyCtor, EtBodyElement, EtCom
 import type { MainAfterInputTypeSolver, MainBeforeInputTypeSolver, MainKeydownKeySolver, MainKeyupKeySolver } from "../effector";
 import type { DOM } from "./declare";
 import type { Effitor } from "../effitor";
+import type { UndoStack } from "../handler/undo";
 
 export type LowerLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 export type Prototype<C extends Function> = { constructor: C };
@@ -533,10 +534,23 @@ export interface CommandHandler {
      * 关闭事务, 并自动commit命令
      */
     closeTransaction(this: CommandHandler): void;
+    // /**
+    //  * 记录事务
+    //  */
+    // pushTransaction(this: CommandHandler, ctx: EditorContext): boolean;
+    /**
+     * 撤回事务
+     */
+    undoTransaction(this: CommandHandler, ctx: EditorContext): void;
+    /**
+     * 重做事务
+     */
+    redoTransaction(this: CommandHandler, ctx: EditorContext): void;
     /**
      * 确认所有事务，执行final回调，清空撤回栈; 用户退出页面前应自动执行该函数
      */
     commitAll(this: CommandHandler, ctx: EditorContext): void;
+
 }
 
 /* -------------------------------------------------------------------------- */

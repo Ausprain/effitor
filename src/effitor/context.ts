@@ -5,7 +5,7 @@ import { initCommandHandler } from "./handler/cmd"
 import { dom } from "./utils"
 
 
-class EtContext implements Et.EditorContext {
+export class EtContext implements Et.EditorContext {
     [s: symbol]: any
 
     readonly editor: Et.Editor;
@@ -33,8 +33,8 @@ class EtContext implements Et.EditorContext {
     // isEtElBegining: false
 
     forceUpdate: (this: Et.EditorContext) => void = updateContext.bind(this);
-    effectInvoker: Et.EffectInvoker = initEffectInvoker(this);
-    commandHandler: Et.CommandHandler = initCommandHandler(this);
+    effectInvoker: Et.EffectInvoker;
+    commandHandler: Et.CommandHandler;
 
     constructor(
         editor: Et.Editor,
@@ -44,6 +44,8 @@ class EtContext implements Et.EditorContext {
         this.editor = editor
         this.schema = schema
         this.config = config
+        this.effectInvoker = initEffectInvoker(this)
+        this.commandHandler = initCommandHandler(this)
     }
 
     get effectElement() {
@@ -114,10 +116,4 @@ function updateContext(this: EtContext): boolean {
         if (import.meta.env.DEV) console.error(__)
         return false
     }
-}
-
-let _ctx: EtContext
-export const initContext = (editor: Et.Editor, schema: Et.EditorSchema, config: Et.EditorConfig): EtContext => {
-    if (_ctx) return _ctx
-    return _ctx = new EtContext(editor, schema, config)
 }

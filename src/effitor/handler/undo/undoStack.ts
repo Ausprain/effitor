@@ -245,7 +245,9 @@ const buildTransaction = (cmds: Et.Command[], ctx: Et.EditorContext): UndoTransa
 export class UndoStack {
     size: number
     pos: number
+    /** 命令暂存区 */
     cmdList: Et.Command[]
+    /** 命令事务栈 */
     transactionStack: UndoTransaction[]
 
     constructor(size: number) {
@@ -255,9 +257,11 @@ export class UndoStack {
         this.transactionStack = []
     }
 
+    /** 记录一个命令到暂存区 */
     record(cmds: Et.Command[]) {
         cmds.length && this.cmdList.push(...cmds)
     }
+    /** 丢弃暂存区所有命令并撤回 */
     discard(ctx: Et.EditorContext) {
         if (this.cmdList.length == 0) return false
         cmdHandler.handleUndo(this.cmdList, ctx)
@@ -266,6 +270,9 @@ export class UndoStack {
         this.cmdList.length = 0
         return true
     }
+    /**
+     * 构建事务 清空命令暂存区
+     */
     pushTransaction(ctx: Et.EditorContext) {
         if (!this.cmdList.length) {
             return false
@@ -289,6 +296,7 @@ export class UndoStack {
         }
         return true
     }
+    /** 重做前一个事务中的所有命令 */
     redo(ctx: Et.EditorContext) {
         if (this.pos >= this.transactionStack.length) {
             return
@@ -300,6 +308,7 @@ export class UndoStack {
         // console.error(`redoed, length=${this.transactionStack.length}, pos=${this.pos}, cmds=`, tranx.redoCmds)
         this.pos++
     }
+    /** 撤回上一个事务中的所有命令 */
     undo(ctx: Et.EditorContext) {
         if (this.pos <= 0) {
             return

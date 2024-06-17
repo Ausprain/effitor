@@ -1,6 +1,4 @@
 import type * as Et from "@/effitor/@types";
-import { UndoStack } from "./undoStack";
-
 
 /**
  * 根据上下文对象, 为当前编辑器记录事务
@@ -8,7 +6,7 @@ import { UndoStack } from "./undoStack";
 const recordTransaction = (ctx: Et.EditorContext) => {
     // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
     if (ctx.inCompositionSession) return false
-    return undoStackMap.get(ctx.host)?.pushTransaction(ctx) || false
+    return ctx.commandHandler.commit() || false
 }
 const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
     // console.error('keydown  --------------------- 记录事务')
@@ -69,14 +67,13 @@ const beforeInputSolver: Et.InputTypeSolver = {
     // },
     historyUndo: (ev, ctx) => {
         // 执行undo前先判断是否有未入栈命令
-        const undoStack = undoStackMap.get(ctx.host)
-        undoStack?.pushTransaction(ctx)
-        undoStack?.undo(ctx)
+        ctx.commandHandler.commit()
+        ctx.commandHandler.undoTransaction(ctx)
         ev.preventDefault()
         return true
     },
     historyRedo: (ev, ctx) => {
-        undoStackMap.get(ctx.host)?.redo(ctx)
+        ctx.commandHandler.redoTransaction(ctx)
         ev.preventDefault()
         return true
     }
@@ -88,7 +85,7 @@ const beforeInputSolver: Et.InputTypeSolver = {
 const htmlEventSolver: Et.HTMLEventSolver = {
     compositionend: (ev, ctx) => {
         // console.error('compsoiton end----------------------------- 记录事务')
-        undoStackMap.get(ctx.host)?.pushTransaction(ctx)
+        ctx.commandHandler.commit()
     },
     focusout: (ev, ctx) => {
         // console.log('编辑器失去焦点, 记录事务')
@@ -100,17 +97,8 @@ const htmlEventSolver: Et.HTMLEventSolver = {
     },
 }
 
-const undoStackMap = new WeakMap<HTMLDivElement, UndoStack>()
-const defaultStack = new UndoStack(100)
 
-/**
- * 获取编辑器对应的撤回栈, 若不存在则返回默认撤回栈
- */
-export const getUndoStack = (ctx: Et.EditorContext): UndoStack => {
-    return undoStackMap.get(ctx.host) || defaultStack
-}
-
-export const useUndoEffector = (undoLength: number): Et.Effector => {
+export const useUndoEffector = (): Et.Effector => {
     return {
         keydownSolver,
         keyupSolver,
@@ -118,15 +106,11 @@ export const useUndoEffector = (undoLength: number): Et.Effector => {
         afterInputSolver,
         htmlEventSolver,
         // selChangeCallback,
-        onMounted(el: HTMLDivElement) {
-            undoStackMap.set(el, new UndoStack(undoLength))
-        },
         /**
          * 卸载时移除对应撤回栈并 确认所有事务
          */
         onBeforeUnmount(el, ctx) {
-            undoStackMap.get(el)?.commitAll(ctx)
-            undoStackMap.delete(el)
+            ctx.commandHandler.commitAll(ctx)
         },
     }
 }

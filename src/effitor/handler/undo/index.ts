@@ -1,2 +1,3 @@
-export { useUndoEffector, getUndoStack } from './effector';
+export { useUndoEffector } from './effector';
 export { cmdHandler } from './handler'
+export { UndoStack } from './undoStack'

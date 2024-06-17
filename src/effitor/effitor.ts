@@ -11,7 +11,7 @@ import { getKeyupListener } from './effector/keyup';
 import { getSelectionChangeListener } from './effector/selchange';
 import { EtBodyElement, EtEditorElement, EtParagraphElement, registerEtElement, type EffectElementCtor } from "./element";
 import { cssStyle2cssText, dom } from "./utils";
-import { initContext } from './context';
+import { EtContext } from './context';
 import { defaultConfig, shadowCssText } from './config';
 import { useUndoEffector } from './handler/undo';
 
@@ -256,9 +256,8 @@ export class Effitor {
         customStyleUrls = [''],
     }: Et.CreateEditorOptions = {}) {
         const _config = { ...defaultConfig, ...config }
-        const undoEffector = useUndoEffector(_config.UNDO_LENGTH)
         // undoEffector应放在首位
-        plugins.unshift({ name: 'undo', effector: undoEffector })
+        plugins = [{ name: 'undo', effector: useUndoEffector() }, ...plugins]
         const schema: Et.EditorSchema = {
             editor: EtEditorElement,
             body: EtBodyElement,
@@ -266,7 +265,7 @@ export class Effitor {
             ...schemaInit,
         }
         /** 初始化编辑器上下文 */
-        const context = initContext(this, schema, _config)
+        const context = new EtContext(this, schema, _config)
         // 记录需要注册的EtElement
         const elCtors: EffectElementCtor[] = Object.values(schema)
         /** 从plugins中提取出effector对应处理器 及 自定义元素 */
