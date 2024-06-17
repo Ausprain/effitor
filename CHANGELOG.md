@@ -2,13 +2,12 @@
 ## Api
 - [ ] `dom.selectRange`: 返回promise 
 ## Bug Fixes
+- [x] issues.8 第一次进入（如刷新）并聚焦编辑器输入时，有一定概率会报错 无effecttelement
 - [ ] issues.7 mark节点内输入中文再删除，然后一直撤销就会报错
 - [x] issues.6 HMR热更新时，重复注册自定义元素，导致热更新失败；这是一个不好的开发体验。 
 ## Features
 - [x] `editor`: 支持引入自定义样式文件, 通过与标签名同名的类名 选择该标签
 ## Todos
-- cmd
-  - [ ] 命令回调在执行命令时便执行，而不是插入到事务中统一执行
 - clipboard api
   - [ ] ctrl+shift+c 仅复制纯文本
   - [ ] ctrl+shift+v 粘贴为纯文本

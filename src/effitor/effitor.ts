@@ -151,10 +151,15 @@ const addListenersToShadowRoot = (
             }
             ctx.range = sel.getRangeAt(0)
             ctx.selection = sel
-
             // 注册selectionchange
-            document.addEventListener('selectionchange', listeners.selectionchange!, { signal: ac.signal })
+            // 延迟注册, 避免监听到focus导致的selchange
+            requestAnimationFrame(() => {
+                document.addEventListener('selectionchange', listeners.selectionchange!, { signal: ac.signal })
+                // 手动触发一个selectionchange事件，避免【focus导致的selectionchange触发时尚未绑定监听器 从而导致focus不更新ctx】的问题
+                document.dispatchEvent(new Event('selectionchange'))
+            })
         })
+
     }, { signal: ac.signal })
     root.addEventListener('focusout', () => {
         console.error('blur ')
