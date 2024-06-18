@@ -264,9 +264,13 @@ export class UndoStack {
     /** 丢弃暂存区所有命令并撤回 */
     discard(ctx: Et.EditorContext) {
         if (this.cmdList.length == 0) return false
-        cmdHandler.handleUndo(this.cmdList, ctx)
+        // 过滤掉输入法命令
+        const cmds = this.cmdList.filter((cmd) => cmd.type !== CmdTypeEnum.Insert_Composition_Text)
+        cmdHandler.handleUndo(cmds, ctx)
         // 丢弃命令时命令已执行，需要执行撤回回调
-        this.cmdList.reverse().forEach(cmd => cmd.undoCallback?.(ctx))
+        for (let i = cmds.length - 1; i >= 0; i--) {
+            cmds[i].undoCallback?.(ctx)
+        }
         this.cmdList.length = 0
         return true
     }
