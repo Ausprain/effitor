@@ -295,7 +295,7 @@ export class UndoStack {
             x!.finalCallback?.(ctx)
             this.pos = this.transactionStack.length
         }
-        // if (import.meta.env.DEV) console.error('pushTransaction: ', tranx.redoCmds)
+        if (import.meta.env.DEV && import.meta.env.VITE_TRANX_DEBUG) console.error('pushTransaction: ', tranx.redoCmds)
         return true
     }
     /** 重做前一个事务中的所有命令 */
