@@ -12,7 +12,8 @@ export const initEffectInvoker = (ctx: Et.EditorContext): Et.EffectInvoker => {
         },
         invoke(e: string, ...args: any[]) {
             if (!ctx.host) {
-                throw Error('effect invoke error: unfocus editor yet.')
+                if (import.meta.env.DEV) throw Error('effect invoke error: unfocus editor yet.')
+                return false
             }
             if (ctx.effectElement.effectBlocker && ctx.effectElement.effectBlocker(e)) {
                 // 阻止该效应

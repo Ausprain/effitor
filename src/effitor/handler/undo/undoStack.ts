@@ -91,7 +91,7 @@ const checkMergeCmdInsertCompositionText = (cmds: Et.Command[], ctx: Et.EditorCo
                 // prob.|2023.12.25/19:44 只输入一个字母, 然后用页面内失焦方式结束输入法时也会发生
                 // sol. 丢弃这个命令
                 // cmds.splice(i, 1)
-                // // fixme 这样会导致该操作无法撤销（页面内失焦方式让输入法插入一个字母, 若光标还不在#text上, 该字母将永远停留在页面上）
+                // fixme 这样会导致该操作无法撤销（页面内失焦方式让输入法插入一个字母, 若光标还不在#text上, 该字母将永远停留在页面上）
                 // sol. 使用ctx重新获取光标位置
                 // console.log('single insertCompositionText: ', ctx.root.getSelection?.(), ctx)
                 let node: Node | undefined | null = cmd.targetRanges[0].startContainer
@@ -274,9 +274,10 @@ export class UndoStack {
      * 构建事务 清空命令暂存区
      */
     pushTransaction(ctx: Et.EditorContext) {
-        if (!this.cmdList.length) {
-            return false
-        }
+        // 上游判断非空
+        // if (!this.cmdList.length) {
+        //     return false
+        // }
         // 构造事务
         const tranx = buildTransaction(this.cmdList, ctx)
         this.cmdList.length = 0
@@ -294,6 +295,7 @@ export class UndoStack {
             x!.finalCallback?.(ctx)
             this.pos = this.transactionStack.length
         }
+        // if (import.meta.env.DEV) console.error('pushTransaction: ', tranx.redoCmds)
         return true
     }
     /** 重做前一个事务中的所有命令 */

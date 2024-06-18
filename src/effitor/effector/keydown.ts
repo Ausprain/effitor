@@ -274,6 +274,9 @@ export const getKeydownListener = (ctx: Et.EditorContext, main: MainKeydownKeySo
         if (!ctx.effectElement) {
             ev.preventDefault()
             ev.stopPropagation()
+            // 强制编辑器失去焦点
+            ctx.body.blur()
+            if (import.meta.env.DEV) console.error('keydown error: no effectelement', ctx)
             return
         }
         runKeyboardSolver(ev, ctx, main, solvers)

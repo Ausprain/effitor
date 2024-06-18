@@ -17,6 +17,6 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callbacks: ((e
         for (const callback of callbacks) {
             callback(e, ctx);
         }
-        
+
     }, 1)
 }

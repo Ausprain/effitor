@@ -137,20 +137,28 @@ const cmdHandleMap: { [k in Et.Command['type']]: (cmd: Extract<Et.Command, { typ
     Functional: handleFunctional,
 }
 const runCmd = (cmd: Et.Command, ctx: Et.EditorContext, isFresh: boolean) => {
+    cmdHandleMap[cmd.type](cmd as any, ctx, isFresh)
+}
+const handleCmds = (cmds: Et.Command[], ctx: Et.EditorContext, isFresh = false) => {
+    if (!cmds.length) return
     try {
-        cmdHandleMap[cmd.type](cmd as any, ctx)
+        if (isFresh) {
+            for (const cmd of cmds) {
+                runCmd(cmd, ctx, true)
+                cmd.redoCallback?.(ctx)
+            }
+            return
+        }
+        // undo和redo时 命令回调由事务对象统一执行
+        for (const cmd of cmds) {
+            runCmd(cmd, ctx, false)
+        }
     } catch (error) {
         if (import.meta.env.DEV) {
             console.error(error)
-            console.error('error cmd: ', cmd)
+            console.error('error cmds: ', [...cmds])
             console.error('error at range', dom.staticFromRange(ctx.range))
         }
-    }
-}
-const handleCmds = (cmds: Et.Command[], ctx: Et.EditorContext) => {
-    if (!cmds.length) return
-    for (const cmd of cmds) {
-        runCmd(cmd, ctx, false)
     }
 }
 
@@ -268,11 +276,7 @@ export const cmdHandler = {
      */
     handle: (cmds: Et.Command[], ctx: Et.EditorContext) => {
         if (!cmds.length) return
-        for (const cmd of cmds) {
-            // cmdHandleMap[cmd.type](cmd as any, ctx, true)   // 首次执行命令, isFresh为true
-            runCmd(cmd, ctx, true)
-            cmd.redoCallback?.(ctx)
-        }
+        handleCmds(cmds, ctx, true)  // 首次执行命令, isFresh为true
     },
     /**
      * 构建undo命令执行

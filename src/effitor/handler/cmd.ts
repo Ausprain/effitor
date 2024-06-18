@@ -26,7 +26,8 @@ export const initCommandHandler = (ctx: Et.EditorContext): Et.CommandHandler => 
             return true
         },
         commit() {
-            if (_inTransaction) return false
+            // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
+            if (_inTransaction || ctx.inCompositionSession || !_undoStack.cmdList.length) return false
             return _undoStack.pushTransaction(ctx)
         },
         discard() {

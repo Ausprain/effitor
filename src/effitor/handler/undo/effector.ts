@@ -1,17 +1,17 @@
 import type * as Et from "@/effitor/@types";
 
-/**
- * 根据上下文对象, 为当前编辑器记录事务
- */
-const recordTransaction = (ctx: Et.EditorContext) => {
-    // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
-    if (ctx.inCompositionSession) return false
-    return ctx.commandHandler.commit() || false
-}
+// /**
+//  * 根据上下文对象, 为当前编辑器记录事务
+//  */
+// const recordTransaction = (ctx: Et.EditorContext) => {
+//     // 输入法会话中禁止记录事务; 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
+//     if (ctx.inCompositionSession) return false
+//     return ctx.commandHandler.commit() || false
+// }
 const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
-    // console.error('keydown  --------------------- 记录事务')
+    // console.error(`keydown: ${ev.key}  --------------------- 记录事务`)
     if (!ev.repeat && ev.key !== ctx.currDownKey) {
-        recordTransaction(ctx)
+        ctx.commandHandler.commit()
     }
     return false
 }
@@ -36,30 +36,30 @@ const keyupSolver: Et.KeyboardKeySolver = {
     // Backspace: markTransactionNeeded,
     // Delete: markTransactionNeeded,
 
-    ArrowDown: (ev, ctx) => recordTransaction(ctx),
-    ArrowLeft: (ev, ctx) => recordTransaction(ctx),
-    ArrowRight: (ev, ctx) => recordTransaction(ctx),
-    ArrowUp: (ev, ctx) => recordTransaction(ctx),
-    Home: (ev, ctx) => recordTransaction(ctx),
-    End: (ev, ctx) => recordTransaction(ctx),
-    PageUp: (ev, ctx) => recordTransaction(ctx),
-    PageDown: (ev, ctx) => recordTransaction(ctx),
+    ArrowDown: (ev, ctx) => ctx.commandHandler.commit(),
+    ArrowLeft: (ev, ctx) => ctx.commandHandler.commit(),
+    ArrowRight: (ev, ctx) => ctx.commandHandler.commit(),
+    ArrowUp: (ev, ctx) => ctx.commandHandler.commit(),
+    Home: (ev, ctx) => ctx.commandHandler.commit(),
+    End: (ev, ctx) => ctx.commandHandler.commit(),
+    PageUp: (ev, ctx) => ctx.commandHandler.commit(),
+    PageDown: (ev, ctx) => ctx.commandHandler.commit(),
 
 }
 const afterInputSolver: Et.InputTypeSolver = {
-    insertParagraph: (ev, ctx) => recordTransaction(ctx),
-    insertLineBreak: (ev, ctx) => recordTransaction(ctx),
-    insertFromPaste: (ev, ctx) => recordTransaction(ctx),
-    // insertFromDrop: (ev, ctx) => recordTransaction(ctx),
-    deleteWordBackward: (ev, ctx) => recordTransaction(ctx),
-    deleteWordForward: (ev, ctx) => recordTransaction(ctx),
+    insertParagraph: (ev, ctx) => ctx.commandHandler.commit(),
+    insertLineBreak: (ev, ctx) => ctx.commandHandler.commit(),
+    insertFromPaste: (ev, ctx) => ctx.commandHandler.commit(),
+    // insertFromDrop: (ev, ctx) => ctx.commandHandler.commit(),
+    deleteWordBackward: (ev, ctx) => ctx.commandHandler.commit(),
+    deleteWordForward: (ev, ctx) => ctx.commandHandler.commit(),
 }
 const beforeInputSolver: Et.InputTypeSolver = {
     // default: (ev, ctx) => {
     //     // 输入法输入不可取消, 且会在所有监听器执行前执行; 要跳过, 否则会让insertCompositionText命令在事务中单独出现
     //     // if (ev.inputType !== 'inputCompositionText' && ctx[TRANSACTION_NEEDED]) {
     //     //     console.log('transaction needed')
-    //     //     recordTransaction(ctx)
+    //     //     ctx.commandHandler.commit()
     //     //     ctx[TRANSACTION_NEEDED] = false
     //     // }
     //     // 接管所有命令
@@ -80,7 +80,7 @@ const beforeInputSolver: Et.InputTypeSolver = {
 }
 // const selChangeCallback = debounce((e: Event, ctx: Et.EditorContext) => {
 //     console.error('sel change  --------------------- 记录事务')
-//     recordTransaction(ctx)
+//     ctx.commandHandler.commit()
 // }, 1000)
 const htmlEventSolver: Et.HTMLEventSolver = {
     compositionend: (ev, ctx) => {
@@ -89,11 +89,11 @@ const htmlEventSolver: Et.HTMLEventSolver = {
     },
     focusout: (ev, ctx) => {
         // console.log('编辑器失去焦点, 记录事务')
-        recordTransaction(ctx)
+        ctx.commandHandler.commit()
     },
     mousedown: (ev, ctx) => {
         // console.log('mouse down ---------------------------- 记录事务, 更新ctx')
-        recordTransaction(ctx)
+        ctx.commandHandler.commit()
     },
 }
 
