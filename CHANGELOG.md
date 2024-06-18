@@ -1,9 +1,11 @@
 # 0.2.0
 ## Api
-- [ ] `dom.selectRange`: 返回promise 
+
 ## Bug Fixes
-- [ ] issues.9 段落开头输入法输入，并使用`页面内失焦`方式结束, 会触发连带删除段落
-  - [ ] rel.[#输入法输入过程及其伴随的selectionchange(将链接粘贴到OneNote中以跳转)](onenote:https://d.docs.live.net/4e02a194e6772771/文档/EveryDay/2023下半年/2023年终.one#2023.12.25%20周一&section-id={847D3A73-3A33-4539-A8F1-621E6B612D46}&page-id={8E0FBA85-6763-4A2C-9666-A89CBFAD09D4}&object-id={1C87AEEE-104F-44B2-B48A-1EB37370B811}&5D)
+- [x] issues.9 段落开头输入法输入，并使用`页面内失焦`方式结束, 会触发连带删除段落
+  - rel. [#输入法输入过程及其伴随的selectionchange(将链接粘贴到OneNote中以跳转)](onenote:https://d.docs.live.net/4e02a194e6772771/文档/EveryDay/2023下半年/2023年终.one#2023.12.25%20周一&section-id={847D3A73-3A33-4539-A8F1-621E6B612D46}&page-id={8E0FBA85-6763-4A2C-9666-A89CBFAD09D4}&object-id={1C87AEEE-104F-44B2-B48A-1EB37370B811}&5D)
+  - orig. 使用 ctx.range 作为 delTargetRange, 以致于在段落首处理 deleteContentBackward 误判为删除段落 
+  - sol. 延迟compositionend 并取消对 deleteContentBackward 的处理
 - [x] issues.8 第一次进入（如刷新）并聚焦编辑器输入时，有一定概率会报错 无effecttelement
 - [x] issues.7 mark节点内输入中文再删除，然后一直撤销就会报错
   - orig. mark节点内的第一次输入法输入 触发input事件执行closeTransaction 将第一个 insertCompositionText 命令添加到事务中，从而导致该 insertCompositionText 命令不能合并转化为 insertText 命令；

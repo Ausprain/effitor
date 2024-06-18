@@ -66,6 +66,11 @@ export const runInputSolver = (ev: Et.InputEvent, ctx: Et.EditorContext, main: M
 
 export const getBeforeinputListener = (ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solvers: Et.InputTypeSolver[]) => {
     return (ev: Et.InputEvent) => {
+        // 输入法会话内 跳过deleteContentBackward 处理
+        if (ctx.inCompositionSession && ev.inputType === 'deleteContentBackward') {
+            // ev.preventDefault()  // 该deleteContentBackward是不可取消的
+            return false
+        }
         // console.error('beforeinput', ev.inputType, ctx.effectElement)
         // 移除当前段落状态
         runInputSolver(ev, ctx, main, solvers)

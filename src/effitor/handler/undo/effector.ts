@@ -83,10 +83,10 @@ const beforeInputSolver: Et.InputTypeSolver = {
 //     ctx.commandHandler.commit()
 // }, 1000)
 const htmlEventSolver: Et.HTMLEventSolver = {
-    compositionend: (ev, ctx) => {
-        // console.error('compsoiton end----------------------------- 记录事务')
-        ctx.commandHandler.commit()
-    },
+    // compositionend: (ev, ctx) => {
+    //     console.error('compsoiton end----------------------------- 记录事务')
+    //     ctx.commandHandler.commit()
+    // },
     focusout: (ev, ctx) => {
         // console.log('编辑器失去焦点, 记录事务')
         ctx.commandHandler.commit()
