@@ -849,13 +849,10 @@ const handleDelete = (
 ) => {
     // fixme 使用beforeinput 事件的targetRange可能造成意外效果, 如将 et-body外边的内容给删除了
     let delTargetRange = ev.getTargetRanges()[0]
-    // sol. 若浏览器判断删除内容为#Fragment, 则替换掉
+    // sol. 若浏览器判断删除内容为#Fragment (shadowRoot内容), 则替换掉
     if (delTargetRange.startContainer.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-        // * ctx.range若非选区状态，将不删除任何内容
+        // * ctx.range若非选区状态，将不删除任何内容，（可能删除段落，或不可编辑节点）
         delTargetRange = dom.staticFromRange(ctx.range)
-    }
-    if (!delTargetRange) {
-        throw Error('delete 的 targetRange不存在0')
     }
     // if (dom.rangeFromStatic(delTargetRange).toString() === '') {
     //     // todo remove
