@@ -1,0 +1,18 @@
+{
+  "name": "@effitor/algo-perf",
+  "version": "0.0.0",
+  "description": "test the performance of algorithm cases for effitor",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism"
+  },
+  "devDependencies": {
+    "@vitest/browser": "^3.2.4",
+    "happy-dom": "^18.0.1",
+    "playwright": "^1.54.2",
+    "vite": "^7.0.6",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

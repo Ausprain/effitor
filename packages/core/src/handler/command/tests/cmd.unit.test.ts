@@ -1,0 +1,165 @@
+import type { Et } from '@effitor/core'
+import { Window } from 'happy-dom'
+import { expect, test } from 'vitest'
+
+import { cr } from '../../../selection'
+import { cmd } from '../cmds'
+
+const window = new Window()
+const document = window.document
+
+Object.assign(globalThis, { document })
+
+const init = () => {
+  document.body.innerHTML = `<div>A12<b>B34</b>C56</div>`
+  return document.body.firstElementChild as unknown as HTMLDivElement
+}
+init()
+
+// 1. insertText 测试
+test('cmd.insertText', () => {
+  const div = init()
+  const text = div.firstChild as unknown as Et.Text
+  const _cmd = cmd.insertText({
+    text,
+    data: 'Hello',
+    offset: 2,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(text.data).toBe('A1Hello2')
+  expect(div.innerHTML).toBe('A1Hello2<b>B34</b>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(text.data).toBe('A12')
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 2. deleteText 测试
+test('cmd.deleteText', () => {
+  const div = init()
+  const text = div.firstChild as unknown as Et.Text
+  const _cmd = cmd.deleteText({
+    text,
+    offset: 1,
+    data: '12',
+    isBackward: false,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(text.data).toBe('A')
+  expect(div.innerHTML).toBe('A<b>B34</b>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(text.data).toBe('A12')
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 3. replaceText 测试
+test('cmd.replaceText', () => {
+  const div = init()
+  const text = div.firstChild as unknown as Et.Text
+  const _cmd = cmd.replaceText({
+    text,
+    offset: 1,
+    data: 'XX',
+    delLen: 2,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(text.data).toBe('AXX')
+  expect(div.innerHTML).toBe('AXX<b>B34</b>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(text.data).toBe('A12')
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 4. insertNode 测试
+test('cmd.insertNode', () => {
+  const div = init() as unknown as Et.HTMLElement
+  const newNode = document.createElement('i') as unknown as Et.HTMLNode
+  newNode.textContent = 'Inserted'
+  const execAt = cr.caretIn(div, 1)
+  const _cmd = cmd.insertNode({
+    node: newNode,
+    execAt,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12<i>Inserted</i><b>B34</b>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 5. removeNode 测试
+test('cmd.removeNode', () => {
+  const div = init()
+  const nodeToRemove = div.children[0] as unknown as Et.HTMLNode
+  const _cmd = cmd.removeNode({
+    node: nodeToRemove,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 6. replaceNode 测试
+test('cmd.replaceNode', () => {
+  const div = init()
+  const oldNode = div.children[0] as unknown as Et.HTMLNode
+  const newNode = document.createElement('u') as unknown as Et.HTMLNode
+  newNode.textContent = 'Replaced'
+  const _cmd = cmd.replaceNode({
+    oldNode,
+    newNode,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12<u>Replaced</u>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 7. insertContent 测试
+test('cmd.insertContent', () => {
+  const div = init() as unknown as Et.HTMLElement
+  const fragment = document.createDocumentFragment() as unknown as Et.Fragment
+  const span = document.createElement('span') as unknown as Et.HTMLNode
+  // <span>Fragment</span>
+  span.textContent = 'Fragment'
+  fragment.appendChild(span)
+  const execAt = cr.caretIn(div, 1)
+  const _cmd = cmd.insertContent({
+    content: fragment,
+    execAt,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12<span>Fragment</span><b>B34</b>C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 8. removeContent 测试
+test('cmd.removeContent', () => {
+  const div = init() as unknown as Et.HTMLElement
+  // 假设我们要删除从第一个文本节点到 <b> 节点的内容
+  const removeRange = cr.spanRangeFromTo(div, 0, 2) as Et.SpanRange
+  const _cmd = cmd.removeContent({
+    removeRange,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})
+
+// 9. functional 测试
+test('cmd.functional', () => {
+  const div = init() as unknown as Et.HTMLElement
+  const _cmd = cmd.functional({
+    execCallback() {
+      div.innerHTML = 'Functional'
+    },
+    undoCallback() {
+      div.innerHTML = 'A12<b>B34</b>C56'
+    },
+  })
+  _cmd.exec({} as Et.UpdatedContext)
+  expect(div.innerHTML).toBe('Functional')
+  _cmd.undo({} as Et.UpdatedContext)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+})

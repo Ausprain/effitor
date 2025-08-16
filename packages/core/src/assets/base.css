@@ -1,0 +1,102 @@
+@font-face {
+  font-family: "ubuntu-font";
+  font-stretch: 100%;
+  font-style: normal;
+  font-weight: 100 800;
+  src: url("./fonts/ubuntu/ubuntu-font.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "cascadia-code";
+  font-stretch: 100%;
+  font-style: normal;
+  font-weight: 100 800;
+  src: url("./fonts/cascadia/CascadiaCode.woff2") format("woff2-variations");
+}
+
+/* :host指向的是et-editor 元素 */
+et-editor,
+:host {
+  color-scheme: light;
+
+  --et-color-bg: #fafbfc;
+  --et-color-bg--hover: #ecedee;
+  --et-color-bg--active: #e1e2e3;
+
+  --et-color-text: #1b1b1b;
+  --et-color-text-disabled: #888;
+
+  --et-color-border-1: #eee;
+  --et-color-border-2: #ddd;
+  --et-color-border-3: #ccc;
+
+  --et-color-hinting: #79d;
+
+  --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
+    0 8px 16px rgb(0 0 0 / 0.12);
+
+  --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
+    6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
+
+  /* todo */
+  --var: 0;
+  --color: wheat;
+}
+
+/* 深色模式, 指向 et-editor.dark, 可类似的使用 :host(.theme) 来为编辑器设定不同的主题 */
+et-editor.dark,
+:host(.dark),
+/* 指向 ed-editor 元素, 当其html或body具有 dark 类时生效 */
+:host-context(:root.dark),
+:host-context(body.dark) {
+  color-scheme: dark;
+
+  --et-color-bg: #0a0b0c;
+  --et-color-bg--hover: #1d1e1f;
+  --et-color-bg--active: #313233;
+
+  --et-color-text: #e1e1e1;
+  --et-color-text--disabled: #aaa;
+
+  --et-color-border-1: #222;
+  --et-color-border-2: #333;
+  --et-color-border-3: #444;
+
+  --et-color-hinting: #9bd;
+
+  --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
+    0 8px 16px rgb(0 0 0 / 0.12);
+
+  --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
+    6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
+
+  /* todo */
+  --var: 1;
+}
+
+*,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  outline: none;
+  box-sizing: border-box;
+}
+
+et-editor,
+:host {
+  position: relative;
+  /* 创建bfc 包含浮动 */
+  display: flow-root;
+}
+
+/* 默认编辑器外框样式 */
+et-editor.default-style,
+:host(.default-style) {
+  min-height: 300px;
+  max-width: 760px;
+  padding: 40px;
+  margin: 8px auto;
+  border: 1px solid var(--et-color-border-3);
+  border-radius: 8px;
+}

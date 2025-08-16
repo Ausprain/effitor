@@ -1,0 +1,16 @@
+{
+  "include": ["./packages", "./env.d.ts"],
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "lib": ["esnext", "DOM", "dom.iterable"],
+    "paths": {
+      "@effitor/*": ["./packages/*/src/index.ts"],
+      "~/core/*": ["./packages/core/src/*"]
+    }
+  }
+}

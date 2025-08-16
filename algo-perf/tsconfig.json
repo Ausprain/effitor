@@ -1,0 +1,9 @@
+{
+  "include": ["./src"],
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom", "DOM.Iterable"]
+  }
+}

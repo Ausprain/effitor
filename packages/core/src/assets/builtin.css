@@ -1,0 +1,97 @@
+/* 鼠标悬浮提示元素的 hint-title属性值 */
+.hint-title,
+[hint-title] {
+  position: relative;
+
+  &::before {
+    content: attr(hint-title);
+    display: none;
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    translate: -50% -100%;
+    padding: 4px;
+    border: 1px solid var(--et-color-border-2);
+    border-radius: 3px;
+    background-color: var(--et-color-bg);
+    color: var(--et-color-text);
+    font-size: 9px;
+    white-space: pre;
+    box-shadow: var(--et-shadow);
+  }
+
+  &:hover::before {
+    display: block;
+    animation: fade-in 0.3s ease-out;
+  }
+}
+
+/* 占位符 使用et-placeholder属性 + ::before实现 */
+[et-placeholder] {
+  &:empty::before {
+    content: attr(et-placeholder);
+    color: var(--et-color-text-disabled);
+    font-size: 0.95em;
+  }
+
+  &:active::before,
+  &:focus::before {
+    content: '';
+  }
+}
+
+/* 背景色按钮 */
+.bg-item {
+  background-color: var(--et-color-bg);
+
+  &:hover {
+    background-color: var(--et-color-bg--hover);
+  }
+
+  &:active,
+  &.selected {
+    background-color: var(--et-color-bg--active);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* 动画 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.9);
+  }
+
+  60% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: none;
+  }
+}

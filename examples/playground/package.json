@@ -1,0 +1,18 @@
+{
+  "name": "effitor",
+  "version": "0.3.5",
+  "description": "",
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "effitor": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^7.0.6"
+  }
+}

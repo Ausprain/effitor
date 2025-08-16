@@ -1,0 +1,6 @@
+# prettier only used to format json, html, md files
+*
+!*/
+!*.html
+!*.json
+!*.md

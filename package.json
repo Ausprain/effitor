@@ -1,0 +1,68 @@
+{
+  "name": "effitor",
+  "version": "0.3.5-alpha",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "effitor",
+    "web editor"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git"
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ausprain/effitor/issues"
+  },
+  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "scripts": {
+    "test-unit": "vitest unit",
+    "test-e2e:chrome": "vitest e2e --browser chromium"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@stylistic/eslint-plugin": "^5.2.2",
+    "@stylistic/stylelint-plugin": "^4.0.0",
+    "@types/mdast": "^4.0.4",
+    "@vitest/browser": "^3.2.4",
+    "eslint": "^9.32.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "playwright": "^1.54.2",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.23.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.39.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-newline-to-break": "^2.0.0",
+    "mdast-util-to-markdown": "^2.1.2",
+    "micromark-extension-frontmatter": "^2.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "packageManager": "pnpm@10.14.0"
+}
