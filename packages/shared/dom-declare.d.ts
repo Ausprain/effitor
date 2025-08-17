@@ -236,146 +236,145 @@ declare const enum KeyboardKeyEnum {
  * ```
  */
 declare const enum InputTypeEnum {
-  /** 未初始化 或 不是规定以内的值; 该值作为保留, 其对应真正的inputType为空串"" 仅MainInputTypeSolver可实现 */
+  /**
+   * 未初始化 或 不是规定以内的值;
+   * 该值作为保留, 其对应真正的inputType为空串"" 仅`MainInputTypeSolver`可实现;
+   * 用于实现那些不在标准里, 或浏览器不支持的 inputType; 做法是:
+   * 将 inputType 设置为空串, 将需要设置的 inputType 值存储在 ev.data 中; 当`MainInputTypeSolver`
+   * 检测到一个空的 inputType 时, 会从 ev.data 中获取 inputType 值, 并激活相应的inputType效应处理器
+   */
   '' = '',
-  /** 插入字符 */
-  'insertText' = 'insertText',
-  /** 替换字符 */
-  /** 输入法插入字符 */
+
+  /** 除输入法相关的, 标准草案中定义的 inputType 共三大类 */
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  输入法相关                                  */
+  /* -------------------------------------------------------------------------- */
+
+  /** (标准) 输入法插入字符, 无法 preventDefault */
   'insertCompositionText' = 'insertCompositionText',
   /**
-   * Safari 特有, 输入法会话中删除输入法构造串字符, 不可 preventDefault
+   * (非标准) Safari 特有, 输入法会话中删除输入法构造串字符, 无法 preventDefault
    */
   'deleteCompositionText' = 'deleteCompositionText',
   /**
-   * Safari 特有, 在输入法结束后插入输入法字符串, 可以被 preventDefault
+   * (非标准) Safari 特有, 在输入法结束后插入输入法字符串, 可以被 preventDefault
    */
   'insertFromComposition' = 'insertFromComposition',
 
-  /** Enter换行 */
+  /* -------------------------------------------------------------------------- */
+  /*                                    插入类                                   */
+  /* -------------------------------------------------------------------------- */
+
+  /** 插入字符 */
+  'insertText' = 'insertText',
+  /** 替换字符, 一般用于拼写检查自动替换 */
+  'insertReplacementText' = 'insertReplacementText',
+
+  /** 插入段落: Enter换行 */
   'insertParagraph' = 'insertParagraph',
-  /** Shift+Enter换行 */
+  /** 插入换行(硬换行): Shift+Enter换行 */
   'insertLineBreak' = 'insertLineBreak',
+
+  // /** 插入有序列表 */
+  // 'insertOrderedList' = 'insertOrderedList',
+  // /** 插入无序列表 */
+  // 'insertUnorderedList' = 'insertUnorderedList',
+  // /** 插入水平分割线 */
+  // 'insertHorizontalRule' = 'insertHorizontalRule',
+  // /** 插入链接 */
+  // 'insertLink' = 'insertLink',
+
+  // /** 从拖拽中插入; issue: ShadowDOM 内无法识别插入位置 (Chromium 120) */
+  // 'insertFromDrop' = 'insertFromDrop',
+  /** 插入粘贴 */
+  'insertFromPaste' = 'insertFromPaste',
+  // /** 仅 Firefox 实现 */
+  // 'insertFromPasteAsQuotation' = 'insertFromPasteAsQuotation',
+  // /** 从编辑器内部复制剪贴板(yank)粘贴 */
+  // 'insertFromYank' = 'insertFromYank',
+  // /** 未知 */
+  // 'insertTranspose' = 'insertTranspose',
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    删除类                                   */
+  /* -------------------------------------------------------------------------- */
+
+  /** 拖拽删除 */
+  'deleteByDrag' = 'deleteByDrag',
+  /** 剪切删除 */
+  'deleteByCut' = 'deleteByCut',
+
+  /** 删除内容; Chrome 137 不支持 */
+  'deleteContent' = 'deleteContent',
   /** Backspace删除 */
   'deleteContentBackward' = 'deleteContentBackward',
   /** Delete删除 */
   'deleteContentForward' = 'deleteContentForward',
-  /** Ctrl+Backspace删除 */
+  /** Win: Ctrl+Backspace; Mac: Option+Backspace */
   'deleteWordBackward' = 'deleteWordBackward',
-  /** Ctrl+Delete删除 */
+  /** Win: Ctrl+Delete; Mac: Option+Delete */
   'deleteWordForward' = 'deleteWordForward',
+
   /**
-   * 删除整行（即当前屏幕中的一行）
+   * 删除整行（即当前屏幕中的一行; 可用于实现 `ctrl/cmd + x`剪切光标所在行
    * chromium (Chrome 137.0.7151.120) 不支持, 会被转为""
    */
   'deleteEntireSoftLine' = 'deleteEntireSoftLine',
-  /** 删除软换行（css换行）（当前光标至行开头） */
-  'deleteSoftLineBackward' = 'deleteSoftLineBackward',
-  /** 删除软换行（css换行）（当前光标至行末尾） */
-  'deleteSoftLineForward' = 'deleteSoftLineForward',
   /** 删除硬换行（br）（当前光标至上一个br或block末尾） */
   'deleteHardLineBackward' = 'deleteHardLineBackward',
   /** 删除硬换行（br）（当前光标至下一个br或block末尾） */
   'deleteHardLineForward' = 'deleteHardLineForward',
+  /** 删除软换行（css换行）（当前光标至行开头） */
+  'deleteSoftLineBackward' = 'deleteSoftLineBackward',
+  /** 删除软换行（css换行）（当前光标至行末尾） */
+  'deleteSoftLineForward' = 'deleteSoftLineForward',
 
-  /**
-   * 插入粘贴, 在effitor中有如下规定:
-   * 0. 若Selection为Range, 需先手动发送一个deleteContentBackward的beforeinput让光标collapsed;  (checkRemoveSelectionToCollapsed)
-   * 1. 粘贴文本或富文本
-   * ```
-   * ev.data: 要粘贴内容的html文本
-   *      为安全起见，onpaste仅从clipboardData中读取text/et-html, text/plain的内容
-   * ev.dataTransfer: null
-   * ```
-   * 2. 粘贴图片
-   * ```
-   * ev.data: null
-   * ev.dataTransfer: 包含复制到剪切板的图片
-   * ```
-   */
-  'insertFromPaste' = 'insertFromPaste',
-  /** 剪切删除 */
-  'deleteByCut' = 'deleteByCut',
-  /** 拖拽删除 */
-  // 'deleteByDrag' = 'deleteByDrag',
-  /** 光标Ctrl+x剪切所在行 */
+  /* -------------------------------------------------------------------------- */
+  /*                                    功能类                                   */
+  /* -------------------------------------------------------------------------- */
+
   /** Ctrl+z撤销 */
   'historyUndo' = 'historyUndo',
   /** Ctrl+y重做 */
   'historyRedo' = 'historyRedo',
-  /** 加粗 */
-  /** 斜体 */
-  /** 下划线 */
-  /** 删除线 */
-  /** 增加缩进（仅段落 */
-  'formatIndent' = 'formatIndent',
-  /** 减少缩进（仅段落 */
-  'formatOutdent' = 'formatOutdent',
 
-  /* 标准草案中定义的 inputType 共三大类
+  // /** 加粗 */
+  // 'formatBold' = 'formatBold',
+  // /** 斜体 */
+  // 'formatItalic' = 'formatItalic',
+  // /** 下划线 */
+  // 'formatUnderline' = 'formatUnderline',
+  // /** 删除线 */
+  // 'formatStrikeThrough' = 'formatStrikeThrough',
+  // /** 上标 */
+  // 'formatSuperscript' = 'formatSuperscript',
+  // /** 下标 */
+  // 'formatSubscript' = 'formatSubscript',
 
-    // 插入类
+  // /** 缩进 */
+  // 'formatIndent' = 'formatIndent',
+  // /** 取消缩进 */
+  // 'formatOutdent' = 'formatOutdent',
+  // /** 全对齐 */
+  // 'formatJustifyFull' = 'formatJustifyFull',
+  // /** 居中对齐 */
+  // 'formatJustifyCenter' = 'formatJustifyCenter',
+  // /** 右对齐 */
+  // 'formatJustifyRight' = 'formatJustifyRight',
+  // /** 左对齐 */
+  // 'formatJustifyLeft' = 'formatJustifyLeft',
+  // /** 设置块级文本方向 */
+  // 'formatSetBlockTextDirection' = 'formatSetBlockTextDirection',
+  // /** 设置行内文本方向 */
+  // 'formatSetInlineTextDirection' = 'formatSetInlineTextDirection',
 
-    insertText = "insertText",
-    insertReplacementText = "insertReplacementText",
-    insertCompositionText = "insertCompositionText",
-
-    insertLineBreak = "insertLineBreak",
-    insertParagraph = "insertParagraph",
-
-    insertOrderedList = "insertOrderedList",
-    insertUnorderedList = "insertUnorderedList",
-    insertHorizontalRule = "insertHorizontalRule",
-    insertLink = "insertLink",
-
-    insertFromDrop = "insertFromDrop",
-    insertFromPaste = "insertFromPaste",
-    insertFromPasteAsQuotation = "insertFromPasteAsQuotation",
-    insertFromYank = "insertFromYank",
-    insertTranspose = "insertTranspose",
-
-    // 删除类
-
-    deleteWordBackward = "deleteWordBackward",
-    deleteWordForward = "deleteWordForward",
-    deleteContentBackward = "deleteContentBackward",
-    deleteContentForward = "deleteContentForward",
-
-    deleteSoftLineBackward = "deleteSoftLineBackward",
-    deleteSoftLineForward = "deleteSoftLineForward",
-    deleteHardLineBackward = "deleteHardLineBackward",
-    deleteHardLineForward = "deleteHardLineForward",
-    deleteEntireSoftLine = "deleteEntireSoftLine",
-
-    deleteByDrag = "deleteByDrag",
-    deleteByCut = "deleteByCut",
-    deleteContent = "deleteContent",
-
-    // 功能类
-
-    historyUndo = "historyUndo",
-    historyRedo = "historyRedo",
-
-    formatBold = "formatBold",
-    formatItalic = "formatItalic",
-    formatUnderline = "formatUnderline",
-    formatStrikeThrough = "formatStrikeThrough",
-    formatSuperscript = "formatSuperscript",
-    formatSubscript = "formatSubscript",
-
-    formatIndent = "formatIndent",
-    formatOutdent = "formatOutdent",
-    formatJustifyFull = "formatJustifyFull",
-    formatJustifyCenter = "formatJustifyCenter",
-    formatJustifyRight = "formatJustifyRight",
-    formatJustifyLeft = "formatJustifyLeft",
-    formatSetBlockTextDirection = "formatSetBlockTextDirection",
-    formatSetInlineTextDirection = "formatSetInlineTextDirection",
-
-    formatBackColor = "formatBackColor",
-    formatFontColor = "formatFontColor",
-    formatFontName = "formatFontName",
-    formatRemove = "formatRemove",
-
-    */
+  // /** 背景颜色 */
+  // 'formatBackColor' = 'formatBackColor',
+  // /** 字体颜色 */
+  // 'formatFontColor' = 'formatFontColor',
+  // /** 字体名称 */
+  // 'formatFontName' = 'formatFontName',
+  // /** 移除格式 */
+  // 'formatRemove' = 'formatRemove',
 }

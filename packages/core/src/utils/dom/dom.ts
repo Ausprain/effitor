@@ -135,11 +135,33 @@ export const isWithinLast = (node: Et.Node, ancestor: Et.Node) => {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * 比较两个节点是否相同, 用于判断俩节点是否可合并; 这不同于 Node.isEqualNode, 该方法不比较节点内容;
+ * 比较节点类型, 若都是元素, 则使用 isEqualElement 比较
+ */
+export const isEqualNode = (one: Et.Node, other: Et.Node) => {
+  if (one === other) {
+    return true
+  }
+  if (one.nodeType !== other.nodeType) {
+    return false
+  }
+  if (isText(one)) {
+    return true
+  }
+  if (isEtElement(one)) {
+    return one.isEqualTo(other as Et.Element)
+  }
+  if (isElement(one)) {
+    return isEqualElement(one, other as Element)
+  }
+  return false
+}
+/**
  * 判断两个元素是否类似, 即 元素名、class、除class和style外的html属性、元素对象上的可枚举属性 均相同, 即认为这两个元素相似; 不判断后代
  * @param statusClasses 状态class列表, 比较时需要去除的与节点比较无实际作用的状态class
  */
 export const isEqualElement = (el1: Element, el2: Element, statusClasses: string[] = []) => {
-  return el1.nodeName === el2.nodeName
+  return el1.localName === el2.localName
     && isEqualClass(el1.className, el2.className, statusClasses)
     && isEqualHtmlAttrs(el1, el2)
     && isEqualProperties(el1, el2)

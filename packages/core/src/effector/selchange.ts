@@ -22,17 +22,16 @@ export const getSelectionChangeListener = (
       return
     }
     ctx.forceUpdate()
-    if (ctx.selection.isCollapsed) {
+    if (ctx.selection.isCollapsed && ctx.body) {
       if (ctx.body.classList.contains(CssClassEnum.SelectionRange)) {
         ctx.body.classList.remove(CssClassEnum.SelectionRange)
       }
     }
-    else {
+    else if (ctx.body) {
       if (!ctx.body.classList.contains(CssClassEnum.SelectionRange)) {
         ctx.body.classList.add(CssClassEnum.SelectionRange)
       }
     }
-
     callback?.(e, ctx)
   }, 96)
 }

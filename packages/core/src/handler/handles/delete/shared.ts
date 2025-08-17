@@ -46,7 +46,7 @@ export const removeByTargetRange = (ctx: Et.UpdatedContext, range: Et.StaticRang
 }
 
 /** 同一 #text 内删除 */
-const removeInSameTextNode = (
+export const removeInSameTextNode = (
   ctx: Et.UpdatedContext,
   targetRange: Et.StaticRange,
   currP: Et.Paragraph, textNode: Et.Text,
@@ -73,7 +73,7 @@ const removeInSameTextNode = (
   return true
 }
 /** 同一段落内删除 */
-const removeInSameParagraph = (
+export const removeInSameParagraph = (
   ctx: Et.UpdatedContext,
   targetRange: Et.StaticRange,
   currP: Et.Paragraph, commonAncestor: Et.NullableHTMLNode,
@@ -108,17 +108,20 @@ const removeInSameParagraph = (
   if (!out) {
     return false
   }
-  ctx.commandManager.withTransaction([
+  ctx.commandManager.commit()
+  ctx.commandManager.commitNextHandle()
+  ctx.commandManager.push([
     removeCmd,
     cmd.insertContent({
       content: out[0],
       execAt: cr.caretInStart(currP),
+      destCaretRange: out[1],
     }),
-  ], out[1])
+  ])
   return true
 }
 /** 同父节点下的跨不同段落删除 */
-const removeInDifferentParagraphWithSameParent = (
+export const removeInDifferentParagraphWithSameParent = (
   ctx: Et.UpdatedContext,
   targetRange: Et.StaticRange,
   startP: Et.Paragraph, endP: Et.Paragraph,
@@ -153,8 +156,11 @@ const removeInDifferentParagraphWithSameParent = (
     cmds.push(cmd.insertContent({
       content: out[0],
       execAt: cr.caretInStart(startP),
+      destCaretRange: out[1],
     }))
-    ctx.commandManager.withTransaction(cmds, out[1])
+    ctx.commandManager.commit()
+    ctx.commandManager.commitNextHandle()
+    ctx.commandManager.push(cmds)
   }
   // 俩段落不同, 移除中间段落
   // 删除俩段落内容, 并插回未选择内容
@@ -190,24 +196,26 @@ const addRemoveAndInsertContentCmdsForTwoParagraph = (
     }))
   }
 
+  let caretSetted = false
+  if (startContent.hasChildNodes()) {
+    cmds.push(cmd.insertContent({
+      content: startContent,
+      execAt: cr.caretInStart(startP),
+      destCaretRange: cr.caretOutEnd(startContent.lastChild as Et.Node),
+    }))
+    caretSetted = true
+  }
   if (endContent.hasChildNodes()) {
     cmds.push(cmd.insertContent({
       content: endContent,
       execAt: cr.caretInStart(endP),
+      destCaretRange: caretSetted ? void 0 : cr.caretInStart(endP),
     }))
   }
-  let destCaretRange
-  if (startContent.hasChildNodes()) {
-    destCaretRange = cr.caretOutEnd(startContent.lastChild as Et.Node)
-    cmds.push(cmd.insertContent({
-      content: startContent,
-      execAt: cr.caretInStart(startP),
-    }))
-  }
-  if (!destCaretRange) {
-    destCaretRange = cr.caretInStart(endP)
-  }
-  ctx.commandManager.withTransaction(cmds, destCaretRange)
+
+  ctx.commandManager.commit()
+  ctx.commandManager.commitNextHandle()
+  ctx.commandManager.push(cmds)
 }
 /**
  * 同顶层节点, 段落父节点不同, 跨段落删除
@@ -245,7 +253,7 @@ const addRemoveAndInsertContentCmdsForTwoParagraph = (
  * </blockquote>
  *
  */
-const removeInDifferentParagraphWithSameTopElement = (
+export const removeInDifferentParagraphWithSameTopElement = (
   ctx: Et.UpdatedContext,
   targetRange: Et.StaticRange,
   startP: Et.Paragraph, endP: Et.Paragraph,
@@ -303,7 +311,7 @@ const removeInDifferentParagraphWithSameTopElement = (
  * </et-body>
  *
  */
-const removeInDifferentTopElement = (
+export const removeInDifferentTopElement = (
   ctx: Et.UpdatedContext,
   targetRange: Et.StaticRange,
   _startP: Et.Paragraph, _endP: Et.Paragraph,
@@ -358,7 +366,9 @@ const removeInDifferentTopElement = (
         }
       }
     }
-    ctx.commandManager.withTransaction(cmds)
+    ctx.commandManager.commit()
+    ctx.commandManager.commitNextHandle()
+    ctx.commandManager.push(cmds)
   }
   // 顶层节点不同, 删除选择部分, 插回剩余内容
   else {
@@ -458,8 +468,10 @@ const removeInDifferentTopElement = (
         }))
       }
     }
-
-    ctx.commandManager.withTransaction(cmds, destCaretRange ?? undefined)
+    cmds[cmds.length - 1].destCaretRange = destCaretRange ?? void 0
+    ctx.commandManager.commit()
+    ctx.commandManager.commitNextHandle()
+    ctx.commandManager.push(cmds)
   }
   return true
 }
@@ -476,13 +488,104 @@ export const checkEqualParagraphAndSmartMerge = (
   mergeTo: Et.Paragraph,
   toRemoved: Et.Paragraph,
 ): boolean => {
-  if (!p1.isEqualTo(p2)) {
+  if (!mergeTo.isEqualTo(toRemoved)) {
     return false
   }
+
+  // 后为空, 删除后, 光标置于前末尾
+  if (!toRemoved.hasChildNodes()) {
+    ctx.commandManager.push(cmd.removeNode({
+      node: toRemoved,
+      destCaretRange: cr.caretInEnd(mergeTo),
+    }))
+    return true
+  }
+  // 前为空, 删除后, 将后内容移动到前末尾, 光标置于前末尾
+  if (!mergeTo.hasChildNodes()) {
+    const postLast = toRemoved.lastChild
+    const destCaretRange = postLast
+      ? cr.caretInEnd(postLast)
+      : undefined
+    ctx.commandManager.push(cmd.removeNode({
+      node: toRemoved,
+    }))
+    moveParagraphChilNodesToOtherTail(ctx, mergeTo, toRemoved, destCaretRange)
+    return true
+  }
+
+  // 1. 移除 mergeTo段落 的末尾节点 和 toRemoved段落 的开头节点
+  // 2. 克隆俩节点并合并插入到 mergeTo段落 末尾
+  // 3. 提取 toRemoved段落 的剩余内容 (不克隆, 直接转移到 mergeTo段落 末尾)
+  // 4. 光标置于合并内容中间位置
+
+  const prevLast = mergeTo.lastChild as Et.Node
+  const nextFirst = toRemoved.firstChild as Et.Node
+  const prevLastClone = prevLast.cloneNode(true) as Et.Node
+  const nextFirstClone = nextFirst.cloneNode(true) as Et.Node
+  const df1 = document.createDocumentFragment() as Et.Fragment
+  const df2 = document.createDocumentFragment() as Et.Fragment
+  df1.appendChild(prevLastClone)
+  df2.appendChild(nextFirstClone)
+
+  const out = fragmentUtils.mergeFragmentsWithCaret(df1, df2)
+  if (!out) {
+    return false
+  }
+  const [mergedNode, destCaretRange] = out
+  const mergeInsertAt = cr.caretOutStart(prevLast)
+
+  ctx.commandManager.push([
+    cmd.removeNode({ node: prevLast }),
+    cmd.removeNode({ node: nextFirst }),
+    cmd.insertContent({
+      content: mergedNode,
+      execAt: mergeInsertAt,
+    }),
+  ])
+  moveParagraphChilNodesToOtherTail(ctx, mergeTo, toRemoved, destCaretRange)
+  return true
+}
+const moveParagraphChilNodesToOtherTail = (
+  ctx: Et.UpdatedContext,
+  mergeTo: Et.Paragraph,
+  toRemoved: Et.Paragraph,
+  destCaretRange?: Et.CaretRange,
+) => {
+  ctx.commandManager.push(cmd.functional({
+    meta: {
+      from: toRemoved,
+      to: mergeTo,
+      startChild: null as Et.NullableNode,
+    },
+    execCallback() {
+      const { from, to } = this.meta
+      let next = from.firstChild
+      this.meta.startChild = next
+      while (next) {
+        to.appendChild(next)
+        next = from.firstChild
+      }
+    },
+    undoCallback() {
+      const { from, startChild } = this.meta
+      if (!startChild) {
+        return
+      }
+      let next = startChild.nextSibling
+      while (next) {
+        from.appendChild(next)
+        next = startChild.nextSibling
+      }
+      from.prepend(startChild)
+    },
+    destCaretRange,
+  }))
 }
 
 /**
- * 移除一个段落, 并克隆段落内容(根据效应元素类型自动过滤)插入另一段落末尾
+ * 移除一个段落, 并克隆段落内容(根据效应元素类型自动过滤)插入另一段落末尾;
+ * 用于 toRemoved段落开头 Backspace 或mergeTo段落末尾 Delete;
+ * mergeTo 和 toRemoved 由调用者判断, 是不同的段落, 才会调用此方法
  * @param mergeTo 克隆内容插入到的段落
  * @param toRemoved 要移除的段落
  */
@@ -491,5 +594,50 @@ export const removeParagraphAndMergeCloneContentsToOther = (
   mergeTo: Et.Paragraph,
   toRemoved: Et.Paragraph,
 ): boolean => {
+  const r = document.createRange() as Et.Range
+  r.selectNodeContents(toRemoved)
+  const df = r.cloneContents()
+  fragmentUtils.cleanAndNormalizeFragment(df, mergeTo.inEtCode, mergeTo.notInEtCode, true)
 
+  const prevLast = mergeTo.lastChild
+  const nextFirst = df.firstChild
+
+  if (!nextFirst) {
+    ctx.commandManager.push(cmd.removeNode({
+      node: toRemoved,
+    }))
+    ctx.setCaretToAParagraph(mergeTo, false)
+    return true
+  }
+
+  if (!prevLast) {
+    ctx.commandManager.push(cmd.removeNode({ node: toRemoved }))
+    ctx.commandManager.push(cmd.insertContent({
+      content: df,
+      execAt: cr.caretOutEnd(mergeTo),
+    }))
+    return true
+  }
+
+  // 前不为空, 要考虑是否合并的问题
+  if (dom.isEqualNode(prevLast, nextFirst)) {
+    const prevLastClone = prevLast.cloneNode(true)
+    const df1 = document.createDocumentFragment() as Et.Fragment
+    df1.appendChild(prevLastClone)
+    const out = fragmentUtils.mergeFragmentsWithCaret(df1, df)
+    if (!out) {
+      return false
+    }
+    ctx.commandManager.push([
+      cmd.removeNode({
+        node: prevLast,
+      }),
+      cmd.insertContent({
+        content: out[0],
+        execAt: cr.caretOutStart(prevLast),
+        destCaretRange: out[1],
+      }),
+    ])
+  }
+  return true
 }

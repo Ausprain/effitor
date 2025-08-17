@@ -1,5 +1,4 @@
 import type { Et } from '..'
-import { platform } from '../config'
 import { dom } from '../utils'
 import { CaretRange } from './config'
 import { cr } from './cr'
@@ -13,9 +12,9 @@ export class EtSelection {
   private readonly _ctx: Et.UpdatedContext
 
   // 使用本地语言字符串分段器, 用于计算光标位置要删除的字符/单词的长度
-  private _locale = platform.locale
-  private _graphemeSegmenter = new Intl.Segmenter(platform.locale, { granularity: 'grapheme' })
-  private _wordSegmenter = new Intl.Segmenter(platform.locale, { granularity: 'word' })
+  private _locale: string
+  private _graphemeSegmenter: Intl.Segmenter
+  private _wordSegmenter: Intl.Segmenter
 
   /**
    * 光标位置缓存
@@ -30,10 +29,10 @@ export class EtSelection {
   private _caretAtBodyEnd?: boolean = void 0
   private _startEtElement: Et.EtElement | null = null
   private _endEtElement: Et.EtElement | null = null
-  private _startParagraph: Et.EtParagraphElement | null = null
-  private _endParagraph: Et.EtParagraphElement | null = null
-  private _startTopElement: Et.EtParagraphElement | null = null
-  private _endTopElement: Et.EtParagraphElement | null = null
+  private _startParagraph: Et.Paragraph | null = null
+  private _endParagraph: Et.Paragraph | null = null
+  private _startTopElement: Et.Paragraph | null = null
+  private _endTopElement: Et.Paragraph | null = null
 
   /** 光标是否在原生 input/textarea 内 */
   public inRaw = false
@@ -62,10 +61,20 @@ export class EtSelection {
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
    * getSelection 函数需要 bind 在 ShadowRoot或 Document 上, 否则调用时报错
    */
-  constructor(ctx: Et.EditorContext) {
+  constructor(ctx: Et.EditorContext, locale = 'en-US') {
     this._ctx = ctx as Et.UpdatedContext
     this.inShadow = false
     this._getSelection = document.getSelection.bind(document)
+    try {
+      this._locale = locale
+      this._graphemeSegmenter = new Intl.Segmenter(this._locale, { granularity: 'grapheme' })
+      this._wordSegmenter = new Intl.Segmenter(this._locale, { granularity: 'word' })
+    }
+    catch (_e) {
+      this._locale = 'en-US'
+      this._graphemeSegmenter = new Intl.Segmenter(this._locale, { granularity: 'grapheme' })
+      this._wordSegmenter = new Intl.Segmenter(this._locale, { granularity: 'word' })
+    }
   }
 
   get selection() {
@@ -232,7 +241,7 @@ export class EtSelection {
     return this._endEtElement
   }
 
-  get startParagraph(): Et.EtParagraphElement | null {
+  get startParagraph(): Et.Paragraph | null {
     if (this._startParagraph) {
       return this._startParagraph
     }
@@ -248,7 +257,7 @@ export class EtSelection {
     return this._startParagraph
   }
 
-  get endParagraph(): Et.EtParagraphElement | null {
+  get endParagraph(): Et.Paragraph | null {
     if (this._endParagraph) {
       return this._endParagraph
     }
@@ -267,14 +276,14 @@ export class EtSelection {
   /**
    * 选区起始位置的顶层节点
    */
-  get startTopElement(): Et.EtParagraphElement | null {
+  get startTopElement(): Et.Paragraph | null {
     if (this._startTopElement) {
       return this._startTopElement
     }
     if (!this.range) {
       return null
     }
-    let node = this._startParagraph ?? this.range.startContainer as Et.EtParagraphElement
+    let node = this._startParagraph ?? this.range.startContainer as Et.Paragraph
     node = this._ctx.findTopElement(node)
     this._startTopElement = node
     if (this.isCollapsed) {
@@ -286,14 +295,14 @@ export class EtSelection {
   /**
    * 选区结束位置的顶层节点
    */
-  get endTopElement(): Et.EtParagraphElement | null {
+  get endTopElement(): Et.Paragraph | null {
     if (this._endTopElement) {
       return this._endTopElement
     }
     if (!this.range) {
       return null
     }
-    let node = this._endParagraph ?? this.range.endContainer as Et.EtParagraphElement
+    let node = this._endParagraph ?? this.range.endContainer as Et.Paragraph
     node = this._ctx.findTopElement(node)
     this._endTopElement = node
     if (this.isCollapsed) {
@@ -481,8 +490,7 @@ export class EtSelection {
       this._locale = locale
       return true
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    catch (e) {
+    catch (_e) {
       return false
     }
   }
@@ -683,7 +691,7 @@ export class EtSelection {
     if (this.isCollapsed || !this._ctx.isUpdated()) {
       return false
     }
-    return this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
+    // return this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
   }
 
   extractContents() {
@@ -691,7 +699,7 @@ export class EtSelection {
       return document.createDocumentFragment() as Et.Fragment
     }
     const df = this.range.cloneContents()
-    this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
+    // this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
     return df
   }
 }

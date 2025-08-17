@@ -102,7 +102,7 @@ export class UndoStack {
    * 合并暂存命令为一个撤回栈事务, 并压入撤回栈
    */
   pushTransaction(ctx: Et.EditorContext) {
-    if (this.cmdList.length === 0) {
+    if (this.isEmptyRecord) {
       return false
     }
     const tranx = buildTransaction(this.cmdList, ctx)

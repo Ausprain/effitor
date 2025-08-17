@@ -1,7 +1,7 @@
 import { Et } from '..'
 import { type EffectElement, etcode } from '../element'
 import { HtmlCharEnum, MIMETypeEnum } from '../enums'
-import { dom } from '../utils'
+import { dom, traversal } from '../utils'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }
 type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
@@ -75,7 +75,7 @@ export const getPasteListener = (ctx: Et.UpdatedContext, callback?: Et.Clipboard
 const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.DataTransfer) => {
   const fragment = ctx.selection.cloneContents()
   const etElList: EffectElement[] = []
-  dom.traverseNode(fragment, void 0, {
+  traversal.traverseNode(fragment, void 0, {
     whatToShow: NodeFilter.SHOW_ELEMENT,
     filter(el) {
       if (etcode.check(el)) {

@@ -2,6 +2,7 @@ import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
 import type { Et } from '..'
+import { platform } from '../config'
 import { type EffectElement, etcode, type EtParagraphElement } from '../element'
 import { EtParagraph } from '../element/EtParagraph'
 import { CssClassEnum, EtTypeEnum } from '../enums'
@@ -93,7 +94,7 @@ export class EditorContext {
   hasInsertText = false
 
   /** 编辑器光标对象, 在编辑器mount时赋值 */
-  readonly selection: ContextSelection = new EtSelection(this) as ContextSelection
+  readonly selection: ContextSelection = new EtSelection(this, platform.locale) as ContextSelection
   /** 效应调用器 */
   readonly effectInvoker: typeof effectInvoker
   /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */

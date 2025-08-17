@@ -71,7 +71,7 @@ export type EffectHandleThis = typeof EffectElement & EffectHandleMap
  * @bundle-perf 此方法直接返回参数函数, 用于协助开发, 打包构建生产产物时, 解包此方法
  */
 export const createEffectHandle = <E extends keyof EffectHandleMap>(
-  effect: E,
+  _effect: E,
   fn: Required<EffectHandleMap>[E],
 ) => {
   return fn

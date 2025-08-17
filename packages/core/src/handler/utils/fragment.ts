@@ -9,9 +9,10 @@ import { dom, traversal } from '~/core/utils'
 /* -------------------------------------------------------------------------- */
 
 /** 清理片段并标准化 */
-export const cleanAndNormalizeFragment = (df: Et.Fragment, inEtCode = -1, cleanZWS = true) => {
+export const cleanAndNormalizeFragment = (
+  df: Et.Fragment, inEtCode = -1, notInEtCode = 0, cleanZWS = true) => {
   cleanFragment(df)
-  normalizeFragment(df, inEtCode, cleanZWS)
+  normalizeFragment(df, inEtCode, notInEtCode, cleanZWS)
 }
 /**
  * 规范化片段, 删除不符合效应规则的子节点, 替换为纯文本; 合并相邻#text, 并可选删除非开头零宽字符
@@ -22,7 +23,8 @@ export const cleanAndNormalizeFragment = (df: Et.Fragment, inEtCode = -1, cleanZ
  *  以判断df中的某些节点是否符合该效应规则, 若不符合, 则替换为纯文本节点
  * @param cleanZWS 是否清除非开头零宽字符, 默认true
  */
-export const normalizeFragment = (df: Et.Fragment, inEtCode = -1, cleanZWS = true) => {
+export const normalizeFragment = (
+  df: Et.Fragment, inEtCode = -1, notInEtCode = 0, cleanZWS = true) => {
   const regressEls: Et.EtElement[] = []
   traversal.traverseNode(df, void 0, {
     filter: (node) => {
@@ -37,7 +39,7 @@ export const normalizeFragment = (df: Et.Fragment, inEtCode = -1, cleanZWS = tru
         if (!etP || etP === node) {
           etP = inEtCode
         }
-        if (!etcode.checkIn(etP, node.etCode)) {
+        if (!etcode.checkIn(etP, node.etCode, notInEtCode)) {
           // 子效应不符合父节点效应, 替换为纯文本; 跳过后代
           regressEls.push(node)
           return 2 /** NodeFilter.FILTER_REJECT */

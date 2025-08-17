@@ -47,7 +47,11 @@ interface CmdMap<MetaType = any> {
   [CmdTypeEm.Remove_Content]: CmdRemoveContent<MetaType>
   [CmdTypeEm.Functional]: CmdFunctional<MetaType>
 }
-type CmdCallback<T extends CmdTypeEm, MetaType = any> = (this: CmdWithoutType<CmdMap<MetaType>[T]>, ctx: Et.EditorContext) => void
+type CmdCallback<T extends CmdTypeEm, MetaType = any> = (
+  // 若命令 init 显示地配置了 meta, 那么 this 应当拥有必选的 meta 属性; 可通过判断 MetaType类型是否为 undefined 来实现
+  this: CmdWithoutType<CmdMap<MetaType>[T]> & (MetaType extends undefined ? CmdMeta<MetaType> : Required<CmdMeta<MetaType>>),
+  ctx: Et.EditorContext
+) => void
 
 interface CmdMeta<MetaType> {
   /**
@@ -319,6 +323,10 @@ const execInsertText = function (this: CmdInsertText | CmdDeleteText) {
   return true
 }
 const execDeleteText = function (this: CmdDeleteText | CmdInsertText) {
+  // TODO 使用Text 内置的 deleteData 方法删除文本, 不会导致光标跳跃
+  // 即此处无需手动更新光标位置 (仅 chromium, 待验证; 如果确实如此且稳定, 那么所有文本
+  // 编辑命令都无需手动设置光标位置了, (但这样会依赖 selectionchange 来更新 selection 和 ctx;
+  // 那么 selchange 的防抖间隔就不能太大 ))
   this.text.deleteData(this.offset, this.data.length)
   if (this.setCaret) {
     this.setCaret = false

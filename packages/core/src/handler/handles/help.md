@@ -18,12 +18,11 @@
  * ```
  */
 declare const enum InputTypeEffectDeclaration {
-  // 标准草案中定义的 inputType 共三大类
-
   // Safari 有两个独有的输入法相关的 inputType
   deleteCompositionText = "deleteCompositionText",
   insertFromComposition = "insertFromComposition",
 
+  // 标准草案中定义的 inputType 共三大类
   // 插入类
 
   insertText = "insertText",
@@ -112,7 +111,7 @@ declare const enum InputTypeEffectDeclaration {
 
 ```ts
 /** 插入字符 */
-- [ ] insertText
+- [x] insertText
 /** 替换字符, 一般用于拼写检查自动替换 */
 - [ ] insertReplacementText
 /** 插入段落: Enter换行 */
@@ -193,15 +192,15 @@ ev.dataTransfer: 包含复制到剪切板的图片
 /** 剪切删除 */
 - [ ] deleteByCut
 /** 删除内容; Chrome 137 不支持 */
-- [ ] deleteContent
+- [x] deleteContent
 /** Backspace删除 */
-- [ ] deleteContentBackward
+- [x] deleteContentBackward
 /** Delete删除 */
-- [ ] deleteContentForward
+- [x] deleteContentForward
 /** Win: Ctrl+Backspace; Mac: Option+Backspace */
-- [ ] deleteWordBackward
+- [x] deleteWordBackward
 /** Win: Ctrl+Delete; Mac: Option+Delete */
-- [ ] deleteWordForward
+- [x] deleteWordForward
 /**
  * 删除整行（即当前屏幕中的一行; 可用于实现 `ctrl/cmd + x`剪切光标所在行
  * chromium (Chrome 137.0.7151.120) 不支持, 会被转为""

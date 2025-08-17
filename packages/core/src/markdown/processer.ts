@@ -3,7 +3,7 @@ import type { Options as TmOptions } from 'mdast-util-to-markdown'
 import { visit } from 'unist-util-visit'
 
 import type { Et } from '..'
-import { handlerUtils } from '../handler'
+import { fragmentUtils } from '../handler'
 import type {
   MdastHandlersMap,
   MdastNodeHandlerMap,
@@ -86,7 +86,7 @@ export const getMdProcesser = ({
         console.error('fm md root: ', root)
       }
       const df = handleMdastRoot(ctx, root, fromMdHandlersMap)
-      handlerUtils.normalizeFragment(df, -1, true)
+      fragmentUtils.normalizeFragment(df)
       return df
     },
 
@@ -94,7 +94,7 @@ export const getMdProcesser = ({
     /*                                just for dev                                */
     /* -------------------------------------------------------------------------- */
     /** 一个仅用于开发的方法, 解析一个EtElement, 返回mdast节点树 */
-    _toMarkdownMdastTree(ctx: Et.EditorContext, el: Et.EtElement) {
+    __toMarkdownMdastTree(ctx: Et.EditorContext, el: Et.EtElement) {
       let root = el.toMdast(mdastNode)
       if (!root) return
       if (Array.isArray(root) || root.type !== 'root') {
@@ -110,7 +110,7 @@ export const getMdProcesser = ({
       return root
     },
     /** 一个仅用于开发的方法, 解析一个md文本, 返回mdast节点树 */
-    _fromMarkdownMdastTree: (ctx: Et.EditorContext, mdText: string, options?: FmOptions) => {
+    __fromMarkdownMdastTree: (_ctx: Et.EditorContext, mdText: string, options?: FmOptions) => {
       const root = mdParser.fromMarkdown(mdText, options)
       return root
     },

@@ -5,12 +5,27 @@ import { dom } from '~/core/utils'
 
 import { cmd } from '../../command'
 import { createInputEffectHandle } from '../../config'
-import { checkTargetRangePosition } from '../../utils/handler'
+import { removeByTargetRange } from '../delete/shared'
+
+export const insertText = createInputEffectHandle((_this, ctx, ev) => {
+  if (!ev.data) {
+    return true
+  }
+  if (ctx.selection.isCollapsed) {
+    return insertTextAtCaret(ctx, ev.data)
+  }
+  else {
+    return insertTextAtRange(ctx, ev.data, ctx.selection.range)
+  }
+})
 
 const insertTextAtCaret = (
-  data: string,
   ctx: Et.UpdatedContext,
+  data: string,
 ) => {
+  if (!data) {
+    return true
+  }
   // 光标在#text节点, 直接插入文本
   if (ctx.node) {
     ctx.commandManager.push(cmd.insertText({
@@ -25,22 +40,26 @@ const insertTextAtCaret = (
     const node = dom.createText(data)
     ctx.commandManager.push(cmd.insertNode({
       node,
-      execAt: ctx.selection.getCaretRange(),
+      execAt: ctx.selection.getCaretRange().toCaret(true),
       destCaretRange: cr.caret(node, node.length),
     }))
   }
+  return true
 }
 
 const insertTextAtRange = (
-  data: string,
   ctx: Et.UpdatedContext,
+  data: string,
   targetRange: Et.StaticRange,
 ) => {
-  checkTargetRangePosition(ctx, targetRange, (p, t) => {
-    insertTextAtCaret(data, ctx)
-  })
+  if (!data) {
+    return true
+  }
+  ctx.commandManager.startTransaction()
+  if (removeByTargetRange(ctx, targetRange)) {
+    if (ctx.selection.isCollapsed) {
+      insertTextAtCaret(ctx, data)
+    }
+  }
+  return ctx.commandManager.closeTransaction()
 }
-
-export const insertText = createInputEffectHandle((_this, ctx, ev) => {
-  return true
-})

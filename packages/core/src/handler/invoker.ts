@@ -28,7 +28,7 @@ export const effectInvoker = {
     el: EffectElement,
     effect: E,
     ctx: UpdatedContext,
-    payload: Required<EffectHandleMap>[E] extends (...args: infer P) => unknown ? P[1] : never,
+    payload: Required<EffectHandleMap>[E] extends (...args: infer P) => unknown ? P[2] : never,
   ): boolean {
     const Cls = this.getEtElCtor(el)
     if (Cls.effectBlocker && Cls.effectBlocker(effect)) {

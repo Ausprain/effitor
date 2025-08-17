@@ -98,7 +98,6 @@ export class CommandManager {
    * @returns 是否成功commit了命令
    */
   commit(): boolean {
-    if (this._undoStack.isEmptyRecord) return false
     // 输入法会话中禁止记录事务;
     // 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
     if (this._inTransaction || this._ctx.inCompositionSession) return false
@@ -125,13 +124,14 @@ export class CommandManager {
   }
 
   /**
-   * 开启事务（开启前自动commit先前命令, 若当前已在事务内, 则会先结束事务）
-   * 在事务内执行的命令将禁止自动commit，并在调用closeTransaction时
-   * 统一commit为一个撤回栈事务\
-   * 这可以阻止【插入/删除/替换节点，插入/删除片段】命令的自动commit行为，
+   * 开启事务（开启前自动 commit 先前命令, 若当前已在事务内, 则会先结束事务）
+   * 在事务内执行的命令将禁止自动 commit，并在调用 `closeTransaction` 时
+   * 统一 commit 为一个撤回栈事务\
+   * 这可以阻止【插入/删除/替换节点，插入/删除片段】命令的自动 commit 行为，
    * 防止进行撤销/重做时出现光标跳跃/迷失等异常
    */
   startTransaction(): void {
+    // FIXME 若已在事务内, 是应当保留事务状态, 还是重新开启一个事务?
     if (this._inTransaction) {
       this.closeTransaction()
     }

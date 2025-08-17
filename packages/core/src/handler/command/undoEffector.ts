@@ -29,22 +29,22 @@ const keydownSolver: Et.KeyboardKeySolver = {
   'Delete': recordTransactionOnKeydown,
 }
 const keyupSolver: Et.KeyboardKeySolver = {
-  ArrowDown: (ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
-  ArrowLeft: (ev, ctx) => (ctx.commandManager.commit(), false),
-  ArrowRight: (ev, ctx) => (ctx.commandManager.commit(), false),
-  ArrowUp: (ev, ctx) => (ctx.commandManager.commit(), false),
-  Home: (ev, ctx) => (ctx.commandManager.commit(), false),
-  End: (ev, ctx) => (ctx.commandManager.commit(), false),
-  PageUp: (ev, ctx) => (ctx.commandManager.commit(), false),
-  PageDown: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // ArrowDown: (ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
+  // ArrowLeft: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // ArrowRight: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // ArrowUp: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // Home: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // End: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // PageUp: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // PageDown: (ev, ctx) => (ctx.commandManager.commit(), false),
 }
 const afterInputSolver: Et.InputTypeSolver = {
-  insertParagraph: (ev, ctx) => (ctx.commandManager.commit(), false),
-  insertLineBreak: (ev, ctx) => (ctx.commandManager.commit(), false),
-  insertFromPaste: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // insertFromDrop: (ev, ctx) => ctx.commandHandler.commit(),
-  deleteWordBackward: (ev, ctx) => (ctx.commandManager.commit(), false),
-  deleteWordForward: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // insertParagraph: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // insertLineBreak: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // insertFromPaste: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // // insertFromDrop: (ev, ctx) => ctx.commandHandler.commit(),
+  // deleteWordBackward: (ev, ctx) => (ctx.commandManager.commit(), false),
+  // deleteWordForward: (ev, ctx) => (ctx.commandManager.commit(), false),
 }
 const beforeInputSolver: Et.InputTypeSolver = {
   historyUndo: (ev, ctx) => {
@@ -63,13 +63,13 @@ const beforeInputSolver: Et.InputTypeSolver = {
 
 const htmlEventSolver: Et.HTMLEventSolver = {
   /** 输入法会话开始时, 将先前命令commit */
-  compositionstart: (ev, ctx) => {
+  compositionstart: (_ev, ctx) => {
     ctx.commandManager.commit()
   },
-  focusout: (ev, ctx) => {
+  focusout: (_ev, ctx) => {
     // fix. 编辑器blur后触发focusout事件, 并执行相应监听器, 到此处, 整个事件都是同步执行的;
-    // 这也意味着先开启事务, 后插入 <div>aaaI</div> I代表光标位置, 然后执行 discard,
-    // 丢弃该插入, 即删除该<div>aaa</div> 则会导致编辑器blur, 然后执行此处的commit,
+    // 这也意味着先开启事务, 后插入 `<div>aaaI</div>` I代表光标位置, 然后执行 discard,
+    // 丢弃该插入, 即删除该`<div>aaa</div>` 则会导致编辑器blur, 然后执行此处的commit,
     // 而discard是需要丢弃该命令的, 就产生了冲突, 即本该丢弃的命令, 却因编辑器失去焦点而先将该命令commit了,
     // 这也是出现 [一些discard了的插入节点命令却在撤销重做时再次插入了这些节点] 的原因\
     // 因此此处应异步执行
@@ -78,7 +78,7 @@ const htmlEventSolver: Et.HTMLEventSolver = {
       ctx.commandManager.commit()
     })
   },
-  mousedown: (ev, ctx) => {
+  mousedown: (_ev, ctx) => {
     // console.log('mouse down ---------------------------- 记录事务')
     // 鼠标点击其他地方导致selectionchange时, 应当将先前命令commit;
     // 由于selectionchange比mousedown频繁很多, 因此在此处处理该需求

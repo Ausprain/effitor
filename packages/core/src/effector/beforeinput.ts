@@ -5,7 +5,9 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
   'default': (ev, ctx) => {
     ctx.effectInvoker.invoke(
       ctx.effectElement,
-      BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect, ctx, ev,
+      BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect,
+      ctx,
+      ev,
     )
     if (ctx.commandManager.handle()) {
       ev.preventDefault()
@@ -17,7 +19,9 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
       // 将 InputEvent 不接受的 inputType写入 data 中来读取
       ctx.effectInvoker.invoke(
         ctx.effectElement,
-        BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data as Et.InputTypeEffect, ctx, ev,
+        BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data as Et.InputTypeEffect,
+        ctx,
+        ev,
       )
       if (ctx.commandManager.handle()) {
         ev.preventDefault()
