@@ -1,5 +1,5 @@
 {
-  "name": "effitor",
+  "name": "@effitor/playground",
   "version": "0.3.5",
   "description": "",
   "type": "module",
@@ -10,7 +10,8 @@
     "dev": "vite"
   },
   "dependencies": {
-    "effitor": "workspace:*"
+    "effitor": "workspace:*",
+    "@effitor/core": "workspace:*"
   },
   "devDependencies": {
     "vite": "^7.0.6"

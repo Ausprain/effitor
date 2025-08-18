@@ -6,7 +6,7 @@
 //  *
 //  */
 
-// import type { Et } from '..'
+// import type { Et } from '~/core/@types'
 // import { etcode } from '../element'
 // import { EtTypeEnum, HtmlCharEnum } from '../enums'
 // import { cr } from '../selection'
@@ -233,3 +233,4 @@
 // }
 
 export const commonHandlers = {}
+export type CommonHandlers = typeof commonHandlers

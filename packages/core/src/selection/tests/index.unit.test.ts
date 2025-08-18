@@ -1,6 +1,7 @@
-import type { Et } from '@effitor/core'
 import { Window } from 'happy-dom'
 import { describe, expect, test } from 'vitest'
+
+import type { Et } from '~/core/@types'
 
 import { cr } from '../cr'
 import { EtRange } from '../EtRange'

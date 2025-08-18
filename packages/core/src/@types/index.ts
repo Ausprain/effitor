@@ -1,1 +1,1 @@
-export type * from './export'
+export type * as Et from './export'

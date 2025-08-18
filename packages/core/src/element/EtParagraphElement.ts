@@ -1,6 +1,7 @@
 import type * as mdast from 'mdast'
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { EtParagraph } from './EtParagraph'

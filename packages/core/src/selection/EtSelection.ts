@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { dom } from '../utils'
 import { CaretRange } from './config'
 import { cr } from './cr'
@@ -45,10 +46,16 @@ export class EtSelection {
   /** 当前选区对应的 Range */
   public range: Et.Range | null = null
   public isCollapsed = true
-  /** 当且仅当选区 collapsed 且位于 #text 节点上时非 null */
+  /**
+   * 文本锚点, 只有两种情况下非空\
+   * 1. 选区 collapsed 且光标落在文本节点上\
+   * 2. 选区非 collapsed, 且 range起止节点是同一文本节点
+   */
   public anchorText: Et.NullableText = null
-  /** 当前光标基于 anchorText 节点的偏移量;
-   * 当 anchorText 为空时且选区 collapsed 时, 该值等于 focusOffset
+  /**
+   * 当前光标基于 anchorText 节点的偏移量;\
+   * 当 anchorText 为空, 且选区 collapsed 时, 该值等于 selection.focusOffset;\
+   * 当 anchorText 非空, 且选区非 collapsed 时, 该值等于 range.startOffset.
    */
   public anchorOffset = 0
   /**
@@ -97,7 +104,6 @@ export class EtSelection {
     this._caretAtParagraphEnd = void 0
     this._caretAtParagraphStart = void 0
 
-    const oldText = this.anchorText
     if (!sel) {
       sel = this.selection as Selection
       if (!sel || sel.rangeCount === 0) {
@@ -105,32 +111,24 @@ export class EtSelection {
         return false
       }
     }
+    const oldText = this.anchorText
     this._caretRange = null
     this.range = sel.getRangeAt(0) as Et.Range
     this.focusNode = sel.focusNode as Et.NullableNode
     this.anchorOffset = sel.focusOffset
-    // if (this.focusNode && ['input', 'textarea'].includes(this.focusNode.localName)) {
-    //   this.inRaw = true
-    // }
-    // else {
-    //   this.inRaw = false
-    // }
-    // 使用 range.collapsed 而非 selection.isCollapsed;
-    // 后者在 ShadowDOM 内不准（chromium 120)
-    if (this.range.collapsed) {
-      this.isCollapsed = true
-      this.anchorText = this.range.endContainer as Et.Text
-      if (dom.isText(this.anchorText)) {
-        this.anchorOffset = this.range.endOffset
-      }
-      else {
-        this.anchorText = null
-      }
+    // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
+    this.isCollapsed = this.range.collapsed
+    if (dom.isText(this.range.endContainer)) {
+      // 选区非 collapsed, 且不在同一#text上时, 让anchorText为null
+      this.anchorText = this.range.startContainer === this.range.endContainer
+        ? this.range.endContainer
+        : null
+      this.anchorOffset = this.range.startOffset
     }
     else {
-      this.isCollapsed = false
       this.anchorText = null
     }
+
     if (!oldText || oldText !== this.anchorText) {
       this._startEtElement = null
       this._endEtElement = null
@@ -168,7 +166,7 @@ export class EtSelection {
   }
 
   /**
-   * 获取当前光标左侧(文档树顺序靠前)的第一个“视觉字符” (双码点字符会视为一个视觉字符, 四码点字符会被视为两个视觉字符)
+   * 获取当前光标左侧(Backspace方向)的第一个“视觉字符” (双码点字符会视为一个视觉字符, 四码点字符会被视为两个视觉字符)
    * @returns 若anchorText为空, 或anchorOffset=0, 返回 undefined
    */
   get precedingChar(): string | undefined {
@@ -179,11 +177,11 @@ export class EtSelection {
     //   ...this.anchorText.data.slice(Math.max(0, this.anchorOffset - 4), this.anchorOffset),
     // ].pop()
     const segs = this._graphemeSegmenter.segment(this.anchorText.data.slice(0, this.anchorOffset))
-    return segs.containing(this.anchorOffset - 1).segment
+    return segs.containing(this.anchorOffset - 1)?.segment
   }
 
   /**
-   * 获取当前光标右侧(文档树顺序靠后)的字符
+   * 获取当前光标右侧(Delete方向)的第一个“视觉字符”
    * @returns 若anchorText为空, 或anchorOffset=anchorText.length, 返回 undefined
    */
   get followingChar(): string | undefined {
@@ -194,23 +192,64 @@ export class EtSelection {
     //   ...this.anchorText.data.slice(this.anchorOffset, this.anchorOffset + 4),
     // ].shift()
     const segs = this._graphemeSegmenter.segment(this.anchorText.data.slice(this.anchorOffset))
-    return segs.containing(0).segment
+    return segs.containing(0)?.segment
   }
 
+  /**
+   * 获取当前光标左侧(Backspace方向)的1个单词; 使用当前`locale`语言分词
+   */
   get precedingWord(): string | undefined {
     if (!this.anchorText || this.anchorOffset === 0) {
       return void 0
     }
     const segs = this._wordSegmenter.segment(this.anchorText.data.slice(0, this.anchorOffset))
-    return segs.containing(this.anchorOffset - 1).segment
+    let prev = segs.containing(this.anchorOffset - 1)
+    if (!prev) {
+      return void 0
+    }
+    let word = prev.segment
+    prev = segs.containing(prev.index - 1)
+    while (prev) {
+      // 将空白符与当前单词合并; Intl 分词默认将空白符单独为一个word
+      // 在按住`Ctrl+Backspace`快速连续删除单词时, 会在删除`空白符word`时明显感觉到卡顿
+      // 于是将空白符与附近的真实 word 合并一齐删除, 以获取视觉连贯性, 同时缩减连续删除的总耗时
+      // 事实上, 在浏览器原生的deleteWordBackward 行为会在遇到空白符时, 连同空白符的左侧单词
+      // 视为一个word并一齐删除; 以下代码就是模拟这一行为, 不过我们更激进一些, 将单词左右的空白符
+      // 都算进去, 并且对连续递增的相同 word 也进行合并删除, 如 "空白删除删除|", 在`|`位置向左
+      // 删除一个word, 会将"删除删除"一齐删除, 得到 "空白|".
+      if (/\s+/.test(prev.segment) || prev.segment === word) {
+        word = prev.segment + word
+        prev = segs.containing(prev.index - 1)
+        continue
+      }
+      break
+    }
+    return word
   }
 
+  /**
+   * 获取当前光标右侧(Delete方向)的1个单词; 使用当前`locale`语言分词
+   */
   get followingWord(): string | undefined {
     if (!this.anchorText || this.anchorText.length === this.anchorOffset) {
       return void 0
     }
     const segs = this._wordSegmenter.segment(this.anchorText.data.slice(this.anchorOffset))
-    return segs.containing(0).segment
+    let next = segs.containing(0)
+    if (!next) {
+      return void 0
+    }
+    let word = next.segment
+    next = segs.containing(next.index + next.segment.length)
+    while (next) {
+      if (/\s+/.test(next.segment) || next.segment === word) {
+        word += next.segment
+        next = segs.containing(next.index + next.segment.length)
+        continue
+      }
+      break
+    }
+    return word
   }
 
   get startEffectElement(): Et.EtElement | null {
@@ -351,9 +390,8 @@ export class EtSelection {
     }
     return (this._caretAtParagraphEnd = (this.getCaretRange() as Et.EtCaret).isAffinityTo(
       this._ctx.paragraphEl.innerEndEditingBoundary(),
-    )
+    ))
 
-    )
     // TODO check and remove
     // // 1. focusNode 是段落, 且
     // //    1) anchorOffset==focusNode.childNodes.length.

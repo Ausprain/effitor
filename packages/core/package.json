@@ -31,12 +31,14 @@
   },
   "homepage": "https://github.com/Ausprain/effitor#readme",
   "scripts": {
+    "dev": "vite",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"
   },
   "packageManager": "pnpm@10.14.0",
   "devDependencies": {
     "happy-dom": "^18.0.1",
+    "vite": "^7.0.6",
     "vitest": "^3.2.4"
   }
 }

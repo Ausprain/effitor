@@ -1,6 +1,6 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { InputType } from '../@types'
+import type { InputType } from '../@types/declare'
 import type { UpdatedContext } from '../context'
 import type { EffectElement, EtParagraphElement } from '../element'
 import { BuiltinConfig } from '../enums'

@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import type { Et } from '~/core/@types'
 
 import { cmd, cmdHandler, CmdType, type Command } from './cmds'
 import { UndoStack } from './undo'

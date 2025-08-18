@@ -1,4 +1,3 @@
-import type { Et } from '@effitor/core'
 import { Window } from 'happy-dom'
 import { expect, test } from 'vitest'
 

@@ -3,7 +3,8 @@
  * DOM 相关的工具函数, 通过 dom 工具对象统一导出,\
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
-import type { Et } from '../..'
+import type { Et } from '~/core/@types'
+
 import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../../enums'
 
 /* -------------------------------------------------------------------------- */

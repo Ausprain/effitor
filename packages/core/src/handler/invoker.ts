@@ -44,3 +44,5 @@ export const effectInvoker = {
     return false
   },
 }
+
+export type EffectInvoker = typeof effectInvoker

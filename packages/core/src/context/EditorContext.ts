@@ -1,15 +1,17 @@
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { platform } from '../config'
-import { type EffectElement, etcode, type EtParagraphElement } from '../element'
-import { EtParagraph } from '../element/EtParagraph'
+import { etcode } from '../element'
 import { CssClassEnum, EtTypeEnum } from '../enums'
-import { CommandManager, commonHandlers, effectInvoker } from '../handler'
+import { CommandManager } from '../handler/command/manager'
+import { commonHandlers } from '../handler/common'
+import { effectInvoker } from '../handler/invoker'
 import { getHotkeyManager } from '../hotkey/manager'
 import { getHotstringManager } from '../hotstring/manager'
-import { EtSelection } from '../selection'
+import { EtSelection } from '../selection/EtSelection'
 
 type ContextSelection = Readonly<Omit<EtSelection, 'range'> & {
   // 限制 range 的能力, 剔除如 extractContents 等可能会破坏 DOM 结构的方法
@@ -25,9 +27,9 @@ type UpdatedContextSelection = ContextSelection & {
  * 否则继续执行效应器, 效应器中的上下文的效应元素/段落必定非空
  */
 export interface UpdatedContext extends EditorContext {
-  effectElement: NodeHasParent<EffectElement>
-  paragraphEl: NodeHasParent<EtParagraph>
-  topElement: NodeHasParent<EtParagraph>
+  effectElement: NodeHasParent<Et.EtElement>
+  paragraphEl: NodeHasParent<Et.Paragraph>
+  topElement: NodeHasParent<Et.Paragraph>
   selection: UpdatedContextSelection
   readonly body: Et.EtBodyElement
 }
@@ -48,9 +50,9 @@ export class EditorContext {
   /** 上一个`text node` 用于判断光标是否跳动 */
   private oldNode: Et.NullableText = null
   private _updated = false
-  private _effectElement: EffectElement | null = null
-  private _paragraph: EtParagraph | null = null
-  private _topElement: EtParagraph | null = null
+  private _effectElement: Et.EtElement | null = null
+  private _paragraph: Et.Paragraph | null = null
+  private _topElement: Et.Paragraph | null = null
 
   /** 是否跳过下一次selectionchange事件 */
   private _skipSelChange = false
@@ -96,7 +98,7 @@ export class EditorContext {
   /** 编辑器光标对象, 在编辑器mount时赋值 */
   readonly selection: ContextSelection = new EtSelection(this, platform.locale) as ContextSelection
   /** 效应调用器 */
-  readonly effectInvoker: typeof effectInvoker
+  readonly effectInvoker: Et.EffectInvoker
   /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
   readonly commonHandlers = commonHandlers
   /** 命令控制器 */
@@ -245,7 +247,7 @@ export class EditorContext {
   }
 
   /**
-   * 向上（包括自身）找第一个`EffectElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
+   * 向上（包括自身）找第一个`Et.EtElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
    * 使用"鸭子类型",  Effitor 内拥有`etCode`属性的元素被视为效应元素
    */
   findEffectParent(node: Et.NullableNode): Et.EtElement | null {
@@ -258,12 +260,12 @@ export class EditorContext {
   }
 
   /**
-   * 向上查找最近一个`EtParagraphElement`, `etCode`匹配段落 EtType, 则视为段落效应元素
+   * 向上查找最近一个`Et.ParagraphElement`, `etCode`匹配段落 EtType, 则视为段落效应元素
    */
-  findParagraph(node: Et.NullableNode): EtParagraph | null {
+  findParagraph(node: Et.NullableNode): Et.Paragraph | null {
     while (node) {
       if (node === this.body) return null
-      if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as EtParagraph
+      if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.Paragraph
       node = node.parentNode
     }
     return null
@@ -272,13 +274,13 @@ export class EditorContext {
   /**
    * 找一个在编辑区内的节点所在的顶层节点
    */
-  findTopElement(node: Et.Node): EtParagraph {
+  findTopElement(node: Et.Node): Et.Paragraph {
     let p = node.parentNode
     while (p && p !== this.body) {
       node = p
       p = p.parentNode
     }
-    return node as EtParagraph
+    return node as Et.Paragraph
   }
 
   /**
@@ -320,7 +322,7 @@ export class EditorContext {
    * 设置光标到一个段落的开头/末尾; 由于段落有多种类型(普通段落, 组件段落, Blockquote段落...),
    * 因此需要此方法来统一根据段落类型设置光标位置; 该设置光标的动作是异步的 (requestAnimationFrame)
    */
-  setCaretToAParagraph(paragraph: EtParagraph, toStart: boolean) {
+  setCaretToAParagraph(paragraph: Et.Paragraph, toStart: boolean) {
     if (etcode.check(paragraph, EtTypeEnum.Component)) {
       requestAnimationFrame(() => {
         paragraph.focusToInnerEditable(this, toStart)
@@ -340,7 +342,7 @@ export class EditorContext {
    * 光标range时始终为false
    * @param target 效应值 | 效应元素类 | 效应元素对象; 若传入值<=0, 则返回true
    */
-  checkIn(target: number | EffectElement | typeof EffectElement) {
+  checkIn(target: number | Et.EtElement | Et.EtElementCtor) {
     if (!this.selection.isCollapsed || !this._effectElement) {
       return false
     }
@@ -352,9 +354,9 @@ export class EditorContext {
       code = target as number
     }
     else {
-      code = (target as EffectElement).etCode
+      code = (target as Et.EtElement).etCode
       if (code === void 0) {
-        code = (target as typeof EffectElement).etType
+        code = (target as Et.EtElementCtor).etType
       }
     }
     return code && !(~this._effectElement.inEtCode & code)
@@ -390,7 +392,7 @@ export class EditorContext {
       return this.createParagraph(withBr)
     }
     // 浅克隆 元素名 + 属性
-    const clone = this._paragraph.cloneNode(false) as EtParagraphElement
+    const clone = this._paragraph.cloneNode(false) as Et.Paragraph
     // 去掉特有属性
     clone.removeAttribute('id')
     // 去掉状态class
@@ -399,7 +401,7 @@ export class EditorContext {
   }
 
   /** 默认创建一个带br的schema段落 */
-  createParagraph(withBr = true): EtParagraphElement {
+  createParagraph(withBr = true): Et.EtParagraphElement {
     const p = this.schema.paragraph.create()
     if (withBr) {
       p.appendChild(document.createElement('br'))

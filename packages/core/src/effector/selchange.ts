@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { CssClassEnum } from '../enums'
 import { debounce } from '../utils'
 
@@ -14,7 +15,9 @@ export const getSelectionChangeListener = (
     if (!ctx.hasInsertText) {
       ctx.hotstringManager.needResetBeforeJudge()
     }
-    // import.meta.env.DEV && console.error('sel change')
+    // if (import.meta.env.DEV) {
+    //   console.error('sel change')
+    // }
 
     // FIXME 此处跳过一次更新, 可能会导致光标位置未能及时更新, 从而引发错误;
     // 此bug尚未稳定复现, 不确定是此处引起; 待观察

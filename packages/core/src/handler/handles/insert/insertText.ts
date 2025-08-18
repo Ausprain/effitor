@@ -1,5 +1,4 @@
-import { Et } from '@effitor/core'
-
+import type { Et } from '~/core/@types'
 import { cr } from '~/core/selection'
 import { dom } from '~/core/utils'
 

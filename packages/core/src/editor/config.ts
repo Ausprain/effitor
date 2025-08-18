@@ -8,8 +8,8 @@ import type {
   EtHeadingElement,
   EtParagraph,
   EtParagraphCtor,
-  ExtentEtElement,
 } from '../element'
+import type { ExtentEtElement } from '../element/register'
 import type { hotkey } from '../hotkey'
 import type { CaretRange } from '../selection'
 

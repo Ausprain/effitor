@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { etcode } from '../element'
 import { EtTypeEnum } from '../enums'
 import { cr } from '../selection'
@@ -13,7 +14,7 @@ const keyupSolver: MainKeyboardSolver = {
     }
     if (etcode.check(ctx.effectElement, EtTypeEnum.CaretOut)) {
       // 在富文本`or`组件节点内, 跳到下一节点开头
-      return ctx.commonHandlers.tabout(ctx)
+      // return ctx.commonHandlers.tabout(ctx)
     }
     const text = ctx.selection.anchorText
     // 有文本节点，插入制表符

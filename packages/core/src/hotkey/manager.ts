@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { throttle } from '../utils'
 import type { A_actionKey, A_hotkey, ActionGroupMap, ModCode } from './config'
 import { CtrlCmd, Key, keyChars, Mod, modChar } from './config'

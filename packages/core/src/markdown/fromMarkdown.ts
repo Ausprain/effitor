@@ -1,7 +1,8 @@
 /* eslint-disable @stylistic/max-len */
 import type * as mdast from 'mdast'
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import type { MdastHandler, MdastHandlersMap } from './config'
 
 const enum ManagerStatus {

@@ -1,6 +1,5 @@
 /* eslint-disable @stylistic/max-len */
-import { Et } from '@effitor/core'
-
+import type { Et } from '~/core/@types'
 import { dom } from '~/core/utils'
 
 import { cleanFragment } from './fragment'

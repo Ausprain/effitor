@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import type { EditorContext, UpdatedContext } from '../context'
 import type { MainBeforeInputTypeSolver } from './beforeinput'
 import type { MainAfterInputTypeSolver } from './input'

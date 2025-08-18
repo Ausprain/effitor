@@ -27,7 +27,7 @@ export default tseslint.config(
 
   // typescript
   {
-    files: ['./{example,packages,src}/**/*.ts'],
+    files: ['./{example,packages,main}/**/*.ts'],
     // languageOptions: {
     //   parserOptions: {
     //     project: './tsconfig.json',

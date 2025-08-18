@@ -1,4 +1,5 @@
-/** export into Et for convenient annotation */
-export type * as Et from './index.type'
-/** export directly for declare augmentation */
-// export type * from './index.type'
+import './augment'
+
+export type { Et } from './@types'
+export type * from './@types/declare'
+export * from './index.export'

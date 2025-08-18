@@ -1,4 +1,4 @@
-import type { Et } from '.'
+import type { Et } from '~/core/@types'
 
 declare global {
   interface Object {

@@ -1,4 +1,5 @@
-import { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { EtTypeEnum } from '../enums'
 import { EffectElement } from './EffectElement'
 

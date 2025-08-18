@@ -2,7 +2,8 @@
  * 系统层面的编辑行为按键映射
  */
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { platform } from '../config'
 import { CtrlCmd, Key, Mod } from './config'
 import { create } from './manager'

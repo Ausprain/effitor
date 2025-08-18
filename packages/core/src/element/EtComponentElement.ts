@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { BuiltinElName, EtTypeEnum } from '../enums'
 import { EtParagraph } from './EtParagraph'
 

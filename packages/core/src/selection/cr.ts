@@ -2,7 +2,8 @@
  * 使用 Caret and Range 管理编辑器命令的光标位置
  */
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { dom } from '../utils'
 import { AnchorOutOffset, type CaretRange } from './config'
 import { EtCaret } from './EtCaret'

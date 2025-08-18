@@ -1,12 +1,19 @@
-import { Et } from '@effitor/core'
+import type { Et } from '~/core/@types'
 
 import {
   deleteCompositionText,
   insertCompositionText,
   insertFromComposition,
 } from './composition'
-import { deleteContent, deleteContentBackward, deleteContentForward } from './delete/deleteContent'
-import { deleteWordBackward, deleteWordForward } from './delete/deleteWord'
+import {
+  deleteContent,
+  deleteContentBackward,
+  deleteContentForward,
+} from './delete/deleteContent'
+import {
+  deleteWordBackward,
+  deleteWordForward,
+} from './delete/deleteWord'
 import { insertText } from './insert/insertText'
 
 export const buintinHandler: Et.EffectHandleMap = {

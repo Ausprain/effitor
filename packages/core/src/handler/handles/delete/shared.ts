@@ -7,8 +7,7 @@
  * ref.
  * [EditorCommand::GetTargetRanges](github/chromium/third_party/blink/renderer/core/editing/commands/editor_command.cc:2224)
  */
-import { Et } from '@effitor/core'
-
+import type { Et } from '~/core/@types'
 import { cr } from '~/core/selection'
 import { dom, traversal } from '~/core/utils'
 
@@ -59,6 +58,7 @@ export const removeInSameTextNode = (
       data: textNode.data.slice(targetRange.startOffset, targetRange.endOffset),
       offset: targetRange.startOffset,
       isBackward: true,
+      setCaret: true,
     }))
     return true
   }

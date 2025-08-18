@@ -2,29 +2,38 @@
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import baseCss from '../assets/base.css?raw'
 import builtinCss from '../assets/builtin.css?raw'
+import _fontCss from '../assets/font.css'
 import { defaultConfig, platform } from '../config'
 import { EditorContext } from '../context'
+import { getMainEffector } from '../effector'
+import { getBeforeinputListener } from '../effector/beforeinput'
+import { getCopyListener, getCutListener, getPasteListener } from '../effector/clipboard'
 import {
-  getBeforeinputListener,
   getCompositionEnd,
   getCompositionStart,
   getCompositionUpdate,
-  getCopyListener,
-  getCutListener,
-  getInputListener,
-  getKeydownListener,
-  getKeyupListener,
-  getMainEffector,
-  getPasteListener,
-  getSelectionChangeListener,
-  solveEffectors,
-} from '../effector'
-import { EffectElement, elseCssText, EtBodyElement, etcode, EtEditorElement, EtParagraphElement, extentEtElement, registerEtElement } from '../element'
+} from '../effector/composition'
+import { solveEffectors } from '../effector/ectx'
+import { getInputListener } from '../effector/input'
+import { getKeydownListener } from '../effector/keydown'
+import { getKeyupListener } from '../effector/keyup'
+import { getSelectionChangeListener } from '../effector/selchange'
+import {
+  EffectElement,
+  EtBodyElement,
+  etcode,
+  EtEditorElement,
+  EtParagraphElement,
+} from '../element'
+import { elseCssText } from '../element/config'
+import { extentEtElement, registerEtElement } from '../element/register'
 import { BuiltinElName } from '../enums'
-import { cmd, useUndoEffector } from '../handler'
+import { cmd } from '../handler'
+import { useUndoEffector } from '../handler/command/undoEffector'
 import { getMdProcesser, Md } from '../markdown/processer'
 import { cr } from '../selection'
 import { cssStyle2cssText, dom } from '../utils'
@@ -454,6 +463,11 @@ export class Effitor {
     const ac = new AbortController()
 
     const [root, body] = formatEffitorStructure(host, this.__context, this.__cssText, this.__customStyleLinks, ac.signal)
+
+    // 使用 shadowRoot 时, 必须向 EtSelection 提供获取 shadowRoot 内选区的方法
+    if (this.isShadow) {
+      this.__context.selection.setSelectionGetter(root as Et.ShadowRoot)
+    }
 
     addListenersToEditorBody(body, ac, this.__context, this.__listeners, this.__pluginConfigs.htmlEventSolver)
 

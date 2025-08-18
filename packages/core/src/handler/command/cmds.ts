@@ -1,9 +1,9 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { Et } from '@effitor/core'
-
-import { cr, SpanRange } from '~/core/selection'
+import type { Et } from '~/core/@types'
+import { cr } from '~/core/selection'
+import { SpanRange } from '~/core/selection/SpanRange'
 
 // TODO: 此 const enum 仅作本模块内静态替换; 下面的 CmdType 常量对外导出;
 // 构建生产打包时, 通过 swc 插件对所有 CmdType.XXX 的显式调用进行"静态"替换
@@ -89,7 +89,7 @@ interface CmdExecAt {
 interface SetCaret {
   /**
    * 命令执行后是否设置光标位置 \
-   * 这时文本命令 [Insert_Text, Delete_Text, Replace_Text] 对 destCaretRange 选项的简化配置 \
+   * 这是文本命令 [Insert_Text, Delete_Text, Replace_Text] 对 destCaretRange 选项的简化配置 \
    * 当且仅当 true 时, 命令会自动定位 插入/删除/替换 文本后的光标位置, 而无需指定 destCaretRange 选项
    */
   setCaret?: boolean
@@ -295,6 +295,9 @@ const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx:
     this.srcCaretRange = ctx.selection.getCaretRange()
   }
   else {
+    // 更新光标位置
+    ctx.selection.update()
+
     if (!ctx.selection.anchorText) {
       // 输入法构造串不在文本节点上, 理论上这永远不会发生, 如果发生将是浏览器/系统层面的问题
       if (import.meta.env.DEV) {
@@ -302,9 +305,6 @@ const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx:
       }
       return false
     }
-    // 更新光标位置
-    // TODO 这里是否必须更新光标位置?
-    ctx.selection.update()
     // 非输入法会话的第一个输入, 光标必定在文本节点上
     // 记录该节点, 用于合并转为 Insert_Text 命令
     this.text = ctx.selection.anchorText as Et.Text
@@ -638,14 +638,13 @@ const functional = <MetaType>(init: CmdFunctionalInit<MetaType>) => {
 /*                                  命令构建工具                                */
 /* -------------------------------------------------------------------------- */
 
+interface CmdFactory {
+  <T extends CmdTypeEm, MetaType>(type: T, init: CmdInit<CmdMap<MetaType>[T], MetaType, CmdInitOmits[T]>): CmdWithExec<CmdMap<MetaType>[T]>
+}
 /**
  * 命令构造器
  */
 const cmd = (() => {
-  interface CmdFactory {
-    <T extends CmdTypeEm, MetaType>(type: T, init: CmdInit<CmdMap<MetaType>[T], MetaType, CmdInitOmits[T]>): CmdWithExec<CmdMap<MetaType>[T]>
-  }
-
   /**
    * 创建一个命令对象
    * @param type 命令类型, 可从cmd对象上获取对应常量

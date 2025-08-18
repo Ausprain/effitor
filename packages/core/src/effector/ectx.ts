@@ -2,10 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @stylistic/max-len */
-import type { Et } from '..'
-import type { etcodeType } from '../element/config'
+import type { Et } from '~/core/@types'
+
+import { etcodeType } from '../element/etcode'
 import type { crType } from '../selection/cr'
-import type { domType } from '../utils'
+import { domType } from '../utils/dom'
 
 /**
  * 为keydown/keyup事件创建一个按键处理映射器 \

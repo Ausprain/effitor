@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { BuiltinConfig } from '../enums'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {

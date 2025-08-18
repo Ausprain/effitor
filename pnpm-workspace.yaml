@@ -1,6 +1,6 @@
 packages:
   - packages/*
-  - example/*
+  - examples/*
   - main
   - algo-perf
 

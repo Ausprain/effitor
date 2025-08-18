@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { platform } from '../config'
 import { etcode } from '../element'
 import { EtTypeEnum } from '../enums'
@@ -85,7 +86,7 @@ export type MainKeyboardSolver = {
 }
 
 const keydownKeySolver: MainKeyboardSolver = {
-  'default': (ev) => {
+  default: (ev) => {
     // 编辑器内禁用ctrl+r,ctrl+p等浏览器快捷键
     // 凡事伴随按下ctrl或meta的按键，若非额外定义，则过滤;
     if (ev.ctrlKey || ev.metaKey) {
@@ -93,16 +94,16 @@ const keydownKeySolver: MainKeyboardSolver = {
       ev.stopPropagation()
     }
   },
-  ' ': (ev, ctx) => {
-    if (ctx.prevUpKey === ' ' && (
-    // 双击空格跳出组件or富文本节点
-      etcode.check(ctx.effectElement, EtTypeEnum.CaretOut)
-    )) {
-      if (ctx.commonHandlers.dblSpace(ctx)) {
-        ev.preventDefault()
-      }
-    }
-  },
+  // ' ': (ev, ctx) => {
+  //   if (ctx.prevUpKey === ' ' && (
+  //   // 双击空格跳出组件or富文本节点
+  //     etcode.check(ctx.effectElement, EtTypeEnum.CaretOut)
+  //   )) {
+  //     if (ctx.commonHandlers.dblSpace(ctx)) {
+  //       ev.preventDefault()
+  //     }
+  //   }
+  // },
   // 'A': (ev, ctx) => { /** 放行默认全选 */
   //   if ((!ev.metaKey && !ev.ctrlKey) || ev.shiftKey || ev.altKey) {
   //     return
@@ -122,20 +123,20 @@ const keydownKeySolver: MainKeyboardSolver = {
   //     return ctx.preventAndSkipDefault(ev)
   //   }
   // },
-  'C': () => { /** 放行默认复制 */ },
-  'V': () => { /** 放行默认粘贴 */ },
-  'X': () => { /** 放行默认剪切 */ },
-  'ArrowDown': () => { /** 放行方向键 */ },
-  'ArrowLeft': () => { /** 放行方向键 */ },
-  'ArrowRight': () => { /** 放行方向键 */ },
-  'ArrowUp': () => { /** 放行方向键 */ },
+  C: () => { /** 放行默认复制 */ },
+  V: () => { /** 放行默认粘贴 */ },
+  X: () => { /** 放行默认剪切 */ },
+  ArrowDown: () => { /** 放行方向键 */ },
+  ArrowLeft: () => { /** 放行方向键 */ },
+  ArrowRight: () => { /** 放行方向键 */ },
+  ArrowUp: () => { /** 放行方向键 */ },
 
-  'Tab': (ev) => {
+  Tab: (ev) => {
     // tab效应移动到keyup中
     ev.preventDefault()
   },
 
-  'Enter': (ev, ctx) => {
+  Enter: (ev, ctx) => {
     if (ev.isComposing) return
     ev.preventDefault()
 
@@ -151,7 +152,7 @@ const keydownKeySolver: MainKeyboardSolver = {
     }
     else if (platform.isMac ? ev.metaKey : ev.ctrlKey) {
       // 当前段落后边插入新段落
-      ctx.commonHandlers.appendParagraph(ctx)
+      // ctx.commonHandlers.appendParagraph(ctx)
     }
     else {
       ctx.dispatchInputEvent('beforeinput', {
@@ -159,7 +160,7 @@ const keydownKeySolver: MainKeyboardSolver = {
       })
     }
   },
-  'Backspace': () => {
+  Backspace: () => {
     // TODO 放 handler 中处理
   //   if (!ctx.selection.isCollapsed || !ctx.selection.anchorText) return
   //   // 毗邻零宽字符, 移动光标
@@ -238,7 +239,7 @@ export const getKeydownListener = (
         return (ev.preventDefault(), ev.stopPropagation())
       }
       // 监听热字符串
-      if (!ev.repeat && ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
+      if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
         return (ev.preventDefault(), ev.stopPropagation())
       }
     }

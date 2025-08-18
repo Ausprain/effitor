@@ -8,7 +8,7 @@
  * 3. 删除行为
  *      Backspace, Delete
  */
-import type { Et } from '@effitor/core'
+import type { Et } from '~/core/@types'
 
 /**
  * 特定的keydown时记录事务

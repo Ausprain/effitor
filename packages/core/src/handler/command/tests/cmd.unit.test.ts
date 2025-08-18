@@ -1,6 +1,7 @@
-import type { Et } from '@effitor/core'
 import { Window } from 'happy-dom'
 import { expect, test } from 'vitest'
+
+import type { Et } from '~/core/@types'
 
 import { cr } from '../../../selection'
 import { cmd } from '../cmds'

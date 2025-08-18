@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export * from './dom'
-export * from './traversal'
+export { dom } from './dom'
+export { traversal } from './traversal'
 
 export const camel2kebab = (str: string) => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 /**

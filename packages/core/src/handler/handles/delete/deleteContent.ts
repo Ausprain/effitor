@@ -66,8 +66,7 @@
               a. 光标移动到 nextTop 开头 (需判断段落类型), true
 */
 
-import { Et } from '@effitor/core'
-
+import type { Et } from '~/core/@types'
 import { etcode } from '~/core/element'
 import { EtTypeEnum } from '~/core/enums'
 import { cr } from '~/core/selection'
@@ -128,6 +127,7 @@ export const checkBackspaceAtCaretDeleteText = (ctx: Et.UpdatedContext, deleteWo
     data: removeChar,
     offset: ctx.selection.anchorOffset - removeChar.length,
     isBackward: true,
+    setCaret: true,
   }))
   return true
 }
@@ -196,6 +196,7 @@ export const checkDeleteAtCaretDeleteText = (ctx: Et.UpdatedContext, deleteWord:
     data: removeChar,
     offset: ctx.selection.anchorOffset,
     isBackward: false,
+    setCaret: true,
   }))
   return true
 }

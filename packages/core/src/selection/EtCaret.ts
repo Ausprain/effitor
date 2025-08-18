@@ -3,7 +3,8 @@
  * 这里使用 EtCaret 来代指编辑器内的选区collapsed 时的光标位置
  */
 
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { dom, traversal } from '../utils'
 import type { AnchorOffset } from './config'
 import { AnchorOutOffset, CaretRange } from './config'

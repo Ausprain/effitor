@@ -1,4 +1,4 @@
-import type { Et } from '.'
+import type { Et } from '~/core/@types'
 
 export const platform = {
   locale: navigator.language,
@@ -6,7 +6,7 @@ export const platform = {
   isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
 }
 
-export const defaultConfig: Et.EditorConfig = {
+export const defaultConfig: Readonly<Et.EditorConfig> = {
   /** 缩进margin-left像素值 */
   INDENT_PIXEL: 22,
   /** 页面最大缩进数 */
@@ -22,4 +22,4 @@ export const defaultConfig: Et.EditorConfig = {
   WITH_EDITOR_DEFAULT_STYLE: true,
 }
 
-export type DefaultConfig = typeof defaultConfig
+// export type DefaultConfig = typeof defaultConfig

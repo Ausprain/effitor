@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import type { AnchorOffset } from './config'
 import { CaretRange } from './config'
 import { EtCaret } from './EtCaret'

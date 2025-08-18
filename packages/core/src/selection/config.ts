@@ -1,4 +1,4 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
 
 /**
  * 描述一个 DOM 位置

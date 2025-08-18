@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 import { cr } from '../selection'
 
 export const getCompositionStart = (ctx: Et.EditorContext) => {

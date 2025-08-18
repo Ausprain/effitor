@@ -1,18 +1,3 @@
-@font-face {
-  font-family: "ubuntu-font";
-  font-stretch: 100%;
-  font-style: normal;
-  font-weight: 100 800;
-  src: url("./fonts/ubuntu/ubuntu-font.woff2") format("woff2-variations");
-}
-
-@font-face {
-  font-family: "cascadia-code";
-  font-stretch: 100%;
-  font-style: normal;
-  font-weight: 100 800;
-  src: url("./fonts/cascadia/CascadiaCode.woff2") format("woff2-variations");
-}
 
 /* :host指向的是et-editor 元素 */
 et-editor,

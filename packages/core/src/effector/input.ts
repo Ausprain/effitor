@@ -1,4 +1,5 @@
-import type { Et } from '..'
+import type { Et } from '~/core/@types'
+
 // import { HtmlCharEnum } from '../enums'
 // import { handlerUtils } from '../handler'
 import { runInputSolver } from './beforeinput'
