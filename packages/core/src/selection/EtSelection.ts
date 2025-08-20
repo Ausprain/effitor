@@ -34,9 +34,9 @@ export class EtSelection {
   private _endParagraph: Et.Paragraph | null = null
   private _startTopElement: Et.Paragraph | null = null
   private _endTopElement: Et.Paragraph | null = null
+  /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
+  private _rawEl: HTMLInputElement | HTMLTextAreaElement | null = null
 
-  /** 光标是否在原生 input/textarea 内 */
-  public inRaw = false
   /** 选区是否在 shadowDOM 内 */
   public inShadow: boolean
   /** 选区历史记录 */
@@ -99,6 +99,7 @@ export class EtSelection {
    * 更新选区信息, 除输入法会话内, 该方法不可单独调用, 只能通过 ctx.updateUpdate() 间接调用
    */
   update(sel?: Selection) {
+    console.warn('et sel update')
     this._caretAtBodyEnd = void 0
     this._caretAtBodyStart = void 0
     this._caretAtParagraphEnd = void 0
@@ -537,10 +538,21 @@ export class EtSelection {
    * 当光标落入input/textarea 内部, selection更新时, selection 不会包含
    * input/textarea 的内部信息; 通常情况下, selection.anchor/focus 节点
    * 是该 input/textarea节点; 但有时会是其 contenteditable=false 的祖先;
-   * 因此, 当光标落入此类原生编辑节点时, 须通过该方法手动标记选区为 raw
+   * 因此, 当光标落入此类原生编辑节点时, 须通过该方法手动标记选区为 raw; 并通过
+   * this.rawEl 是否为空来判断选区是否在原生编辑节点内
+   *
+   * 该方法在 selectionchange 内调用, 通过 event.target 来判断光标是否落入原生编辑节点内
    */
-  setInRaw(inRaw: boolean) {
-    this.inRaw = inRaw
+  setInRaw(el: HTMLInputElement | HTMLTextAreaElement | null = null) {
+    this._rawEl = el
+  }
+
+  /**
+   * 当光标光标落入input/textarea 内部时, 该属性为该 input/textarea 节点;
+   * 否则为 null
+   */
+  get rawEl() {
+    return this._rawEl
   }
 
   /**
@@ -642,12 +654,20 @@ export class EtSelection {
    * @param alter 操作类型
    * @param direction 操作方向
    * @param granularity 操作粒度
+   * @param reveal 移动光标后, 若终点不在视口内, 是否移动页面让光标显示在视口内, 默认 true;
+   *    且默认使用 auto 的 behavior 来滚动; 若要smooth滚动, 可设置为 false, 手动调用
+   *    revealSelection 方法, 并设置 scrollBehavior 为 'smooth'
    */
-  modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity) {
+  modify(
+    alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity, reveal = true,
+  ) {
     if (this.selection) {
       (this._selection as Selection).modify(alter, direction, granularity)
     }
     if (this._ctx.forceUpdate()) {
+      if (reveal) {
+        this.revealSelection(['backward', 'left'].includes(direction))
+      }
       return this._ctx.skipNextSelChange()
     }
     return false
@@ -669,6 +689,74 @@ export class EtSelection {
       return (this._ctx.skipNextSelChange())
     }
     return false
+  }
+
+  /**
+   * 让光标位置显示在视口内, 若已经在视口内, 则什么也不做
+   * @param toStart 当选区为 range 时, 通过该参数决定是保证range起点
+   *    在视口内, 还是优先保证range终点在视口内
+   */
+  revealSelection(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
+    // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
+    if (!this.range || this._rawEl) {
+      return
+    }
+    const rects = this.range.getClientRects()
+    let rect = rects[toStart ? 0 : rects.length - 1]
+    if (!rect) {
+      // fix. 若光标collapsed在节点边缘(类似光标在input/textarea 内的情况), rects 可能为空 ()
+      let anchorEl = this.range.endContainer.childNodes.item(this.range.endOffset)
+      if (!anchorEl) {
+        anchorEl = this.range.endContainer.hasChildNodes()
+          ? this.range.endContainer.lastChild as Et.Node
+          : this.range.endContainer
+      }
+      if (!dom.isElement(anchorEl)) {
+        anchorEl = anchorEl.parentElement as Et.Element
+      }
+      if (!anchorEl) {
+        return
+      }
+      rect = anchorEl.getBoundingClientRect()
+    }
+    const scrollContainer = this._ctx.editor.scrollContainer
+    const { scrollLeft, scrollTop } = scrollContainer
+    let offsetTop, offsetBottom, offsetLeft, offsetRight
+    if (scrollContainer === document.documentElement) {
+      offsetTop = 0
+      offsetBottom = window.innerHeight
+      offsetLeft = 0
+      offsetRight = window.innerWidth
+    }
+    else {
+      const offsetRect = scrollContainer.getBoundingClientRect()
+      offsetTop = Math.min(0, offsetRect.top)
+      offsetBottom = Math.max(window.innerHeight, offsetRect.bottom)
+      offsetLeft = Math.min(0, offsetRect.left)
+      offsetRight = Math.max(window.innerWidth, offsetRect.right)
+    }
+
+    let left = scrollLeft, top = scrollTop
+    if (rect.top < offsetTop) {
+      top += rect.top - 20 // 多加 20 不至于紧贴边缘
+    }
+    if (rect.left < offsetLeft) {
+      left += rect.left - 20
+    }
+    if (rect.bottom > offsetBottom) {
+      top += rect.bottom - offsetBottom + 20
+    }
+    if (rect.right > offsetRight) {
+      left += rect.right - offsetRight + 20
+    }
+    if (left === scrollLeft && top === scrollTop) {
+      return
+    }
+    this._ctx.editor.scrollContainer.scroll({
+      left,
+      top,
+      behavior: scrollBehavior,
+    })
   }
 
   /**

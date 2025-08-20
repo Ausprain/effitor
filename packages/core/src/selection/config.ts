@@ -10,8 +10,6 @@ export interface EtPosition {
 
 export abstract class CaretRange {
   protected __valid = false
-  /** Range 缓存 */
-  protected __range?: Et.Range = void 0
   abstract fromRange(range: Et.AbstractRange): void
   /**
    * 获取对应的Range对象, 若位置不合法(节点不在 DOM 上), 返回 null

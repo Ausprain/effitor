@@ -10,41 +10,23 @@
  */
 import type { Et } from '~/core/@types'
 
-/**
- * 特定的keydown时记录事务
- */
-const recordTransactionOnKeydown = (ev: KeyboardEvent, ctx: Et.EditorContext) => {
-  if (!ev.repeat && ev.key !== ctx.currDownKey) {
-    ctx.commandManager.commit()
-  }
-  return false
-}
-
-const keydownSolver: Et.KeyboardKeySolver = {
-  // 空格按下, 记录一次撤回事务
-  ' ': recordTransactionOnKeydown,
-  'Enter': recordTransactionOnKeydown,
-  'Tab': recordTransactionOnKeydown,
-  'Backspace': recordTransactionOnKeydown,
-  'Delete': recordTransactionOnKeydown,
-}
 const keyupSolver: Et.KeyboardKeySolver = {
-  // ArrowDown: (ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
-  // ArrowLeft: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // ArrowRight: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // ArrowUp: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // Home: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // End: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // PageUp: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // PageDown: (ev, ctx) => (ctx.commandManager.commit(), false),
+  ArrowDown: (_ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
+  ArrowLeft: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  ArrowRight: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  ArrowUp: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  Home: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  End: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  PageUp: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  PageDown: (_ev, ctx) => (ctx.commandManager.commit(), false),
 }
 const afterInputSolver: Et.InputTypeSolver = {
-  // insertParagraph: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // insertLineBreak: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // insertFromPaste: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // // insertFromDrop: (ev, ctx) => ctx.commandHandler.commit(),
-  // deleteWordBackward: (ev, ctx) => (ctx.commandManager.commit(), false),
-  // deleteWordForward: (ev, ctx) => (ctx.commandManager.commit(), false),
+  insertParagraph: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  insertLineBreak: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  insertFromPaste: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  // insertFromDrop: (_ev, ctx) => ctx.commandHandler.commit(),
+  deleteWordBackward: (_ev, ctx) => (ctx.commandManager.commit(), false),
+  deleteWordForward: (_ev, ctx) => (ctx.commandManager.commit(), false),
 }
 const beforeInputSolver: Et.InputTypeSolver = {
   historyUndo: (ev, ctx) => {
@@ -62,6 +44,19 @@ const beforeInputSolver: Et.InputTypeSolver = {
 }
 
 const htmlEventSolver: Et.HTMLEventSolver = {
+  // 编辑器keydown监听器中使用了异步, 这里就不能用 keydownSolver 了,
+  // 需要额外添加一个 keydown 事件来处理分割撤回栈事务
+  keydown: (ev, ctx) => {
+    if (!ev.repeat && ev.key !== ctx.currDownKey && [
+      ' ',
+      'Enter',
+      'Tab',
+      'Backspace',
+      'Delete',
+    ].includes(ev.key)) {
+      ctx.commandManager.commit()
+    }
+  },
   /** 输入法会话开始时, 将先前命令commit */
   compositionstart: (_ev, ctx) => {
     ctx.commandManager.commit()
@@ -90,7 +85,6 @@ export const useUndoEffector = (): Et.EffectorSupportInline => {
   return {
     inline: true,
     enforce: 'pre',
-    keydownSolver,
     keyupSolver,
     beforeInputSolver,
     afterInputSolver,

@@ -136,9 +136,8 @@ export function solveEffectors(effectors: Et.Effector[], inline: false): Et.Effe
  * @returns 一个合并之后的Effector
  */
 export function solveEffectors(effectors: Et.Effector[], inline: true, etcode: any, dom: any, cr: any): Et.Effector
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 export function solveEffectors(effectors: Et.Effector[], inline: boolean, etcode?: etcodeType, dom?: domType, cr?: crType): Et.Effector {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const ectx = effectorContext
   let solversMap = {} as Record<string, {
     solvers: any[]
@@ -169,13 +168,14 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean, etcode
   for (const [name, cbs] of Object.entries(singleEffector)) {
     if (inline) {
       try {
-        // 使用 eval 内敛函数
+        // 使用 new Function 构造内敛函数
         const fnstr = name.startsWith('on')
-        // onMounted, onBeforeUnmount 没有返回 true终止后续的特性
+          // onMounted, onBeforeUnmount 没有返回 true终止后续的特性
           ? `(...args)=>{${(cbs as Function[]).map(f => `(${f.toString()})(...args);`).join('\n')}}`
-        // 其他 callback 返回 true 终止后续插件的同类行为
+          // 其他 callback 返回 true 终止后续插件的同类行为
           : `(...args)=>{${(cbs as Function[]).map(f => `if((${f.toString()})(...args)) return`).join('\n')}}`
-        singleEffector[name] = eval(fnstr)
+        // singleEffector[name] = eval(fnstr)
+        singleEffector[name] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
       }
       catch {
         throw Error('启用Effector内联时 其Callback只能使用箭头函数, 并禁止使用 import.meta .')
@@ -208,8 +208,9 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean, etcode
         const funs = solverFunsMap[k] as Function[]
         try {
           // 返回 true, 终止后续solver
-          const funstr = `(...args)=>{${funs.map(f => `if((${f.toString()})(...args)) return`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
-          pre[k] = eval(funstr)
+          const fnstr = `(...args)=>{${funs.map(f => `if((${f.toString()})(...args)) return`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
+          // pre[k] = eval(fnstr)
+          pre[k] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
         }
         catch (e) {
           // console.log(name, k, funs.map(f => `if((${f.toString()})(...args)) return`).join('\n'))

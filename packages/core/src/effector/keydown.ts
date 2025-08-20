@@ -3,7 +3,7 @@ import type { Et } from '~/core/@types'
 import { platform } from '../config'
 import { etcode } from '../element'
 import { EtTypeEnum } from '../enums'
-import { modKey } from '../hotkey/manager'
+import { modKey } from '../hotkey/util'
 
 /**
  * 判断用户Backspace期望删除的内容是否为`uneditable`的内容; 是则需手动构造targetRange发送 beforeinput事件（`inputType="deleteContentBackward"`）,
@@ -131,10 +131,10 @@ const keydownKeySolver: MainKeyboardSolver = {
   ArrowRight: () => { /** 放行方向键 */ },
   ArrowUp: () => { /** 放行方向键 */ },
 
-  Tab: (ev) => {
-    // tab效应移动到keyup中
-    ev.preventDefault()
-  },
+  // Tab: (ev) => {
+  //   // tab效应移动到keyup中
+  //   ev.preventDefault()
+  // },
 
   Enter: (ev, ctx) => {
     if (ev.isComposing) return
@@ -160,8 +160,22 @@ const keydownKeySolver: MainKeyboardSolver = {
       })
     }
   },
-  Backspace: () => {
-    // TODO 放 handler 中处理
+  // Backspace: platform.isMac
+  //   ? (ev, ctx) => {
+  //       ev.preventDefault()
+  //       ctx.dispatchInputEvent('beforeinput', {
+  //         inputType: ev.altKey ? 'deleteWordBackward' : 'deleteContentBackward',
+
+  //       })
+  //     }
+  //   : (ev, ctx) => {
+  //       ev.preventDefault()
+  //       ctx.dispatchInputEvent('beforeinput', {
+  //         inputType: ev.ctrlKey ? 'deleteWordBackward' : 'deleteContentBackward',
+
+  //       })
+  //     },
+  // TODO 放 handler 中处理
   //   if (!ctx.selection.isCollapsed || !ctx.selection.anchorText) return
   //   // 毗邻零宽字符, 移动光标
   //   // fixme 这项操作是为了提高编辑体验的; 当光标位于样式节点内末尾, 继续输入文本时会产生「样式连带」现象
@@ -182,7 +196,7 @@ const keydownKeySolver: MainKeyboardSolver = {
   //     ctx.selection.modify(['move', 'forward', 'character'])
   //   }
   //   checkDeleteInUneditable(ev, ctx)
-  },
+  // },
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -212,14 +226,32 @@ export const runKeyboardSolver = (
   if (typeof fn === 'function') {
     fn(ev, ctx)
   }
+  return true
 }
 
+/**
+ * 编辑器唯一 keydown 监听器, 执行顺序:
+ *
+ * 0. 判断是否为输入法输入, 是则直接返回;
+ *    光标是否在input/textarea 内, 是则直接执行 4 并返回
+ * 1. 普通输入行为: ev.key.length==1 且无除`shift`外的修饰键; 此项放在前面时为了
+ *    性能, 因为普通输入占编辑器输入的绝大多数场景
+ * 2. 监听内置系统级按键行为; hotkeyManager.listenBuiltin; 有些系统级别的约定俗成
+ *    的行为不应再走插件, 如 `opt+ArrowLeft` 光标左移一个单词等
+ * 3. 监听快捷键绑定; hotkeyManager.listenBinding 在 listenBuiltin 失败之后,
+ *    插件 keydownSovler 之前执行; 快捷键也不应走插件, 如 撤销/重做 等.
+ * 4. 插件 keydownSovler;
+ * 5. MainKeydownSolver, 作为插件兜底, 禁用 `ctrl+r` 刷新 等"灾难性"的浏览器默认行为
+ * 6. 默认按键行为: hotkeyManager.listenDefault; 此项应放插件之后, 若插件未处理,
+ *    才启用 default 行为; 如按下 Backspace 触发 `deleteContentBackward` 等.
+ *
+ */
 export const getKeydownListener = (
-  ctx: Et.UpdatedContext, main: MainKeydownKeySolver, solver?: Et.KeyboardKeySolver,
+  ctx: Et.EditorContext, main: MainKeydownKeySolver, solver?: Et.KeyboardKeySolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
     // 没有effectElement 或没有选区 阻止后续输入
-    if (!ctx.effectElement || !ctx.selection.range) {
+    if (!ctx.isUpdated()) {
       if (import.meta.env.DEV) {
         console.error('keydown error: no effectelement', ctx)
       }
@@ -229,22 +261,86 @@ export const getKeydownListener = (
       ctx.editor.blur()
       return
     }
-    ctx.modkey = modKey(ev)
-    // fix. chromium存在输入法会话结束后并未触发compositionend事件的情况,
-    // 因此需要在此赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
-    if (!ev.repeat && !(ctx.inCompositionSession = ev.isComposing)) {
-      // TODO 分级监听 packages/core/src/hotkey/builtin.ts
-      // 监听快捷键
-      if (ctx.hotkeyManager.listen(ctx.modkey)) {
-        return (ev.preventDefault(), ev.stopPropagation())
-      }
-      // 监听热字符串
-      if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
-        return (ev.preventDefault(), ev.stopPropagation())
-      }
+    // Windows 下 Chrome 在开启输入法输入时, .key为Process
+    if (ev.key === 'Process') {
+      return
     }
-    runKeyboardSolver(ev, ctx, main, solver)
+    // fix. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
+    // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
+    ctx.inCompositionSession = ev.isComposing
 
+    // 光标在原生编辑节点内, 直接调用插件solver, 使用同步逻辑, 插件需自行判断是否为输入法输入;
+    // 在 mainSolver 中对 ctrl+r 刷新 等浏览器行为做禁用兜底
+    if (ctx.selection.rawEl) {
+      if (ctx.inCompositionSession) {
+        return
+      }
+      runKeyboardSolver(ev, ctx, main, solver)
+      return
+    }
+
+    // MacOS 下, 延迟1帧, 等待 compositionstart 激活以判断是否输入法输入
+    requestAnimationFrame(() => {
+      if (ctx.inCompositionSession) {
+        return
+      }
+
+      // 1. 处理普通输入, 并兼顾 MacOS 下输入法输入标点符号的情况
+      if (ev.key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
+        let data: string | undefined
+        if (ctx.isUsingIME) {
+          data = ctx.hotkeyManager.keyboardWritableKeyToImeChar(ev.key)
+          // 无对应ime 字符, 重置 ctx.isUsingIME 为false
+          if (!data) {
+            data = ev.key
+            ctx.isUsingIME = false
+          }
+        }
+        else {
+          data = ev.key
+        }
+        // console.log('keydown dispatch beforeinput')
+        ctx.dispatchInputEvent('beforeinput', {
+          data,
+          inputType: 'insertText',
+        })
+        return
+      }
+
+      ctx.modkey = modKey(ev)
+      // ctx.modkey = ev.code + HotkeyEnum.Connector + (
+      //   (ev.metaKey ? Mod.MetaCmd : 0)
+      //   | (ev.ctrlKey ? Mod.Ctrl : 0)
+      //   | (ev.altKey ? Mod.AltOpt : 0)
+      //   | (ev.shiftKey ? Mod.Shift : 0)
+      // )
+
+      // 2. 监听内置系统级按键行为
+      if (ctx.hotkeyManager.listenBuiltin(ctx.modkey)) {
+        return
+      }
+
+      // 3. 监听绑定的快捷键
+      if (!ev.repeat) {
+        if (ctx.hotkeyManager.listenBinding(ctx.modkey)) {
+          return
+        }
+        // 监听热字符串
+        if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
+          return
+        }
+      }
+
+      // 4. 插件 keydownSovler; 5. MainKeydownSolver
+      if (runKeyboardSolver(ev, ctx, main, solver)) {
+        // 5. 若插件未 skipDefault, 则执行默认行为
+        ctx.hotkeyManager.listenDefault(ctx.modkey)
+      }
+    })
+
+    // 禁用所有原生默认行为 (必须同步执行才有效)
+    ev.preventDefault()
+    ev.stopPropagation()
     ctx.currDownKey = ev.key
     // 若光标为Range, 设为null, 并在keyup中跳过
     ctx.prevUpKey = ctx.selection.isCollapsed ? undefined : null

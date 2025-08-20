@@ -1,3 +1,3 @@
-export * from './config'
-export type { Action, Manager, ManagerOptions } from './manager'
-export { create, createAction, modKey, withMod } from './manager'
+export type { HotkeyAction as Action, ActionGroupMap } from './config'
+export { HotkeyManager as Manager, type HotkeyManagerOptions as ManagerOptions } from './HotkeyManager'
+export { create, createAction, modKey, withMod } from './util'

@@ -4,6 +4,10 @@ import { cr } from '../selection'
 
 export const getCompositionStart = (ctx: Et.EditorContext) => {
   return () => {
+    // 输入法开始时, 更新一次选区
+    ctx.selection.update()
+    // 标记使用 IME
+    ctx.isUsingIME = true
     ctx.inCompositionSession = true
     ctx.compositionUpdateCount = 0
   }
@@ -31,6 +35,8 @@ export const getCompositionEnd = (ctx: Et.EditorContext) => {
     }
     if (ctx.selection.anchorText) {
       ctx.setSelection(
+        // 输入法构造期间, 选区为 range, anchofOffset为 startOffset;
+        // 输入法构造完成, 光标落在 startoffset + e.data.length 的位置
         cr.caret(ctx.selection.anchorText, ctx.selection.anchorOffset + e.data.length),
       )
     }

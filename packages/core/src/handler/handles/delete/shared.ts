@@ -21,7 +21,17 @@ import { checkTargetRangePosition, cloneRangeUnselectedContents } from '../../ut
  * @returns 是否成功移除内容
  */
 export const removeRangingContents = (ctx: Et.UpdatedContext) => {
-  return removeByTargetRange(ctx, ctx.selection.range)
+  if (ctx.selection.isCollapsed) {
+    return false
+  }
+  return checkTargetRangePosition(
+    ctx, null,
+    removeInSameTextNode,
+    removeInSameParagraph,
+    removeInDifferentParagraphWithSameParent,
+    removeInDifferentParagraphWithSameTopElement,
+    removeInDifferentTopElement,
+  )
 }
 
 /**
@@ -69,6 +79,7 @@ export const removeInSameTextNode = (
   }
   ctx.commandManager.push(cmd.removeNode({
     node: removeNode,
+    setCaret: true,
   }))
   return true
 }

@@ -9,7 +9,7 @@ import { CssClassEnum, EtTypeEnum } from '../enums'
 import { CommandManager } from '../handler/command/manager'
 import { commonHandlers } from '../handler/common'
 import { effectInvoker } from '../handler/invoker'
-import { getHotkeyManager } from '../hotkey/manager'
+import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { getHotstringManager } from '../hotstring/manager'
 import { EtSelection } from '../selection/EtSelection'
 
@@ -76,6 +76,25 @@ export class EditorContext {
   prevUpKey?: string | null
   /** 当前 keydown 按下的按键组合, 通过 hotkey.modKey(KeyboardEvent) 计算 */
   modkey = ''
+  /**
+   * 一个推断属性, 根据当前用户的输入行为, 判断当前是否开启了输入法; 该判断是非严格的,
+   * 因为没有获取输入法状态的相关标准 API, 我们无法得知当前输入是否为输入法输入;
+   *
+   * 在 Windows平台的 Chorme 下, 可以通过 KeyboardEvent.key
+   * 属性是否为 'Process' 来判断, 但在 MacOS 下, 此方法无效; 并且在 Windows 下,
+   * 用户开启输入法(如中文), 输入标点符号时, .key是"Process"且会激活 compositionstart,
+   * 但在 MacOS 下, 输入法输入中文标点符号时, keydown 事件依旧无法判断是否为输入法输入,
+   * .key 依旧等于半角的符号值, 且不会激活 compositionstart; 这样我们就无法判断用户
+   * 是否预期插入输入法(全角)标点符号了;
+   *
+   * 因此需要此属性, 当用户使用输入法输入, 激活了 insertCompositionText 的 beforeinput 事件,
+   * 我们将该属性标记为 true; 并在下一个 "纯的"insertText 中将其重置为 false;
+   * 这样我们就可以在激活 insertText 之前, 通过该属性判断插入的标点, 是否应当是全角的;
+   * 对应的全角字符可通过 HotkeyManager 自定义配置
+   *
+   * {@link HotkeyManager}
+   */
+  isUsingIME = false
   /** 是否处于输入法会话中, 即compositionstart与compositionend之间 */
   inCompositionSession = false
   /**
@@ -127,7 +146,7 @@ export class EditorContext {
     this.schema = schema
     this.effectInvoker = effectInvoker
     this.commandManager = new CommandManager(this)
-    this.hotkeyManager = getHotkeyManager(this, hotkeyOptions)
+    this.hotkeyManager = new HotkeyManager(this as UpdatedContext, hotkeyOptions)
     this.hotstringManager = getHotstringManager(this)
 
     this.__onEffectElementChanged = callbacks.onEffectElementChanged
@@ -242,7 +261,7 @@ export class EditorContext {
   /**
    * 检查当前上下文是否已更新; 已更新的上下文 effectElement/paragraphEl/topElement非空
    */
-  isUpdated(): this is UpdatedContext {
+  isUpdated(this: EditorContext): this is UpdatedContext {
     return this._updated
   }
 

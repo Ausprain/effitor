@@ -1,3 +1,5 @@
+import './src/assets/font.css'
+
 import { Effitor } from './src'
 
 const editor = new Effitor()

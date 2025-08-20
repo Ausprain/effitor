@@ -37,7 +37,6 @@ export class EtRange extends CaretRange {
    * 通过 Range 更新当前 EtRange 对象
    */
   fromRange(range: Et.AbstractRange) {
-    this.__range = void 0
     this.start.fromRange(range, true)
     this.end.fromRange(range, false)
   }
@@ -49,17 +48,18 @@ export class EtRange extends CaretRange {
   }
 
   toRange() {
-    if (this.__range) {
-      return this.__range
-    }
-
     if (!this.isValid) {
       return null
     }
     const r = document.createRange() as Et.Range
     this.start.adoptToRange(r, true, false)
     this.end.adoptToRange(r, false, true)
-    this.__range = r
     return r
+  }
+
+  markValid(): void {
+    this.__valid = true
+    this.start.markValid()
+    this.end.markValid()
   }
 }

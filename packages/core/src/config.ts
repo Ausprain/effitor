@@ -20,6 +20,7 @@ export const defaultConfig: Readonly<Et.EditorConfig> = {
   ALLOW_MOUNT_WHILE_MOUNTED: false,
   AUTO_CREATE_FIRST_PARAGRAPH: true,
   WITH_EDITOR_DEFAULT_STYLE: true,
+  AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: true,
 }
 
 // export type DefaultConfig = typeof defaultConfig

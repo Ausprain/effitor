@@ -47,11 +47,11 @@ declare global {
   type ModifyDirection = 'forward' | 'backward' | 'left' | 'right'
   type ModifyGranularity = 'character' | 'word' | 'sentence' | 'line' | 'paragraph' | 'lineboundary' | 'sentenceboundary' | 'paragraphboundary' | 'documentboundary'
   /**
-   * [Selection](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection)
+   * [Selection](https://developer.mozilla.org/en-US/docs/Web/API/Selection)
    */
   interface Selection {
     /**
-     * [MDN Reference](https://developer.mozilla.org/zh-CN/docs/Web/API/Selection/modify)
+     * [MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Selection/modify)
      * [Selection API W3C Working Draft 16 May 2023](https://www.w3.org/TR/selection-api/#dom-selection-modify)
      */
     modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity): void

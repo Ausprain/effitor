@@ -50,22 +50,24 @@ export type EditorSettings = Record<string, (...args: unknown[]) => void>
  * 编辑器配置
  */
 export interface EditorConfig {
-  /** 缩进margin-left像素值 */
+  /** 缩进margin-left像素值; 默认 22 */
   INDENT_PIXEL: number
-  /** 页面最大缩进数 */
+  /** 页面最大缩进数; 默认 6 */
   MAX_INDENT: number
-  /** 编辑区字体大小 */
+  /** 编辑区字体大小; 默认 16 */
   FONT_SIZE: number
-  /** 撤回栈长度 */
+  /** 撤回栈长度; 默认 1000 */
   UNDO_LENGTH: number
-  /** 链接url最大有效长度 */
+  /** 链接url最大有效长度; 默认 2048 */
   ALLOW_LINK_URL_MAX_LENGTH: number
-  /** 允许挂载后不unmount而直接mount其他host */
+  /** 允许挂载后不unmount而直接mount其他host; 默认 false */
   ALLOW_MOUNT_WHILE_MOUNTED?: boolean
   /** 自动创建第一个段落, 默认 true */
   AUTO_CREATE_FIRST_PARAGRAPH?: boolean
-  /** 使用编辑器外框默认样式 */
+  /** 使用编辑器外框默认样式; 默认 true */
   WITH_EDITOR_DEFAULT_STYLE: boolean
+  /** 是否在按下空格时自动将前面一个全角标点字符替换为半角字符; 默认 true */
+  AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: boolean
 }
 
 type IndexSchema = Readonly<Record<string, EffectElementCtor>>

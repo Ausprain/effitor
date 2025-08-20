@@ -19,7 +19,7 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  // minify: true,
+  minify: true,
   // 使用 minify + define 移除开发环境代码
   define: {
     'import.meta.env.DEV': JSON.stringify(false),

@@ -23,7 +23,7 @@ export class EtBodyElement extends EffectElement {
     outline: 'none',
     border: 'none',
     whiteSpace: 'pre-wrap',
-    fontFamily: 'UbuntuVariable, PingFang SC, Lantinghei SC, Microsoft Yahei, Hiragino Sans GB, Microsoft Sans Serif, WenQuanYi Micro Hei, sans-serif',
+    fontFamily: 'ubuntu-font, PingFang SC, Lantinghei SC, Microsoft Yahei, Hiragino Sans GB, Microsoft Sans Serif, WenQuanYi Micro Hei, sans-serif',
     fontWeight: '449',
     fontSize: '15px',
   }

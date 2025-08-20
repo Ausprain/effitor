@@ -89,8 +89,11 @@ interface CmdExecAt {
 interface SetCaret {
   /**
    * 命令执行后是否设置光标位置 \
-   * 这是文本命令 [Insert_Text, Delete_Text, Replace_Text] 对 destCaretRange 选项的简化配置 \
-   * 当且仅当 true 时, 命令会自动定位 插入/删除/替换 文本后的光标位置, 而无需指定 destCaretRange 选项
+   * 这是对 destCaretRange 选项的简化配置, 当且仅当 true 时, 无需指定 destCaretRange 选项,
+   * 命令会自动定位命令执行后的光标位置, 对于文本命令 [Insert_Text, Delete_Text, Replace_Text]
+   * 会自动定位 插入/删除/替换 文本后的光标位置; 对于节点命令: Insert_Node 会定位到节点内开头,
+   * Remove_Node 会定位到被删除节点的原始位置(外开头), 对于 Replace_Node 会定位到替换后节点的内开头;
+   * 片段命令和函数式命令无此配置
    */
   setCaret?: boolean
 }
@@ -170,19 +173,19 @@ interface CmdReplaceText<MetaType = any> extends Cmd<CmdTypeEm.Replace_Text, Met
   readonly offset: number
 }
 /** 插入节点 */
-interface CmdInsertNode<MetaType = any> extends Cmd<CmdTypeEm.Insert_Node, MetaType>, CmdExecAt {
+interface CmdInsertNode<MetaType = any> extends Cmd<CmdTypeEm.Insert_Node, MetaType>, CmdExecAt, SetCaret {
   readonly type: CmdTypeEm.Insert_Node
   /** 要插入的节点 */
   readonly node: Et.Node
 }
 /** 移除节点 */
-interface CmdRemoveNode<MetaType = any> extends Cmd<CmdTypeEm.Remove_Node, MetaType>, Partial<CmdExecAt> {
+interface CmdRemoveNode<MetaType = any> extends Cmd<CmdTypeEm.Remove_Node, MetaType>, Partial<CmdExecAt>, SetCaret {
   readonly type: CmdTypeEm.Remove_Node
   /** 要删除的节点 */
   readonly node: Et.Node
 }
 /** 替换节点 */
-interface CmdReplaceNode<MetaType = any> extends Cmd<CmdTypeEm.Replace_Node, MetaType> {
+interface CmdReplaceNode<MetaType = any> extends Cmd<CmdTypeEm.Replace_Node, MetaType>, SetCaret {
   readonly type: CmdTypeEm.Replace_Node
   /** 新的节点 */
   newNode: Et.Node
@@ -281,7 +284,7 @@ interface ExecutedRequiresMap {
 
 const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx: Et.UpdatedContext) {
   if (ctx.compositionUpdateCount === 1) {
-    if (ctx.selection.anchorText) { // at Text ?
+    if (ctx.selection.anchorText) {
       this.newInserted = false
     }
     else {
@@ -295,9 +298,10 @@ const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx:
     this.srcCaretRange = ctx.selection.getCaretRange()
   }
   else {
-    // 更新光标位置
-    ctx.selection.update()
-
+    // 若输入法构造期间无#text节点, 更新光标位置以获取当前文本节点
+    if (!ctx.selection.anchorText) {
+      ctx.selection.update()
+    }
     if (!ctx.selection.anchorText) {
       // 输入法构造串不在文本节点上, 理论上这永远不会发生, 如果发生将是浏览器/系统层面的问题
       if (import.meta.env.DEV) {
@@ -351,7 +355,6 @@ const execInsertNode = function (this: CmdInsertNode | CmdRemoveNode) {
   if (execAt.isSurroundText || !execAt.isValid) {
     return false
   }
-
   // 此处插入节点不使用 execAt.toRange()?.insertNode 方式插入
   // 使用手动插入, 性能更优; 同时避免 Range.insertNode 方法(可能意外的)破坏 DOM 结构
   if (execAt.isAnchorIn) {
@@ -364,11 +367,20 @@ const execInsertNode = function (this: CmdInsertNode | CmdRemoveNode) {
   else {
     (execAt.anchor.parentNode as Et.HTMLElement).appendChild(this.node)
   }
+  // 自动设置结束光标位置
+  if (this.setCaret) {
+    this.setCaret = false
+    this.destCaretRange = cr.caretInStart(this.node)
+  }
   return true
 }
 const execRemoveNode = function (this: CmdRemoveNode | CmdInsertNode) {
   if (!this.execAt) {
     this.execAt = cr.caretOutStart(this.node)
+  }
+  if (this.setCaret) {
+    this.setCaret = false
+    this.destCaretRange = cr.caretOutStart(this.node)
   }
   this.node.remove()
   return true
@@ -378,7 +390,8 @@ const execReplaceNode = function (this: CmdReplaceNode) {
   oldNode.replaceWith(newNode)
   this.newNode = oldNode
   this.oldNode = newNode
-  if (this.destCaretRange === void 0) {
+  if (this.setCaret) {
+    this.setCaret = false
     this.destCaretRange = cr.caretInStart(newNode)
   }
   return true

@@ -25,22 +25,45 @@ const insertTextAtCaret = (
   if (!data) {
     return true
   }
-  // 光标在#text节点, 直接插入文本
-  if (ctx.node) {
-    ctx.commandManager.push(cmd.insertText({
-      text: ctx.node,
-      data: data,
-      offset: ctx.selection.anchorOffset,
-      setCaret: true,
-    }))
-  }
   // 无#text节点, 插入新节点
-  else {
+  if (!ctx.selection.anchorText) {
     const node = dom.createText(data)
     ctx.commandManager.push(cmd.insertNode({
       node,
       execAt: ctx.selection.getCaretRange().toCaret(true),
       destCaretRange: cr.caret(node, node.length),
+    }))
+    return true
+  }
+  // 光标在#text节点, 若全角标点后边输入空格, 自动替换为半角; 否则直接插入空格
+  if (data !== ' ' || ctx.selection.anchorOffset === 0
+    || !ctx.editor.config.AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE
+  ) {
+    ctx.commandManager.push(cmd.insertText({
+      text: ctx.selection.anchorText,
+      data,
+      offset: ctx.selection.anchorOffset,
+      setCaret: true,
+    }))
+  }
+  else {
+    let offset = ctx.selection.anchorOffset
+    let replaceChar = ctx.hotkeyManager.getWritableKey(
+      ctx.selection.anchorText.data[offset - 1],
+    )
+    if (replaceChar) {
+      offset -= replaceChar.length
+      replaceChar += ' '
+    }
+    else {
+      replaceChar = ' '
+    }
+    ctx.commandManager.push(cmd.replaceText({
+      text: ctx.selection.anchorText,
+      data: replaceChar,
+      delLen: replaceChar.length,
+      offset: offset,
+      setCaret: true,
     }))
   }
   return true
@@ -55,7 +78,7 @@ const insertTextAtRange = (
     return true
   }
   ctx.commandManager.startTransaction()
-  if (removeByTargetRange(ctx, targetRange)) {
+  if (removeByTargetRange(ctx, targetRange) && ctx.commandManager.handle()) {
     if (ctx.selection.isCollapsed) {
       insertTextAtCaret(ctx, data)
     }

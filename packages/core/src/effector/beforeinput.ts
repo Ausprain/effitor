@@ -71,6 +71,7 @@ export const getBeforeinputListener = (
   ctx: Et.UpdatedContext, main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
 ) => {
   return (ev: Et.InputEvent) => {
+    // console.log('beforeinput', ev.inputType, ev.data)
     // 输入法会话内 跳过delete 处理, 因为其不可 preventDefault
     // FIXME. safari 使用 insertFromComposition 和 deleteCompositionText 处理输入法输入结束;
     // 并且insertFromComposition 可以被preventDefault

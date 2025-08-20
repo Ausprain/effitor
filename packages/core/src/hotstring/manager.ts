@@ -2,6 +2,7 @@ import type { Et } from '~/core/@types'
 
 import { removeHotstringOnTrigger } from './actions'
 import { Hotstring } from './judge'
+import { create } from './util'
 
 /**
  * 获取一个热字符串管理器
@@ -15,6 +16,7 @@ export const getHotstringManager = (ctx: Et.EditorContext) => {
     hsArray = [...hotstringMap.values()]
   }
   return {
+    create,
     /** 标记下次listen时, 需要先将当前judge reset; 以代替统一的reset(), 避免每次都要重新遍历一次所有judge */
     needResetBeforeJudge: () => _resetNeeded = true,
     listen: (char: string) => {

@@ -29,7 +29,6 @@ import {
   EtEditorElement,
   EtParagraphElement,
 } from '../element'
-import { elseCssText } from '../element/config'
 import { extentEtElement, registerEtElement } from '../element/register'
 import { BuiltinElName } from '../enums'
 import { cmd } from '../handler'
@@ -322,6 +321,8 @@ export class Effitor {
   private __host: HTMLDivElement | undefined
   private __root: ShadowRoot | Et.EtEditorElement | undefined
   private __body: Et.EtBodyElement | undefined
+  /** 编辑器所在滚动容器, 默认为根 html 元素 */
+  private __scrollContainer: HTMLElement = document.documentElement
   private readonly __context: Et.EditorContext
 
   private __ac: AbortController | undefined
@@ -339,8 +340,8 @@ export class Effitor {
   public readonly markdown: Md
 
   /**
-     * 编辑器宿主 div元素
-     */
+   * 编辑器宿主 div元素
+   */
   get host() {
     if (!this.__host) {
       throw new EffitorNoHostError()
@@ -349,8 +350,8 @@ export class Effitor {
   }
 
   /**
-     * 编辑器影子根 ShadowRoot
-     */
+   * 编辑器影子根 ShadowRoot
+   */
   get root() {
     if (!this.__root) {
       throw new EffitorNoHostError()
@@ -359,8 +360,8 @@ export class Effitor {
   }
 
   /**
-     * 编辑器上下文对象
-     */
+   * 编辑器上下文对象
+   */
   get context() {
     if (!this.__host) {
       throw new EffitorNoHostError()
@@ -373,6 +374,11 @@ export class Effitor {
       throw new EffitorNoHostError()
     }
     return this.__body
+  }
+
+  /** 编辑器所在滚动容器, 默认为根 html 元素 */
+  get scrollContainer() {
+    return this.__scrollContainer
   }
 
   constructor({
@@ -433,7 +439,7 @@ export class Effitor {
           : ctor.cssText + '\n' + cssStyle2cssText(ctor.cssStyle, ctor.elName),
       )
       return css
-    }, []).join('\n') + pluginConfigs.cssText + elseCssText + '\n' + customStyleText
+    }, []).join('\n') + pluginConfigs.cssText + '\n' + customStyleText
 
     this.markdown = getMdProcesser({
       fromMdHandlerMapList,
@@ -450,8 +456,10 @@ export class Effitor {
 
   /**
    * 在一个div下加载一个编辑器  若已挂载 则抛出一个异常; 除非配置了 `ALLOW_MOUNT_WHILE_MOUNTED: true`
+   * @param host 编辑器宿主, 一个 div 元素
+   * @param scrollContainer 滚动容器, 默认是 html 根元素, 若host 在另一个滚动容器里, 则必须配置此项
    */
-  mount(host: HTMLDivElement) {
+  mount(host: HTMLDivElement, scrollContainer?: HTMLElement) {
     if (this.__host) {
       if (this.config.ALLOW_MOUNT_WHILE_MOUNTED) {
         this.unmount()
@@ -476,6 +484,9 @@ export class Effitor {
     this.__host = host
     this.__body = body
     this.__context.body = body
+    if (scrollContainer) {
+      this.__scrollContainer = scrollContainer
+    }
 
     // 配置了自动创建首段落
     if (this.config.AUTO_CREATE_FIRST_PARAGRAPH) {

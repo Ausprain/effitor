@@ -70,29 +70,25 @@ import type { Et } from '~/core/@types'
 import { etcode } from '~/core/element'
 import { EtTypeEnum } from '~/core/enums'
 import { cr } from '~/core/selection'
+import { traversal } from '~/core/utils'
 
 import { cmd } from '../../command'
 import { createEffectHandle, createInputEffectHandle } from '../../config'
-import { checkEqualParagraphAndSmartMerge, removeByTargetRange, removeParagraphAndMergeCloneContentsToOther } from './shared'
+import { checkEqualParagraphAndSmartMerge, removeByTargetRange, removeParagraphAndMergeCloneContentsToOther, removeRangingContents } from './shared'
 
 /**
  * 删除当前选区内容 (Chrome ~137 无此 inputType)
  */
 export const deleteContent = createInputEffectHandle((_this, ctx) => {
-  if (ctx.selection.isCollapsed) {
-    return false
-  }
-  removeByTargetRange(ctx, ctx.selection.range)
-  return false
+  return removeRangingContents(ctx)
 })
 /**
  * 删除光标后方(文档树前)一个字符, 或一个节点(当该节点是不可编辑或"整体"节点时)
  */
 export const deleteContentBackward = createInputEffectHandle((_this, ctx) => {
-  if (!ctx.selection.isCollapsed) {
-    return removeByTargetRange(ctx, ctx.selection.range)
-  }
-  return checkBackspaceAtCaretDeleteText(ctx, false)
+  return removeRangingContents(ctx)
+    // 光标在文本节点上
+    || checkBackspaceAtCaretDeleteText(ctx, false)
     // 光标在段落开头?
     || checkBackspaceAtCaretDeleteParagraph(_this, ctx)
     // 光标落在非文本节点边缘?
@@ -104,10 +100,9 @@ export const deleteContentBackward = createInputEffectHandle((_this, ctx) => {
  * 删除光标前方(文档树后)一个字符, 或一个节点(当节点是不可编辑或"整体"节点时)
  */
 export const deleteContentForward = createInputEffectHandle((_this, ctx) => {
-  if (!ctx.selection.isCollapsed) {
-    return removeByTargetRange(ctx, ctx.selection.range)
-  }
-  return checkDeleteAtCaretDeleteText(ctx, false)
+  return removeRangingContents(ctx)
+    // 光标在文本节点上
+    || checkDeleteAtCaretDeleteText(ctx, false)
     // 光标在段落末尾
     || checkDeleteAtCaretDeleteParagraph(_this, ctx)
     // 光标在非文本节点边缘
@@ -117,18 +112,27 @@ export const deleteContentForward = createInputEffectHandle((_this, ctx) => {
 })
 
 export const checkBackspaceAtCaretDeleteText = (ctx: Et.UpdatedContext, deleteWord: boolean) => {
-  const removeChar = deleteWord ? ctx.selection.precedingWord : ctx.selection.precedingChar
-  if (!removeChar) {
+  const removeData = deleteWord ? ctx.selection.precedingWord : ctx.selection.precedingChar
+  const textNode = ctx.selection.anchorText
+  if (!removeData || !textNode) {
     return false
   }
-  // anchorText必定存在且 anchorOffset不为 0
-  ctx.commandManager.push(cmd.deleteText({
-    text: ctx.selection.anchorText as Et.Text,
-    data: removeChar,
-    offset: ctx.selection.anchorOffset - removeChar.length,
-    isBackward: true,
-    setCaret: true,
-  }))
+  if (textNode.length === removeData.length) {
+    // 删除后文本节点为空, 连带删除父节点
+    const outermost = traversal.outermostAncestorWithSelfAsOnlyChildButUnder(
+      textNode, ctx.paragraphEl,
+    )
+    ctx.commandManager.push(cmd.removeNode({ node: outermost, setCaret: true }))
+  }
+  else {
+    ctx.commandManager.push(cmd.deleteText({
+      text: textNode,
+      data: removeData,
+      offset: ctx.selection.anchorOffset - removeData.length,
+      isBackward: true,
+      setCaret: true,
+    }))
+  }
   return true
 }
 export const checkBackspaceAtCaretDeleteParagraph = (
@@ -168,9 +172,7 @@ export const checkBackspaceAtCaretDeleteNode = (ctx: Et.UpdatedContext) => {
   if (removeNode === ctx.body || ctx.isParagraph(removeNode)) {
     return true
   }
-  ctx.commandManager.push(cmd.removeNode({
-    node: removeNode,
-  }))
+  ctx.commandManager.push(cmd.removeNode({ node: removeNode, setCaret: true }))
   return true
 }
 export const checkBackspaceAtCaretInTextStart = (ctx: Et.UpdatedContext) => {
@@ -187,13 +189,21 @@ export const checkBackspaceAtCaretInTextStart = (ctx: Et.UpdatedContext) => {
 }
 
 export const checkDeleteAtCaretDeleteText = (ctx: Et.UpdatedContext, deleteWord: boolean) => {
-  const removeChar = deleteWord ? ctx.selection.followingWord : ctx.selection.followingChar
-  if (!removeChar) {
+  const removeData = deleteWord ? ctx.selection.followingWord : ctx.selection.followingChar
+  const textNode = ctx.selection.anchorText
+  if (!removeData || !textNode) {
     return false
   }
+  if (textNode.length === removeData.length) {
+    // 删除后文本节点为空, 连带删除父节点
+    const outermost = traversal.outermostAncestorWithSelfAsOnlyChildButUnder(
+      textNode, ctx.paragraphEl,
+    )
+    ctx.commandManager.push(cmd.removeNode({ node: outermost, setCaret: true }))
+  }
   ctx.commandManager.push(cmd.deleteText({
-    text: ctx.selection.anchorText as Et.Text,
-    data: removeChar,
+    text: textNode,
+    data: removeData,
     offset: ctx.selection.anchorOffset,
     isBackward: false,
     setCaret: true,
@@ -225,9 +235,7 @@ export const checkDeleteAtCaretDeleteNode = (ctx: Et.UpdatedContext) => {
   if (removeNode === ctx.body || ctx.isParagraph(removeNode)) {
     return true
   }
-  ctx.commandManager.push(cmd.removeNode({
-    node: removeNode,
-  }))
+  ctx.commandManager.push(cmd.removeNode({ node: removeNode, setCaret: true }))
   return true
 }
 export const checkDeleteAtCaretInTextEnd = (ctx: Et.UpdatedContext) => {

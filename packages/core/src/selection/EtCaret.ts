@@ -70,8 +70,6 @@ export class EtCaret extends CaretRange {
    * 通过 Range 更新当前 EtCaret 对象
    */
   fromRange(range: Et.AbstractRange, fromStart = true) {
-    // 清除旧的 range缓存
-    this.__range = void 0
     if (fromStart) {
       this._anchor = range.startContainer
       this._offset = range.startOffset
@@ -108,10 +106,6 @@ export class EtCaret extends CaretRange {
   }
 
   toRange() {
-    if (this.__range) {
-      return this.__range
-    }
-
     if (!this.isValid) {
       return null
     }
@@ -128,7 +122,6 @@ export class EtCaret extends CaretRange {
         r.setStartAfter(this.anchor)
       }
     }
-    this.__range = r
     return r
   }
 

@@ -15,9 +15,15 @@ export const getSelectionChangeListener = (
     if (!ctx.hasInsertText) {
       ctx.hotstringManager.needResetBeforeJudge()
     }
-    // if (import.meta.env.DEV) {
-    //   console.error('sel change')
-    // }
+    if (['input', 'textarea'].includes((e.target as HTMLElement)?.localName)) {
+      ctx.selection.setInRaw(e.target as HTMLInputElement | HTMLTextAreaElement)
+    }
+    else if (ctx.selection.rawEl) {
+      ctx.selection.setInRaw(null)
+    }
+    if (import.meta.env.DEV) {
+      console.error('sel change')
+    }
 
     // FIXME 此处跳过一次更新, 可能会导致光标位置未能及时更新, 从而引发错误;
     // 此bug尚未稳定复现, 不确定是此处引起; 待观察
@@ -36,5 +42,5 @@ export const getSelectionChangeListener = (
       }
     }
     callback?.(e, ctx)
-  }, 96)
+  }, 21)
 }

@@ -2,7 +2,7 @@ import type { Et } from '~/core/@types'
 
 import { RemoveHotstringAction } from './actions'
 
-interface HotstringAction {
+export interface HotstringAction {
   /**
    * 热字符串触发回调
    * @param removeInsertedHotstring 移除已输入的热字符串
@@ -33,10 +33,10 @@ export class Hotstring {
   }
 
   /**
- * 判断input的字符是否匹配热字符串当前索引字符
- * @param resetNeeded 当任一热字符串匹配成功，需要重置所有热字符串的pos索引，为避免多次遍历，使用 resetNeeded 标记
- * @returns
- */
+   * 判断input的字符是否匹配热字符串当前索引字符
+   * @param resetNeeded 当任一热字符串匹配成功，需要重置所有热字符串的pos索引，为避免多次遍历，使用 resetNeeded 标记
+   * @returns
+   */
   judge(char: string, resetNeeded = false) {
     if (resetNeeded) {
       this.__pos = 0
