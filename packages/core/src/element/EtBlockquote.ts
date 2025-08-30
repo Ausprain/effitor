@@ -9,7 +9,7 @@ import { EtParagraph } from './EtParagraph'
  * @example
  * extentEtElement(EtBlockquote, {}, [ EtListElement ])
  */
-export abstract class EtBlockquoteElement extends EtParagraph {
+export abstract class EtBlockquote extends EtParagraph {
   static readonly elName: string = BuiltinElName.ET_BLOCKQUOTE
   static readonly etType = super.etType | EtTypeEnum.Blockquote
   /** blockquote 下允许一切段落效应 */

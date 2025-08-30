@@ -1,11 +1,11 @@
-import type { EditorContext } from '../context'
+import type { EditorContext, EditorContextMeta } from '../context'
 import type { Effector, EffectorSupportInline, MainEffector } from '../effector'
 import type {
   EffectElement,
   EffectElementCtor,
   EtBodyElement,
   EtEditorElement,
-  EtHeadingElement,
+  EtHeading,
   EtParagraph,
   EtParagraphCtor,
 } from '../element'
@@ -13,6 +13,10 @@ import type { ExtentEtElement } from '../element/register'
 import type { hotkey } from '../hotkey'
 import type { CaretRange } from '../selection'
 
+export type OnEffectElementChanged = (
+  el: EffectElement, old: EffectElement | null, ctx: EditorContext) => void
+export type OnParagraphChanged = (
+  el: EtParagraph, old: EtParagraph | null, ctx: EditorContext) => void
 /**
  * 编辑器回调, 编辑器核心会使用到的回调, 相当于编辑器钩子
  */
@@ -23,9 +27,11 @@ export interface EditorCallbacks {
    */
   firstInsertedParagraph?: ParagraphCreator
   /** 光标位置所在效应元素改变时调用, 为避免影响性能，内部请使用异步操作 */
-  onEffectElementChanged?: (el: EffectElement, old: EffectElement, ctx: EditorContext) => void
+  onEffectElementChanged?: OnEffectElementChanged
   /** 光标位置所在段落改变时调用, 为避免影响性能，内部请使用异步操作 */
-  onParagraphChanged?: (el: EtParagraph, old: EtParagraph, ctx: EditorContext) => void
+  onParagraphChanged?: OnParagraphChanged
+  /** 光标所在顶层节点发生改变时调用, 若顶层节点就是当前段落, 则不会调用 */
+  onTopElementChanged?: OnParagraphChanged
   /**
    * 编辑器内容改变时调用
    * @param ctx
@@ -66,6 +72,8 @@ export interface EditorConfig {
   AUTO_CREATE_FIRST_PARAGRAPH?: boolean
   /** 使用编辑器外框默认样式; 默认 true */
   WITH_EDITOR_DEFAULT_STYLE: boolean
+  /** 是否开启编辑器默认log记录; 默认 false */
+  WITH_EDITOR_DEFAULT_LOGGER: boolean
   /** 是否在按下空格时自动将前面一个全角标点字符替换为半角字符; 默认 true */
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: boolean
 }
@@ -77,7 +85,7 @@ export interface EditorSchema extends IndexSchema {
   /** 当前编辑区元素类 */
   readonly body: typeof EtBodyElement
   /** 当前标题元素类 */
-  readonly heading: typeof EtHeadingElement
+  readonly heading: typeof EtHeading
   /** 当前段落元素类 */
   readonly paragraph: EtParagraphCtor
 }
@@ -129,7 +137,7 @@ export interface EditorPlugin {
    * ```
    */
   readonly registry?: (
-    ctx: EditorContext, setSchema: EditorSchemaSetter, extentEtElement: ExtentEtElement
+    ctx: EditorContextMeta, setSchema: EditorSchemaSetter, extentEtElement: ExtentEtElement
   ) => void
 };
 
@@ -166,7 +174,7 @@ interface _CreateEditorOptions {
   config?: Partial<EditorConfig>
   /** 自定义样式css文本, 该文本会连同自定义EffectElement的cssText和cssStyle一起插入到 shadowDOM的内置样式表中, 会在编辑器挂载前加载完毕 */
   customStyleText?: string
-  /** 自定义样式文件列表 */
+  /** 自定义样式文件列表, 以<link>形式插入到编辑器根节点中 */
   customStyleLinks?: CustomStyleLink[]
 
   callbacks?: EditorCallbacks
@@ -178,4 +186,13 @@ export interface CustomStyleLink {
   preload?: boolean
   as?: 'font' | 'style'
   onload?: (this: HTMLLinkElement, ev: HTMLElementEventMap['load']) => void
+}
+
+export interface EditorMountOptions {
+  /** 编辑器所在滚动容器, 默认为根 html 元素 */
+  scrollContainer?: HTMLElement
+  /** 编辑器语言, 默认为 'navigator.language' */
+  locale?: string
+  /** 自定义样式文件列表, 该值会覆盖编辑器初始化时的customStyleLinks */
+  customStyleLinks?: CustomStyleLink[]
 }

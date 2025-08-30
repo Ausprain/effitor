@@ -4,6 +4,8 @@
 export const enum BuiltinConfig {
   /** 内置Effect前缀, 便于effectBlocker过滤 */
   BUILTIN_EFFECT_PREFFIX = 'E',
+  /** 一个粘贴效应名, 定义在这里, 而不是效应列表中, 目的是隐藏内部粘贴行为入口 */
+  INSERT_FROM_ET_HTML = 'InsertFromEtHtml',
 }
 /** 内置自定义元素名 */
 export const enum BuiltinElName {

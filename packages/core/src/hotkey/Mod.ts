@@ -12,17 +12,17 @@ export const enum Mod {
   AltOpt = 2,
   MetaCmd = 1,
   // 组合修饰键
-  CtrlShift = Mod.Ctrl | Mod.Shift,
-  CtrlAlt = Mod.Ctrl | Mod.AltOpt,
-  CtrlMeta = Mod.Ctrl | Mod.MetaCmd,
-  ShiftAlt = Mod.Shift | Mod.AltOpt,
-  ShiftMeta = Mod.Shift | Mod.MetaCmd,
-  AltMeta = Mod.AltOpt | Mod.MetaCmd,
-  CtrlShiftAlt = Mod.Ctrl | Mod.Shift | Mod.AltOpt,
-  CtrlShiftMeta = Mod.Ctrl | Mod.Shift | Mod.MetaCmd,
-  CtrlAltMeta = Mod.Ctrl | Mod.AltOpt | Mod.MetaCmd,
-  ShiftAltMeta = Mod.Shift | Mod.AltOpt | Mod.MetaCmd,
-  CtrlShiftAltMeta = Mod.Ctrl | Mod.Shift | Mod.AltOpt | Mod.MetaCmd,
+  Ctrl_Shift = Mod.Ctrl | Mod.Shift,
+  Ctrl_Alt = Mod.Ctrl | Mod.AltOpt,
+  Ctrl_Meta = Mod.Ctrl | Mod.MetaCmd,
+  Shift_Alt = Mod.Shift | Mod.AltOpt,
+  Shift_Meta = Mod.Shift | Mod.MetaCmd,
+  Alt_Meta = Mod.AltOpt | Mod.MetaCmd,
+  Ctrl_Shift_Alt = Mod.Ctrl | Mod.Shift | Mod.AltOpt,
+  Ctrl_Shift_Meta = Mod.Ctrl | Mod.Shift | Mod.MetaCmd,
+  Ctrl_Alt_Meta = Mod.Ctrl | Mod.AltOpt | Mod.MetaCmd,
+  Shift_Alt_Meta = Mod.Shift | Mod.AltOpt | Mod.MetaCmd,
+  Ctrl_Shift_Alt_Meta = Mod.Ctrl | Mod.Shift | Mod.AltOpt | Mod.MetaCmd,
 }
 /**
  * 快捷键修饰键的展示字符
@@ -44,5 +44,7 @@ export const modChar = (() => (platform.isMac
 )()
 /** 适配 Windows/MacOS 的 Ctrl/Cmd 键 */
 export const CtrlCmd = platform.isMac ? Mod.MetaCmd : Mod.Ctrl
-/** 适配 Windows/MacOS 的删除单词修饰键 (opt 或 ctrl) */
+/** 适配 Windows/MacOS 的(删除)单词修饰键 (opt 或 ctrl) */
 export const WordModifier = platform.isMac ? Mod.AltOpt : Mod.Ctrl
+/** 适配 Windows/MacOS 的(删除)行修饰键 (opt 或 ctrl) */
+export const LineModifier = platform.isMac ? Mod.MetaCmd : Mod.AltOpt

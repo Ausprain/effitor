@@ -21,28 +21,18 @@ const initBody = (html = '<div>AAA<b>BBB</b>CCC</div>') => {
 
 test('EtCaret', () => {
   const df = fragment.cloneNode(true)
-  const caret = cr.caretIn(df.firstChild!, 1)
+  let caret = cr.caretIn(df.firstChild!, 1)
   // df not in DOM, range to be null
   expect(caret.toRange()).toBe(null)
 
   const div = initBody()
-  caret.fromRange({
-    startContainer: div,
-    startOffset: 1,
-    endContainer: div,
-    endOffset: 1,
-  })
-  caret.toRange()?.insertNode(new Text('|'))
+  caret = cr.caret(div, 1)
+  caret.insertNode(new Text('|') as Et.Text)
   expect(div.outerHTML).toBe('<div>AAA|<b>BBB</b>CCC</div>')
 
-  caret.fromRange({
-    startContainer: div,
-    startOffset: 2,
-    endContainer: div,
-    endOffset: 2,
-  })
+  caret = cr.caret(div, 2)
   div.normalize()
-  caret.toRange()?.insertNode(new Text('|'))
+  caret.insertNode(new Text('|') as Et.Text)
   expect(div.outerHTML).toBe('<div>AAA|<b>BBB</b>|CCC</div>')
   expect(caret.compareTo(caret.moved(-1)) > 0).toBe(true)
 
@@ -137,22 +127,47 @@ describe('EtCaret Affinity', () => {
   })
 })
 
+test('EtCaret to affinity', () => {
+  const div = initBody(`
+    <div contenteditable="true">
+      <p>AA</p>
+      <p>BB<b>CC</b>DD</p>
+      <p><i>EE</i>FF<br></p>
+    </div>
+  `.replaceAll(/(?<=>)\s+(?=<)/g, '').trim())
+  const [p1, p2, p3] = [...div.querySelectorAll('p')] as any
+  const AA = p1.firstChild
+  const BB = p2.firstChild
+  const b = BB.nextSibling
+  const CC = b.firstChild
+  const DD = p2.lastChild
+  const i = p3.firstChild
+  const EE = i.firstChild
+  const FF = i.nextSibling
+  const br = FF.nextSibling
+
+  // |<p>AA</p> => <p>|AA</p>
+  expect(cr.caretInStart(div).toTextAffinity().anchor.textContent).toBe('AA')
+  expect(cr.caretInStart(div).toTextAffinity().isEqualTo(cr.caretInStart(AA))).toBe(true)
+  expect(cr.caretInStart(p1).toTextAffinity().isEqualTo(cr.caretInStart(AA))).toBe(true)
+  // <p>AA</p>|<p>BB</p> => <p>AA</p><p>|BB</p>
+  expect(cr.caret(div, 1).toTextAffinity().isEqualTo(cr.caretInStart(BB))).toBe(true)
+  expect(cr.caretOutStart(p2).toTextAffinity().isEqualTo(cr.caretInStart(BB))).toBe(true)
+  // <p>FF<br></p>| => <p>FF|<br></p>
+  expect(cr.caret(div, 3).toTextAffinity().isEqualTo(cr.caretInEnd(FF))).toBe(true)
+})
+
 /**
  * 内部使用了 document.createRange
  */
 test('EtRange', () => {
   const df = fragment.cloneNode(true)
-  const range = new EtRange(df.firstChild!, 0, df.lastChild!, 0)
+  let range = new EtRange(df.firstChild!, 0, df.lastChild!, 0)
   expect(range.toRange()).toBe(null)
 
   initBody()
   const div = document.body.firstElementChild! as unknown as Et.Element
-  range.fromRange({
-    startContainer: div,
-    startOffset: 0,
-    endContainer: div.firstElementChild!.firstChild!,
-    endOffset: 1,
-  })
+  range = cr.range(div, 0, div.firstElementChild!.firstChild!, 1)
   expect(range.isCollapsed).toBe(false)
   expect(range.toRange()?.toString()).toBe('AAAB')
 })
@@ -162,38 +177,38 @@ test('cr caret', () => {
   const div = document.body.firstElementChild! as unknown as Et.Element
   let caret = cr.caretIn(div, 0)
   expect(!caret.toRange()).toBe(false)
-  caret.toRange()?.insertNode(new Text('|'))
+  caret.insertNode(new Text('|') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA<b>BBB</b>CCC</div>')
 
   caret = caret.moved(1)
-  caret.toRange()?.insertNode(new Text('|'))
+  caret.insertNode(new Text('|') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|<b>BBB</b>CCC</div>')
 
   const b = div.firstElementChild!
   caret = cr.caretInEnd(b)
-  caret.toRange()?.insertNode(new Text('|'))
+  caret.insertNode(new Text('|') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|<b>BBB|</b>CCC</div>')
 
   caret = cr.caretInStart(b)
-  caret.toRange()?.insertNode(new Text('|'))
+  caret.insertNode(new Text('|') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|<b>|BBB|</b>CCC</div>')
 
   caret = cr.caretOutStart(b)
-  caret.toRange()?.insertNode(new Text('^'))
+  caret.insertNode(new Text('^') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|^<b>|BBB|</b>CCC</div>')
 
   caret = cr.caretOutEnd(b)
-  caret.toRange()?.insertNode(new Text('^'))
+  caret.insertNode(new Text('^') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|^<b>|BBB|</b>^CCC</div>')
 })
 
-test('cr caret', () => {
+test('cr range', () => {
   initBody()
   const div = document.body.firstElementChild! as unknown as Et.Element
   const b = div.firstElementChild!

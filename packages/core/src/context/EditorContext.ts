@@ -3,15 +3,20 @@ import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
 import type { Et } from '~/core/@types'
 
-import { platform } from '../config'
-import { etcode } from '../element'
+import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
+import { etcode, type EtParagraphElement } from '../element'
 import { CssClassEnum, EtTypeEnum } from '../enums'
-import { CommandManager } from '../handler/command/manager'
-import { commonHandlers } from '../handler/common'
+import { CommandManager } from '../handler/command/CommandManager'
+import { CommonHandlers } from '../handler/common'
 import { effectInvoker } from '../handler/invoker'
+import { defaultKeepDefaultModkeyMap } from '../hotkey/builtin'
 import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { getHotstringManager } from '../hotstring/manager'
+import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
+import type { EditorContextMeta } from './config'
+import { EditorBody } from './EditorBody'
+import { EditorLogger } from './EditorLogger'
 
 type ContextSelection = Readonly<Omit<EtSelection, 'range'> & {
   // 限制 range 的能力, 剔除如 extractContents 等可能会破坏 DOM 结构的方法
@@ -27,38 +32,57 @@ type UpdatedContextSelection = ContextSelection & {
  * 否则继续执行效应器, 效应器中的上下文的效应元素/段落必定非空
  */
 export interface UpdatedContext extends EditorContext {
-  effectElement: NodeHasParent<Et.EtElement>
-  paragraphEl: NodeHasParent<Et.Paragraph>
-  topElement: NodeHasParent<Et.Paragraph>
+  commonEtElement: NodeHasParent<Et.EtElement>
+  focusEtElement: NodeHasParent<Et.EtElement>
+  focusParagraph: NodeHasParent<Et.Paragraph>
+  focusTopElement: NodeHasParent<Et.Paragraph>
   selection: UpdatedContextSelection
-  readonly body: Et.EtBodyElement
 }
 
+export interface CreateEditorContextOptions {
+  readonly contextMeta: Readonly<EditorContextMeta>
+  readonly root: Et.EditorRoot
+  readonly bodyEl: Et.EtBodyElement
+  readonly locale?: string
+  readonly scrollContainer?: HTMLElement
+  readonly hotkeyOptions?: Readonly<Et.hotkey.ManagerOptions>
+  readonly onEffectElementChanged?: OnEffectElementChanged
+  readonly onParagraphChanged?: OnParagraphChanged
+  readonly onTopElementChanged?: OnParagraphChanged
+}
 /**
  * 编辑器上下文, 每一个编辑区对应一个上下文
  */
-export class EditorContext {
-  /** 编辑器对象本身 */
-  readonly editor: Et.Editor
-  /** 编辑器内容规范 */
-  readonly schema: Readonly<Et.EditorSchema>
-  /** 编辑器助手插件 */
-  readonly assists = {} as Et.EditorAssists
-  /** 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示 */
-  readonly pctx = {} as Et.EditorPluginContext
+export class EditorContext implements Readonly<EditorContextMeta> {
+  // 来自 meta 的属性
+  readonly editor
+  readonly root
+  readonly schema
+  readonly assists
+  readonly pctx
+  readonly settings
+  readonly keepDefaultModkeyMap: Readonly<EditorContextMeta['keepDefaultModkeyMap']>
 
   /** 上一个`text node` 用于判断光标是否跳动 */
-  private oldNode: Et.NullableText = null
+  private _oldNode: Et.TextOrNull = null
   private _updated = false
-  private _effectElement: Et.EtElement | null = null
-  private _paragraph: Et.Paragraph | null = null
-  private _topElement: Et.Paragraph | null = null
 
+  private _commonEtElement: Et.EtElement | null = null
+  private _focusEtElement: Et.EtElement | null = null
+  private _focusParagraph: Et.Paragraph | null = null
+  private _focusTopElement: Et.Paragraph | null = null
+
+  /** 是否跳过默认 effector */
+  private _skipDefault = false
+  /**
+   * 是否跳过下一次keydown, 在 compositionupdate 中赋值为true;
+   * 用于解决 MacOS 下 Safari 的 composition事件先于 keydown 触发, 从而导致
+   * 每次输入法输入最后都多余的插入一个空格或执行多一次 keydown 的问题
+  */
+  private _skipNextKeydown = false
   /** 是否跳过下一次selectionchange事件 */
   private _skipSelChange = false
 
-  /** 当前编辑区, 在编辑器mount之前, 为null */
-  body: Et.EtBodyElement | null = null
   /** 当前编辑区是否聚焦 */
   isFocused = false
   /**
@@ -74,7 +98,7 @@ export class EditorContext {
    * * 该值等于event.key
    */
   prevUpKey?: string | null
-  /** 当前 keydown 按下的按键组合, 通过 hotkey.modKey(KeyboardEvent) 计算 */
+  /** 当前 keydown 按下的按键组合, 通过 `hotkey.modKey` 计算 */
   modkey = ''
   /**
    * 一个推断属性, 根据当前用户的输入行为, 判断当前是否开启了输入法; 该判断是非严格的,
@@ -103,23 +127,21 @@ export class EditorContext {
    */
   compositionUpdateCount = 0
   /**
-   * 是否跳过默认Effector, (在keydown/keyup/beforeinput/input中设置为true时,
-   * 都将跳过mainEffector的对应事件监听器)
-   */
-  skipDefault = false
-  /**
    * 有完成InsertText的input事件，用于在selchange中判断该
    * selchange是否因用户输入（非输入法）文本而触发\
    * TODO: 应该可用skipSelChange替代, 因为inputText之后会调用ctx.setSelection()
    */
   hasInsertText = false
 
-  /** 编辑器光标对象, 在编辑器mount时赋值 */
-  readonly selection: ContextSelection = new EtSelection(this, platform.locale) as ContextSelection
+  /** 编辑区对象 */
+  readonly body: EditorBody
+  /** 编辑器选区对象, 在 mount 之前为 null */
+  readonly selection: ContextSelection
+  readonly segmenter: Segmenter
   /** 效应调用器 */
   readonly effectInvoker: Et.EffectInvoker
   /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
-  readonly commonHandlers = commonHandlers
+  readonly commonHandlers: CommonHandlers
   /** 命令控制器 */
   readonly commandManager: CommandManager
   /** 热键管理器 */
@@ -128,134 +150,84 @@ export class EditorContext {
   readonly hotstringManager: Et.hotstring.Manager
 
   /** 获取编辑区所有文本 */
-  textContent = () => this.body?.textContent ?? ''
+  textContent = () => this.body.textContent()
   /** 获取当前选区的文本 */
   selectedTextContent = () => this.selection.selectedTextContent
 
   // 回调
-  private readonly __onEffectElementChanged
-  private readonly __onParagraphChanged
+  private readonly __onEffectElementChanged?: OnEffectElementChanged
+  private readonly __onParagraphChanged?: OnParagraphChanged
+  private readonly __onTopElementChanged?: OnParagraphChanged
 
-  constructor(
-    editor: Et.Editor,
-    schema: Et.EditorSchema,
-    callbacks: Et.EditorCallbacks,
-    hotkeyOptions?: Et.hotkey.ManagerOptions,
-  ) {
-    this.editor = editor
-    this.schema = schema
+  constructor(options: CreateEditorContextOptions) {
+    const contextMeta = options.contextMeta
+    this.editor = contextMeta.editor
+    this.schema = contextMeta.schema
+    this.assists = contextMeta.assists
+    this.pctx = contextMeta.pctx
+    this.settings = contextMeta.settings
+    this.keepDefaultModkeyMap = {
+      ...contextMeta.keepDefaultModkeyMap,
+      ...defaultKeepDefaultModkeyMap,
+    }
+
+    this.root = options.root
+    this.body = new EditorBody(options.bodyEl, options.scrollContainer)
+    this.selection = new EtSelection(this.body)
+    this.segmenter = new Segmenter(options.locale)
     this.effectInvoker = effectInvoker
+    this.commonHandlers = new CommonHandlers(this as UpdatedContext)
     this.commandManager = new CommandManager(this)
-    this.hotkeyManager = new HotkeyManager(this as UpdatedContext, hotkeyOptions)
+    this.hotkeyManager = new HotkeyManager(this as UpdatedContext, options.hotkeyOptions)
     this.hotstringManager = getHotstringManager(this)
 
-    this.__onEffectElementChanged = callbacks.onEffectElementChanged
-    this.__onParagraphChanged = callbacks.onParagraphChanged
-  }
+    this.__onEffectElementChanged = options.onEffectElementChanged
+    this.__onParagraphChanged = options.onParagraphChanged
+    this.__onTopElementChanged = options.onTopElementChanged
 
-  /** 当前触发编辑逻辑的ShadowRoot */
-  get root() {
-    return this.editor.root
-  }
-
-  /** 当前光标所在文本节点, 光标不在文本节点上时为null */
-  get node() {
-    return this.selection.anchorText
-  }
-
-  /** 当前效应元素 */
-  get effectElement() {
-    return this._effectElement
-  }
-
-  private set effectElement(v) {
-    if (this._effectElement === v || !v) return
-    // fix. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback;
-    // 因为旧的节点直接就是回调函数的this, 可以直接拿到, 而新的节点需要ctx获得
-    const old = this._effectElement
-    this._effectElement = v
-    // 不是段落时执行回调, 避免在paragraphEl中又执行一次
-    if (old && old.focusoutCallback && !(old.etCode & EtTypeEnum.Paragraph)) {
-      old.focusoutCallback(this)
+    if (this.editor.config.WITH_EDITOR_DEFAULT_LOGGER) {
+      this.assists.logger = new EditorLogger()
     }
-    if (!(v.etCode & EtTypeEnum.Paragraph) && v.focusinCallback) v.focusinCallback(this)
   }
 
-  /** 当前光标所在顶层节点（“段落”）, 光标只能落在"段落"里 */
-  get paragraphEl() {
-    return this._paragraph
-  }
-
-  private set paragraphEl(v) {
-    if (this._paragraph === v) return
-    const old = this._paragraph
-    this._paragraph = v
-    if (old && old.focusoutCallback) old.focusoutCallback(this)
-    if (v && v.focusinCallback) v.focusinCallback(this)
-  }
-
-  /** 光标所在编辑区顶层元素（即body的子节点） */
-  get topElement() {
-    if (this._topElement) return this._topElement
-    return (this._topElement = this.selection.isForward
-      ? this.selection.endTopElement
-      : this.selection.startTopElement
-    )
-  }
-
-  forceUpdate() {
+  /**
+   * 更新编辑器上下文
+   */
+  update() {
     if (!this.selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
       return (this._updated = false)
     }
 
-    if (this.oldNode !== null && this.oldNode === this.selection.anchorText) {
+    // 文本节点没有变更新, 说明效应元素/段落都没变, 可结束更新
+    if (this._oldNode !== null && this._oldNode === this.selection.anchorText) {
       return (this._updated = true)
     }
-    this.oldNode = this.selection.anchorText
-    this._topElement = null
+    this._oldNode = this.selection.anchorText
 
-    let effectEl, pEl
-    if (this.selection.isForward) {
-      effectEl = this.selection.endEffectElement
-      pEl = this.selection.endParagraph
-    }
-    else {
-      effectEl = this.selection.startEffectElement
-      pEl = this.selection.startParagraph
-    }
-
-    if (!effectEl || !pEl) {
+    if (!this.selection.focusTopElement || !this.selection.commonEffectElement) {
       if (import.meta.env.DEV) {
         console.error('effect element or paragraph not found')
       }
       this.editor.blur()
       return (this._updated = false)
     }
-
-    // 效应元素没有变，后续不用更新
-    if (this._effectElement === effectEl) {
-      return (this._updated = true)
-    }
-
-    if (this.__onEffectElementChanged && this._effectElement) {
-      this.__onEffectElementChanged?.(effectEl, this._effectElement, this)
-    }
-    this.effectElement = effectEl
-
-    // 效应元素就是段落, 不用更新段落
-    if (this._paragraph && effectEl === pEl) {
-      return (this._updated = true)
-    }
-
-    if (this._paragraph !== pEl) {
-      if (this.__onParagraphChanged && this._paragraph) {
-        this.__onParagraphChanged?.(pEl, this._paragraph, this)
-      }
-      this.paragraphEl = pEl
-    }
+    this._commonEtElement = this.selection.commonEffectElement
+    this.focusEtElement = this.selection.focusEffectElement
+    this.focusParagraph = this.selection.focusParagraph
+    this.focusTopElement = this.selection.focusTopElement
     return (this._updated = true)
+  }
+
+  /**
+   * 强制更新编辑器上下文, 并跳过下一次 selectionchange 事件的更新
+   */
+  forceUpdate() {
+    if (this.update()) {
+      return this.skipNextSelChange()
+    }
+    return false
   }
 
   /**
@@ -266,40 +238,90 @@ export class EditorContext {
   }
 
   /**
-   * 向上（包括自身）找第一个`Et.EtElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
-   * 使用"鸭子类型",  Effitor 内拥有`etCode`属性的元素被视为效应元素
+   * 编辑区元素, 等价于 ctx.body.el
    */
-  findEffectParent(node: Et.NullableNode): Et.EtElement | null {
-    while (node) {
-      if (node.etCode !== void 0) return node as Et.EtElement
-      if (node === this.body) return null
-      node = node.parentNode
-    }
-    return null
+  get bodyEl() {
+    return this.body.el
+  }
+
+  get commonEtElement() {
+    return this._commonEtElement
   }
 
   /**
-   * 向上查找最近一个`Et.ParagraphElement`, `etCode`匹配段落 EtType, 则视为段落效应元素
+   * 当前效应元素
+   * * 若选区非collapsed, 该值与选区结束(focus)位置对齐
    */
-  findParagraph(node: Et.NullableNode): Et.Paragraph | null {
-    while (node) {
-      if (node === this.body) return null
-      if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.Paragraph
-      node = node.parentNode
+  get focusEtElement() {
+    return this._focusEtElement
+  }
+
+  private set focusEtElement(v) {
+    if (this._focusEtElement === v || !v) return
+    // fix. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback;
+    // 因为旧的节点直接就是回调函数的this, 可以直接拿到, 而新的节点需要ctx获得
+    const old = this._focusEtElement
+    this._focusEtElement = v
+    if (this.__onEffectElementChanged) {
+      this.__onEffectElementChanged(v, old, this)
     }
-    return null
+    // 旧的效应元素不是旧段落时, 调用focusoutCallback, 避免在段落更新时重复调用
+    if (old && old.focusoutCallback && old !== this._focusParagraph) {
+      old.focusoutCallback(this)
+    }
+    if (v.focusinCallback) {
+      v.focusinCallback(this)
+    }
   }
 
   /**
-   * 找一个在编辑区内的节点所在的顶层节点
+   * 当前光标所在"段落"元素, 光标只能落在"段落"里
+   * * 若选区非collapsed, 该值与选区结束(focus)位置对齐
    */
-  findTopElement(node: Et.Node): Et.Paragraph {
-    let p = node.parentNode
-    while (p && p !== this.body) {
-      node = p
-      p = p.parentNode
+  get focusParagraph() {
+    return this._focusParagraph
+  }
+
+  private set focusParagraph(v) {
+    if (this._focusParagraph === v || !v) return
+    const old = this._focusParagraph
+    this._focusParagraph = v
+    if (this.__onParagraphChanged) {
+      this.__onParagraphChanged(v, old, this)
     }
-    return node as Et.Paragraph
+    if (old && old.focusoutCallback) {
+      old.focusoutCallback(this)
+    }
+    // 新段落不是新效应元素时, 调用focusinCallback, 避免重复调用
+    if (v.focusinCallback && v !== this._focusEtElement) {
+      v.focusinCallback(this)
+    }
+  }
+
+  /**
+   * 光标所在编辑区顶层元素 (即et-body的子节点), 顶层元素也是"段落"
+   * * 若选区非collapsed, 该值与选区结束(focus)位置对齐
+   */
+  get focusTopElement() {
+    return this.selection.focusTopElement
+  }
+
+  private set focusTopElement(v) {
+    if (this._focusTopElement === v || !v) return
+    const old = this._focusTopElement
+    this._focusTopElement = v
+    // 顶层节点不是当前段落时调用回调, 避免重复调用
+    if (this._focusParagraph !== v) {
+      if (this.__onTopElementChanged) {
+        this.__onTopElementChanged(v, old, this)
+      }
+      if (old && old.focusoutCallback) {
+        old.focusoutCallback(this)
+      }
+      if (v.focusinCallback) {
+        v.focusinCallback(this)
+      }
+    }
   }
 
   /**
@@ -307,16 +329,58 @@ export class EditorContext {
    * 调用时, 会重置为 false
    */
   get selChangeSkipped() {
-    const skipped = this._skipSelChange
-    this._skipSelChange = false
-    return skipped
+    if (this._skipSelChange) {
+      this._skipSelChange = false
+      return true
+    }
+    return false
   }
 
   /**
    * 跳过下一次selectionchange事件
+   * {@link _skipSelChange}
    */
   skipNextSelChange() {
     return (this._skipSelChange = true)
+  }
+
+  get nextKeydownSkipped() {
+    if (this._skipNextKeydown) {
+      this._skipNextKeydown = false
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 跳过下一次keydown, 正常情况下只在 composition 事件中调用
+   * {@link _skipNextKeydown}
+   */
+  skipNextKeydown() {
+    return (this._skipNextKeydown = true)
+  }
+
+  get defaultSkipped() {
+    if (this._skipDefault) {
+      this._skipDefault = false
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 跳过默认Effector, (在keydown/keyup/beforeinput/input中设置为true时,
+   * 都将跳过mainEffector的对应事件监听器)
+   * {@link _skipDefault}
+   */
+  skipDefault() {
+    return (this._skipDefault = true)
+  }
+
+  /** 阻止事件默认行为, 并跳过默认effector */
+  preventAndSkipDefault(ev: Event) {
+    ev.preventDefault()
+    return this.skipDefault()
   }
 
   /**
@@ -324,35 +388,45 @@ export class EditorContext {
    */
   setSelection(caretRange?: Et.CaretRange) {
     // selectRange 必然会导致selectionchagne, 进而调用ctx.forceUpdate()
-    // 但此处必须手动更新ctx; 因为selchange加了防抖, 快速编辑情况下, 可能导致更新延误
+    // 如若selchange加了防抖, 快速编辑情况下, 可能导致更新延误, 因此需要手动更新ctx;
     if (caretRange) {
       const range = caretRange.toRange()
-      if (range && this.selection.selectRange(range) && this.forceUpdate()) {
-        return this.skipNextSelChange()
+      if (range) {
+        this.selection.selectRange(range)
       }
     }
-    if (this.forceUpdate()) {
-      return this.skipNextSelChange()
-    }
-    return false
+    return this.forceUpdate()
   }
 
   /**
    * 设置光标到一个段落的开头/末尾; 由于段落有多种类型(普通段落, 组件段落, Blockquote段落...),
-   * 因此需要此方法来统一根据段落类型设置光标位置; 该设置光标的动作是异步的 (requestAnimationFrame)
+   * 因此需要此方法来统一根据段落类型设置光标位置; 该设置光标的动作是默认异步的 (requestAnimationFrame)
+   * @param [bySync=false] 是否同步设置光标位置
    */
-  setCaretToAParagraph(paragraph: Et.Paragraph, toStart: boolean) {
+  setCaretToAParagraph(paragraph: Et.Paragraph, toStart: boolean, bySync = false) {
     if (etcode.check(paragraph, EtTypeEnum.Component)) {
-      requestAnimationFrame(() => {
+      if (bySync) {
         paragraph.focusToInnerEditable(this, toStart)
-      })
+      }
+      else {
+        requestAnimationFrame(() => {
+          paragraph.focusToInnerEditable(this, toStart)
+        })
+      }
       return
     }
-    requestAnimationFrame(() => {
+    if (bySync) {
       this.setSelection(toStart
         ? paragraph.innerStartEditingBoundary()
         : paragraph.innerEndEditingBoundary())
-    })
+    }
+    else {
+      requestAnimationFrame(() => {
+        this.setSelection(toStart
+          ? paragraph.innerStartEditingBoundary()
+          : paragraph.innerEndEditingBoundary())
+      })
+    }
   }
 
   /**
@@ -362,7 +436,7 @@ export class EditorContext {
    * @param target 效应值 | 效应元素类 | 效应元素对象; 若传入值<=0, 则返回true
    */
   checkIn(target: number | Et.EtElement | Et.EtElementCtor) {
-    if (!this.selection.isCollapsed || !this._effectElement) {
+    if (!this.selection.isCollapsed || !this._focusEtElement) {
       return false
     }
     let code: number
@@ -378,16 +452,23 @@ export class EditorContext {
         code = (target as Et.EtElementCtor).etType
       }
     }
-    return code && !(~this._effectElement.inEtCode & code)
+    return code && !(~this._focusEtElement.inEtCode & code)
+  }
+
+  /**
+   * 判断一个节点是否为 EtParagraph 实例, 即是否具有段落效应
+   */
+  isEtParagraph(node: Node) {
+    return etcode.check(node, EtTypeEnum.Paragraph)
   }
 
   /**
    * 判断一个节点是否为普通段落, 即当前ctx.schema.paragraph的实例
-   * * 有别于 `etcode.check(node, EtTypeEnum.Paragraph)`
-   * etcode的方法用于判断节点是否为paragraph效应类型元素
+   * * 有别于 `isEtParagraph` 即 `etcode.check(node, EtTypeEnum.Paragraph)`
+   *    etcode的方法用于判断节点是否为paragraph效应类型元素
    * * 而该方法用于判断一个节点是否为当前编辑器配置的paragraph段落元素本身
    */
-  isParagraph(node: Et.Node) {
+  isPlainParagraph(node: Et.Node): node is EtParagraphElement {
     return node.localName === this.schema.paragraph.elName
   }
 
@@ -395,23 +476,23 @@ export class EditorContext {
    * 根据当前段落克隆一个段落; 克隆规则如下: \
    * 若当前段落是普通段落(schema.paragraph), 则返回一个新的普通段落 \
    * 若当前段落是标题段落(schema.heading), 则返回一个新的普通段落 \
-   * 若当前段落是组件(EtComponentElement), 则返回一个新的普通段落 \
+   * 若当前段落是组件(EtComponent), 则返回一个新的普通段落 \
    * 否则, 返回一个当前“段落”的浅克隆版本, 并移除状态css类名 \
    * @param withBr 是否在新段落内插入一个br, 仅在返回普通段落时有效; 默认true
    */
-  cloneParagraph(withBr = true) {
-    if (!this._paragraph) {
+  cloneParagraph(pEl = this._focusParagraph, withBr = true) {
+    if (!pEl) {
       return this.createParagraph(withBr)
     }
     if (
-      this._paragraph.localName === this.schema.paragraph.elName
-      || this._paragraph.etCode & EtTypeEnum.Heading
-      || this._paragraph.etCode & EtTypeEnum.Component
+      pEl.localName === this.schema.paragraph.elName
+      || pEl.etCode & EtTypeEnum.Heading
+      || pEl.etCode & EtTypeEnum.Component
     ) {
       return this.createParagraph(withBr)
     }
     // 浅克隆 元素名 + 属性
-    const clone = this._paragraph.cloneNode(false) as Et.Paragraph
+    const clone = pEl.cloneNode(false) as Et.Paragraph
     // 去掉特有属性
     clone.removeAttribute('id')
     // 去掉状态class
@@ -437,42 +518,41 @@ export class EditorContext {
     return new Array(count).fill(0).map(create) as N extends 1 ? T : TupleOfLength<T, N>
   }
 
-  /** 根据html文本创建一个Document片段 */
-  createFragment(data: string) {
+  /**
+   * 创建一个空的Document片段 或 根据html文本创建一个Document片段
+   * @param data html文本
+   */
+  createFragment(data?: string) {
+    if (!data) {
+      return document.createDocumentFragment() as Et.Fragment
+    }
     return document.createRange().createContextualFragment(data) as Et.Fragment
   }
 
-  /** 触发一个编辑区事件; 此方法只能在编辑器 mount 之后调用 */
+  /** 触发一个编辑区事件; */
   dispatchEvent(event: Event) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.body!.dispatchEvent(event)
+    this.body.el.dispatchEvent(event)
   }
 
-  /** 在编辑区触发一个input事件; 此方法只能在编辑器 mount 之后调用 */
+  /** 在编辑区触发一个input事件; */
   dispatchInputEvent(
     type: 'beforeinput' | 'input',
-    init: InputEventInit & { inputType: `${Et.InputType}` },
+    init: InputEventInit | Et.InputEventInitWithEffect,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this.body!.dispatchEvent(new InputEvent(type, {
+    return this.body.el.dispatchEvent(new InputEvent(type, {
       bubbles: false,
       cancelable: true,
       ...init,
     }))
   }
 
-  /** 阻止事件默认行为, 并跳过默认effector */
-  preventAndSkipDefault(ev: Event) {
-    return (ev.preventDefault(), this.skipDefault = true) as true
-  }
-
   /** 获取EtElement对应的Markdown文本 */
   toMarkdown(el: Et.EtElement, options?: TmOptions): string {
-    return this.editor.markdown.toMarkdown(this, el, options)
+    return this.editor.mdProcessor.toMarkdown(this, el, options)
   }
 
   /** 将markdown文本转为编辑器内容(EtElement)的fragment */
-  fromMarkdown(mdText: string, options?: FmOptions): DocumentFragment {
-    return this.editor.markdown.fromMarkdown(this, mdText, options)
+  fromMarkdown(mdText: string, options?: FmOptions): Et.Fragment {
+    return this.editor.mdProcessor.fromMarkdown(this, mdText, options)
   }
 }

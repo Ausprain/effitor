@@ -21,30 +21,33 @@ export class SpanRange {
   }
 
   /**
+   * 获取删除内容的起始光标位置
+   */
+  removeAt(): EtCaret {
+    return new EtCaret(this.startNode.parentNode, dom.nodeIndex(this.startNode))
+  }
+
+  /**
    * 提取跨度范围内容到指定片段
-   * @param extractAt 是否获取提取位置, 即 startNode 外开头对应的光标位置
+   * @param extractAt 是否获取提取位置, 即 startNode 外开头对应的光标位置, 等同于 this.removeAt()
    * @returns 一个光标位置 若extractAt为 true, 否则返回 undefined
    */
-  extractToFragment<T extends boolean>(
-    fragment: Et.Fragment, extractAt: T): T extends true ? Et.EtCaret : undefined {
-    let caret
-    if (extractAt) {
-      caret = new EtCaret(this.startNode.parentNode, dom.nodeIndex(this.startNode))
-    }
+  extractToFragment(): Et.Fragment {
+    const df = document.createDocumentFragment() as Et.Fragment
     if (this.startNode === this.endNode) {
-      fragment.appendChild(this.startNode)
-      return caret as T extends true ? Et.EtCaret : undefined
+      df.appendChild(this.startNode)
+      return df
     }
     let next = this.startNode.nextSibling
     while (next) {
-      fragment.appendChild(next)
+      df.appendChild(next)
       if (next === this.endNode) {
         break
       }
-      next = next.nextSibling
+      next = this.startNode.nextSibling
     }
-    fragment.prepend(this.startNode)
-    return caret as T extends true ? Et.EtCaret : undefined
+    df.prepend(this.startNode)
+    return df
   }
 }
 

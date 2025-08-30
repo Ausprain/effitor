@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint'
 import stylistic from '@stylistic/eslint-plugin'
 import importPlugin from 'eslint-plugin-import'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import vitest from 'eslint-plugin-vitest'
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -86,10 +87,27 @@ export default tseslint.config(
     ignores: ['**/dist/**', '**/out/**', '**/temp/**'],
   },
 
-  // for test
+  // vitest
   {
-    files: ['**/tests/**/*.{js,ts}'],
+    files: [
+      '**/__tests__/**/*.{js,ts}',
+      '**/*.test.ts',
+    ],
+    plugins: {
+      vitest,
+    },
+    settings: {
+      vitest: {
+        typecheck: true,
+      },
+    },
+    languageOptions: {
+      globals: {
+        ...vitest.environments.env.globals,
+      },
+    },
     rules: {
+      ...vitest.configs.recommended.rules,
       '@stylistic/max-len': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',

@@ -24,8 +24,8 @@ export interface GetMdPorcesserOptions {
   /** 用于自定义的mdast节点 的处理器 */
   toMdHandlerMap: ToMarkdownHandlerMap
 }
-export type Md = ReturnType<typeof getMdProcesser>
-export const getMdProcesser = ({
+export type MdProcessor = ReturnType<typeof getMdProcessor>
+export const getMdProcessor = ({
   fromMdHandlerMapList,
   toMdTransformerMapList,
   toMdHandlerMap = {},
@@ -59,8 +59,8 @@ export const getMdProcesser = ({
 
   return {
     /**
-         * 将el下的所有etelement转为markdown，过滤非etelement，没有etelement则返回空文本
-         */
+     * 将el下的所有etelement转为markdown，过滤非etelement，没有etelement则返回空文本
+     */
     toMarkdown(ctx: Et.EditorContext, el: Et.EtElement, options?: TmOptions) {
       let root = el.toMdast(mdastNode)
       if (!root) return ''
@@ -87,7 +87,7 @@ export const getMdProcesser = ({
         console.error('fm md root: ', root)
       }
       const df = handleMdastRoot(ctx, root, fromMdHandlersMap)
-      fragmentUtils.normalizeFragment(df)
+      fragmentUtils.normalizeEtFragment(fragmentUtils.normalizeToEtFragment(df, ctx))
       return df
     },
 

@@ -1,18 +1,18 @@
 /* eslint-disable @stylistic/max-statements-per-line */
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @stylistic/max-len */
+
 import type { Et } from '~/core/@types'
 
-import { etcodeType } from '../element/etcode'
-import type { crType } from '../selection/cr'
-import { domType } from '../utils/dom'
+import { etcode } from '../element/etcode'
+import { cr } from '../selection/cr'
+import { dom } from '../utils/dom'
 
 /**
  * 为keydown/keyup事件创建一个按键处理映射器 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
  * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcodeType etcode}, {@link domType dom}, {@link crType cr} \
+ * {@link etcode}, {@link dom}, {@link cr} \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createKeyboardKeySolver = (solver: Et.KeyboardKeySolver) => solver
@@ -20,7 +20,7 @@ export const createKeyboardKeySolver = (solver: Et.KeyboardKeySolver) => solver
  * 为beforeinput/input事件创建一个输入处理映射器 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
  * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcodeType etcode}, {@link domType dom}, {@link crType cr} \
+ * {@link etcode}, {@link dom}, {@link cr} \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createInputTypeSolver = (solver: Et.InputTypeSolver) => solver
@@ -28,7 +28,7 @@ export const createInputTypeSolver = (solver: Et.InputTypeSolver) => solver
  * 创建自定义的html事件监听器表, 在effector中, 这些监听器会在编辑器默认监听器注册之后注册 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
  * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcodeType etcode}, {@link domType dom}, {@link crType cr} \
+ * {@link etcode}, {@link dom}, {@link cr} \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createHtmlEventSolver = (solver: Et.HTMLEventSolver) => solver
@@ -36,7 +36,7 @@ export const createHtmlEventSolver = (solver: Et.HTMLEventSolver) => solver
  * 创建一个effector \
  * 若该effector是支持内联的(inline设置为true) 则 \
  * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcodeType etcode}, {@link domType dom}, {@link crType cr} \
+ * {@link etcode}, {@link dom}, {@link cr} \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createEffector = (effector: Et.Effector) => effector
@@ -120,24 +120,12 @@ export const withEffectorContext = <
 }
 
 /**
- * 采用非内联方式合并多个插件的effector
+ * 合并多个插件的effector
  * @param effectors 插件注册的effector数组
+ * @param inline 是否采用内联方式合并
  * @returns 一个合并之后的Effector
  */
-export function solveEffectors(effectors: Et.Effector[], inline: false): Et.Effector
-/**
- * 采用内联方式合并多个插件的effector, 并为合并后的effector函数提供四个作用域内可访问的工具, 不可更换别名
- * @param effectors 插件注册的effector数组
- * @param inline true
- * @param ectx effector上下文
- * @param etcode 全局etelement检查工具
- * @param dom 全局dom工具
- * @param cr 全局光标工具
- * @returns 一个合并之后的Effector
- */
-export function solveEffectors(effectors: Et.Effector[], inline: true, etcode: any, dom: any, cr: any): Et.Effector
-
-export function solveEffectors(effectors: Et.Effector[], inline: boolean, etcode?: etcodeType, dom?: domType, cr?: crType): Et.Effector {
+export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Effector {
   const ectx = effectorContext
   let solversMap = {} as Record<string, {
     solvers: any[]

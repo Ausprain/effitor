@@ -6,7 +6,7 @@ import { EtParagraph } from './EtParagraph'
 /**
  * 组件节点, 只有含嵌套contenteditable的元素, 才算组件节点; 任何含嵌套contenteditable的元素, 都应继承该类
  */
-export abstract class EtComponentElement extends EtParagraph {
+export abstract class EtComponent extends EtParagraph {
   static readonly elName: string = BuiltinElName.ET_COMPONENT
   static readonly etType = super.etType
     | EtTypeEnum.Component
@@ -19,10 +19,8 @@ export abstract class EtComponentElement extends EtParagraph {
     return false
   }
 
-  replaceToNativeElement(): void {
-    const div = document.createElement('div')
-    div.append(...this.childNodes)
-    this.replaceWith(div)
+  toNativeElement() {
+    return document.createElement('div')
   }
 
   /**

@@ -36,10 +36,8 @@ export class EtBodyElement extends EffectElement {
     this.setAttribute('contenteditable', '')
   }
 
-  replaceToNativeElement(): void {
-    const div = document.createElement('div')
-    div.append(...this.childNodes)
-    this.replaceWith(div)
+  toNativeElement() {
+    return document.createElement('div')
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {

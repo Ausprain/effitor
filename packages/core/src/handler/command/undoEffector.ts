@@ -89,7 +89,7 @@ export const useUndoEffector = (): Et.EffectorSupportInline => {
     beforeInputSolver,
     afterInputSolver,
     htmlEventSolver,
-    onMounted: (ctx, signal) => {
+    onMounted: (_ctx, signal) => {
       // 防止编辑器外ctrl+z时对编辑器内容撤销
       document.addEventListener('beforeinput', (ev) => {
         if (ev.inputType === 'historyUndo' || ev.inputType === 'historyRedo') {
@@ -101,25 +101,6 @@ export const useUndoEffector = (): Et.EffectorSupportInline => {
           // fixme Mac下document的撤销无法preventDefault, 但并未见异常
         }
       }, { signal: signal })
-
-      ctx.hotkeyManager.bindActionRun({
-        editorUndo: () => {
-          ctx.dispatchEvent(new InputEvent('beforeinput', {
-            bubbles: false,
-            cancelable: true,
-            inputType: 'historyUndo',
-          }))
-          return true
-        },
-        editorRedo: () => {
-          ctx.dispatchEvent(new InputEvent('beforeinput', {
-            bubbles: false,
-            cancelable: true,
-            inputType: 'historyRedo',
-          }))
-          return true
-        },
-      })
     },
     /**
      * 卸载时移除对应撤回栈并 确认所有事务

@@ -1,18 +1,20 @@
 import type { Et } from '~/core/@types'
 
 import { cmd, cmdHandler, CmdType, type Command } from './cmds'
-import { UndoStack } from './undo'
+import { UndoStack } from './UndoStack'
 
 /**
  * 命令管理器
  */
 export class CommandManager {
-  private _cmds: Command[] = []
+  private readonly _cmds: Command[] = []
   private _inTransaction = false
   private _undoStack: UndoStack
   private _commitNext = false
 
-  constructor(private _ctx: Et.EditorContext) {
+  constructor(
+    private readonly _ctx: Et.EditorContext,
+  ) {
     this._undoStack = new UndoStack(_ctx.editor.config.UNDO_LENGTH)
   }
 
@@ -26,9 +28,18 @@ export class CommandManager {
     return this._undoStack.stackLength
   }
 
+  /** 有排队未处理的命令 */
+  get hasCmds() {
+    return this._cmds.length > 0
+  }
+
+  private clearQueue() {
+    this._cmds.length = 0
+  }
+
   /** 重置撤回栈 */
   reset(): void {
-    this._cmds.length = 0
+    this.clearQueue()
     this._undoStack = new UndoStack(this._ctx.editor.config.UNDO_LENGTH)
   }
 
@@ -72,11 +83,11 @@ export class CommandManager {
    * @returns 是否执行了至少一个命令
    */
   handle(destCaretRange?: Et.CaretRange): boolean {
-    if (!this._cmds.length) {
+    if (!this.hasCmds) {
       return false
     }
     this._undoStack.record(cmdHandler.handle(this._cmds, this._ctx, destCaretRange))
-    this._cmds.length = 0
+    this.clearQueue()
     if (this._commitNext) {
       this._commitNext = false
       this.commit()
@@ -119,46 +130,101 @@ export class CommandManager {
    * 确认所有事务，执行命令的final回调，清空撤回栈;
    */
   commitAll(): void {
-    this.commit()
+    this.closeTransaction()
     this._undoStack.commitAll(this._ctx)
   }
 
   /**
-   * 开启事务（开启前自动 commit 先前命令, 若当前已在事务内, 则会先结束事务）
-   * 在事务内执行的命令将禁止自动 commit，并在调用 `closeTransaction` 时
+   * 开启事务 (若已经在事务内, 则保持)
+   * 在事务内执行的命令将禁止 commit，并在调用 `closeTransaction` 时
    * 统一 commit 为一个撤回栈事务\
    * 这可以阻止【插入/删除/替换节点，插入/删除片段】命令的自动 commit 行为，
    * 防止进行撤销/重做时出现光标跳跃/迷失等异常
    */
   startTransaction(): void {
-    // FIXME 若已在事务内, 是应当保留事务状态, 还是重新开启一个事务?
-    if (this._inTransaction) {
-      this.closeTransaction()
-    }
-    else {
-      this.commit()
-    }
+    // 此处不应关闭事务重新开启, 否则会破坏上一个开启的事务
     this._inTransaction = true
   }
 
   /**
-   * 关闭事务, 并自动commit命令
-   * 调用该方法会将先前的操作合并并压入撤回栈
+   * 关闭事务, 并自动commit命令; 调用该方法会将先前的操作合并并压入撤回栈;
+   * 若有未处理的命令, 则会先handle再commit;
    */
   closeTransaction() {
+    if (this.hasCmds) this.handle()
     this._inTransaction = false
     return this.commit()
   }
 
   /**
-   * 在一个事务内执行命令; 会自动先handle并commit先前push的命令,
+   * 在一个事务内执行命令; 会自动先handle并commit先前push的命令, 并关闭之前打开了的事务;
    * 再开始事务执行传入的cmds, 然后关闭事务
+   * * 若在一个明确需要的事务内, 不要使用此方法
    * @param destCaretRange 所有命令执行后最终的光标位置
    */
   withTransaction(cmds: Command[], destCaretRange?: Et.CaretRange) {
-    if (this._cmds.length) this.handle()
+    this.closeTransaction()
     this.startTransaction()
     this.push(cmds).handle(destCaretRange)
+    return this.closeTransaction()
+  }
+
+  /**
+   * 执行一个事务函数, 若函数返回true, 则提交事务, 否则回滚事务
+   * @param fn 事务函数, 有一个参数, 即命令管理器自身
+   * @returns 事务是否成功
+   */
+  withTransactionFn(fn: (cm: this) => boolean) {
+    this.closeTransaction()
+    this.startTransaction()
+    if (fn(this) && (this.hasCmds ? this.handle() : true)) {
+      this.closeTransaction()
+      return true
+    }
+    else {
+      this.discard()
+      return false
+    }
+  }
+
+  withTransactionSequential(
+    startTarget: Et.SelectionTarget | null | undefined,
+    handles: SequentialHandle[],
+  ) {
+    this.closeTransaction()
+    if (!startTarget) {
+      startTarget = this._ctx.selection.getTargetRange()
+    }
+    if (!startTarget || !startTarget.isValid()) {
+      return false
+    }
+    this.startTransaction()
+    for (const handle of handles) {
+      startTarget = startTarget.isCaret()
+        ? handle(this._ctx, startTarget)
+        : handle(this._ctx, startTarget)
+      if (startTarget === void 0) {
+        break
+      }
+      if (!startTarget) {
+        try {
+          this.handle()
+        }
+        catch (_e) {
+          this.discard()
+          return false
+        }
+        startTarget = this._ctx.selection.getTargetRange()
+        if (!startTarget || !startTarget.isValid()) {
+          this.discard()
+          return false
+        }
+      }
+      if (!startTarget.isValid()) {
+        this.discard()
+        return false
+      }
+    }
     return this.closeTransaction()
   }
 
@@ -175,4 +241,21 @@ export class CommandManager {
   redoTransaction(): void {
     this._undoStack.redo(this._ctx)
   }
+}
+
+interface SequentialHandle {
+  /**
+   * 顺序处理函数
+   * @param ctx 编辑器上下文
+   * @param target 目标范围
+   * @returns 新的目标光标或范围,
+   *  若返回null, 则调用 handle 函数执行命令并从 ctx.selection 上获取最新光标位置作为下一个目标范围
+   *  若返回undefined, 则提前直接结束事务并回滚
+   *  若其中发生异常, 则会回滚事务
+   *  若返回值为空, 则不会调用 handle 函数, 即不会主动执行命令
+   */
+  (
+    ctx: Et.EditorContext,
+    target: Et.ValidTargetCaret | Et.ValidTargetRange
+  ): Et.SelectionTarget | null | undefined
 }

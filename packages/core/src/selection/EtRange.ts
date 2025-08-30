@@ -1,28 +1,26 @@
 import type { Et } from '~/core/@types'
 
-import type { AnchorOffset } from './config'
-import { CaretRange } from './config'
+import { dom } from '../utils'
+import { CaretRange } from './CaretRange'
+import { type AnchorOffset, AnchorOutOffset } from './config'
 import { EtCaret } from './EtCaret'
 
 /**
  * 选区范围, 用于编辑器命令标识一个编辑器内容范围
  */
 export class EtRange extends CaretRange {
-  public readonly start: EtCaret
-  public readonly end: EtCaret
   constructor(
-    startAnchor: Et.Node,
-    startOffset: AnchorOffset,
-    endAnchor: Et.Node,
-    endOffset: AnchorOffset,
+    public readonly startAnchor: Et.Node,
+    public readonly startOffset: AnchorOffset,
+    public readonly endAnchor: Et.Node,
+    public readonly endOffset: AnchorOffset,
   ) {
     super()
-    this.start = new EtCaret(startAnchor, startOffset)
-    this.end = new EtCaret(endAnchor, endOffset)
   }
 
   get isCollapsed() {
-    return this.start.isEqualTo(this.end)
+    return this.startAnchor === this.endAnchor
+      && this.startOffset === this.endOffset
   }
 
   get isValid() {
@@ -30,21 +28,22 @@ export class EtRange extends CaretRange {
       return true
     }
     // connected 的节点必定有 parentNode, 无需判断 parentNode !== null
-    return (this.__valid = (this.start.isValid && this.end.isValid))
-  }
-
-  /**
-   * 通过 Range 更新当前 EtRange 对象
-   */
-  fromRange(range: Et.AbstractRange) {
-    this.start.fromRange(range, true)
-    this.end.fromRange(range, false)
+    if (!this.startAnchor.isConnected || !this.endAnchor.isConnected) {
+      return (this.__valid = false)
+    }
+    if (this.startOffset > 0) {
+      this.__valid = this.startOffset <= dom.nodeLength(this.startAnchor)
+    }
+    if (this.endOffset > 0) {
+      this.__valid = this.endOffset <= dom.nodeLength(this.endAnchor)
+    }
+    return this.__valid
   }
 
   toCaret(toStart = true): Et.EtCaret {
     return toStart
-      ? this.start.toCaret()
-      : this.end.toCaret()
+      ? new EtCaret(this.startAnchor, this.startOffset)
+      : new EtCaret(this.endAnchor, this.endOffset)
   }
 
   toRange() {
@@ -52,14 +51,40 @@ export class EtRange extends CaretRange {
       return null
     }
     const r = document.createRange() as Et.Range
-    this.start.adoptToRange(r, true, false)
-    this.end.adoptToRange(r, false, true)
+    if (this.startOffset >= 0) {
+      r.setStart(this.startAnchor, this.startOffset)
+    }
+    else if (this.startOffset === AnchorOutOffset.Before) {
+      r.setStartBefore(this.startAnchor)
+    }
+    else {
+      r.setStartAfter(this.startAnchor)
+    }
+    if (this.endOffset >= 0) {
+      r.setEnd(this.endAnchor, this.endOffset)
+    }
+    else if (this.endOffset === AnchorOutOffset.Before) {
+      r.setEndBefore(this.endAnchor)
+    }
+    else {
+      r.setEndAfter(this.endAnchor)
+    }
     return r
+  }
+
+  isCaret(): this is EtCaret {
+    return false
+  }
+
+  isEqualTo(other: EtCaret | EtRange): boolean {
+    return !other.isCaret()
+      && this.startAnchor === other.startAnchor
+      && this.startOffset === other.startOffset
+      && this.endAnchor === other.endAnchor
+      && this.endOffset === other.endOffset
   }
 
   markValid(): void {
     this.__valid = true
-    this.start.markValid()
-    this.end.markValid()
   }
 }

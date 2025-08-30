@@ -79,7 +79,7 @@ const getHotkeySaver = (options?: HotkeyManagerOptions) => {
  * 快捷键管理器
  */
 export class HotkeyManager {
-  private readonly _ctx: Et.UpdatedContext
+  private readonly _ctx: Et.EditorContext
   /**
    * KeyboardEvent.key -> 输入字符 映射, 用于解决 MacOS 下无法通过 ev.key === 'Process'
    * 判断当前是否为输入法输入, 从而无法正确地根据输入法状态输入全角标点的问题;
@@ -105,7 +105,7 @@ export class HotkeyManager {
   readonly createAction = createAction
 
   constructor(
-    ctx: Et.UpdatedContext,
+    ctx: Et.EditorContext,
     options?: HotkeyManagerOptions,
   ) {
     this._ctx = ctx

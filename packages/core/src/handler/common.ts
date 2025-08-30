@@ -6,6 +6,10 @@
 //  *
 //  */
 
+import { Et } from '../@types'
+import { removeRangingContents } from './handles'
+import { insertTextAtCaret, insertTextAtRange } from './handles/insert'
+
 // import type { Et } from '~/core/@types'
 // import { etcode } from '../element'
 // import { EtTypeEnum, HtmlCharEnum } from '../enums'
@@ -195,18 +199,6 @@
 //     removeNodeAndMerge(ctx, node, setCaret)
 //     return ctx.commandManager.handle(destCaretRange)
 //   },
-//   /**
-//    * 移除当前选区内容, 若collapsed, 则直接返回
-//    * @param isBackward 是否向后删除, 一半不用处理该参数
-//    * @param destCaretRange 最终光标位置
-//    */
-//   removeRangingContents(ctx: Et.UpdatedContext, isBackward = true, destCaretRange?: Et.CaretRange) {
-//     removeRangingContents(ctx, isBackward)
-//     const res = ctx.commandManager.handle(destCaretRange)
-//     // 删除选区后必须强制更新光标位置
-//     ctx.setSelection()
-//     return res
-//   },
 
 //   // /**
 //   //  * 替换文本内容
@@ -232,5 +224,51 @@
 
 // }
 
-export const commonHandlers = {}
-export type CommonHandlers = typeof commonHandlers
+/**
+ * 通用效应处理器, 不依赖 effectInvoker, 可直接调用处理
+ */
+export class CommonHandlers {
+  private readonly _ctx: Et.EditorContext
+  constructor(ctx: Et.EditorContext) {
+    this._ctx = ctx
+  }
+
+  /**
+   * 插入文本
+   * @param data 要插入的文本
+   * @param insertAt 插入位置; 若缺省, 则使用当前选区位置
+   * @param destCaretRange 命令执行后光标位置; 若缺省, 则使用插入文本后的位置
+   */
+  insertText(
+    data: string,
+    insertAt: Et.SelectionTarget | null,
+    destCaretRange?: Et.CaretRange,
+  ) {
+    return this._ctx.selection.checkSelectionTarget(insertAt, {
+      caretFn: (caret) => {
+        insertTextAtCaret(this._ctx as Et.UpdatedContext, data, caret)
+        return this._ctx.commandManager.handle(destCaretRange)
+      },
+      rangeFn: (range) => {
+        insertTextAtRange(this._ctx as Et.UpdatedContext, data, range)
+        return this._ctx.commandManager.handle(destCaretRange)
+      },
+    })
+  }
+
+  /**
+   * 移除当前选区内容, 若collapsed, 则直接返回
+   * @param destCaretRange 最终光标位置
+   */
+  removeRangingContents(destCaretRange?: Et.CaretRange) {
+    if (!this._ctx.isUpdated() || !removeRangingContents(this._ctx)) {
+      return false
+    }
+    this._ctx.commandManager.handle(destCaretRange)
+    // 删除选区后必须更新光标位置
+    if (!destCaretRange) {
+      this._ctx.forceUpdate()
+    }
+    return true
+  }
+}

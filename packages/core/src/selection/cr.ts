@@ -5,7 +5,8 @@
 import type { Et } from '~/core/@types'
 
 import { dom } from '../utils'
-import { AnchorOutOffset, type CaretRange } from './config'
+import type { CaretRange } from './CaretRange'
+import { AnchorOutOffset } from './config'
 import { EtCaret } from './EtCaret'
 import { EtRange } from './EtRange'
 import { SpanRange } from './SpanRange'
@@ -100,7 +101,7 @@ export const cr = {
     // 在添加命令的 execAt 参数时, 基于自身的 AnchorOutOffset 定位会在命令执行获取错误真实位置
     // 如删除段落 currP, 并在删除位置插入片段则 execAt = cr.caretOutStart(currP), 而命令执行时
     // 前面添加的删除命令将 currP 删除了, 该 execAt.isValid 将为 false, 无法获取要插入的位置
-    const index = dom.nodeIndex(node)
+    const index = dom.connectedNodeIndex(node)
     if (index === -1) {
       return new EtCaret(node, AnchorOutOffset.After)
     }
@@ -112,11 +113,41 @@ export const cr = {
    * 否则以node作为 anchor
    */
   caretOutStart: (node: Et.Node) => {
-    const index = dom.nodeIndex(node)
+    const index = dom.connectedNodeIndex(node)
     if (index === -1) {
       return new EtCaret(node, AnchorOutOffset.Before)
     }
     return new EtCaret(node.parentNode as Et.Node, index)
+  },
+  /**
+   * 定位到一个节点末尾, 并自适应其位置
+   * * 若为#text, 定位到内末尾
+   * * 若为不可编辑节点, 定位到外末尾
+   * * 若为可编辑节点且, 定位到内末尾
+   */
+  caretEndAuto: (node: Et.Node) => {
+    if (dom.isText(node)) {
+      return new EtCaret(node, node.length)
+    }
+    if (dom.isNotEditable(node)) {
+      return new EtCaret(node, AnchorOutOffset.After)
+    }
+    return new EtCaret(node, node.childNodes.length)
+  },
+  /**
+   * 定位到一个节点开头, 并自适应其位置
+   * * 若为#text, 定位到内开头
+   * * 若为不可编辑节点, 定位到外开头
+   * * 若为可编辑节点且, 定位到内开头
+   */
+  caretStartAuto: (node: Et.Node) => {
+    if (dom.isText(node)) {
+      return new EtCaret(node, 0)
+    }
+    if (dom.isNotEditable(node)) {
+      return new EtCaret(node, AnchorOutOffset.Before)
+    }
+    return new EtCaret(node, 0)
   },
 
   /**
@@ -143,8 +174,8 @@ export const cr = {
    * 获取一个同层跨度范围, 用于 Remove_Content 命令描述要删除内容的范围;
    * oneChild 和 otherChild 不必按序, 但必须同层(父节点相同), 否则返回null
    */
-  spanRange: (oneChild: Et.NullableNode, otherChild: Et.NullableNode) => {
-    if (!oneChild || !otherChild || !oneChild.isConnected || !otherChild.isConnected) {
+  spanRange: (oneChild?: Et.NodeOrNull, otherChild?: Et.NodeOrNull) => {
+    if (!oneChild || !otherChild) {
       return null
     }
     if (oneChild.parentNode !== otherChild.parentNode) {
@@ -197,7 +228,7 @@ export const cr = {
       toOffset = tmp
     }
     const startNode = node.childNodes.item(fromOffset)
-    const endNode = toOffset >= node.childNodes.length
+    const endNode = toOffset < node.childNodes.length
       ? node.childNodes.item(toOffset)
       : node.lastChild
     if (!startNode || !endNode) {

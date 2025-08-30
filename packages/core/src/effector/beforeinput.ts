@@ -4,23 +4,27 @@ import { BuiltinConfig } from '../enums'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
   'default': (ev, ctx) => {
-    ctx.effectInvoker.invoke(
-      ctx.effectElement,
+    if (ctx.effectInvoker.invoke(
+      ctx.commonEtElement,
       BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect,
       ctx,
       ev,
-    )
-    if (ctx.commandManager.handle()) {
+    )) {
       ev.preventDefault()
     }
+    ctx.commandManager.handle()
   },
   /** 未声明或不合法的inputType, 执行此回调 */
   '': (ev, ctx) => {
     if (ev.data) {
       // 将 InputEvent 不接受的 inputType写入 data 中来读取
+      const effect = ev.data[0].toUpperCase() === ev.data[0]
+        ? ev.data
+        : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
+
       ctx.effectInvoker.invoke(
-        ctx.effectElement,
-        BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data as Et.InputTypeEffect,
+        ctx.commonEtElement,
+        effect as Et.InputTypeEffect,
         ctx,
         ev,
       )
@@ -42,14 +46,12 @@ export class MainBeforeInputTypeSolver implements Et.InputTypeSolver {
 Object.assign(MainBeforeInputTypeSolver.prototype, mainBeforeInputTypeSolver)
 
 export const runInputSolver = (
-  ev: Et.InputEvent, ctx: Et.UpdatedContext,
+  ev: Et.InputEvent, ctx: Et.EditorContext,
   main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
 ) => {
-  if (!ctx.effectElement) {
-    if (import.meta.env.DEV) {
-      console.error('无效应元素')
-    }
-    return
+  if (!ctx.isUpdated()) {
+    ev.preventDefault()
+    return false
   }
 
   let fn
@@ -59,7 +61,7 @@ export const runInputSolver = (
       fn(ev, ctx)
     }
   }
-  if (ctx.skipDefault) return (ctx.skipDefault = false)
+  if (ctx.defaultSkipped) return false
 
   fn = main[ev.inputType] ?? main.default
   if (typeof fn === 'function') {
@@ -68,14 +70,11 @@ export const runInputSolver = (
 }
 
 export const getBeforeinputListener = (
-  ctx: Et.UpdatedContext, main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
+  ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
 ) => {
   return (ev: Et.InputEvent) => {
     // console.log('beforeinput', ev.inputType, ev.data)
     // 输入法会话内 跳过delete 处理, 因为其不可 preventDefault
-    // FIXME. safari 使用 insertFromComposition 和 deleteCompositionText 处理输入法输入结束;
-    // 并且insertFromComposition 可以被preventDefault
-    // 说明在 Safari 中, 可直接拦截输入法输入, 不用像 chromium 那样合并 insertCompositionText
     if (
       ctx.inCompositionSession && [
         'deleteContentBackward', // Windows
@@ -87,22 +86,26 @@ export const getBeforeinputListener = (
       return false
     }
 
+    // TODO 输入法相关 inputType 不应走插件, 而应直接进入 MainSolver
     runInputSolver(ev, ctx, main, solver)
 
-    if (!ev.defaultPrevented && ev.inputType !== 'insertCompositionText') {
+    if (!ev.defaultPrevented) {
       // todo remove
       if (import.meta.env.DEV) {
-        console.error(`There's unhandled input:`, ev.inputType, ev.getTargetRanges()[0], ev)
+        if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
+          console.error(`There's unhandled input:`, ev.inputType, ev.getTargetRanges()[0], ev)
+        }
       }
       // 阻止所有beforeinput默认行为
+      // FIXME 拖拽插入(deleteByDrag) 若不在 drag/drop 事件中阻止默认行为, 此处阻止无效
       ev.preventDefault()
     }
-    else {
+    // MacOS 下 Safari 有 deleteCompositionText 也无法 preventDefault
+    else if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
       // 默认事件被取消, 手动dispatch input事件
       ctx.dispatchInputEvent('input', {
         inputType: ev.inputType,
         data: ev.data,
-        // bubbles: false,   //不可冒泡
       })
     }
   }

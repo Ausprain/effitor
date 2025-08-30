@@ -6,32 +6,37 @@ export default defineConfig({
   test: {
     projects: [
       {
-        extends: true,
+        extends: true, // 继承基础配置
         test: {
           name: 'unit',
           include: [
-            '**/tests/unit/**/*.test.ts',
-            '**/tests/**/*.unit.test.ts',
+            '**/__tests__/unit/**/*.test.ts',
+            '**/__tests__/**/*.unit.test.ts',
+            '**/*.unit.test.ts',
           ],
           environment: 'happy-dom',
         },
       },
       {
+        extends: true,
         test: {
           name: 'intg',
           include: [
-            '**/tests/intg/**/*.test.ts',
-            '**/tests/**/*.intg.test.ts',
+            '**/__tests__/intg/**/*.test.ts',
+            '**/__tests__/**/*.intg.test.ts',
+            '**/*.intg.test.ts',
           ],
           environment: 'happy-dom',
         },
       },
       {
+        extends: true,
         test: {
           name: 'e2e',
           include: [
-            '**/tests/e2e/**/*.test.ts',
-            '**/tests/**/*.e2e.test.ts',
+            '**/__tests__/e2e/**/*.test.ts',
+            '**/__tests__/**/*.e2e.test.ts',
+            '**/*.e2e.test.ts',
           ],
           browser: {
             provider: 'playwright',

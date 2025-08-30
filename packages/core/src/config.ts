@@ -3,8 +3,9 @@ import type { Et } from '~/core/@types'
 export const platform = {
   locale: navigator.language,
   isMac: navigator.userAgentData ? navigator.userAgentData.platform === 'macOS' : /Mac/.test(navigator.userAgent),
+  isFirefox: /Firefox/.test(navigator.userAgent),
   isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
-}
+} as const
 
 export const defaultConfig: Readonly<Et.EditorConfig> = {
   /** 缩进margin-left像素值 */
@@ -20,6 +21,7 @@ export const defaultConfig: Readonly<Et.EditorConfig> = {
   ALLOW_MOUNT_WHILE_MOUNTED: false,
   AUTO_CREATE_FIRST_PARAGRAPH: true,
   WITH_EDITOR_DEFAULT_STYLE: true,
+  WITH_EDITOR_DEFAULT_LOGGER: false,
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: true,
 }
 

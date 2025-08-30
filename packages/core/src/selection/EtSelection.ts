@@ -1,8 +1,17 @@
 import type { Et } from '~/core/@types'
 
+import type { EditorBody } from '../context/EditorBody'
 import { dom } from '../utils'
-import { CaretRange } from './config'
+import { CaretRange } from './CaretRange'
 import { cr } from './cr'
+import { getTargetRangeCtor, ValidTargetRange } from './EtTargetRange'
+
+const enum SelectAllLevel {
+  No_Select_All = 0,
+  Select_Soft_Line = 1,
+  Select_Paragraph = 2,
+  Select_Document = 3,
+}
 
 /**
  * 编辑器选区
@@ -10,12 +19,8 @@ import { cr } from './cr'
 export class EtSelection {
   private _selection: Selection | null = null
   private _getSelection: () => Selection | null
-  private readonly _ctx: Et.UpdatedContext
-
-  // 使用本地语言字符串分段器, 用于计算光标位置要删除的字符/单词的长度
-  private _locale: string
-  private _graphemeSegmenter: Intl.Segmenter
-  private _wordSegmenter: Intl.Segmenter
+  private readonly _body: EditorBody
+  private readonly TargetRange: ReturnType<typeof getTargetRangeCtor>
 
   /**
    * 光标位置缓存
@@ -24,64 +29,52 @@ export class EtSelection {
    * 非脚本聚焦编辑器时, 由浏览器处理新的选区位置
    */
   private _caretRange: CaretRange | null = null
-  private _caretAtParagraphStart?: boolean = void 0
-  private _caretAtParagraphEnd?: boolean = void 0
-  private _caretAtBodyStart?: boolean = void 0
-  private _caretAtBodyEnd?: boolean = void 0
-  private _startEtElement: Et.EtElement | null = null
-  private _endEtElement: Et.EtElement | null = null
-  private _startParagraph: Et.Paragraph | null = null
-  private _endParagraph: Et.Paragraph | null = null
-  private _startTopElement: Et.Paragraph | null = null
-  private _endTopElement: Et.Paragraph | null = null
+  private _targetRange: ReturnType<typeof this.TargetRange['fromRange']> | null = null
+
+  private _isForward: boolean | undefined
+  private _commonEtElement: Et.EtElement | null | undefined
+  private _focusEtElement: Et.EtElement | null | undefined
+  private _focusParagraph: Et.Paragraph | null | undefined
+  private _focusTopElement: Et.Paragraph | null | undefined
   /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
   private _rawEl: HTMLInputElement | HTMLTextAreaElement | null = null
+  private _revealIdleCallbackId = 0
+  // private readonly requestIdleCallback = globalThis.requestIdleCallback
+  //   ? globalThis.requestIdleCallback.bind(globalThis)
+  //   : (cb: () => void, options?: { timeout: number }) => {
+  //       return globalThis.setTimeout(cb, options?.timeout ?? 500)
+  //     }
+
+  // private readonly cancelIdleCallback = globalThis.cancelIdleCallback
+  //   ? globalThis.cancelIdleCallback.bind(globalThis)
+  //   : (id: number) => {
+  //       globalThis.clearTimeout(id)
+  //     }
+
+  /**
+   * 全选等级, 1 全选当前行, 2 全选当前段落, 3 全选文档,
+   */
+  private _selectAllLevel: SelectAllLevel = 0
 
   /** 选区是否在 shadowDOM 内 */
   public inShadow: boolean
   /** 选区历史记录 */
   public history = new SelectionHistory(this)
   /** 当前选择的 Range 列表; 仅在多选区场景非空, 最后一项恒等于 range; */
-  public ranges: Et.EtRange[] = []
+  public ranges: Et.TargetRange[] = []
   /** 当前选区对应的 Range */
   public range: Et.Range | null = null
   public isCollapsed = true
-  /**
-   * 文本锚点, 只有两种情况下非空\
-   * 1. 选区 collapsed 且光标落在文本节点上\
-   * 2. 选区非 collapsed, 且 range起止节点是同一文本节点
-   */
-  public anchorText: Et.NullableText = null
-  /**
-   * 当前光标基于 anchorText 节点的偏移量;\
-   * 当 anchorText 为空, 且选区 collapsed 时, 该值等于 selection.focusOffset;\
-   * 当 anchorText 非空, 且选区非 collapsed 时, 该值等于 range.startOffset.
-   */
-  public anchorOffset = 0
-  /**
-   * 选区终止节点, 即 selection 停下时所在节点\
-   * 当选区 collapsed 且光标落在文本节点时, 该值等于 anchorText
-   */
-  public focusNode: Et.NullableNode = null
 
   /**
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
    * getSelection 函数需要 bind 在 ShadowRoot或 Document 上, 否则调用时报错
    */
-  constructor(ctx: Et.EditorContext, locale = 'en-US') {
-    this._ctx = ctx as Et.UpdatedContext
+  constructor(body: EditorBody) {
+    this._body = body
     this.inShadow = false
     this._getSelection = document.getSelection.bind(document)
-    try {
-      this._locale = locale
-      this._graphemeSegmenter = new Intl.Segmenter(this._locale, { granularity: 'grapheme' })
-      this._wordSegmenter = new Intl.Segmenter(this._locale, { granularity: 'word' })
-    }
-    catch (_e) {
-      this._locale = 'en-US'
-      this._graphemeSegmenter = new Intl.Segmenter(this._locale, { granularity: 'grapheme' })
-      this._wordSegmenter = new Intl.Segmenter(this._locale, { granularity: 'word' })
-    }
+    this.TargetRange = getTargetRangeCtor(body)
   }
 
   get selection() {
@@ -96,411 +89,37 @@ export class EtSelection {
   }
 
   /**
-   * 更新选区信息, 除输入法会话内, 该方法不可单独调用, 只能通过 ctx.updateUpdate() 间接调用
+   * 文本锚点, 只有两种情况下非空\
+   * 1. 选区 collapsed 且光标落在文本节点上\
+   * 2. 选区非 collapsed, 且 range起止节点是同一文本节点
    */
-  update(sel?: Selection) {
-    console.warn('et sel update')
-    this._caretAtBodyEnd = void 0
-    this._caretAtBodyStart = void 0
-    this._caretAtParagraphEnd = void 0
-    this._caretAtParagraphStart = void 0
-
-    if (!sel) {
-      sel = this.selection as Selection
-      if (!sel || sel.rangeCount === 0) {
-        this._ctx.editor.blur()
-        return false
-      }
+  get anchorText() {
+    if (this._targetRange && this._targetRange.isTextCommonAncestor()) {
+      return this._targetRange.commonAncestor
     }
-    const oldText = this.anchorText
-    this._caretRange = null
-    this.range = sel.getRangeAt(0) as Et.Range
-    this.focusNode = sel.focusNode as Et.NullableNode
-    this.anchorOffset = sel.focusOffset
-    // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
-    this.isCollapsed = this.range.collapsed
-    if (dom.isText(this.range.endContainer)) {
-      // 选区非 collapsed, 且不在同一#text上时, 让anchorText为null
-      this.anchorText = this.range.startContainer === this.range.endContainer
-        ? this.range.endContainer
-        : null
-      this.anchorOffset = this.range.startOffset
-    }
-    else {
-      this.anchorText = null
-    }
-
-    if (!oldText || oldText !== this.anchorText) {
-      this._startEtElement = null
-      this._endEtElement = null
-      this._startParagraph = null
-      this._endParagraph = null
-      this._startTopElement = null
-      this._endTopElement = null
-    }
-    this._ctx.skipNextSelChange()
-    return true
+    return null
   }
 
-  /** 选区是否是向前选择的, collapsed时始终返回true */
+  /** 选区是否是向前选择的, collapsed时始终返回true; 其他情况, 只要不是明确 backward 的, 都是 forward 的 */
   get isForward() {
+    if (this._isForward !== void 0) {
+      return this._isForward
+    }
     if (this.isCollapsed) {
-      return true
+      return (this._isForward = true)
     }
     const s = this._selection
+    if (!s || !s.direction) {
+      return (this._isForward = true)
+    }
     // 使用shift+方向键 选择内容时 direction="forward"|"backward"; 使用鼠标划选时, direction="none"
-    if (s && s.direction !== 'none') {
-      return s.direction === 'forward'
+    if (s.direction !== 'none') {
+      return this._isForward = (s.direction === 'forward')
     }
     const r = this.range
-    return r && s && r.startContainer === s.anchorNode && r.startOffset === s.anchorOffset
-  }
-
-  /**
-   * 获取当前选区范围内的文本内容
-   */
-  get selectedTextContent() {
-    if (this.isCollapsed || !this.range) {
-      return ''
-    }
-    return this.range.toString()
-  }
-
-  /**
-   * 获取当前光标左侧(Backspace方向)的第一个“视觉字符” (双码点字符会视为一个视觉字符, 四码点字符会被视为两个视觉字符)
-   * @returns 若anchorText为空, 或anchorOffset=0, 返回 undefined
-   */
-  get precedingChar(): string | undefined {
-    if (!this.anchorText || this.anchorOffset === 0) {
-      return void 0
-    }
-    // return [
-    //   ...this.anchorText.data.slice(Math.max(0, this.anchorOffset - 4), this.anchorOffset),
-    // ].pop()
-    const segs = this._graphemeSegmenter.segment(this.anchorText.data.slice(0, this.anchorOffset))
-    return segs.containing(this.anchorOffset - 1)?.segment
-  }
-
-  /**
-   * 获取当前光标右侧(Delete方向)的第一个“视觉字符”
-   * @returns 若anchorText为空, 或anchorOffset=anchorText.length, 返回 undefined
-   */
-  get followingChar(): string | undefined {
-    if (!this.anchorText || this.anchorText.length === this.anchorOffset) {
-      return void 0
-    }
-    // return [
-    //   ...this.anchorText.data.slice(this.anchorOffset, this.anchorOffset + 4),
-    // ].shift()
-    const segs = this._graphemeSegmenter.segment(this.anchorText.data.slice(this.anchorOffset))
-    return segs.containing(0)?.segment
-  }
-
-  /**
-   * 获取当前光标左侧(Backspace方向)的1个单词; 使用当前`locale`语言分词
-   */
-  get precedingWord(): string | undefined {
-    if (!this.anchorText || this.anchorOffset === 0) {
-      return void 0
-    }
-    const segs = this._wordSegmenter.segment(this.anchorText.data.slice(0, this.anchorOffset))
-    let prev = segs.containing(this.anchorOffset - 1)
-    if (!prev) {
-      return void 0
-    }
-    let word = prev.segment
-    prev = segs.containing(prev.index - 1)
-    while (prev) {
-      // 将空白符与当前单词合并; Intl 分词默认将空白符单独为一个word
-      // 在按住`Ctrl+Backspace`快速连续删除单词时, 会在删除`空白符word`时明显感觉到卡顿
-      // 于是将空白符与附近的真实 word 合并一齐删除, 以获取视觉连贯性, 同时缩减连续删除的总耗时
-      // 事实上, 在浏览器原生的deleteWordBackward 行为会在遇到空白符时, 连同空白符的左侧单词
-      // 视为一个word并一齐删除; 以下代码就是模拟这一行为, 不过我们更激进一些, 将单词左右的空白符
-      // 都算进去, 并且对连续递增的相同 word 也进行合并删除, 如 "空白删除删除|", 在`|`位置向左
-      // 删除一个word, 会将"删除删除"一齐删除, 得到 "空白|".
-      if (/\s+/.test(prev.segment) || prev.segment === word) {
-        word = prev.segment + word
-        prev = segs.containing(prev.index - 1)
-        continue
-      }
-      break
-    }
-    return word
-  }
-
-  /**
-   * 获取当前光标右侧(Delete方向)的1个单词; 使用当前`locale`语言分词
-   */
-  get followingWord(): string | undefined {
-    if (!this.anchorText || this.anchorText.length === this.anchorOffset) {
-      return void 0
-    }
-    const segs = this._wordSegmenter.segment(this.anchorText.data.slice(this.anchorOffset))
-    let next = segs.containing(0)
-    if (!next) {
-      return void 0
-    }
-    let word = next.segment
-    next = segs.containing(next.index + next.segment.length)
-    while (next) {
-      if (/\s+/.test(next.segment) || next.segment === word) {
-        word += next.segment
-        next = segs.containing(next.index + next.segment.length)
-        continue
-      }
-      break
-    }
-    return word
-  }
-
-  get startEffectElement(): Et.EtElement | null {
-    if (this._startEtElement) {
-      return this._startEtElement
-    }
-    if (!this.range) {
-      return null
-    }
-    this._startEtElement = this._ctx.findEffectParent(this.range.startContainer)
-    if (this.isCollapsed) {
-      this._endEtElement = this._startEtElement
-    }
-    return this._startEtElement
-  }
-
-  get endEffectElement(): Et.EtElement | null {
-    if (this._endEtElement) {
-      return this._endEtElement
-    }
-    if (!this.range) {
-      return null
-    }
-    this._endEtElement = this._ctx.findEffectParent(this.range.endContainer)
-    if (this.isCollapsed) {
-      this._startEtElement = this._endEtElement
-    }
-    return this._endEtElement
-  }
-
-  get startParagraph(): Et.Paragraph | null {
-    if (this._startParagraph) {
-      return this._startParagraph
-    }
-    if (!this.range) {
-      return null
-    }
-    this._startParagraph = this._ctx.findParagraph(
-      this._startEtElement ?? this.range.startContainer,
+    return this._isForward = (
+      !!r && r.startContainer === s.anchorNode && r.startOffset === s.anchorOffset
     )
-    if (this.isCollapsed) {
-      this._endParagraph = this._startParagraph
-    }
-    return this._startParagraph
-  }
-
-  get endParagraph(): Et.Paragraph | null {
-    if (this._endParagraph) {
-      return this._endParagraph
-    }
-    if (!this.range) {
-      return null
-    }
-    this._endParagraph = this._ctx.findParagraph(
-      this._endEtElement ?? this.range.endContainer,
-    )
-    if (this.isCollapsed) {
-      this._startParagraph = this._endParagraph
-    }
-    return this._endParagraph
-  }
-
-  /**
-   * 选区起始位置的顶层节点
-   */
-  get startTopElement(): Et.Paragraph | null {
-    if (this._startTopElement) {
-      return this._startTopElement
-    }
-    if (!this.range) {
-      return null
-    }
-    let node = this._startParagraph ?? this.range.startContainer as Et.Paragraph
-    node = this._ctx.findTopElement(node)
-    this._startTopElement = node
-    if (this.isCollapsed) {
-      this._endTopElement = node
-    }
-    return node
-  }
-
-  /**
-   * 选区结束位置的顶层节点
-   */
-  get endTopElement(): Et.Paragraph | null {
-    if (this._endTopElement) {
-      return this._endTopElement
-    }
-    if (!this.range) {
-      return null
-    }
-    let node = this._endParagraph ?? this.range.endContainer as Et.Paragraph
-    node = this._ctx.findTopElement(node)
-    this._endTopElement = node
-    if (this.isCollapsed) {
-      this._startTopElement = node
-    }
-    return node
-  }
-
-  /** 光标是否在段落内开头 */
-  get isCaretAtParagraphStart() {
-    if (this._caretAtParagraphStart !== void 0) {
-      return this._caretAtParagraphStart
-    }
-    if (!this.isCollapsed || this.anchorOffset > 0 || !this.focusNode || !this._ctx.paragraphEl) {
-      return (this._caretAtParagraphStart = false)
-    }
-    return (this._caretAtParagraphStart = (this.getCaretRange() as Et.EtCaret).isAffinityTo(
-      this._ctx.paragraphEl.innerStartEditingBoundary())
-    )
-
-    // TODO check and remove
-    // // 选区 collapsed 下:
-    // // 1. anchorOffset==0 && focusNode 是段落
-    // // 2. anchorOffset==0 && focusNode 是段落的间接 firstChild
-    // if (this._caretAtParagraphStart !== void 0) {
-    //   return this._caretAtParagraphStart
-    // }
-    // if (!this.isCollapsed || this.anchorOffset > 0 || !this.focusNode || !this._ctx.paragraphEl) {
-    //   return (this._caretAtParagraphStart = false)
-    // }
-    // if (this._ctx.paragraphEl === this.focusNode) {
-    //   return (this._caretAtParagraphStart = true)
-    // }
-    // if (dom.isWithinFirst(this.focusNode, this._ctx.paragraphEl)) {
-    //   return (this._caretAtParagraphStart = true)
-    // }
-  }
-
-  /** 光标是否在段落内结尾 */
-  get isCaretAtParagraphEnd() {
-    if (this._caretAtParagraphEnd !== void 0) {
-      return this._caretAtParagraphEnd
-    }
-    if (!this.isCollapsed || !this.focusNode || !this._ctx.paragraphEl) {
-      return (this._caretAtParagraphEnd = false)
-    }
-    return (this._caretAtParagraphEnd = (this.getCaretRange() as Et.EtCaret).isAffinityTo(
-      this._ctx.paragraphEl.innerEndEditingBoundary(),
-    ))
-
-    // TODO check and remove
-    // // 1. focusNode 是段落, 且
-    // //    1) anchorOffset==focusNode.childNodes.length.
-    // //    2) 或anchorOffset==focusNode.childNodes.length 且.lastChild 是一个 br
-    // // 2. focusNode 到段落末尾之间无其他节点, 或有且只有一个 br
-    // if (this._caretAtParagraphEnd !== void 0) {
-    //   return this._caretAtParagraphEnd
-    // }
-    // if (!this.isCollapsed || !this.focusNode || !this._ctx.paragraphEl) {
-    //   return (this._caretAtParagraphEnd = false)
-    // }
-    // const currP = this._ctx.paragraphEl
-    // if (this.focusNode === currP) {
-    //   if (this.anchorOffset === currP.childNodes.length) {
-    //     return (this._caretAtParagraphEnd = true)
-    //   }
-    //   if (this.anchorOffset === currP.childNodes.length - 1
-    //     && dom.isBrElement(currP.lastChild as Et.Node)
-    //   ) {
-    //     return (this._caretAtParagraphEnd = true)
-    //   }
-    //   return (this._caretAtParagraphEnd = false)
-    // }
-    // if (this.anchorOffset !== dom.nodeLength(this.focusNode)) {
-    //   return (this._caretAtParagraphEnd = false)
-    // }
-    // let brCount = 0
-    // let node: Et.NullableNode = this.focusNode
-    // while (node) {
-    //   if (node.nextSibling) {
-    //     if (dom.isBrElement(node.nextSibling)) {
-    //       brCount++
-    //       if (brCount > 1) {
-    //         return (this._caretAtParagraphEnd = false)
-    //       }
-    //       node = node.nextSibling
-    //       continue
-    //     }
-    //     else {
-    //       return (this._caretAtParagraphEnd = false)
-    //     }
-    //   }
-    //   else {
-    //     node = node.parentNode
-    //   }
-    //   if (node === currP) {
-    //     return (this._caretAtParagraphEnd = (brCount <= 1))
-    //   }
-    // }
-    // return (this._caretAtParagraphEnd = false)
-  }
-
-  /** 光标是否在编辑区开头 */
-  get isCaretAtBodyStart() {
-    // TODO 优化, 目前的判断方式还不够完善; 如光标在组件节点中,
-    // 而组件节点的可编辑区开头到 body 开头, 可能有其他用于修饰的(不可编辑)节点
-    // EtCaret.isAffinityTo 已经解决了段落内修饰节点的问题; 但尚未解决嵌套段落
-    // 内存在修饰节点的问题, 即顶层节点到段落节点之间, 尚未判断
-    // 如: <comp><span>标题(不可编辑)</span><p>段落</p></comp>
-    // comp 是一个段落, p 也是一个段落, 而 ctx.paragraphEl 是 p
-    // TODO sol. 获取顶层段落的 innerStartEditingBoundary 再判断一次 affinity
-    if (this._caretAtBodyStart !== void 0) {
-      return this._caretAtBodyStart
-    }
-    if (!this.isCollapsed || !this._ctx.paragraphEl) {
-      return (this._caretAtBodyStart = false)
-    }
-    return this._caretAtBodyStart = (
-      this.isCaretAtParagraphStart
-      && dom.isWithinFirst(this._ctx.paragraphEl, this._ctx.body)
-    )
-  }
-
-  /** 光标是否在编辑区结尾 */
-  get isCaretAtBodyEnd() {
-    // TODO 优化, 目前的判断方式还不够完善
-    if (this._caretAtBodyEnd !== void 0) {
-      return this._caretAtBodyEnd
-    }
-    if (!this.isCollapsed || !this._ctx.paragraphEl) {
-      return (this._caretAtBodyEnd = false)
-    }
-    return this._caretAtBodyEnd = (
-      this.isCaretAtParagraphEnd
-      && dom.isWithinLast(this._ctx.paragraphEl, this._ctx.body)
-    )
-  }
-
-  /**
-   * 获取光标位置对应的 CaretRange 对象, 获取时会创建一个缓存,
-   * 该缓存在下一次 update 之前存活
-   * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
-   */
-  getCaretRange() {
-    let caret = this._caretRange
-    if (caret) {
-      return caret
-    }
-    caret = cr.fromRange(this.range ?? {
-      collapsed: true,
-      startContainer: this._ctx.body,
-      startOffset: 0,
-      endContainer: this._ctx.body,
-      endOffset: 0,
-    })
-    this._caretRange = caret
-    caret.markValid()
-    return caret
   }
 
   /**
@@ -516,22 +135,241 @@ export class EtSelection {
   }
 
   /**
-   * 设置地区(语言)
-   * @param locale 一个符合BCP 47规范的语言编码, 若不合法, 将不做改变(继续使用 platform.locale )
-   * @returns 是否设置成功
+   * 更新选区信息, 除输入法会话内, 除处理输入法行为需要时, 该方法不可单独调用, 只能通过 ctx.updateUpdate() 间接调用
    */
-  setLocale(locale: string) {
-    try {
-      const graphemeSeg = new Intl.Segmenter(locale, { granularity: 'grapheme' })
-      const wordSeg = new Intl.Segmenter(locale, { granularity: 'word' })
-      this._graphemeSegmenter = graphemeSeg
-      this._wordSegmenter = wordSeg
-      this._locale = locale
-      return true
-    }
-    catch (_e) {
+  update() {
+    // console.warn('et sel update')
+    const sel = this.selection
+    if (!sel || sel.rangeCount === 0) {
       return false
     }
+    const oldText = this.anchorText
+    this.range = sel.getRangeAt(0) as Et.Range
+    // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
+    this.isCollapsed = this.range.collapsed
+    this._caretRange = null
+    this._targetRange = this.TargetRange.fromRange(this.range)
+
+    this._isForward = void 0
+    if (!oldText || oldText !== this.anchorText) {
+      this._commonEtElement = void 0
+      this._focusEtElement = void 0
+      this._focusParagraph = void 0
+      this._focusTopElement = void 0
+    }
+    return true
+  }
+
+  /**
+   * 获取当前选区范围内的文本内容
+   */
+  get selectedTextContent() {
+    if (this.isCollapsed || !this.range) {
+      return ''
+    }
+    return this.range.toString()
+  }
+
+  /**
+   * 公共效应元素祖先, 多数情况下是当前段落, 或 et-body
+   */
+  get commonEffectElement(): Et.EtElement | null {
+    if (this._commonEtElement !== void 0) {
+      return this._commonEtElement
+    }
+    return this._commonEtElement = (this._targetRange && this._targetRange.commonEtElement)
+  }
+
+  get focusEffectElement(): Et.EtElement | null {
+    if (this._focusEtElement !== void 0) {
+      return this._focusEtElement
+    }
+    if (this.isForward) {
+      this._focusEtElement = (this._targetRange && this._targetRange.endEtElement)
+    }
+    else {
+      this._focusEtElement = (this._targetRange && this._targetRange.startEtElement)
+    }
+    return this._focusEtElement
+  }
+
+  get focusParagraph(): Et.Paragraph | null {
+    if (this._focusParagraph !== void 0) {
+      return this._focusParagraph
+    }
+    if (this.isForward) {
+      this._focusParagraph = (this._targetRange && this._targetRange.endParagraph)
+    }
+    else {
+      this._focusParagraph = (this._targetRange && this._targetRange.startParagraph)
+    }
+    return this._focusParagraph
+  }
+
+  get focusTopElement(): Et.Paragraph | null {
+    if (this._focusTopElement !== void 0) {
+      return this._focusTopElement
+    }
+    if (this.isForward) {
+      this._focusTopElement = (this._targetRange && this._targetRange.endTopElement)
+    }
+    else {
+      this._focusTopElement = (this._targetRange && this._targetRange.startTopElement)
+    }
+    return this._focusTopElement
+  }
+
+  /** 光标是否在段落内开头 */
+  get isCaretAtParagraphStart() {
+    return this._targetRange && this._targetRange.isCaretAtParagraphStart
+  }
+
+  /** 光标是否在段落内结尾 */
+  get isCaretAtParagraphEnd() {
+    return this._targetRange && this._targetRange.isCaretAtParagraphEnd
+  }
+
+  /** 光标是否在编辑区开头 */
+  get isCaretAtBodyStart() {
+    return this._targetRange && this._targetRange.isCaretAtBodyStart
+  }
+
+  /** 光标是否在编辑区结尾 */
+  get isCaretAtBodyEnd() {
+    return this._targetRange && this._targetRange.isCaretAtBodyEnd
+  }
+
+  /**
+   * 获取光标位置对应的 CaretRange 对象, 获取时会创建一个缓存,
+   * 该缓存在下一次 update 之前存活
+   * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
+   */
+  getCaretRange() {
+    let caret = this._caretRange
+    if (caret) {
+      return caret
+    }
+    caret = cr.fromRange(this.range ?? {
+      collapsed: true,
+      startContainer: this._body.el,
+      startOffset: 0,
+      endContainer: this._body.el,
+      endOffset: 0,
+    })
+    this._caretRange = caret
+    caret.markValid()
+    return caret
+  }
+
+  /**
+   * 创建一个 EtTargetCaret 实例, 若光标位置不合法, 返回 null
+   * @param anchorNode 光标所在节点
+   * @param anchorOffset 光标所在节点偏移量
+   */
+  createTargetCaret(anchorNode: Et.HTMLNode, anchorOffset: number): Et.ValidTargetCaret | null {
+    if (!anchorNode.isConnected) {
+      return null
+    }
+    const tc = this.TargetRange.createCaret(anchorNode, anchorOffset)
+    if (!tc.isValid()) {
+      return null
+    }
+    return tc
+  }
+
+  /**
+   * 从Range构建一个 EtTargetRange 实例; 若范围不合法, 将返回 null
+   */
+  createTargetRange(range: Range): ValidTargetRange | null
+  /**
+   * 创建一个 EtTargetRange 实例; 若范围不合法, 将返回 null
+   * @param startNode 选区起始节点
+   * @param startOffset 选区起始节点偏移量
+   * @param endNode 选区结束节点
+   * @param endOffset 选区结束节点偏移量
+   */
+  createTargetRange(
+    startNode: Et.HTMLNode, startOffset: number,
+    endNode: Et.HTMLNode, endOffset: number,
+  ): Et.ValidTargetRange | null
+  createTargetRange(
+    rangeOrStartNode: Et.HTMLNode | Range, startOffset?: number,
+    endNode?: Et.HTMLNode, endOffset?: number,
+  ): Et.ValidTargetRange | null {
+    let tr
+    if (rangeOrStartNode instanceof Range) {
+      tr = this.TargetRange.fromRange(rangeOrStartNode)
+    }
+    else if (!startOffset || !endNode || !endOffset) {
+      return null
+    }
+    else {
+      tr = this.TargetRange.createRange(rangeOrStartNode, startOffset, endNode, endOffset)
+    }
+    if (!tr.isValid()) {
+      return null
+    }
+    return tr
+  }
+
+  /**
+   * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, 返回 null
+   */
+  getTargetCaret() {
+    const range = this.getTargetRange()
+    if (!range || !range.collapsed) {
+      return null
+    }
+    return range.toTargetCaret()
+  }
+
+  /**
+   * 获取当前选区目标范围对象; 若选区范围不存在或不合法, 返回 null
+   * * 该选区可能是 collapsed 的; 可通过其.toTargetCaret()方法获取对应合法光标位置
+   */
+  getTargetRange() {
+    if (!this._targetRange || !this._targetRange.isValid()) {
+      return null
+    }
+    if (!this.isForward) {
+      this._targetRange.isBackward = true
+    }
+    return this._targetRange
+  }
+
+  /**
+   * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
+   * @param target 选区目标
+   * @param options
+   * * options.caretFn 光标函数
+   * * options.rangeFn 范围函数
+   */
+  checkSelectionTarget(
+    target: Et.SelectionTarget | null,
+    {
+      caretFn,
+      rangeFn,
+    }: {
+      caretFn: (caret: Et.ValidTargetCaret) => boolean
+      rangeFn: (range: Et.ValidTargetRange) => boolean
+    },
+  ) {
+    if (!target) {
+      target = this.getTargetRange()
+      if (!target) {
+        return false
+      }
+    }
+    if (!target.isValid()) {
+      return false
+    }
+    if (target.isCaret()) {
+      return caretFn(target)
+    }
+    else if (target.collapsed) {
+      return caretFn(target.toTargetCaret())
+    }
+    return rangeFn(target)
   }
 
   /**
@@ -555,17 +393,52 @@ export class EtSelection {
     return this._rawEl
   }
 
+  /** 选择一个范围更新到当前选区; 此方法不执行 EtSelection.update */
+  selectRange(range: Range) {
+    const sel = this.selection
+    if (!sel) {
+      return false
+    }
+    sel.removeAllRanges()
+    sel.addRange(range)
+    return true
+  }
+
+  /**
+   * 折叠选区, 使光标位置位于选区开头或结尾
+   * @param [reveal=true] 是否保证光标显示在视口内
+   */
+  collapse(toStart = true, reveal = true) {
+    if (this.isCollapsed) {
+      return true
+    }
+    if (!this.selection) {
+      return false
+    }
+    if (toStart) {
+      this.selection.collapseToStart()
+    }
+    else {
+      this.selection.collapseToEnd()
+    }
+    if (reveal) {
+      this.revealSelection()
+    }
+    return true
+  }
+
   /**
    * 将光标定位于node节点的相对索引处，offset<0定位到外开头，=0定位到内开头，=Infinity定位到外末尾 \
-   * 若node为Text节点，则始终定位于Text文本内 \
-   * * 调用此方法会导致selectionchange, 在selchange中会更新ctx和caret; 而此处会默认更新caret;
-   *  而selchange是防抖的, 若希望调用此方法后立即更新ctx; 应将update参数设置为false, 并主动调用ctx.forceUpdate()
-   * @param [update=true] 是否立即更新caret, 默认 true
+   * 若node为Text节点，则始终定位于Text文本内
+   * * 此方法不主动更新上下文, 但会导致浏览器触发一个 selectionchange 事件, 但不是同步的
+   * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
    * @returns 是否成功更新光标位置
    */
-  caretTo(node: Et.Node, offset: number, update = true): boolean {
+  caretTo(node: Et.Node, offset: number): boolean {
     const sel = this.selection
-    if (!sel || !node || !node.isConnected) return false
+    if (!sel || !node || !node.isConnected || !this._body.isNodeInBody(node)) {
+      return false
+    }
 
     const r = document.createRange() as Et.Range
     if (offset < 0) {
@@ -581,36 +454,35 @@ export class EtSelection {
     }
     sel.removeAllRanges()
     sel.addRange(r)
-    return update ? this.update() : true
+    return true
   }
 
   /**
-   * 获取一个Range，其范围为从当前光标位置到目标节点; 当前光标为range，或失败返回null（如目标节点不在dom内）
+   * 扩展当前选区至某位置\
    * 若Node是Text节点，则 `0 <= offset <= node.length`
    * 若Node不是Text，则 `0 <= offset <= node.childNodes.length`
-   * @param update 是否同时更新选区 (选择这个range), 默认 false
+   * * 此方法不主动更新上下文, 但会导致浏览器触发一个 selectionchange 事件, 但不是同步的
+   * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
+   * @returns 是否成功扩展选区
    */
-  rangeTo(node: Et.Node, offset: number, update = false): Et.Range | null {
+  rangeTo(node: Et.Node, offset: number): boolean {
     const sel = this.selection
     const originR = this.range
-    if (!sel || !originR) {
-      return null
+    if (!sel || !originR || !this._body.isNodeInBody(node)) {
+      return false
     }
     const destR = originR.cloneRange()
     if (!this.isValidPosition(node, offset)) {
-      return null
+      return false
     }
     destR.setEnd(node, offset)
     if (destR.collapsed) {
       // 范围坍缩，说明文档树中node在this.focusNode前面
       destR.setEnd(originR.endContainer, originR.endOffset)
     }
-    if (update) {
-      sel.removeAllRanges()
-      sel.addRange(destR)
-      this.update(sel)
-    }
-    return destR
+    sel.removeAllRanges()
+    sel.addRange(destR)
+    return true
   }
 
   isValidPosition(node: Et.Node, offset: number) {
@@ -621,36 +493,17 @@ export class EtSelection {
     return offset >= 0 && offset <= node.childNodes.length
   }
 
-  /** 选择一个范围更新到当前选区; 此方法不执行 EtSelection.update */
-  selectRange(range: Range) {
-    const sel = this.selection
-    if (!sel) {
-      return
-    }
-    sel.removeAllRanges()
-    sel.addRange(range)
-  }
-
   /**
-   * 折叠选区, 使光标位置位于选区开头或结尾
+   * 判断一个目标范围是否在编辑区内
    */
-  collapse(toStart = true) {
-    if (this.isCollapsed) {
-      return
-    }
-    if (this.selection) {
-      if (toStart) {
-        this.selection.collapseToStart()
-      }
-      else {
-        this.selection.collapseToEnd()
-      }
-      this.update()
-    }
+  isValidRange(tr: Et.StaticRange) {
+    return this._body.isNodeInBody(tr.startContainer) && this._body.isNodeInBody(tr.endContainer)
   }
 
   /**
    * 调用Selection.modify方法, 修改当前选区\
+   * * 此方法不主动更新上下文, 但会导致浏览器触发一个 selectionchange 事件, 但不是同步的
+   * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
    * @param alter 操作类型
    * @param direction 操作方向
    * @param granularity 操作粒度
@@ -664,20 +517,19 @@ export class EtSelection {
     if (this.selection) {
       (this._selection as Selection).modify(alter, direction, granularity)
     }
-    if (this._ctx.forceUpdate()) {
-      if (reveal) {
-        this.revealSelection(['backward', 'left'].includes(direction))
-      }
-      return this._ctx.skipNextSelChange()
+    if (reveal) {
+      this.revealSelection(['backward', 'left'].includes(direction))
     }
-    return false
+    return true
   }
 
   /**
    * 调用Selection.modify方法, 修改当前选区, 用于 extend 一次性扩展多个方向\
+   * * 此方法不主动更新上下文, 但会导致浏览器触发一个 selectionchange 事件, 但不是同步的
+   * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
    * @param actions 一个二维数组, 每个子数组是调用modify的参数
    */
-  modifyMulti(...actions: Parameters<Selection['modify']>[]) {
+  modifyMulti(actions: Parameters<Selection['modify']>[]) {
     const sel = this.selection
     if (!sel) {
       return false
@@ -685,10 +537,7 @@ export class EtSelection {
     for (const action of actions) {
       sel.modify(...action)
     }
-    if (this._ctx.forceUpdate()) {
-      return (this._ctx.skipNextSelChange())
-    }
-    return false
+    return true
   }
 
   /**
@@ -697,6 +546,18 @@ export class EtSelection {
    *    在视口内, 还是优先保证range终点在视口内
    */
   revealSelection(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
+    if (this._revealIdleCallbackId) {
+      cancelIdleCallbackPolyByEffitor(this._revealIdleCallbackId)
+    }
+    requestIdleCallbackPolyByEffitor(() => this.revealSelectionSync(toStart, scrollBehavior))
+    return true
+  }
+
+  /**
+   * 同 {@link revealSelection}, 但是同步执行
+   */
+  revealSelectionSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
+    this._revealIdleCallbackId = 0
     // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
     if (!this.range || this._rawEl) {
       return
@@ -719,7 +580,7 @@ export class EtSelection {
       }
       rect = anchorEl.getBoundingClientRect()
     }
-    const scrollContainer = this._ctx.editor.scrollContainer
+    const scrollContainer = this._body.scrollContainer
     const { scrollLeft, scrollTop } = scrollContainer
     let offsetTop, offsetBottom, offsetLeft, offsetRight
     if (scrollContainer === document.documentElement) {
@@ -752,58 +613,76 @@ export class EtSelection {
     if (left === scrollLeft && top === scrollTop) {
       return
     }
-    this._ctx.editor.scrollContainer.scroll({
+    this._body.scrollContainer.scroll({
       left,
       top,
       behavior: scrollBehavior,
     })
+    return true
   }
 
   /**
-   * 查找两个节点的最近公共祖先节点
-   * @param stopNode 停止查找的节点, 默认为ctx.body, 即编辑器编辑区根节点
+   * 扩展选区至选中当前行, 若调用时选区非 collapsed, 可能选中多行
    */
-  findCommonAncestor(
-    oneNode: Et.HTMLNode,
-    otherNode: Et.HTMLNode,
-    stopNode: Et.NullableNode = this._ctx.body,
-  ) {
-    let node = oneNode as Et.NullableHTMLNode
-    let startDepth = 0
-    while (node && node !== stopNode) {
-      if (node === otherNode) {
-        return node
-      }
-      node = node.parentNode
-      startDepth++
+  selectSoftLine() {
+    return this.modifyMulti([
+      ['extend', 'backward', 'lineboundary'],
+      ['extend', 'forward', 'lineboundary'],
+    ])
+  }
+
+  /**
+   * 扩展选区至选中当前段落, 调用时若选区非 collapsed, 可能选中多个段落
+   */
+  selectParagraph() {
+    const tr = this.getTargetRange()
+    if (!tr) {
+      return false
     }
-    node = otherNode
-    let endDepth = 0
-    while (node && node !== stopNode) {
-      if (node === oneNode) {
-        return node
-      }
-      node = node.parentNode
-      endDepth++
+    const r = document.createRange() as Et.Range
+    tr.startParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
+    tr.endParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
+    return this.selectRange(r)
+  }
+
+  /**
+   * 扩展选区至全选当前编辑区文档内容
+   */
+  selectDocument() {
+    const firstParagraph = this._body.firstParagraph
+    const lastParagraph = this._body.lastParagraph
+    if (firstParagraph && lastParagraph) {
+      const r = document.createRange() as Et.Range
+      firstParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
+      lastParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
+      return this.selectRange(r)
     }
-    if (startDepth > endDepth) {
-      for (let i = startDepth; i > endDepth; i--) {
-        oneNode = oneNode.parentNode as Et.HTMLNode
-      }
+    return false
+  }
+
+  /**
+   * 渐进式全选: 光标 -> 当前行 -> 当前段落 -> 当前顶层节点 -> 文档
+   */
+  selectAllGradually() {
+    if (this._selectAllLevel === SelectAllLevel.Select_Document) {
+      return true
     }
-    else if (endDepth > startDepth) {
-      for (let i = endDepth; i > startDepth; i--) {
-        otherNode = otherNode.parentNode as Et.HTMLNode
-      }
+    if (this._selectAllLevel++ === SelectAllLevel.No_Select_All) {
+      return this.selectSoftLine()
     }
-    while (oneNode && oneNode !== stopNode) {
-      if (oneNode === otherNode) {
-        return oneNode
-      }
-      oneNode = oneNode.parentNode as Et.HTMLNode
-      otherNode = otherNode.parentNode as Et.HTMLNode
+    if (this._selectAllLevel++ === SelectAllLevel.Select_Soft_Line) {
+      return this.selectParagraph()
     }
-    return null
+    if (this._selectAllLevel++ === SelectAllLevel.Select_Paragraph) {
+      return this.selectDocument()
+    }
+  }
+
+  /**
+   * 在 selectionchange 事件中调用, 清除全选等级
+   */
+  clearSelectAllLevel() {
+    this._selectAllLevel = 0
   }
 
   cloneContents() {
@@ -811,22 +690,6 @@ export class EtSelection {
       return document.createDocumentFragment() as Et.Fragment
     }
     return this.range.cloneContents()
-  }
-
-  deleteContents() {
-    if (this.isCollapsed || !this._ctx.isUpdated()) {
-      return false
-    }
-    // return this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
-  }
-
-  extractContents() {
-    if (this.isCollapsed || !this.range || !this._ctx.isUpdated()) {
-      return document.createDocumentFragment() as Et.Fragment
-    }
-    const df = this.range.cloneContents()
-    // this._ctx.commonHandlers.removeRangingContents(this._ctx, true)
-    return df
   }
 }
 

@@ -16,12 +16,14 @@ export interface ActionGroupMap {
   editor: 'editor'
 }
 type ActionGroup = keyof ActionGroupMap
-export interface HotkeyAction {
+export interface ActionRun {
+  /** 当且仅当返回true，跳过后续操作 */
+  run: (ctx: Et.EditorContext) => boolean
+}
+export interface HotkeyAction extends Partial<ActionRun> {
   title: string
   descr: string
   group: ActionGroup
   hotkey: A_hotkey
   canCustom: boolean
-  /** 当且仅当返回true，跳过后续操作 */
-  run?: (ctx: Et.EditorContext) => boolean
 }

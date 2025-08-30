@@ -1,8 +1,5 @@
 import type { Et } from '~/core/@types'
 
-import { platform } from '../config'
-import { etcode } from '../element'
-import { EtTypeEnum } from '../enums'
 import { modKey } from '../hotkey/util'
 
 /**
@@ -136,30 +133,30 @@ const keydownKeySolver: MainKeyboardSolver = {
   //   ev.preventDefault()
   // },
 
-  Enter: (ev, ctx) => {
-    if (ev.isComposing) return
-    ev.preventDefault()
+  // Enter: (ev, ctx) => {
+  //   if (ev.isComposing) return
+  //   ev.preventDefault()
 
-    if (ev.shiftKey) {
-      if (etcode.check(ctx.paragraphEl, EtTypeEnum.Heading)) {
-        // 标题内禁用软换行
-        return
-      }
-      // 插入软换行 (其实是硬换行<br>, 只是inputType叫软换行)
-      ctx.dispatchInputEvent('beforeinput', {
-        inputType: 'insertLineBreak',
-      })
-    }
-    else if (platform.isMac ? ev.metaKey : ev.ctrlKey) {
-      // 当前段落后边插入新段落
-      // ctx.commonHandlers.appendParagraph(ctx)
-    }
-    else {
-      ctx.dispatchInputEvent('beforeinput', {
-        inputType: 'insertParagraph',
-      })
-    }
-  },
+  //   if (ev.shiftKey) {
+  //     if (etcode.check(ctx.paragraphEl, EtTypeEnum.Heading)) {
+  //       // 标题内禁用软换行
+  //       return
+  //     }
+  //     // 插入软换行 (其实是硬换行<br>, 只是inputType叫软换行)
+  //     ctx.dispatchInputEvent('beforeinput', {
+  //       inputType: 'insertLineBreak',
+  //     })
+  //   }
+  //   else if (platform.isMac ? ev.metaKey : ev.ctrlKey) {
+  //     // 当前段落后边插入新段落
+  //     // ctx.commonHandlers.appendParagraph(ctx)
+  //   }
+  //   else {
+  //     ctx.dispatchInputEvent('beforeinput', {
+  //       inputType: 'insertParagraph',
+  //     })
+  //   }
+  // },
   // Backspace: platform.isMac
   //   ? (ev, ctx) => {
   //       ev.preventDefault()
@@ -219,7 +216,7 @@ export const runKeyboardSolver = (
     }
   }
   // ctx标记skipDefault跳过默认effector
-  if (ctx.skipDefault) return (ctx.skipDefault = false)
+  if (ctx.defaultSkipped) return false
 
   // mainKeydownSolver需要在其他效应器后执行, 因为会dispatch beforeinput事件；如果先执行, 就会先执行beforeinput再执行其他keydownSolver
   fn = main[key as keyof typeof main] || main['default']
@@ -230,7 +227,12 @@ export const runKeyboardSolver = (
 }
 
 /**
- * 编辑器唯一 keydown 监听器, 执行顺序:
+ * 不同系统/浏览器平台的输入事件的顺序和行为不一:
+ * 1. Windows 下 Chromium 和 MacOS 下 Firefox 可以使用 key = 'Process'
+ *    来判断当前 keydown 是否为输入法输入
+ * 2. MacOS 下 Safari 的输入法事件先于 keydown 事件触发
+ *
+ * 正常情况下编辑器只注册一个 keydown 监听器, 执行顺序:
  *
  * 0. 判断是否为输入法输入, 是则直接返回;
  *    光标是否在input/textarea 内, 是则直接执行 4 并返回
@@ -250,6 +252,7 @@ export const getKeydownListener = (
   ctx: Et.EditorContext, main: MainKeydownKeySolver, solver?: Et.KeyboardKeySolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
+    // console.error('keydown start', ev.key, ev.isComposing)
     // 没有effectElement 或没有选区 阻止后续输入
     if (!ctx.isUpdated()) {
       if (import.meta.env.DEV) {
@@ -261,13 +264,20 @@ export const getKeydownListener = (
       ctx.editor.blur()
       return
     }
-    // Windows 下 Chrome 在开启输入法输入时, .key为Process
-    if (ev.key === 'Process') {
-      return
-    }
     // fix. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
     // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
-    ctx.inCompositionSession = ev.isComposing
+    if ((ctx.inCompositionSession = ev.isComposing)) {
+      return
+    }
+
+    // Windows 下 Chrome 在开启输入法输入时, .key为Process
+    // MacOS 下 Safari 的输入法事件先于 keydown 事件触发, 通过nextKeydownSkipped判断跳过
+    if (ctx.nextKeydownSkipped || ev.key === 'Process') {
+      // TODO 此处可去掉 'Process' 判断, 以实现多平台一致的输入法行为
+      //    如果此处为 Process 跳过了, 那么后续的  keyboardWritableKeyToImeChar(ev.key)
+      //    输入法标点符号映射将不奏效, 也就造成了多平台不一致的输入法行为
+      return
+    }
 
     // 光标在原生编辑节点内, 直接调用插件solver, 使用同步逻辑, 插件需自行判断是否为输入法输入;
     // 在 mainSolver 中对 ctrl+r 刷新 等浏览器行为做禁用兜底
@@ -278,6 +288,7 @@ export const getKeydownListener = (
       runKeyboardSolver(ev, ctx, main, solver)
       return
     }
+    ctx.modkey = modKey(ev)
 
     // MacOS 下, 延迟1帧, 等待 compositionstart 激活以判断是否输入法输入
     requestAnimationFrame(() => {
@@ -307,20 +318,12 @@ export const getKeydownListener = (
         return
       }
 
-      ctx.modkey = modKey(ev)
-      // ctx.modkey = ev.code + HotkeyEnum.Connector + (
-      //   (ev.metaKey ? Mod.MetaCmd : 0)
-      //   | (ev.ctrlKey ? Mod.Ctrl : 0)
-      //   | (ev.altKey ? Mod.AltOpt : 0)
-      //   | (ev.shiftKey ? Mod.Shift : 0)
-      // )
-
       // 2. 监听内置系统级按键行为
       if (ctx.hotkeyManager.listenBuiltin(ctx.modkey)) {
         return
       }
 
-      // 3. 监听绑定的快捷键
+      // 3. 监听绑定的快捷键 (快捷键不可 repeat触发)
       if (!ev.repeat) {
         if (ctx.hotkeyManager.listenBinding(ctx.modkey)) {
           return
@@ -338,9 +341,12 @@ export const getKeydownListener = (
       }
     })
 
-    // 禁用所有原生默认行为 (必须同步执行才有效)
-    ev.preventDefault()
+    // 禁用(除复制/剪切/粘贴外)所有原生默认行为 (必须同步执行才有效)
+    if (!ctx.keepDefaultModkeyMap[ctx.modkey]) {
+      ev.preventDefault()
+    }
     ev.stopPropagation()
+    // 设置当前按下的按键, 用于在下一个 keydown 中判断是否连续按下相同的按键
     ctx.currDownKey = ev.key
     // 若光标为Range, 设为null, 并在keyup中跳过
     ctx.prevUpKey = ctx.selection.isCollapsed ? undefined : null

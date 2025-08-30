@@ -48,10 +48,10 @@ const partialSelectedNodeOfRange = (range: Range): [Node | null, Node | null] =>
  * 遍历Range 选中的节点 (包含被部分选择的节点)
  * * 该遍历不是严格按照文档树顺序的, 有些子节点可能比父节点先遍历 (如startContainer和其父节点)
  * @param walk 遍历回调, 返回 true 时停止遍历
- * @param options 遍历选项
- * @param options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者
- * @param options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;
- *  filter 的参数 node是经过 whatToShow 过滤后的节点; walk 参数是经过 filter 过滤后的节点
+ * @param options 遍历选项\
+ *      options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者\
+ *      options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;\
+ *      filter 的参数 node是经过 whatToShow 过滤后的节点; walk 参数是经过 filter 过滤后的节点
  */
 export const traverseRange = <T extends 1 | 4 | 5 = 5>(
   range: Range,
@@ -206,14 +206,14 @@ export const traverseRange = <T extends 1 | 4 | 5 = 5>(
  * 按文档树顺序遍历子树
  * @param node 子树根节点, 遍历不包含此节点
  * @param walk 遍历回调, 返回 true 时停止遍历
- * @param options 遍历选项
- * @param options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者
- * @param options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;
- *  filter 的参数 node是经过 whatToShow 过滤后的节点; walk 参数是经过 filter 过滤后的节点
+ * @param options 遍历选项\
+ *    options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者\
+ *    options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;\
+ *    filter 的参数 node是经过 whatToShow 过滤后的节点; walk 参数是经过 filter 过滤后的节点
  */
 export const traverseNode = <T extends 1 | 4 | 5 = 5>(
   node: Node,
-  walk?: TraversalWalk<T>,
+  walk?: TraversalWalk<T> | null,
   {
     whatToShow = 5 as T /** (NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT) */,
     filter = null,
@@ -296,7 +296,8 @@ export const treeNextSibling = (node: Et.Node): Et.Node | null => {
  * 当前节点在指定祖先节点下的最外层祖先, 是自己返回自身 否则返回值不会等于stopNode;  \
  * 可用于`Range`找`start/endContainer`在`commonAncestor`下的最外层祖先
  */
-export const outermostAncestorUnderTheNode = (node: Et.Node, stopNode: Et.HTMLElement): Et.HTMLElement => {
+export const outermostAncestorUnderTheNode = (
+  node: Et.Node, stopNode: Et.HTMLElement): Et.HTMLElement => {
   if (node === stopNode) return node
   let p = node.parentNode
   while (p && p !== stopNode) {
@@ -305,32 +306,61 @@ export const outermostAncestorUnderTheNode = (node: Et.Node, stopNode: Et.HTMLEl
   }
   return node as Et.HTMLElement
 }
-
 /**
  * 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
  * @param stopTag 小写元素标签名
  * * **仅当返回节点是传入的`node`时可能匹配`stopTag`**
  */
-export const outermostAncestorWithSelfAsOnlyChild = (node: Et.Node, stopTag: string = BuiltinElName.ET_BODY): Et.Node => {
+export const outermostAncestorWithSelfAsOnlyChild = (
+  node: Et.Node, stopTag: string = BuiltinElName.ET_BODY): Et.Node => {
   if (node.localName === stopTag) {
     return node
   }
   let p = node.parentNode
-  while (p && p.localName !== stopTag) {
+  while (p && p.childNodes.length === 1 && p.localName !== stopTag) {
+    node = p
+    p = p.parentNode
+  }
+  return node
+}
+/**
+ * 在特定节点下, 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
+ * @param node 起始节点
+ * @param underWhich 特定节点
+ * @param stopTag 小写元素标签名
+ * * **仅当返回节点是传入的`node`时可能等于`underWhich`或匹配`stopTag`**
+ */
+export const outermostAncestorWithSelfAsOnlyChildButUnder = (
+  node: Et.Node, underWhich: Et.Element, stopTag: string = BuiltinElName.ET_BODY,
+): Et.Node => {
+  if (node === underWhich || node.localName === stopTag) {
+    return node
+  }
+  let p = node.parentNode
+  while (p && p.childNodes.length === 1 && p !== underWhich && p.localName !== stopTag) {
     node = p
     p = p.parentNode
   }
   return node
 }
 
-export const outermostAncestorWithSelfAsOnlyChildButUnder = (node: Et.Node, underWhich: Et.Node, stopTag: string = BuiltinElName.ET_BODY): Et.Node => {
-  if (node === underWhich || node.localName === stopTag) {
+/**
+ * 找最近的可编辑祖先节点, 若不存在则返回自身; 该方法只对在页面上的节点有效,
+ * 因为不在页面上的html 元素, 其isContentEditable属性始终为 false
+ * @param node 起始节点
+ * @param stopTag 小写元素标签名, 默认为`et-body`
+ * @returns 可编辑祖先节点, 若不存在则返回自身
+ */
+export const closestEditableAncestor = (node: Et.Node, stopTag = BuiltinElName.ET_BODY) => {
+  if (dom.isHTMLElement(node) && node.isContentEditable) {
     return node
   }
-  let p = node.parentNode
-  while (p && p !== underWhich && p.localName !== stopTag) {
-    node = p
-    p = p.parentNode
+  let p = node.parentElement
+  while (p) {
+    if (p.isContentEditable || p.localName === stopTag) {
+      return p
+    }
+    p = p.parentElement
   }
   return node
 }
@@ -352,31 +382,35 @@ export const innermostLastChild = (node: Et.Node): Et.Node => {
 /**
  * 获取一个节点位置对应的最内层位置; 若 node 不是 HTML 元素或#text节点, 将会向外查找
  */
-export const innermostPosition = (node: Et.Node, offset: number): Et.EtPosition => {
+export const innermostPosition = (node: Et.Node, offset: number): Et.Position => {
   if (dom.isText(node)) {
-    return { node, offset }
+    return { container: node, offset }
   }
-  // = 0 要先于 = node.childNodes.length; 避免无子节点时将 0 定位到 1
+  // 判断 = 0 要先于 = node.childNodes.length; 避免无子节点时将 0 定位到 1
   if (offset === 0) {
     node = innermostFirstChild(node)
-    return { node, offset: 0 }
+    return { container: node, offset: 0 }
   }
   if (offset === node.childNodes.length) {
     node = innermostLastChild(node)
     // 这里若 node 无子节点, 将 offset 标记为 1 以标识位置在该节点之后; 如<br> 等空节点
-    return { node, offset: dom.isText(node) ? node.length : 1 }
+    return { container: node, offset: dom.isText(node) ? node.length : 1 }
   }
-  return { node: innermostFirstChild(node.childNodes.item(offset)), offset: 0 }
+  return { container: innermostFirstChild(node.childNodes.item(offset)), offset: 0 }
 }
 /**
  * 找可编辑元素的最里层firstChild, 该 firstChild 可能不可编辑, 没有子节点或不可编辑则返回自身
  */
 export const innermostEditableFirstChild = (node: Et.Node): Et.Node => {
-  let next = node as Et.NullableNode
+  let next = node as Et.NodeOrNull
   while (next) {
     if (!dom.isElement(next)) return next
     // 明确声明不可编辑, svg元素不可编辑 isContentEditable 为 undefined
-    if ((next as HTMLElement).isContentEditable === void 0 || next.getAttribute('contenteditable') === 'false') return next
+    if ((next as HTMLElement).isContentEditable === void 0
+      || next.getAttribute('contenteditable') === 'false'
+    ) {
+      return next
+    }
     // 可编辑 有子节点
     node = next
     next = next.firstChild
@@ -388,10 +422,14 @@ export const innermostEditableFirstChild = (node: Et.Node): Et.Node => {
  * 找可编辑的最里层lastchild, 没有子节点或`contenteditable=false`则返回自身
  */
 export const innermostEditableLastChild = (node: Et.Node): Et.Node => {
-  let next = node as Et.NullableNode
+  let next = node as Et.NodeOrNull
   while (next) {
     if (!dom.isElement(next)) return next
-    if ((next as HTMLElement).isContentEditable === void 0 || next.getAttribute('contenteditable') === 'false') return next
+    if ((next as HTMLElement).isContentEditable === void 0
+      || next.getAttribute('contenteditable') === 'false'
+    ) {
+      return next
+    }
     node = next
     next = next.lastChild
   }

@@ -3,17 +3,18 @@ import type { EtBodyElement } from './EtBodyElement'
 import type { EtEditorElement } from './EtEditorElement'
 import type { EtParagraphElement } from './EtParagraphElement'
 
+export type * from './config'
 export * from './EffectElement'
-export { EtBlockquoteElement as EtBlockquoteElement } from './EtBlockquoteElement'
+export { EtBlockquote as EtBlockquote } from './EtBlockquote'
 export { EtBodyElement } from './EtBodyElement'
 export { etcode } from './etcode'
-export { EtComponentElement } from './EtComponentElement'
+export { EtComponent } from './EtComponent'
 export { EtEditorElement } from './EtEditorElement'
-export { EtEmbedElement as EtEmbedmentElement } from './EtEmbedElement'
-export { EtHeadingElement } from './EtHeadingElement'
+export { EtEmbedment as EtEmbedmentElement } from './EtEmbedment'
+export { EtHeading, type HeadingLevel } from './EtHeading'
 export { EtParagraph } from './EtParagraph'
 export { type EtParagraphCtor, EtParagraphElement } from './EtParagraphElement'
-export { EtRichTextElement } from './EtRichTextElement'
+export { EtRichText } from './EtRichText'
 
 interface BuiltinEtElement {
   [BuiltinElName.ET_EDITOR]: EtEditorElement

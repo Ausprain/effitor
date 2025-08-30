@@ -2,7 +2,7 @@ import type * as mdast from 'mdast'
 
 import type { Et } from '~/core/@types'
 
-import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
+import { BuiltinElName, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { EtParagraph } from './EtParagraph'
 
@@ -41,17 +41,21 @@ export class EtParagraphElement extends EtParagraph {
   }
 
   focusinCallback(_ctx: Et.EditorContext): void {
-    this.classList.add(CssClassEnum.Active)
+    // this.classList.add(CssClassEnum.Active)
   }
 
   focusoutCallback(_ctx: Et.EditorContext): void {
-    this.classList.remove(CssClassEnum.Active)
+    // this.classList.remove(CssClassEnum.Active)
   }
 
-  replaceToNativeElement(): void {
-    const div = document.createElement('div')
-    div.append(...this.childNodes)
-    this.replaceWith(div)
+  static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    p: () => {
+      return this.create()
+    },
+  }
+
+  toNativeElement() {
+    return document.createElement('p')
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): mdast.Nodes | mdast.Nodes[] | null {

@@ -41,9 +41,9 @@ export type MdastNodeTransformerMap = {
 }
 /** 自定义mdast节点处理器 */
 export type ToMarkdownHandlerMap = Partial<Handlers>
-/**
- * 自定义扩展mdast
- */
+// /**
+//  * 自定义扩展mdast
+//  */
 // declare module 'mdast' {
 //     interface RootContentMap {
 //         name: CustomNode
@@ -62,13 +62,13 @@ export interface ToMdast {
 
 export interface MdUrlMapping {
   /**
-     * @param url 链接/图片等元素的url
-     * @returns 转换为markdown文本的url
-     */
+   * @param url 链接/图片等元素的url
+   * @returns 转换为markdown文本的url
+   */
   toMarkdown: (url: string) => string
   /**
-     * @param url markdown文本中解析的url值
-     * @returns 转换为链接/图片等元素的url
-     */
+   * @param url markdown文本中解析的url值
+   * @returns 转换为链接/图片等元素的url
+   */
   fromMarkdown: (url: string) => string
 }

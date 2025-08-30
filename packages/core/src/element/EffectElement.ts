@@ -3,6 +3,7 @@ import type { Et } from '~/core/@types'
 import { CssClassEnum, EtTypeEnum } from '../enums'
 import { cr } from '../selection'
 import { dom } from '../utils'
+import { EtCode, InEtCode, NotInEtCode } from './config'
 
 interface HTMLElementCallbacks {
   connectedCallback?(this: EffectElement): void
@@ -14,12 +15,12 @@ interface HTMLElementCallbacks {
 }
 interface EffectElementCallbacks {
   /**
-   * 光标位于当前Effect元素的直接子孙内（即中间无其他Effect元素）时调用; 即ctx.effectElement更新时调用
+   * 光标位于当前Effect元素的直接子孙内（即中间无其他Effect元素）时调用; 即ctx.focusEtElement更新时调用
    * * 此回调在更新上下文(高频)时调用, 如任务繁重, 应使用异步逻辑
    */
   focusinCallback?(_ctx: Et.EditorContext): void
   /**
-   * 当前Effect元素从ctx.effectElement移除（被赋新值）时调用
+   * 当前Effect元素从ctx.focusEtElement移除（被赋新值）时调用
    * * 此回调在更新上下文(高频)时调用, 如任务繁重, 应使用异步逻辑
    */
   focusoutCallback?(_ctx: Et.EditorContext): void
@@ -27,15 +28,6 @@ interface EffectElementCallbacks {
 
 /** 效应拦截器, 作为EffectElement的一个属性, 仅当返回true时, 阻止该效应 */
 export type EffectBlocker = (effect: string) => boolean
-
-export interface EtCode {
-  /** 效应类型，即该类元素的效应码；用于初始化元素对象的etCode属性; 该值只能使用位运算 */
-  readonly etCode?: number
-  /** 该元素内部直接子节点允许的效应类型; 该值只能使用位运算 */
-  readonly inEtCode?: number
-  /** 该元素内部直接子节点`不`允许的效应类型; 该值只能使用位运算 */
-  readonly notInEtCode?: number
-}
 
 /**
  * 效应元素, 通过绑在类名上的 EffectHandle 处理编辑器效应(编辑行为)
@@ -89,22 +81,35 @@ export abstract class EffectElement
     return el
   }
 
+  readonly [EtCode]: number = 0
+  readonly [InEtCode]: number = 0
+  readonly [NotInEtCode]: number = 0
+
   /** 效应码，绑在this上以判断该效应元素内部拥有何种效应 */
-  readonly etCode: number = 0
+  get etCode() {
+    return this[EtCode]
+  }
+
   /** 内部效应码, 该元素允许何种效应的子节点; */
-  readonly inEtCode: number = 0
+  get inEtCode() {
+    return this[InEtCode]
+  }
+
   /** 内部禁止效应码, 该元素禁止何种效应的子节点; */
-  readonly notInEtCode: number = 0
+  get notInEtCode() {
+    return this[NotInEtCode]
+  }
 
   constructor() {
     super()
 
     const { etType, inEtType, notInEtType } = (
-      this.__proto__ ?? Object.getPrototypeOf(this)).constructor as typeof EffectElement
+      this.__proto__ ?? Object.getPrototypeOf(this)
+    ).constructor as typeof EffectElement
 
-    this.etCode = etType === void 0 ? 0 : etType
-    this.inEtCode = inEtType === void 0 ? 0 : inEtType
-    this.notInEtCode = notInEtType === void 0 ? 0 : notInEtType
+    this[EtCode] = etType === void 0 ? 0 : etType
+    this[InEtCode] = inEtType === void 0 ? 0 : inEtType
+    this[NotInEtCode] = notInEtType === void 0 ? 0 : notInEtType
 
     // 添加一个et类名（因为外部样式文件的标签选择器优先级不够, 这样可以用 et-p.et 来提高优先级 ）
     // fix. document.createElement 时元素对象不可有属性 延迟添加;
@@ -118,6 +123,26 @@ export abstract class EffectElement
       }
       this.classList.add('et')
     })
+  }
+
+  /**
+   * 当前效应元素下是否允许某效应, 即该元素的子节点是否允许为含有某效应类型的节点 \
+   * * 当且仅当 `inEtCode & code && !(notInEtCode & code)` 时返回 true
+   * @param codeOrNode 要校验的子节点效应码
+   */
+  checkIn(codeOrNode: number | Node) {
+    const code = typeof codeOrNode === 'number' ? codeOrNode : codeOrNode.etCode
+    // 默认允许一切非效应元素, 子类可重写该方法, 即过滤一些不接受的 html 节点
+    if (code === void 0) {
+      return true
+    }
+    if (this.notInEtCode & code) {
+      return false
+    }
+    if (this.inEtCode & code) {
+      return true
+    }
+    return false
   }
 
   /* -------------------------------------------------------------------------- */
@@ -142,13 +167,6 @@ export abstract class EffectElement
   /*                                edit behavior                               */
   /* -------------------------------------------------------------------------- */
 
-  /** 替换当前节点, 并转移其后代到新节点; 仅当节点在DocumentFragment内时可以使用 */
-  replaceToNativeElement(this: EffectElement) {
-    if (this.isConnected) {
-      return
-    }
-  }
-
   /**
    * 判断与另一个Element是否相同, 默认会判断\
    * { 元素名、class、除class和style外的html属性、元素对象上的可枚举属性 } \
@@ -162,8 +180,9 @@ export abstract class EffectElement
 
   /**
    * 定义两个认定为相同的 EffectElement 的合并逻辑, 合并后保留当前元素 \
-   * 重写时, 可使用工具函数`mergeHtmlNode`来以默认合并逻辑合并this.lastChild和el.firstChild; \
-   * *不可用于合并this和el, 否则进入死循环* \
+   * 重写时, 可使用工具函数`mergeHtmlNode`来以默认合并逻辑合并`this.lastChild`和`el.firstChild`;\
+   * *`mergeHtmlNode`, 不可用于合并this和el, 否则进入死循环*
+   * * 该方法(钩子)只可用于合并克隆片段内的节点
    * @param el 待合并的元素, (经过isEqualTo验证的同类元素)
    * @returns 合并后的中间位置, 若不合并则返回null
    */
@@ -195,6 +214,43 @@ export abstract class EffectElement
   focusoutCallback?(_ctx: Et.EditorContext): void
 
   /* -------------------------------------------------------------------------- */
+  /*                                    html                                    */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * 定义该效应元素可以从哪些原生 html 元素转化而来\
+   * 处理粘贴的 html 内容时, 会依据效应元素类注册的顺序, 依次从此列表中获取转换器,
+   * 将 html 元素转为效应元素; 若未配置或处理失败, 则将原 html 元素转为纯文本后插入
+   */
+  static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap
+
+  /**
+   * 返回此效应元素对应的原生 html 元素;\
+   * 该方法主要作为复制时, 将复制范围中的效应元素转为普通 html 元素,
+   * 然后以 `text/html` 写入剪切板, 以兼容带样式的跨应用粘贴;
+   * 子类重写时, 最好根据效应元素的定义, 使用"硬编码"的方式构建对应的 html 元素的样式,
+   * 而避免直接使用 window.getComputedStyle 以在复制大量内容时获取更好的性能.\
+   * // TODO 测试, 复制大量内容时, getComputedStyle是否会, 以及会如何影响性能
+   * @returns
+   * - `null`, 该效应元素及其后代不会被复制到 `text/html` 中
+   * - `HTMLElement`, 声明该效应元素以何种形式复制到 `text/html` 中; 即该函数
+   *   不处理后代, 由调用者处理后代
+   * - `() => HTMLElement`, 声明以该效应元素为根的子树, 将以何种形式被
+   *   复制到 `text/html` 中; 即包括后代处理
+   */
+  toNativeElement(this: EffectElement): null | HTMLElement | (() => HTMLElement) {
+    const cssValues = window.getComputedStyle(this)
+    let el
+    if (['block', 'flex'].includes(cssValues.display)) {
+      el = document.createElement('div')
+    }
+    else {
+      el = document.createElement('span')
+    }
+    return el
+  }
+
+  /* -------------------------------------------------------------------------- */
   /*                                  markdown                                  */
   /* -------------------------------------------------------------------------- */
   /**
@@ -206,26 +262,42 @@ export abstract class EffectElement
   /**
    * `mdast`处理器映射，定义`mdast`节点如何转为`html`节点，***无需手动处理后代节点***
    * * 若处理器返回一个`html`节点，并且当前`mdast node`有`children`属性，则会继续处理其后代节点;
-   * 并将处理得到的节点插入到该`html`节点的`childNodes`中
+   *   并将处理得到的节点插入到该`html`节点的`childNodes`中
    * * 若注册的EtElement中有多个定义了相同节点的解析方式, 则按插件注册顺序依次处理，直到处理成功为止
    * * 接受的返回值类型: `DocumentFragment | HTMLElement | Text | null`
    * * 返回`null`说明当前效应元素不处理该`mdast节点`, 交给下一个处理器处理
-   * * 返回`DocumentFragment`说明当前`mdast节点`无对应`html节点`, 直接将其子节点插入到父节点`childNodes`中, 即相当于跳过当前`mdast节点`
+   * * 返回`DocumentFragment`说明当前`mdast节点`无对应`html节点`, 直接将其子节点插入到父节点`childNodes`中,
+   *   即相当于跳过当前`mdast节点`
    */
   static readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap
-  /** mdast节点转换器(对节点原地修改)，转换器会在toMarkdown的最后阶段（序列化为字符串前）执行，对mdast树进行修改 */
+  /**
+   * mdast节点转换器(对节点原地修改)\
+   * 转换器会在toMarkdown的最后阶段（序列化为字符串前）执行，对mdast树进行修改
+   */
   static readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap
   /**
    * 定义自定义节点的处理逻辑，将mdast节点转为md字符串, 即toMarkdown最后阶段
+   * * 该定义是唯一的, 后来的会覆盖前面定义的
    * * 自定义mdast节点
    * ```ts
    * declare module 'mdast' {
-          interface RootContentMap {
-              highlight: HighLight
-          }
-      }
-    * ```
-    */
+   *     interface RootContentMap {
+   *         highlight: HighLight
+   *     }
+   *     interface Highlight extends Parent {
+   *        type: 'highlight'
+   *        ...
+   *     }
+   * }
+   * class EtHighlightElement extents EtRichElement {
+   *    static readonly toMarkdownHandlerMap = {
+   *      highlight: (node, parent, state, info) => {
+   *        return `==${state.containerPhrasing(node, info)}==`
+   *      }
+   *    }
+   * }
+   * ```
+   */
   static readonly toMarkdownHandlerMap: Et.ToMarkdownHandlerMap
 }
 

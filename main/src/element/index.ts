@@ -1,12 +1,12 @@
 export {
   EffectElement,
-  EtBlockquoteElement,
+  EtBlockquote,
   EtBodyElement,
-  EtComponentElement,
+  EtComponent,
   EtEditorElement,
   EtEmbedmentElement,
-  EtHeadingElement,
+  EtHeading,
   EtParagraph,
   EtParagraphElement,
-  EtRichTextElement,
+  EtRichText,
 } from '@effitor/core'

@@ -190,7 +190,7 @@ ev.dataTransfer: 包含复制到剪切板的图片
 /** 拖拽删除 */
 - [ ] deleteByDrag
 /** 剪切删除 */
-- [ ] deleteByCut
+- [x] deleteByCut
 /** 删除内容; Chrome 137 不支持 */
 - [x] deleteContent
 /** Backspace删除 */
@@ -205,15 +205,15 @@ ev.dataTransfer: 包含复制到剪切板的图片
  * 删除整行（即当前屏幕中的一行; 可用于实现 `ctrl/cmd + x`剪切光标所在行
  * chromium (Chrome 137.0.7151.120) 不支持, 会被转为""
  */
-- [ ] deleteEntireSoftLine
+- [x] deleteEntireSoftLine
 /** 删除硬换行（br）（当前光标至上一个br或block末尾） */
 - [ ] deleteHardLineBackward
 /** 删除硬换行（br）（当前光标至下一个br或block末尾） */
 - [ ] deleteHardLineForward
 /** 删除软换行（css换行）（当前光标至行开头） */
-- [ ] deleteSoftLineBackward
+- [x] deleteSoftLineBackward
 /** 删除软换行（css换行）（当前光标至行末尾） */
-- [ ] deleteSoftLineForward
+- [x] deleteSoftLineForward
 ```
 
 #### deleteByDrag

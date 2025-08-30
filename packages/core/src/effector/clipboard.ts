@@ -1,72 +1,74 @@
+/**
+ * 当effitor完全接管输入行为, 即preventDefault 所有 keydown 事件时,
+ * 无法获取 isTrusted 的剪切板事件, 受浏览器安全限制, 非 trusted 的
+ * 剪切板事件将不会有任何效果, 因此需要额外实现剪切板功能
+ */
 import type { Et } from '~/core/@types'
 
 import { type EffectElement, etcode } from '../element'
-import { HtmlCharEnum, MIMETypeEnum } from '../enums'
+import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '../enums'
 import { dom, traversal } from '../utils'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }
 type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
 
-export const getCopyListener = (ctx: Et.UpdatedContext, callback?: Et.ClipboardAction) => {
+export const getCopyListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
     // import.meta.env.DEV && console.log('copy', ev.clipboardData?.types, ev)
-
     // 非trusted的copy事件不会产生任何作用, 直接返回
-    if (!ev.isTrusted || !ev.clipboardData) return
+    if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
     ev.preventDefault() // preventDefault 以更改clipboardData的内容
 
     callback?.(ev, ctx)
-    if (ctx.skipDefault) return (ctx.skipDefault = false)
+    if (ctx.defaultSkipped) return false
 
     copySelectionToClipboard(ctx, ev.clipboardData)
   }
 }
-export const getCutListener = (ctx: Et.UpdatedContext, callback?: Et.ClipboardAction) => {
+export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
     // import.meta.env.DEV && console.log('cut', ev.clipboardData?.types, ev)
-    if (ctx.selection.isCollapsed) {
-      // 光标状态下，直接删除整行
-      // fix. chrome 还不支持 inputType = deleteEntireSoftLine 的beforeinput事件， inputType会被解析为""
-      // sol. 用data传，在beforeinput中解析
-      return ctx.dispatchInputEvent('beforeinput', {
-        inputType: 'deleteEntireSoftLine',
-        data: 'deleteEntireSoftLine',
-      })
-    }
-    if (!ev.clipboardData) return
+    if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
     ev.preventDefault()
 
+    if (ctx.selection.isCollapsed) {
+      // 选区 collapsed状态下，复制当前行并删除
+      ctx.selection.selectSoftLine()
+      ctx.forceUpdate()
+    }
     callback?.(ev, ctx)
-    if (ctx.skipDefault) return (ctx.skipDefault = false)
+    if (ctx.defaultSkipped) return false
 
     copySelectionToClipboard(ctx, ev.clipboardData)
     ctx.dispatchInputEvent('beforeinput', {
       inputType: 'deleteByCut',
-      data: null,
-      // TODO 交由 handler 判断删除范围
-    //   targetRanges: [ctx.selection.range],
     })
   }
 }
-export const getPasteListener = (ctx: Et.UpdatedContext, callback?: Et.ClipboardAction) => {
+export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
-    if (!ev.clipboardData) return
+    if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
+    ev.preventDefault()
     // 判断是否粘贴编辑器复制内容
     const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_TEXT_HTML)
-    // 否则尝试调用插件回调
-    if (!etHtml) {
-      callback?.(ev, ctx)
-      if (ctx.skipDefault) return (ctx.skipDefault = false)
+    if (etHtml) {
+      // 使用内置隐藏粘贴行为
+      ctx.effectInvoker.invoke(
+        ctx.commonEtElement,
+        BuiltinConfig.INSERT_FROM_ET_HTML as 'E',
+        ctx,
+        etHtml,
+      )
+      return
     }
-    // 粘贴纯文本
-    const data = etHtml || ev.clipboardData.getData('text/plain')
-    // 接管默认粘贴行为，使用data粘贴数据 (html)
+    // 否则尝试调用插件回调
+    callback?.(ev, ctx)
+    if (ctx.defaultSkipped) return false
+    // 接管默认粘贴行为
     ctx.dispatchInputEvent('beforeinput', {
-      data: data,
       inputType: 'insertFromPaste',
-    //   targetRanges: [ctx.selection.staticRange],
+      dataTransfer: ev.clipboardData,
     })
-    return ev.preventDefault()
   }
 }
 
@@ -77,7 +79,7 @@ const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.Data
   const fragment = ctx.selection.cloneContents()
   const etElList: EffectElement[] = []
   traversal.traverseNode(fragment, void 0, {
-    whatToShow: NodeFilter.SHOW_ELEMENT,
+    whatToShow: 1 /** NodeFilter.SHOW_ELEMENT */,
     filter(el) {
       if (etcode.check(el)) {
         etElList.push(el)
@@ -89,6 +91,6 @@ const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.Data
 
   clipboardData.setData('text/plain', ctx.selection.selectedTextContent.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
   clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentToHTML(fragment))
-  etElList.forEach(el => el.replaceToNativeElement?.())
+  etElList.forEach(el => el.toNativeElement?.())
   clipboardData.setData('text/html', dom.fragmentToHTML(fragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
 }

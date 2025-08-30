@@ -6,33 +6,23 @@
 import type { Et } from '~/core/@types'
 
 import { dom, traversal } from '../utils'
+import { CaretRange } from './CaretRange'
 import type { AnchorOffset } from './config'
-import { AnchorOutOffset, CaretRange } from './config'
+import { AnchorOutOffset } from './config'
+import type { EtRange } from './EtRange'
 
 /**
  * 选区光标
  */
 export class EtCaret extends CaretRange {
-  private _anchor: Et.Node
-  private _offset: AnchorOffset
   /**
    * 构建一个基于锚点偏移的 EtCaret 光标位置
    */
   constructor(
-    anchor: Et.Node,
-    offset: AnchorOffset,
+    public readonly anchor: Et.Node,
+    public readonly offset: AnchorOffset,
   ) {
     super()
-    this._anchor = anchor
-    this._offset = offset
-  }
-
-  get anchor() {
-    return this._anchor
-  }
-
-  get offset() {
-    return this._offset
   }
 
   /**
@@ -64,20 +54,6 @@ export class EtCaret extends CaretRange {
     return (this.__valid = (this.anchor.isConnected && (
       this.offset < 0 ? true : this.offset <= dom.nodeLength(this.anchor)
     )))
-  }
-
-  /**
-   * 通过 Range 更新当前 EtCaret 对象
-   */
-  fromRange(range: Et.AbstractRange, fromStart = true) {
-    if (fromStart) {
-      this._anchor = range.startContainer
-      this._offset = range.startOffset
-    }
-    else {
-      this._anchor = range.endContainer
-      this._offset = range.endOffset
-    }
   }
 
   /**
@@ -126,21 +102,21 @@ export class EtCaret extends CaretRange {
   }
 
   /** 让一个 range应用这个光标位置 */
-  adoptToRange(r: Range, setStart = true, setEnd = true) {
+  adoptToRange(r: Range, setToStart = true, setToEnd = true) {
     if (!this.isValid) {
       return
     }
     if (this.isAnchorIn) {
-      if (setStart) r.setStart(this.anchor, this.offset)
-      if (setEnd) r.setEnd(this.anchor, this.offset)
+      if (setToStart) r.setStart(this.anchor, this.offset)
+      if (setToEnd) r.setEnd(this.anchor, this.offset)
     }
     else if (this.isAnchorBefore) {
-      if (setStart) r.setStartBefore(this.anchor)
-      if (setEnd) r.setEndBefore(this.anchor)
+      if (setToStart) r.setStartBefore(this.anchor)
+      if (setToEnd) r.setEndBefore(this.anchor)
     }
     else {
-      if (setStart) r.setStartAfter(this.anchor)
-      if (setEnd) r.setEndAfter(this.anchor)
+      if (setToStart) r.setStartAfter(this.anchor)
+      if (setToEnd) r.setEndAfter(this.anchor)
     }
   }
 
@@ -166,8 +142,14 @@ export class EtCaret extends CaretRange {
       : 1
   }
 
-  isEqualTo(caret: EtCaret) {
-    return this.anchor === caret.anchor && this.offset === caret.offset
+  isCaret(): this is EtCaret {
+    return true
+  }
+
+  isEqualTo(other: EtCaret | EtRange) {
+    return other.isCaret()
+      && this.anchor === other.anchor
+      && this.offset === other.offset
   }
 
   /**
@@ -199,7 +181,7 @@ export class EtCaret extends CaretRange {
      *  <p3><i>EE</i>FF<br></p3>
      * </div>
      *
-     * `->`代表`EtCaret.innerAffinity`的过程
+     * `->`代表`traversal.innermostPosition`的过程
      * `=>`代表`traversal.treeNextSibling`的过程
      *
      * 亲和组1:
@@ -225,14 +207,14 @@ export class EtCaret extends CaretRange {
      *
      */
     // 1. 将定位到节点外的位置, 转为节点内的亲和位置
-    const { node: thisNode, offset: thisOffset } = traversal.innermostPosition(this.anchor,
+    const { container: thisNode, offset: thisOffset } = traversal.innermostPosition(this.anchor,
       this.isAnchorIn
         ? this.offset
         : this.isAnchorBefore
           ? 0
           : dom.nodeLength(this.anchor),
     )
-    const { node: otherNode, offset: otherOffset } = traversal.innermostPosition(other.anchor,
+    const { container: otherNode, offset: otherOffset } = traversal.innermostPosition(other.anchor,
       other.isAnchorIn
         ? other.offset
         : other.isAnchorBefore
@@ -266,8 +248,88 @@ export class EtCaret extends CaretRange {
     if (!former) {
       return false
     }
-    former = traversal.innermostPosition(former, 0).node
+    former = traversal.innermostPosition(former, 0).container
     return former === latter
+  }
+
+  /**
+   * 返回与该光标位置等价的文本亲和位置
+   * * 若锚点尚未在页面上, 则返回自身
+   * * 若本身在文本节点内部, 则返回自身
+   * * 若锚点不可编辑, 则不会进入锚点内部, 并向外查找最近的可编辑祖先
+   * @example
+   * <p>AA<b>BB</b>|</p>  ->  <p>AA<b>BB|</b></p>
+   */
+  toTextAffinity() {
+    // 光标在#text上的情况占大多数, 此项判断放最前
+    if (dom.isText(this.anchor)) {
+      if (this.offset >= 0) {
+        return this
+      }
+      if (this.offset === AnchorOutOffset.Before) {
+        return new EtCaret(this.anchor, 0)
+      }
+      return new EtCaret(this.anchor, this.anchor.length)
+    }
+    if (!this.anchor.isConnected) {
+      return this
+    }
+    // 定位到节点外, 则优先判断是否接壤文本节点
+    if (this.offset < 0) {
+      // 定位到节点外结尾, 判断后一个节点是否为#text
+      if (this.offset === AnchorOutOffset.After) {
+        const next = this.anchor.nextSibling
+        if (next && dom.isText(next)) {
+          return new EtCaret(next, 0)
+        }
+      }
+      // 定位到节点外开头, 判断前一个节点是否为#text
+      const prev = this.anchor.previousSibling
+      if (prev && dom.isText(prev)) {
+        return new EtCaret(prev, prev.length)
+      }
+    }
+    // 基于可编辑 html元素, 向内查找
+    if (dom.isHTMLElement(this.anchor) && this.anchor.isContentEditable) {
+      const len = dom.nodeLength(this.anchor)
+      let anchor, offset
+      if (this.anchor.hasChildNodes()) {
+        if (this.offset === 0 || this.offset === AnchorOutOffset.Before) {
+          anchor = traversal.innermostEditableFirstChild(this.anchor)
+          offset = 0
+        }
+        else if (this.offset === len || this.offset === AnchorOutOffset.After) {
+          anchor = traversal.innermostEditableLastChild(this.anchor)
+          offset = dom.nodeLength(anchor)
+        }
+        else {
+          anchor = traversal.innermostEditableFirstChild(this.anchor.childNodes.item(this.offset))
+          offset = 0
+        }
+      }
+      else {
+        anchor = this.anchor
+        offset = this.offset
+      }
+      if (dom.isText(anchor)) {
+        return new EtCaret(anchor, offset)
+      }
+      if (anchor.localName === 'br') {
+        const prev = anchor.previousSibling
+        if (prev && dom.isText(prev)) {
+          return new EtCaret(prev, prev.length)
+        }
+        // 必定存在父节点
+        return new EtCaret(anchor.parentNode as Et.HTMLElement, dom.connectedNodeIndex(anchor))
+      }
+      if ((anchor as HTMLElement).isContentEditable) {
+        return new EtCaret(anchor, offset)
+      }
+      return new EtCaret(anchor, offset === 0 ? AnchorOutOffset.Before : AnchorOutOffset.After)
+    }
+    // 不可编辑, 向外查找
+    const outer = traversal.closestEditableAncestor(this.anchor)
+    return new EtCaret(outer, this.offset >= 0 ? 0 : AnchorOutOffset.Before)
   }
 
   /**
@@ -275,23 +337,29 @@ export class EtCaret extends CaretRange {
    * * 该方法应只在命令内部执行
    */
   insertNode(node: Et.Node | Et.Fragment) {
+    const offset = this.offset
     let anchor = this.anchor
-    let beforeIndex = this.offset
-    if (!anchor.isConnected) {
-      return false
-    }
+    let beforeNode = anchor as Et.NodeOrNull
     if (dom.isText(anchor)) {
-      if (beforeIndex > 0 || beforeIndex < anchor.length) {
+      if (offset > 0 && offset < anchor.length) {
         return false
       }
+      if (offset !== 0 && offset !== AnchorOutOffset.Before) {
+        beforeNode = anchor.nextSibling
+      }
       anchor = anchor.parentNode as Et.HTMLElement
-      beforeIndex = dom.nodeIndex(anchor) + beforeIndex === 0 ? 0 : 1
     }
-    else if (beforeIndex < 0) {
+    else if (offset < 0) {
+      beforeNode = offset === AnchorOutOffset.Before ? anchor : anchor.nextSibling
       anchor = anchor.parentNode as Et.HTMLElement
-      beforeIndex = dom.nodeIndex(anchor) + beforeIndex === AnchorOutOffset.Before ? 0 : 1
     }
-    anchor.insertBefore(node, anchor.childNodes.item(beforeIndex))
+    else {
+      beforeNode = anchor.childNodes.item(offset)
+    }
+    if (!anchor) {
+      return false
+    }
+    anchor.insertBefore(node, beforeNode)
     return true
   }
 }

@@ -1,5 +1,5 @@
 import { Window } from 'happy-dom'
-import { expect, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import type { Et } from '~/core/@types'
 
@@ -16,22 +16,45 @@ const init = () => {
   return document.body.firstElementChild as unknown as HTMLDivElement
 }
 init()
-
-// 1. insertText 测试
-test('cmd.insertText', () => {
-  const div = init()
-  const text = div.firstChild as unknown as Et.Text
-  const _cmd = cmd.insertText({
-    text,
-    data: 'Hello',
-    offset: 2,
+describe('cmd.insertText', () => {
+  // 1. insertText 测试
+  test('cmd.insertText', () => {
+    const div = init()
+    const text = div.firstChild as unknown as Et.Text
+    const _cmd = cmd.insertText({
+      text,
+      data: 'Hello',
+      offset: 2,
+      setCaret: true,
+    })
+    expect(_cmd.exec()).toBe(true)
+    expect(text.data).toBe('A1Hello2')
+    expect(div.innerHTML).toBe('A1Hello2<b>B34</b>C56')
+    expect(_cmd.destCaretRange?.toCaret().anchor).toBe(div.firstChild)
+    expect(_cmd.destCaretRange?.toCaret().offset).toBe(7)
+    expect(_cmd.undo()).toBe(true)
+    expect(text.data).toBe('A12')
+    expect(div.innerHTML).toBe('A12<b>B34</b>C56')
   })
-  expect(_cmd.exec()).toBe(true)
-  expect(text.data).toBe('A1Hello2')
-  expect(div.innerHTML).toBe('A1Hello2<b>B34</b>C56')
-  expect(_cmd.undo()).toBe(true)
-  expect(text.data).toBe('A12')
-  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+
+  // 当setCaret为false时测试
+  test('cmd.insertText with setCaret false', () => {
+    const div = init()
+    const text = div.firstChild as unknown as Et.Text
+    const _cmd = cmd.insertText({
+      text,
+      data: 'NoCaret',
+      offset: 1,
+      setCaret: false,
+    })
+    expect(_cmd.exec()).toBe(true)
+    expect(text.data).toBe('ANoCaret12')
+    expect(div.innerHTML).toBe('ANoCaret12<b>B34</b>C56')
+    expect(_cmd.destCaretRange).toBeUndefined()
+    expect(_cmd.undo()).toBe(true)
+    expect(text.data).toBe('A12')
+    expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+  })
 })
 
 // 2. deleteText 测试
@@ -43,10 +66,13 @@ test('cmd.deleteText', () => {
     offset: 1,
     data: '12',
     isBackward: false,
+    setCaret: true,
   })
   expect(_cmd.exec()).toBe(true)
   expect(text.data).toBe('A')
   expect(div.innerHTML).toBe('A<b>B34</b>C56')
+  expect(_cmd.destCaretRange?.toCaret().anchor).toBe(div.firstChild)
+  expect(_cmd.destCaretRange?.toCaret().offset).toBe(1)
   expect(_cmd.undo()).toBe(true)
   expect(text.data).toBe('A12')
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
@@ -61,10 +87,13 @@ test('cmd.replaceText', () => {
     offset: 1,
     data: 'XX',
     delLen: 2,
+    setCaret: true,
   })
   expect(_cmd.exec()).toBe(true)
   expect(text.data).toBe('AXX')
   expect(div.innerHTML).toBe('AXX<b>B34</b>C56')
+  expect(_cmd.destCaretRange?.toCaret().anchor).toBe(div.firstChild)
+  expect(_cmd.destCaretRange?.toCaret().offset).toBe(3)
   expect(_cmd.undo()).toBe(true)
   expect(text.data).toBe('A12')
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
@@ -79,9 +108,12 @@ test('cmd.insertNode', () => {
   const _cmd = cmd.insertNode({
     node: newNode,
     execAt,
+    setCaret: true,
   })
   expect(_cmd.exec()).toBe(true)
   expect(div.innerHTML).toBe('A12<i>Inserted</i><b>B34</b>C56')
+  expect(_cmd.destCaretRange?.toCaret().anchor).toBe(newNode)
+  expect(_cmd.destCaretRange?.toCaret().offset).toBe(0)
   expect(_cmd.undo()).toBe(true)
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
 })
@@ -92,9 +124,13 @@ test('cmd.removeNode', () => {
   const nodeToRemove = div.children[0] as unknown as Et.HTMLNode
   const _cmd = cmd.removeNode({
     node: nodeToRemove,
+    setCaret: true,
   })
   expect(_cmd.exec()).toBe(true)
   expect(div.innerHTML).toBe('A12C56')
+  // 底层命令在删除节点时, 并不会考虑前后节点合并问题, 此处光标位置依旧在 div 上
+  expect(_cmd.destCaretRange?.toCaret().anchor).toBe(div)
+  expect(_cmd.destCaretRange?.toCaret().offset).toBe(1)
   expect(_cmd.undo()).toBe(true)
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
 })
@@ -108,9 +144,12 @@ test('cmd.replaceNode', () => {
   const _cmd = cmd.replaceNode({
     oldNode,
     newNode,
+    setCaret: true,
   })
   expect(_cmd.exec()).toBe(true)
   expect(div.innerHTML).toBe('A12<u>Replaced</u>C56')
+  expect(_cmd.destCaretRange?.toCaret().anchor).toBe(newNode)
+  expect(_cmd.destCaretRange?.toCaret().offset).toBe(0)
   expect(_cmd.undo()).toBe(true)
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
 })
@@ -127,9 +166,11 @@ test('cmd.insertContent', () => {
   const _cmd = cmd.insertContent({
     content: fragment,
     execAt,
+    destCaretRange: cr.range(div, 1, div, 3),
   })
   expect(_cmd.exec()).toBe(true)
   expect(div.innerHTML).toBe('A12<span>Fragment</span><b>B34</b>C56')
+  expect(_cmd.destCaretRange?.toRange()?.toString()).toBe('FragmentB34')
   expect(_cmd.undo()).toBe(true)
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
 })
@@ -137,13 +178,32 @@ test('cmd.insertContent', () => {
 // 8. removeContent 测试
 test('cmd.removeContent', () => {
   const div = init() as unknown as Et.HTMLElement
+  // `<div>A12<b>B34</b>C56</div>`
   // 假设我们要删除从第一个文本节点到 <b> 节点的内容
-  const removeRange = cr.spanRangeFromTo(div, 0, 2) as Et.SpanRange
-  const _cmd = cmd.removeContent({
+  let removeRange = cr.spanRangeFromTo(div, 0, 1) as Et.SpanRange
+  let _cmd = cmd.removeContent({
     removeRange,
   })
   expect(_cmd.exec()).toBe(true)
   expect(div.innerHTML).toBe('C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+
+  removeRange = cr.spanRangeFromTo(div, 1, 1) as Et.SpanRange
+  _cmd = cmd.removeContent({
+    removeRange,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12C56')
+  expect(_cmd.undo()).toBe(true)
+  expect(div.innerHTML).toBe('A12<b>B34</b>C56')
+
+  removeRange = cr.spanRangeFromTo(div, 2, 1) as Et.SpanRange
+  _cmd = cmd.removeContent({
+    removeRange,
+  })
+  expect(_cmd.exec()).toBe(true)
+  expect(div.innerHTML).toBe('A12')
   expect(_cmd.undo()).toBe(true)
   expect(div.innerHTML).toBe('A12<b>B34</b>C56')
 })

@@ -1,11 +1,13 @@
 /* eslint-disable @stylistic/max-len */
 import type { Effitor } from '../editor/Effitor'
-import type { EtParagraph } from '../element'
-import type { EffectElement, EffectElementCtor, EtCode } from '../element/EffectElement'
+import type { EtEditorElement, EtParagraph } from '../element'
+import { EtCodeTarget } from '../element/config'
+import type { EffectElement, EffectElementCtor } from '../element/EffectElement'
 import { MIMETypeEnum } from '../enums'
 /* -------------------------------------------------------------------------- */
 /*                                 编辑器内容                                  */
 /* -------------------------------------------------------------------------- */
+export type EditorRoot = ShadowRoot | EtEditorElement
 /** 编辑器别名 */
 export type Editor = Effitor
 /** 效应元素类型别名 */
@@ -19,10 +21,10 @@ export type ParagraphCtor = typeof EtParagraph
 export type Element = HTMLElement | SVGElement
 export type Node = Text | Element
 export type HTMLNode = Text | HTMLElement
-export type NullableText = Text | null
-export type NullableNode = Node | null
-export type NullableElement = HTMLElement | null
-export type NullableHTMLNode = HTMLNode | null
+export type TextOrNull = Text | null
+export type NodeOrNull = Node | null
+export type HTMLNodeOrNull = HTMLNode | null
+export type HTMLElementOrNull = HTMLElement | null
 
 /**
  * 自定义EtElement设置属性
@@ -35,7 +37,7 @@ export interface ElAttrs {
   draggable: 'true' | 'false'
 }
 
-export interface HTMLElement extends globalThis.HTMLElement, EtCode {
+export interface HTMLElement extends globalThis.HTMLElement, EtCodeTarget {
   readonly localName: string
   textContent: string
   readonly parentNode: HTMLElement | null
@@ -52,7 +54,7 @@ export interface HTMLElement extends globalThis.HTMLElement, EtCode {
   readonly cloneNode: (deep?: boolean) => HTMLElement
   addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void, options?: boolean | AddEventListenerOptions): void
 }
-export interface SVGElement extends globalThis.SVGElement, PickUndefined<EtCode> {
+export interface SVGElement extends globalThis.SVGElement {
   readonly localName: string
   textContent: string
   readonly parentNode: Element | null
@@ -68,7 +70,7 @@ export interface SVGElement extends globalThis.SVGElement, PickUndefined<EtCode>
   readonly previousElementSibling: SVGElement | null
   readonly cloneNode: (deep?: boolean) => SVGElement
 }
-export interface Text extends globalThis.Text, PickUndefined<EtCode> {
+export interface Text extends globalThis.Text {
   readonly localName: ''
   textContent: never
   readonly parentNode: HTMLElement | null
@@ -128,7 +130,7 @@ export type KeyboardKey = `${KeyboardKeyEnum}`
 export type InputType = `${InputTypeEnum}`
 
 export interface MouseEvent extends globalThis.MouseEvent {
-  readonly target: NullableNode
+  readonly target: NodeOrNull
 }
 export interface KeyboardEvent extends globalThis.KeyboardEvent {
   readonly code: KeyboardCode

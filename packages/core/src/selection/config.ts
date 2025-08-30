@@ -4,29 +4,8 @@ import type { Et } from '~/core/@types'
  * 描述一个 DOM 位置
  */
 export interface EtPosition {
-  node: Et.Node
+  container: Et.Node
   offset: number
-}
-
-export abstract class CaretRange {
-  protected __valid = false
-  abstract fromRange(range: Et.AbstractRange): void
-  /**
-   * 获取对应的Range对象, 若位置不合法(节点不在 DOM 上), 返回 null
-   */
-  abstract toRange(): Et.Range | null
-  /**
-   * 获取对应的 EtCaret 对象
-   * @param toStart 若为范围, 是否collapsed 到开头
-   */
-  abstract toCaret(toStart?: boolean): Et.EtCaret
-  /**
-   * 标记该 CaretRange 对象为合法的; 当从 Range 对象构建 CaretRange 时,
-   * 可标记为 valid, 以提高效率
-   */
-  markValid() {
-    this.__valid = true
-  }
 }
 
 export const enum AnchorOutOffset {

@@ -20,8 +20,21 @@ export const createElement: HTMLNodeCreator = elName => document.createElement(e
 
 /** 节点长度, 文本节点返回文本长度, 元素节点返回子节点数量 */
 export const nodeLength = (nod: Et.Node) => isText(nod) ? nod.length : nod.childNodes.length
-/** 获取节点在父节点中的索引; 若节点不在页面上, 返回 -1 */
+/** 获取节点在父节点中的索引; 若节点没有父节点, 返回 -1 */
 export const nodeIndex = (node: Node) => {
+  if (!node.parentNode) {
+    return -1
+  }
+  let i = 0
+  node = node.previousSibling as Node
+  while (node) {
+    i++
+    node = node.previousSibling as Node
+  }
+  return i
+}
+/** 获取节点在父节点中的索引; 若节点不在页面上, 返回 -1 */
+export const connectedNodeIndex = (node: Node) => {
   if (!node.isConnected) {
     return -1
   }
@@ -69,7 +82,7 @@ export const removeStatusClassForEl = <E extends HTMLElement>(el: E, cls = []): 
  * @param stopTag 小写元素标签名
  * 返回的节点可能匹配 `stopTag`,
  */
-export const findEffectParent = (node: Et.NullableNode, stopTag: string = BuiltinElName.ET_BODY): Et.EtElement | null => {
+export const findEffectParent = (node: Et.NodeOrNull, stopTag: string = BuiltinElName.ET_BODY): Et.EtElement | null => {
   while (node) {
     if (node.etCode !== void 0) return node as Et.EtElement
     if (node.localName === stopTag) return null
@@ -81,7 +94,7 @@ export const findEffectParent = (node: Et.NullableNode, stopTag: string = Builti
  * ~~查找编辑区顶层元素(段落)~~
  * 向上查找最近一个拥有段落效应的父节点
  */
-export const findParagraph = (node: Et.NullableNode): Et.EtParagraphElement | null => {
+export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null => {
   while (node) {
     if (node.localName === BuiltinElName.ET_BODY) return null
     if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.EtParagraphElement
@@ -99,9 +112,30 @@ export const isElement = (node: Node): node is Et.Element => node.nodeType === 1
 export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instanceof HTMLElement
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
 export const isBrElement = (node: Node): node is HTMLBRElement => (node as Et.Node).localName === 'br'
+/**
+ * 判断一个节点是否为效应元素
+ * * 这不是严格的检验方法, 严格的检验需使用 `etcode.check(node)` 方法
+ */
 export const isEtElement = (node: Node): node is Et.EtElement => (node as Et.EtElement).etCode !== void 0
-/** 该方法主要用于判断页面中的节点是否可编辑; 若用于判断DocumentFragment或游离节点, 则结果不一定准确 */
-// export const isEditableNode = (node: Node) => (node as HTMLElement).isContentEditable ?? node.parentElement?.isContentEditable
+/** 判断一个节点是否不可编辑 (光标无法落入其中) */
+export const isNotEditable = (node: Node): boolean => {
+  if (['br', 'svg', 'img', 'audio', 'video'].includes((node as HTMLElement).localName)) {
+    return true
+  }
+  if (isText(node)) {
+    if (!node.parentElement) {
+      return false
+    }
+    node = node.parentElement
+  }
+  if (node.isConnected) {
+    return !(node as HTMLElement).isContentEditable
+  }
+  if (node instanceof HTMLElement) {
+    return node.contentEditable === 'false'
+  }
+  return true
+}
 
 export const isNodeBeforeTheOther = (node: Et.Node, other: Et.Node) => node.compareDocumentPosition(other) & 4 /** Node.DOCUMENT_POSITION_FOLLOWING */
 /**
@@ -139,7 +173,7 @@ export const isWithinLast = (node: Et.Node, ancestor: Et.Node) => {
  * 比较两个节点是否相同, 用于判断俩节点是否可合并; 这不同于 Node.isEqualNode, 该方法不比较节点内容;
  * 比较节点类型, 若都是元素, 则使用 isEqualElement 比较
  */
-export const isEqualNode = (one: Et.Node, other: Et.Node) => {
+export const isEqualNode = (one: Node, other: Node) => {
   if (one === other) {
     return true
   }

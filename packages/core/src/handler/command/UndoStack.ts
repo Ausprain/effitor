@@ -280,7 +280,7 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
     let lastCmd: ExecutedInsertCompositionText | null = null
     while (j < cmds.length) {
       const nextCmd = cmds[j]
-      if (!(nextCmd.type & CmdType.Insert_Composition_Text)) {
+      if (nextCmd.type !== CmdType.Insert_Composition_Text) {
         break
       }
       lastCmd = nextCmd as ExecutedInsertCompositionText

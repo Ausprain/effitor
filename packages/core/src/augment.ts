@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/max-len */
 import type { Et } from '~/core/@types'
 
 declare global {
@@ -24,6 +25,9 @@ declare global {
       platform: string
     }
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  interface EventTarget extends Et.EtCodeTarget { }
   interface Text {
     /** 文本节点使用.data, 不要使用.textContent; 前者比后者快 1 倍 */
     textContent: never
@@ -56,6 +60,38 @@ declare global {
      */
     modify(alter: ModifyAlter, direction: ModifyDirection, granularity: ModifyGranularity): void
   }
+
+  function requestIdleCallbackPolyByEffitor(callback: IdleRequestCallback, options?: IdleRequestOptions): number
+  function cancelIdleCallbackPolyByEffitor(handle: number): void
+}
+
+if (globalThis.requestIdleCallback) {
+  Object.defineProperties(globalThis, {
+    requestIdleCallbackPolyByEffitor: {
+      value: globalThis.requestIdleCallback,
+      writable: false,
+    },
+    cancelIdleCallbackPolyByEffitor: {
+      value: globalThis.cancelIdleCallback,
+      writable: false,
+    },
+  })
+}
+else {
+  Object.defineProperties(globalThis, {
+    requestIdleCallbackPolyByEffitor: {
+      value: (cb: IdleRequestCallback, options?: IdleRequestOptions) => {
+        return globalThis.setTimeout(cb, options?.timeout ?? 500)
+      },
+      writable: false,
+    },
+    cancelIdleCallbackPolyByEffitor: {
+      value: (handle: number) => {
+        globalThis.clearTimeout(handle)
+      },
+      writable: false,
+    },
+  })
 }
 
 export {}

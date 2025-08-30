@@ -36,11 +36,15 @@ export class MainAfterInputTypeSolver implements Et.MainInputTypeSolver {
 // Object.assign(MainAfterInputTypeSolver.prototype, mainAfterInputTypeSolver)
 
 export const getInputListener = (
-  ctx: Et.UpdatedContext, main: MainAfterInputTypeSolver, sovler?: Et.InputTypeSolver,
+  ctx: Et.EditorContext, main: MainAfterInputTypeSolver, sovler?: Et.InputTypeSolver,
 ) => {
   return (ev: Et.InputEvent) => {
-    // todo 热字符串功能仅在段落下有效?
-    if (ev.inputType === 'insertText' && ctx.isParagraph(ctx.effectElement)) {
+    if (!ctx.isUpdated()) {
+      ev.preventDefault()
+      return false
+    }
+    // TODO 热字符串功能仅在段落下有效?
+    if (ev.inputType === 'insertText' && ctx.isPlainParagraph(ctx.focusEtElement)) {
       ctx.hasInsertText = true
       if (ev.data) {
         ctx.hotstringManager.listen(ev.data)
@@ -49,11 +53,11 @@ export const getInputListener = (
     runInputSolver(ev, ctx, main, sovler)
 
     // 若光标不在视口内, 将其移动到视口中央
-    // fixme not standard
-    ctx.paragraphEl?.scrollIntoViewIfNeeded?.(true)
+    ctx.selection.revealSelection(false, ev.inputType.startsWith('insert') ? 'smooth' : 'instant')
 
-    // todo drag/drop 引起的dom改变未触发此回调
-    ctx.editor.callbacks.onEditorContentChanged?.(ctx, [ctx.topElement])
+    // TODO drag/drop 引起的dom改变未触发此回调
+    // 思考该回调的用意, 有了 Effitor.observeEditing 是否还必要此回调
+    ctx.editor.callbacks.onEditorContentChanged?.(ctx, [ctx.focusTopElement])
   }
 }
 
@@ -64,6 +68,6 @@ declare global {
      * [Element: scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
      * @param centerIfNeeded 默认为true
      */
-    scrollIntoViewIfNeeded(centerIfNeeded?: boolean): void
+    scrollIntoViewIfNeeded?(centerIfNeeded?: boolean): void
   }
 }

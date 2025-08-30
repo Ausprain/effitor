@@ -98,7 +98,7 @@ interface SetCaret {
   setCaret?: boolean
 }
 
-/** 更新dom统一命令 */
+/** 命令抽象接口, 更新dom统一命令 */
 interface Cmd<T extends CmdTypeEm = any, MetaType = any> extends CmdFinalCallback<T, MetaType> {
   /** 命令类别 */
   readonly type: T
@@ -282,7 +282,7 @@ interface ExecutedRequiresMap {
 /*                                   命令执行函数                                   */
 /* -------------------------------------------------------------------------- */
 
-const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx: Et.UpdatedContext) {
+const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx: Et.EditorContext) {
   if (ctx.compositionUpdateCount === 1) {
     if (ctx.selection.anchorText) {
       this.newInserted = false
@@ -380,7 +380,7 @@ const execRemoveNode = function (this: CmdRemoveNode | CmdInsertNode) {
   }
   if (this.setCaret) {
     this.setCaret = false
-    this.destCaretRange = cr.caretOutStart(this.node)
+    this.destCaretRange = this.execAt
   }
   this.node.remove()
   return true
@@ -417,19 +417,19 @@ const execRemoveContent = function (this: CmdRemoveContent | CmdInsertContent) {
   // 此提取方法直接就是遍历同层级的节点逐个提取 (startNode ~ endNode) 性能也更好
   if (!this.content) {
     // 首次执行, 获取提取位置, 为undo确定内容恢复位置
-    this.content = document.createDocumentFragment() as Et.Fragment
-    this.execAt = removeRange.extractToFragment(this.content, true)
+    this.execAt = removeRange.removeAt()
+    this.content = removeRange.extractToFragment()
   }
   else {
-    removeRange.extractToFragment(this.content, false)
+    this.content = removeRange.extractToFragment()
   }
   return true
 }
-const execFunctional = function (this: CmdFunctional, ctx: Et.UpdatedContext) {
+const execFunctional = function (this: CmdFunctional, ctx: Et.EditorContext) {
   this.execCallback?.(ctx)
   return true
 }
-const undoFunctional = function (this: CmdFunctional, ctx: Et.UpdatedContext) {
+const undoFunctional = function (this: CmdFunctional, ctx: Et.EditorContext) {
   this.undoCallback?.(ctx)
   return false
 }
@@ -651,6 +651,11 @@ const functional = <MetaType>(init: CmdFunctionalInit<MetaType>) => {
 /*                                  命令构建工具                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * 命令工厂函数, 可通过扩展此接口实现自定义命令;
+ * 类似 cmd.moveNodes, 就是一个 Functional 命令的封装
+ * @expendable
+ */
 interface CmdFactory {
   <T extends CmdTypeEm, MetaType>(type: T, init: CmdInit<CmdMap<MetaType>[T], MetaType, CmdInitOmits[T]>): CmdWithExec<CmdMap<MetaType>[T]>
 }
@@ -713,6 +718,35 @@ const cmd = (() => {
   /** `type = Functional` */
   _cmd.FUNC = CmdTypeEm.Functional
 
+  /**
+   * 创建一个批量移动节点命令, 该命令是一个 Functional 命令
+   * @param moveRange 被移动的节点范围
+   * @param moveTo 被移动到的位置
+   * @param destCaretRange 结束光标位置
+   * @returns 一个 Functional 命令
+   */
+  _cmd.moveNodes = function (
+    moveRange: Et.SpanRange,
+    moveTo: Et.EtCaret,
+    destCaretRange?: Et.CaretRange,
+  ): CmdWithExec<CmdFunctional> {
+    return this.functional({
+      meta: {
+        _moveRange: moveRange,
+        _moveTo: moveTo,
+      },
+      execCallback() {
+        const { _moveRange, _moveTo } = this.meta
+        this.meta._moveTo = _moveRange.removeAt()
+        _moveTo.insertNode(_moveRange.extractToFragment())
+      },
+      undoCallback(_) {
+        this.execCallback(_)
+      },
+      destCaretRange,
+    })
+  }
+
   return _cmd as CmdFactory & Readonly<typeof _cmd>
 })()
 
@@ -756,7 +790,7 @@ const cmdHandler = {
       recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange
     }
     if (lastCaretRange) {
-      ctx.setSelection(lastCaretRange)
+      ctx.setSelection(lastCaretRange.isCaret() ? lastCaretRange.toTextAffinity() : lastCaretRange)
     }
     return recordCmds as readonly ExecutedCmd[]
   },
@@ -803,5 +837,5 @@ const cmdHandler = {
 } as const
 
 export { cmd, cmdHandler, CmdType }
-export type { Cmd, CmdDeleteText, CmdInsertText, Command, ExecutedCmd }
+export type { Cmd, CmdDeleteText, CmdFactory, CmdInsertText, Command, ExecutedCmd }
 export type ExecutedInsertCompositionText = ExecutedCmd<CmdInsertCompositionText>

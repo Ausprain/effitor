@@ -1,13 +1,12 @@
-import type { Et } from '~/core/@types'
-
 import { EtType, EtTypeEnum } from '../enums'
+import { EtCode, EtCodeTarget } from './config'
 import type { EffectElement } from './EffectElement'
-import type { EtBlockquoteElement } from './EtBlockquoteElement'
-import type { EtComponentElement } from './EtComponentElement'
-import type { EtEmbedElement } from './EtEmbedElement'
-import type { EtHeadingElement } from './EtHeadingElement'
-import type { EtParagraphElement } from './EtParagraphElement'
-import type { EtRichTextElement } from './EtRichTextElement'
+import type { EtBlockquote } from './EtBlockquote'
+import type { EtComponent } from './EtComponent'
+import type { EtEmbedment } from './EtEmbedment'
+import type { EtHeading } from './EtHeading'
+import type { EtParagraph } from './EtParagraph'
+import type { EtRichText } from './EtRichText'
 
 /** 效应类型枚举 */
 const Em: { [K in keyof EtType]: EtType[K] } = {
@@ -24,12 +23,12 @@ const Em: { [K in keyof EtType]: EtType[K] } = {
 /** etcode专属元素表 */
 interface CodeElementMap {
   [k: number]: EffectElement
-  [Em.RichText]: EtRichTextElement
-  [Em.Heading]: EtHeadingElement
-  [Em.Paragraph]: EtParagraphElement
-  [Em.Component]: EtComponentElement
-  [Em.Embedment]: EtEmbedElement
-  [Em.Blockquote]: EtBlockquoteElement
+  [Em.RichText]: EtRichText
+  [Em.Heading]: EtHeading
+  [Em.Paragraph]: EtParagraph
+  [Em.Component]: EtComponent
+  [Em.Embedment]: EtEmbedment
+  [Em.Blockquote]: EtBlockquote
 }
 let count = Object.keys(Em).length
 const codeMap = new Map<string, number>()
@@ -49,27 +48,31 @@ const get = (key: string) => {
 }
 /**
  * 校验一个html元素是否具备某效应; 缺省code时校验其是否为EffectElement \
- * * 这里计算的是相交, 只有有交集, 就认为el具备code的效应; 因此当code是联合效应时, 只要el具有其中一项, 都会认为el具备code的效应
+ * * 这里计算的是相交, 只有有交集, 就认为el具备code的效应; 因此当code是联合效应时,
+ *   只要el具有其中一项, 都会认为el具备code的效应
  */
 const check = <T extends EffectElement, C extends number = number>(
-  el: Et.Node, code?: C,
+  el: EtCodeTarget, code?: C,
 ): el is (EffectElement extends T ? CodeElementMap[C] : T) => {
-  if (!code) return el.etCode !== void 0
-  return !!(el.etCode && (el.etCode & code))
+  if (!code) return el[EtCode] !== void 0
+  return !!(el[EtCode] && (el[EtCode] & code))
 }
 /**
  * 校验一个EtElement下是否允许某效应, 即其子节点是否允许为含有某效应类型的节点 \
  * * 当且仅当 `inEtCode & code && !(notInEtCode & code)` 时返回 true
- * @param elOrInEtCode 效应元素或允许的效应码, 当该值为元素时, 第三个参数将无效
+ * @param elOrInEtCode 效应元素或允许的效应码, 当该值为元素时, 将用其notInEtCode属性值作为第三个参数值
  * @param code 要校验的子节点效应码
  * @param notInEtCode 不允许的效应码, 默认为 0; 第一个参数是元素时, 此参数无效
  */
 const checkIn = (
-  elOrInEtCode: EffectElement | number, code: number, notInEtCode = 0,
+  elOrInEtCode: EffectElement | number, codeOrNode: number | Node, notInEtCode = 0,
 ) => {
   if (typeof elOrInEtCode === 'object') {
-    notInEtCode = elOrInEtCode.notInEtCode
-    elOrInEtCode = elOrInEtCode.inEtCode
+    return elOrInEtCode.checkIn(codeOrNode)
+  }
+  const code = typeof codeOrNode === 'number' ? codeOrNode : codeOrNode.etCode
+  if (code === void 0) {
+    return true
   }
   if (notInEtCode & code) {
     return false
