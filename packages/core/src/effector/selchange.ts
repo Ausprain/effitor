@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { etcode } from '../element'
 import { CssClassEnum } from '../enums'
 // import { debounce } from '../utils'

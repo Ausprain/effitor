@@ -1,8 +1,7 @@
 import { Window } from 'happy-dom'
 import { describe, expect, test } from 'vitest'
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../../../@types'
 import { cr } from '../../../selection'
 import { cmd } from '../cmds'
 

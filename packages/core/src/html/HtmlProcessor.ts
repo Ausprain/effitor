@@ -1,4 +1,4 @@
-import { Et } from '../@types'
+import type { Et } from '../@types'
 import { EffectElement } from '../element'
 import { dom } from '../utils'
 import { HtmlToEtElementTransformer, HtmlToEtElementTransformerMap } from './config'
@@ -55,6 +55,9 @@ export class HtmlProcessor {
   #transformElement(ctx: Et.EditorContext, el: Element, parent: HTMLElement | null) {
     if (el.localName === 'svg') {
       return el
+    }
+    if (!dom.isElementOrText(el)) {
+      return null
     }
     // TODO 过滤敏感及非法节点
     if (['script', 'html', 'head', 'meta', 'link', 'title', 'style'].includes(el.localName)) {
@@ -146,7 +149,7 @@ export class HtmlProcessor {
       return this.#parseEtElement(el)
     }
     // TODO 过滤敏感节点
-    if (['script'].includes(el.localName)) {
+    if (!dom.isElementOrText(el) || ['script'].includes(el.localName)) {
       return null
     }
     const clone = el.cloneNode(false) as Element

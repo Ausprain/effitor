@@ -1,8 +1,6 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { removeHotstringOnTrigger } from './actions'
 import { Hotstring } from './judge'
-import { create } from './util'
 
 /**
  * 获取一个热字符串管理器
@@ -16,9 +14,17 @@ export const getHotstringManager = (ctx: Et.EditorContext) => {
     hsArray = [...hotstringMap.values()]
   }
   return {
-    create,
+    /** 创建并添加一个热字符串 */
+    create(...args: ConstructorParameters<typeof Hotstring>) {
+      this.addHotString(new Hotstring(...args))
+    },
     /** 标记下次listen时, 需要先将当前judge reset; 以代替统一的reset(), 避免每次都要重新遍历一次所有judge */
     needResetBeforeJudge: () => _resetNeeded = true,
+    /**
+     * 监听一个字符, 判断是否激活热字符串
+     * @param char 字符
+     * @returns 是否有热字符串匹配
+     */
     listen: (char: string) => {
       for (const hs of hsArray) {
         if (hs.judge(char, _resetNeeded)) {
@@ -34,18 +40,29 @@ export const getHotstringManager = (ctx: Et.EditorContext) => {
       }
       return _resetNeeded && (_resetNeeded = false)
     },
-    addHotStrings: (hs: Hotstring[]) => {
+    /**
+     * 添加一组热字符串
+     */
+    addHotStrings(hs: Hotstring[]) {
       hs.forEach((v) => {
-        if (hotstringMap.has(v.hotstring)) {
-          if (import.meta.env.DEV) {
-            console.warn(`hotstring "${v.hotstring}" is already exist`)
-          }
-          return
-        }
-        hotstringMap.set(v.hotstring, v)
+        this.addHotString(v)
       })
+      updateHsArray()
+    },
+    /**
+     * 添加一个热字符串, 已存在则覆盖
+     * @param hs 热字符串对象
+     */
+    addHotString: (hs: Hotstring) => {
+      if (hotstringMap.has(hs.hotstring)) {
+        if (import.meta.env.DEV) {
+          console.warn(`hotstring "${hs.hotstring}" is already exist`)
+        }
+        return
+      }
+      hotstringMap.set(hs.hotstring, hs)
       updateHsArray()
     },
   }
 }
-export type Manager = ReturnType<typeof getHotstringManager>
+export type HotstringManager = ReturnType<typeof getHotstringManager>

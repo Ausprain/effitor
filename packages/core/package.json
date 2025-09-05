@@ -18,6 +18,9 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./styles/*": {
+      "default": "./dist/styles/*"
     }
   },
   "repository": {
@@ -35,10 +38,19 @@
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"
   },
-  "packageManager": "pnpm@10.14.0",
   "devDependencies": {
-    "happy-dom": "^18.0.1",
-    "vite": "^7.0.6",
-    "vitest": "^3.2.4"
-  }
+    "@types/node": "^24.3.1",
+    "esbuild": "^0.25.9"
+  },
+  "dependencies": {
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-newline-to-break": "^2.0.0",
+    "mdast-util-to-markdown": "^2.1.2",
+    "micromark-extension-frontmatter": "^2.0.0",
+    "micromark-extension-gfm": "^3.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "packageManager": "pnpm@10.14.0"
 }

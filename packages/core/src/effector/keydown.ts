@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { modKey } from '../hotkey/util'
 
 /**
@@ -264,7 +263,7 @@ export const getKeydownListener = (
       ctx.editor.blur()
       return
     }
-    // fix. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
+    // fixed. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
     // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
     if ((ctx.inCompositionSession = ev.isComposing)) {
       return
@@ -298,9 +297,14 @@ export const getKeydownListener = (
 
       // 1. 处理普通输入, 并兼顾 MacOS 下输入法输入标点符号的情况
       if (ev.key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
+        // 监听热字符串
+        if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
+          return
+        }
+
         let data: string | undefined
         if (ctx.isUsingIME) {
-          data = ctx.hotkeyManager.keyboardWritableKeyToImeChar(ev.key)
+          data = ctx.hotkeyManager.getImeChar(ev.key)
           // 无对应ime 字符, 重置 ctx.isUsingIME 为false
           if (!data) {
             data = ev.key
@@ -326,10 +330,6 @@ export const getKeydownListener = (
       // 3. 监听绑定的快捷键 (快捷键不可 repeat触发)
       if (!ev.repeat) {
         if (ctx.hotkeyManager.listenBinding(ctx.modkey)) {
-          return
-        }
-        // 监听热字符串
-        if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
           return
         }
       }

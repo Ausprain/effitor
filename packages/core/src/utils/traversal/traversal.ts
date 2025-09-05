@@ -1,7 +1,5 @@
-/* eslint-disable @stylistic/max-len */
-import type { Et } from '~/core/@types'
-import { BuiltinElName } from '~/core/enums'
-
+import type { Et } from '../../@types'
+import { BuiltinElName } from '../../enums'
 import { dom } from '../dom'
 
 type TreeWalkNode<T> = T extends 1 ? Et.Element : T extends 4 ? Et.Text : T extends 5 ? Et.Node : never

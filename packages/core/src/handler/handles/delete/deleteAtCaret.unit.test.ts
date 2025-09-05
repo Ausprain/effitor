@@ -1,9 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
-import { initEditor, minifiedHtml } from '~/core/__tests__/shared.test'
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-
+import { initEditor, minifiedHtml } from '../../../__tests__/shared.test'
+import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
 import {
   checkBackspaceAtCaretDeleteNode,
   checkBackspaceAtCaretDeleteParagraph,
@@ -24,12 +23,12 @@ test('checkBackspaceAtCaretDeleteText', async () => {
   // 测试删除单个字符
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 7))
   expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, false)).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('Hello 78<b>bold<i>I123</i></b>B12')
   // 测试删除整个单词
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 6))
   expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('78<b>bold<i>I123</i></b>B12')
   ctx.commandManager.commit()
   ctx.commandManager.undoTransaction()
@@ -38,7 +37,7 @@ test('checkBackspaceAtCaretDeleteText', async () => {
   p.firstChild!.textContent = 'H  删除删除789'
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 7))
   expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('H789<b>bold<i>I123</i></b>B12')
   ctx.commandManager.commit()
   ctx.commandManager.undoTransaction()
@@ -61,7 +60,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(false)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(false)
 
     // 非开头, 禁止删除
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 1))
@@ -73,14 +72,14 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     ctx.commandManager.discard()
     // 亲和位置判断
     ctx.setSelection(cr.caretIn(p2.firstChild?.firstChild as Et.Text, 0))
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   })
   test('both text', async () => {
     const editor = await initEditor(minifiedHtml(`
@@ -97,7 +96,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First paragraphSecond paragraph')
     // 验证光标落点位置
@@ -125,7 +124,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First paragraph<b>Second</b>paragraph')
     expect(ctx.selection.range.startContainer.textContent).toBe('First paragraph')
@@ -150,7 +149,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First<b>paragraph</b>Second paragraph')
     // 验证光标落点位置
@@ -171,7 +170,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First<i>paragraph9</i><b>Second</b>paragraph')
     // 验证光标落点位置
@@ -193,7 +192,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     expect(checkBackspaceAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(2)
     expect(p1.innerHTML).toBe('First<b>paragraph9Second</b>paragraph')
     expect(body.lastElementChild!.innerHTML).toBe('third paragraph')
@@ -220,7 +219,7 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
 
     ctx.setSelection(cr.caretIn(p, 1)) // 光标在<b>节点前
     expect(checkBackspaceAtCaretDeleteNode(ctx, ctx.selection.getTargetRange()!.toTargetCaret())).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(p.innerHTML).toBe('<b>bold</b>text')
   })
   test('del node with only child ancestor and merge siblings', async () => {
@@ -233,7 +232,7 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
     const firstText = p.firstChild
     ctx.setSelection(cr.caretIn(p, 2))
     expect(checkBackspaceAtCaretDeleteNode(ctx, ctx.selection.getTargetRange()!.toTargetCaret())).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(p.innerHTML).toBe('Hellotext')
     expect(firstText !== ctx.selection.range.startContainer).toBe(true)
     expect(ctx.selection.range.startContainer.textContent).toBe('Hellotext')
@@ -246,7 +245,7 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
     const srcCaret = cr.caretIn(p22, 3)
     ctx.setSelection(srcCaret)
     expect(checkBackspaceAtCaretDeleteNode(ctx, ctx.selection.getTargetRange()!.toTargetCaret())).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(p22.innerHTML).toBe('Hello<b>AABB</b>World')
     expect(ctx.selection.range.startContainer.textContent).toBe('AABB')
     expect(ctx.selection.range.startOffset).toBe(2)
@@ -277,13 +276,13 @@ test('checkDeleteAtCaretDeleteText', async () => {
   // 测试删除单个字符
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 0))
   expect(checkDeleteAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret(), false)).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('ello A78<b>bold<i>I123</i></b>B12')
 
   // 测试删除整个单词
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 0))
   expect(checkDeleteAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret(), true)).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('A78<b>bold<i>I123</i></b>B12')
 })
 
@@ -308,7 +307,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First paragraphSecond paragraph')
   })
@@ -327,7 +326,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First paragraphSecond paragraph')
     // 验证光标落点位置
@@ -355,7 +354,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First paragraph<b>Second</b>paragraph')
     expect(ctx.selection.range.startContainer.textContent).toBe('First paragraph')
@@ -379,7 +378,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First<b>paragraph</b>Second paragraph')
     // 验证光标落点位置
@@ -399,7 +398,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(1)
     expect(p1.innerHTML).toBe('First<i>paragraph9</i><b>Second</b>paragraph')
     // 验证光标落点位置
@@ -420,7 +419,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     expect(checkDeleteAtCaretDeleteParagraph(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
-    expect(ctx.commandManager.handle()).toBe(true)
+    expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(body.children.length).toBe(2)
     expect(p1.innerHTML).toBe('First<b>paragraph9Second</b>paragraph')
     expect(body.lastElementChild!.innerHTML).toBe('third paragraph')
@@ -445,12 +444,12 @@ test('checkDeleteAtCaretDeleteNode', async () => {
   // 测试删除加粗节点
   ctx.setSelection(cr.caretIn(p, 2)) // 光标在<b>节点后
   expect(checkDeleteAtCaretDeleteNode(ctx, ctx.selection.getTargetRange()!.toTargetCaret())).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('Hello<b>bold</b>')
   ctx.commandManager.discard()
   ctx.setSelection(cr.caretIn(p.children[0] as any, 0))
   expect(checkDeleteAtCaretDeleteNode(ctx, ctx.selection.getTargetRange()!.toTargetCaret())).toBe(true)
-  expect(ctx.commandManager.handle()).toBe(true)
+  expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('Hellotext')
 })
 

@@ -1,7 +1,8 @@
 /* eslint-disable @stylistic/max-len */
-import type { Et } from '~/core/@types'
-import { dom } from '~/core/utils'
-
+import type { Et } from '../../@types'
+import { cr } from '../../selection'
+import { dom } from '../../utils'
+import { cmd } from '../command'
 import { fragmentUtils } from '../utils'
 
 /**
@@ -25,11 +26,17 @@ export const checkTargetRangePosition = (
   }
   // 选区位于同一个#text节点内
   if (targetRange.isTextCommonAncestor()) {
+    if (!targetRange.startParagraph) {
+      return false
+    }
     return inTheSameTextFn(ctx, targetRange, targetRange.startParagraph, targetRange.commonAncestor)
   }
 
   const p1 = targetRange.startParagraph
   const p2 = targetRange.endParagraph
+  if (!p1 || !p2) {
+    return false
+  }
   // 段落内跨节点
   if (p1 === p2) {
     return inTheSameParagraphFn(ctx, targetRange, p1) // 此处公共祖先必定是元素
@@ -82,4 +89,49 @@ export const cloneRangeUnselectedContents = (
     fragmentUtils.cleanEtFragment(f2)
   }
   return [f1, f2]
+}
+
+/**
+ * 尝试添加一个命令, 移动或移除节点, startNode 和 endNode 顺序随意, 但必须拥有同一父节点
+ * @param cmds 一个拥有.push 方法的命令队列(数组)
+ * @param startNode 起始节点(包含)
+ * @param endNode 结束节点(包含)
+ * @param insertAt 插入位置(移动时), 或 null(移除时的)
+ */
+export const tryToMoveNodes = (
+  cmds: Et.CommandQueue,
+  startNode: Et.NodeOrNull,
+  endNode: Et.NodeOrNull,
+  insertAt: Et.EtCaret | null,
+) => {
+  const removeRange = cr.spanRange(startNode, endNode)
+  if (removeRange) {
+    if (insertAt) {
+      cmds.push(cmd.moveNodes(removeRange, insertAt))
+    }
+    else {
+      cmds.push(cmd.removeContent({ removeRange }))
+    }
+  }
+}
+/**
+ * 尝试添加一个命令, 删除俩节点之间的兄弟节点, 俩节点不同层或中间无兄弟, 则不添加命令
+ * @param cmds 一个拥有.push 方法的命令队列(数组)
+ * @param startNode 起始节点(不包含)
+ * @param endNode 结束节点(不包含)
+ */
+export const tryToRemoveNodesBetween = (
+  cmds: Et.CommandQueue,
+  startNode: Et.Node, endNode: Et.Node,
+) => {
+  if (startNode.parentNode !== endNode.parentNode) {
+    return
+  }
+  if (startNode.nextSibling === endNode) {
+    return
+  }
+  const removeRange = cr.spanRange(startNode.nextSibling, endNode.previousSibling)
+  if (removeRange) {
+    cmds.push(cmd.removeContent({ removeRange }))
+  }
 }

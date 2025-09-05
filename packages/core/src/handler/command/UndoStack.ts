@@ -1,6 +1,5 @@
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-
+import type { Et } from '../../@types'
+import { cr } from '../../selection'
 import type {
   CmdDeleteText,
   CmdInsertText,

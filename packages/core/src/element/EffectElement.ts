@@ -1,6 +1,5 @@
-import type { Et } from '~/core/@types'
-
-import { CssClassEnum, EtTypeEnum } from '../enums'
+import type { Et } from '../@types'
+import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { dom } from '../utils'
 import { EtCode, InEtCode, NotInEtCode } from './config'
@@ -112,7 +111,7 @@ export abstract class EffectElement
     this[NotInEtCode] = notInEtType === void 0 ? 0 : notInEtType
 
     // 添加一个et类名（因为外部样式文件的标签选择器优先级不够, 这样可以用 et-p.et 来提高优先级 ）
-    // fix. document.createElement 时元素对象不可有属性 延迟添加;
+    // fixed. document.createElement 时元素对象不可有属性 延迟添加;
     // 不放在connectedCallback里, 是因为其可能会被子类覆盖
     Promise.resolve().then(() => {
       if (etType & EtTypeEnum.Uneditable) {
@@ -148,9 +147,16 @@ export abstract class EffectElement
   /* -------------------------------------------------------------------------- */
   /*                                 dom methods                                */
   /* -------------------------------------------------------------------------- */
-  /** 当前效应元素内容是否视为空; 默认 textContent == '' 时视为空 */
+  /** 当前效应元素内容是否视为空; 默认 textContent == '' 或仅含零宽字符或换行符 时视为空 */
   isEmpty() {
-    return this.textContent === ''
+    const data = this.textContent
+    return data === '' || (
+      data.length <= 2 && (
+        data === HtmlCharEnum.ZERO_WIDTH_SPACE
+        || data === HtmlCharEnum.MOCK_LINE_BREAK
+        || data === '\n'
+      )
+    )
   }
 
   /** 当前效应元素内部可编辑开始边界 */
@@ -160,7 +166,7 @@ export abstract class EffectElement
 
   /** 当前效应元素内部可编辑末尾边界 */
   innerEndEditingBoundary() {
-    return cr.caretInEnd(this)
+    return cr.caretInEndNow(this)
   }
 
   /* -------------------------------------------------------------------------- */

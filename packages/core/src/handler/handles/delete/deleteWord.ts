@@ -11,15 +11,12 @@ import {
 } from './deleteAtCaret'
 import { removeByTargetRange } from './deleteAtRange'
 
-export const deleteWordBackward = createInputEffectHandle((_this, ctx) => {
-  const tr = ctx.selection.getTargetRange()
-  if (!tr) {
-    return false
+export const deleteWordBackward = createInputEffectHandle((_this, ctx, pl) => {
+  ctx.setCaretAffinityPreference(true)
+  if (!pl.targetRange.collapsed) {
+    return removeByTargetRange(ctx, pl.targetRange)
   }
-  if (!tr.collapsed) {
-    return removeByTargetRange(ctx, tr)
-  }
-  const tc = tr.toTargetCaret()
+  const tc = pl.targetRange.toTargetCaret()
   return (
     // 光标在文本节点上
     checkBackspaceAtCaretDeleteText(ctx, tc, true)
@@ -31,15 +28,12 @@ export const deleteWordBackward = createInputEffectHandle((_this, ctx) => {
     || checkBackspaceAtCaretInTextStart(ctx, tc)
   )
 })
-export const deleteWordForward = createInputEffectHandle((_this, ctx) => {
-  const tr = ctx.selection.getTargetRange()
-  if (!tr) {
-    return false
+export const deleteWordForward = createInputEffectHandle((_this, ctx, pl) => {
+  ctx.setCaretAffinityPreference(false)
+  if (!pl.targetRange.collapsed) {
+    return removeByTargetRange(ctx, pl.targetRange)
   }
-  if (!tr.collapsed) {
-    return removeByTargetRange(ctx, tr)
-  }
-  const tc = tr.toTargetCaret()
+  const tc = pl.targetRange.toTargetCaret()
   return (
     // 光标在文本节点上
     checkDeleteAtCaretDeleteText(ctx, tc, true)

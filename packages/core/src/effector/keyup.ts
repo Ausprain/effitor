@@ -1,11 +1,23 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { etcode } from '../element'
 import { EtTypeEnum } from '../enums'
 // import { cr } from '../selection'
 import { type MainKeyboardSolver, runKeyboardSolver } from './keydown'
 
 const keyupSolver: MainKeyboardSolver = {
+  ArrowDown: (_ev, ctx) => {
+    ctx.forceUpdate()
+  },
+  ArrowUp: (_ev, ctx) => {
+    ctx.forceUpdate()
+  },
+  ArrowLeft: (_ev, ctx) => {
+    ctx.forceUpdate()
+  },
+  ArrowRight: (_ev, ctx) => {
+    ctx.forceUpdate()
+  },
+
   Tab: (ev, ctx) => {
     if (ev.ctrlKey || ev.altKey) return
     if (!ctx.selection.isCollapsed) {
@@ -29,6 +41,7 @@ const keyupSolver: MainKeyboardSolver = {
     //     .handle(cr.caret(text, ctx.selection.anchorOffset + 1))
     // }
   },
+
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -49,6 +62,7 @@ export const getKeyupListener = (
     // import.meta.env.DEV && console.error('keyup', ev.key)
     runKeyboardSolver(ev, ctx, main, solver)
 
+    ctx.affinityPreference = void 0
     // 用于判定双击按键, range时禁用
     ctx.prevUpKey = ctx.prevUpKey === null ? undefined : ev.key
     if (doubleKeyTimer) {

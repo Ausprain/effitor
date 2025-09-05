@@ -4,7 +4,7 @@ export {
   EtBodyElement,
   EtComponent,
   EtEditorElement,
-  EtEmbedmentElement,
+  EtEmbedment,
   EtHeading,
   EtParagraph,
   EtParagraphElement,

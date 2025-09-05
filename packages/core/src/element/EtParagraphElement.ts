@@ -1,7 +1,6 @@
 import type * as mdast from 'mdast'
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { BuiltinElName, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { EtParagraph } from './EtParagraph'
@@ -29,15 +28,23 @@ export class EtParagraphElement extends EtParagraph {
   }
 
   innerStartEditingBoundary(): Et.EtCaret {
+    const firstChild = this.firstChild
+    if (firstChild) {
+      return cr.caretStartAuto(firstChild)
+    }
     return cr.caretInStart(this)
   }
 
   innerEndEditingBoundary(): Et.EtCaret {
     const last = this.lastChild
-    if (last && last.localName === 'br') {
-      return cr.caret(last, 0)
+    if (last) {
+      if (last.localName === 'br') {
+        // return cr.caret(last, 0)
+        return cr.caretOutStart(last)
+      }
+      return cr.caretEndAuto(last)
     }
-    return cr.caretInEnd(this)
+    return cr.caretInEndNow(this)
   }
 
   focusinCallback(_ctx: Et.EditorContext): void {

@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { etcode } from '../element/etcode'
 import { cr } from '../selection/cr'
 import { dom } from '../utils/dom'

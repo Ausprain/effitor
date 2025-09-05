@@ -2,8 +2,7 @@ import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 import { visit } from 'unist-util-visit'
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
 import type {
   MdastHandlersMap,

@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { EtTypeEnum } from '../enums'
 import { EffectElement } from './EffectElement'
 
@@ -23,7 +22,7 @@ export abstract class EtParagraph extends EffectElement {
    * **该方法不可对 DOM 内容进行更改; 返回的普通段落节点必须是副本而不可与当前段落存在引用关系**
    */
   regressToPlainParagraph(ctx: Et.EditorContext): EtParagraph {
-    const p = ctx.createParagraph()
+    const p = ctx.createPlainParagraph()
     p.prepend(this.textContent)
     return p
   }

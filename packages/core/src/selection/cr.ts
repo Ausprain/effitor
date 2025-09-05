@@ -2,11 +2,9 @@
  * 使用 Caret and Range 管理编辑器命令的光标位置
  */
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { dom } from '../utils'
 import type { CaretRange } from './CaretRange'
-import { AnchorOutOffset } from './config'
 import { EtCaret } from './EtCaret'
 import { EtRange } from './EtRange'
 import { SpanRange } from './SpanRange'
@@ -16,39 +14,46 @@ import { SpanRange } from './SpanRange'
  */
 export const cr = {
   /** 定位于锚点节点外开头 */
-  BEFORE_ANCHOR: AnchorOutOffset.Before,
+  BEFORE_ANCHOR: -Infinity,
   /** 定位于锚点节点外结尾 */
-  AFTER_ANCHOR: AnchorOutOffset.After,
+  AFTER_ANCHOR: Infinity,
+  /** 定位于锚点节点内结尾 */
+  ANCHOR_IN_END: 999999999,
 
   /**
    * 使用一个 range对象创建 EtCaret, EtRange 实例
    */
   fromRange: (range: AbstractRange): CaretRange => {
+    let _cr
     if (range.collapsed) {
-      return new EtCaret(range.startContainer as Et.Node, range.startOffset)
+      _cr = new EtCaret(range.startContainer as Et.Node, range.startOffset)
     }
     else {
-      return new EtRange(range.startContainer as Et.Node,
+      _cr = new EtRange(range.startContainer as Et.Node,
         range.startOffset, range.endContainer as Et.Node, range.endOffset,
       )
     }
+    if (range instanceof Range) {
+      _cr.markValid()
+    }
+    return _cr
   },
   /**
    * 获取 Range 对应的 'StaticRange', 该 'StaticRange' 是一个对象字面量, 而非 StaticRange 的实例
    */
-  static: (range: Range) => {
-    return {
-      collapsed: range.collapsed,
-      endContainer: range.endContainer,
-      endOffset: range.endOffset,
-      startContainer: range.startContainer,
-      startOffset: range.startOffset,
-    } as Et.StaticRange
-  },
+  // static: (range: Range) => {
+  //   return {
+  //     collapsed: range.collapsed,
+  //     endContainer: range.endContainer,
+  //     endOffset: range.endOffset,
+  //     startContainer: range.startContainer,
+  //     startOffset: range.startOffset,
+  //   } as Et.StaticRange
+  // },
 
   /**
    * 创建一个指定节点内的光标位置, 此方法不检验offset 是否合法;
-   * 用于插入文本命令执行前, 定位一个尚且不存在的位置, 用于指示命令执行之后的光标位置
+   * * 可用于插入文本命令执行前, 定位一个尚且不存在的位置, 指示命令执行之后的光标位置
    */
   caret: (node: Et.Node, offset: number) => {
     return new EtCaret(node, offset)
@@ -72,10 +77,20 @@ export const cr = {
     }
     return new EtCaret(node, offset)
   },
-  /** 获取定位到节点内结尾的光标位置 */
-  caretInEnd: (node: Et.Node) => {
+  /** 获取定位到当前节点内结尾的光标位置 */
+  caretInEndNow: (node: Et.Node) => {
     return new EtCaret(node, dom.nodeLength(node))
   },
+
+  /**
+   * 获取定位到节点内结尾的光标位置;
+   * 该位置在访问 EtCaret 的 isValid 属性前, 始终指向节点内末尾\
+   * 对于不确定当前节点未来是否会在末尾插入新子节点时, 确定一个节点内末尾的位置
+   */
+  caretInEnd(node: Et.Node) {
+    return new EtCaret(node, this.ANCHOR_IN_END)
+  },
+
   /** 获取定位到节点内开头的光标位置 */
   caretInStart: (node: Et.Node) => {
     return new EtCaret(node, 0)
@@ -97,13 +112,13 @@ export const cr = {
   },
   /** 获取定位到节点外结尾的光标位置 */
   caretOutEnd: (node: Et.Node) => {
-    // fix. 如果节点在页面上, 则必须基于父节点定位, 否则
+    // fixed. 如果节点在页面上, 则必须基于父节点定位, 否则
     // 在添加命令的 execAt 参数时, 基于自身的 AnchorOutOffset 定位会在命令执行获取错误真实位置
     // 如删除段落 currP, 并在删除位置插入片段则 execAt = cr.caretOutStart(currP), 而命令执行时
     // 前面添加的删除命令将 currP 删除了, 该 execAt.isValid 将为 false, 无法获取要插入的位置
     const index = dom.connectedNodeIndex(node)
     if (index === -1) {
-      return new EtCaret(node, AnchorOutOffset.After)
+      return new EtCaret(node, Infinity)
     }
     return new EtCaret(node.parentNode as Et.Node, index + 1)
   },
@@ -115,7 +130,7 @@ export const cr = {
   caretOutStart: (node: Et.Node) => {
     const index = dom.connectedNodeIndex(node)
     if (index === -1) {
-      return new EtCaret(node, AnchorOutOffset.Before)
+      return new EtCaret(node, -Infinity)
     }
     return new EtCaret(node.parentNode as Et.Node, index)
   },
@@ -130,7 +145,7 @@ export const cr = {
       return new EtCaret(node, node.length)
     }
     if (dom.isNotEditable(node)) {
-      return new EtCaret(node, AnchorOutOffset.After)
+      return new EtCaret(node, Infinity)
     }
     return new EtCaret(node, node.childNodes.length)
   },
@@ -145,13 +160,13 @@ export const cr = {
       return new EtCaret(node, 0)
     }
     if (dom.isNotEditable(node)) {
-      return new EtCaret(node, AnchorOutOffset.Before)
+      return new EtCaret(node, -Infinity)
     }
     return new EtCaret(node, 0)
   },
 
   /**
-   * 创建一个 EtRange 对象, 范围边缘若定位到节点外, 应使用 cr.BeforeAnchor 或 cr.AfterAnchor 作为 offset 传入值 \
+   * 创建一个 EtRange 对象, 范围边缘若定位到节点外, 应使用 cr.BEFORE_ANCHOR 或 cr.AFTER_ANCHOR 作为 offset 传入值 \
    * 该方法不检验 offset 是否超出节点内容边界, 使用时需保证 offset 合法, 否则将产生意外结果
    */
   range: (startNode: Et.Node, startOffset: number, endNode: Et.Node, endOffset: number) => {
@@ -166,9 +181,9 @@ export const cr = {
   /**
    * 创建一个 EtRange 对象, 范围边缘定位到节点`外`开头和结尾
    */
-  rangeAllOut: (node: Et.Node) => {
-    return new EtRange(node, AnchorOutOffset.Before, node, AnchorOutOffset.After)
-  },
+  // rangeAllOut: (node: Et.Node) => {
+  //   return new EtRange(node, -Infinity, node, Infinity)
+  // },
 
   /**
    * 获取一个同层跨度范围, 用于 Remove_Content 命令描述要删除内容的范围;
@@ -208,12 +223,12 @@ export const cr = {
   /**
    * 获取一个跨度范围, 选择 node 本身, 若 node 不在页面上, 返回 null
    */
-  spanRangeAllOut: (node: Et.Node) => {
-    if (!node.isConnected) {
-      return null
-    }
-    return new SpanRange(node as NodeHasParent<Et.Node>, node as NodeHasParent<Et.Node>)
-  },
+  // spanRangeAllOut: (node: Et.Node) => {
+  //   if (!node.isConnected) {
+  //     return null
+  //   }
+  //   return new SpanRange(node as NodeHasParent<Et.Node>, node as NodeHasParent<Et.Node>)
+  // },
   /**
    * 获取一个跨度范围, 从 node 的`fromOffset`子节点到`toOffset`子节点 (包含两者);
    * 若对应子节点不存在, 返回 null (若 toOffset 大于等于node 子节点个数, 则会使用lastChild)
@@ -237,6 +252,4 @@ export const cr = {
     return new SpanRange(startNode as NodeHasParent<Et.Node>, endNode as NodeHasParent<Et.Node>)
   },
 
-}
-
-export type crType = typeof cr
+} as const

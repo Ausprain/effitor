@@ -58,10 +58,10 @@ const check = <T extends EffectElement, C extends number = number>(
   return !!(el[EtCode] && (el[EtCode] & code))
 }
 /**
- * 校验一个EtElement下是否允许某效应, 即其子节点是否允许为含有某效应类型的节点 \
+ * 校验一个EtElement下是否允许某节点或某效应, 即其子节点是否允许为该节点或含有某效应类型的节点 \
  * * 当且仅当 `inEtCode & code && !(notInEtCode & code)` 时返回 true
  * @param elOrInEtCode 效应元素或允许的效应码, 当该值为元素时, 将用其notInEtCode属性值作为第三个参数值
- * @param code 要校验的子节点效应码
+ * @param codeOrNode 要校验的子节点或效应码
  * @param notInEtCode 不允许的效应码, 默认为 0; 第一个参数是元素时, 此参数无效
  */
 const checkIn = (

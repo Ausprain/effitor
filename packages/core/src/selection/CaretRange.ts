@@ -2,7 +2,7 @@ import type { Et } from '../@types'
 import type { EtCaret } from './EtCaret'
 
 export abstract class CaretRange {
-  protected __valid = false
+  protected __connected = false
   /**
    * 获取对应的Range对象, 若位置不合法(节点不在 DOM 上), 返回 null
    */
@@ -26,6 +26,13 @@ export abstract class CaretRange {
    * 可标记为 valid, 以提高效率
    */
   markValid() {
-    this.__valid = true
+    this.__connected = true
+  }
+
+  /**
+   * 返回自身, 由 EtCaret 具体实现
+   */
+  toTextAffinity(this: CaretRange | EtCaret): this extends EtCaret ? EtCaret : CaretRange {
+    return this as this extends EtCaret ? EtCaret : CaretRange
   }
 }

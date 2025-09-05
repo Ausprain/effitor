@@ -1,54 +1,36 @@
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-import { dom } from '~/core/utils'
-
+import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
+import { dom } from '../../../utils'
 import { cmd } from '../../command'
 import { fragmentUtils } from '../../utils'
-import { checkTargetRangePosition } from '../shared'
+import { checkTargetRangePosition, tryToMoveNodes, tryToRemoveNodesBetween } from '../shared'
 import { expandRemoveInsert, removeNodesAndChildlessAncestorAndMergeSiblings } from './delete.shared'
 
-export const checkRemoveRangingContents = (
-  ctx: Et.EditorContext, fn: (caret: Et.ValidTargetCaret) => void,
+/**
+ * 检查并移除指定范围内容, 若collapsed, 则直接使用光标位置
+ * @param ctx 编辑器上下文
+ * @param tr 目标范围
+ * @param fn 处理函数, 接受一个参数, 即处理后的目标光标位置
+ */
+export const checkRemoveTargetRange = (
+  ctx: Et.EditorContext, tr: Et.ValidTargetSelection, fn: (caret: Et.ValidTargetCaret) => boolean,
 ) => {
-  let tr = ctx.selection.getTargetRange()
-  if (!tr) {
-    return
-  }
   if (!tr.collapsed) {
     if (removeByTargetRange(ctx, tr) && ctx.commandManager.handle()) {
-      tr = ctx.selection.getTargetRange()
+      const lastCaretRange = ctx.commandManager.lastCaretRange
+      if (!lastCaretRange) {
+        return false
+      }
+      tr = ctx.selection.createTargetRange(lastCaretRange) as Et.ValidTargetRange
       if (!tr) {
-        return
+        return false
       }
     }
     else {
-      return
+      return false
     }
   }
-  fn(tr.toTargetCaret())
-}
-
-/**
- * 移除当前选区选中内容; collapsed 时不执行, 返回 false
- * @param ctx 更新后的编辑器上下文
- * @returns 是否成功移除内容
- */
-export const removeRangingContents = (ctx: Et.EditorContext) => {
-  const targetRange = ctx.selection.getTargetRange()
-  if (!targetRange) {
-    return false
-  }
-  if (checkTargetRangePosition(
-    ctx, targetRange,
-    removeInSameTextNode,
-    removeInSameParagraph,
-    removeSpanningParagraphs,
-  )) {
-    ctx.commandManager.commit()
-    ctx.commandManager.commitNextHandle()
-    return true
-  }
-  return false
+  return fn(tr.toTargetCaret())
 }
 
 /**
@@ -86,13 +68,9 @@ export const removeInSameTextNode = (
   // targetRange 必定在 node 上
   // 删除文本片段
   if (targetRange.startOffset > 0 || targetRange.endOffset < textNode.length) {
-    ctx.commandManager.push(cmd.deleteText({
-      text: textNode,
-      data: textNode.data.slice(targetRange.startOffset, targetRange.endOffset),
-      offset: targetRange.startOffset,
-      isBackward: true,
-      setCaret: true,
-    }))
+    ctx.commandManager.push(
+      cmd.removeText(textNode, targetRange.startOffset, targetRange.endOffset),
+    )
     return true
   }
   // 删除整个#text节点, 连带删除以其为唯一子节点的祖先
@@ -156,9 +134,17 @@ export const removeSpanningParagraphs = (
   }
   // TODO 处理 startAncestor, endAncestor 可能为空的情况
   const { startAncestor, endAncestor } = targetRange
+  if (!startAncestor || !endAncestor) {
+    if (import.meta.env.DEV) {
+      throw new Error('handler.[removeSpanningParagraphs]: startAncestor or endAncestor is null')
+    }
+    return false
+  }
   if (startAncestor === startP && endAncestor === endP) {
+    // startP, endP 同层
     return removeSpanningSimpleParagraph(ctx, targetRange, startP, endP)
   }
+  // startP, endP 不同层
   return removeSpanningComplexParagraph(
     ctx, targetRange, startP, endP,
     startAncestor as Et.HTMLElement, // 跨段落选区祖先必定是元素
@@ -183,23 +169,44 @@ const removeSpanningSimpleParagraph = (
   addCmdsToRemoveStartPartiallyContained(cmds, startPartial, startP, startP)
   // 移除 endP 开头 至 endPartial 节点
   // 若 endP 无剩余节点, 且无插回内容, 移除 enP
-  addCmdsToRemoveEndPartiallyContained(
+  const isEndPRemoved = !addCmdsToRemoveEndPartiallyContained(
     cmds, endPartial, endP, endP, isEndUnselectedContentsEmpty,
   )
   // 移除中间节点
-  addCmdsToRemoveNodesBetween(cmds, startP, endP)
+  tryToRemoveNodesBetween(cmds, startP, endP)
+
+  // endP被移除, 插回前半内容即可
+  let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
+  if (isEndPRemoved) {
+    if (startUnselected.hasChildNodes()) {
+      cmds.push(cmd.insertContent({
+        content: startUnselected,
+        execAt: destCaretRange,
+      }))
+      destCaretRange = cr.caretEndAuto(startUnselected.lastChild as Et.Node)
+    }
+    cmds[cmds.length - 1].destCaretRange = destCaretRange
+    ctx.commandManager.push(...cmds)
+    return true
+  }
 
   // 考虑合并段落
   if (startP.isEqualTo(endP)) {
-    addCmdsToMergeEqualParagraph(
-      cmds, startP, endP, startPartial, endPartial, startUnselected, endUnselected,
-    )
-    ctx.commandManager.push(cmds)
+    destCaretRange = addCmdsToMergeEqualParagraph(
+      cmds, startP, endP,
+      startPartial, endPartial,
+      startUnselected, endUnselected,
+      ctx.affinityPreference,
+    ) as Et.EtCaret
+    if (!destCaretRange) {
+      return false
+    }
+    cmds[cmds.length - 1].destCaretRange = destCaretRange
+    ctx.commandManager.push(...cmds)
     return true
   }
 
   // 不合并, 插回各自内容
-  let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
   if (startUnselected) {
     cmds.push(cmd.insertContent({
       content: startUnselected,
@@ -214,7 +221,7 @@ const removeSpanningSimpleParagraph = (
     }))
   }
   cmds[cmds.length - 1].destCaretRange = destCaretRange
-  ctx.commandManager.push(cmds)
+  ctx.commandManager.push(...cmds)
   return true
 }
 const removeSpanningComplexParagraph = (
@@ -228,7 +235,7 @@ const removeSpanningComplexParagraph = (
   const [startUnselected, endUnselected] = cloneUnselectedContentsOfPartial(
     targetRange, startPartial, endPartial,
   )
-  const startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
+  const startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
   const isEndUnselectedContentsEmpty = !endUnselected.hasChildNodes()
   const cmds: Et.Command[] = []
 
@@ -242,7 +249,7 @@ const removeSpanningComplexParagraph = (
     cmds, endPartial, endP, endAncestor, isEndUnselectedContentsEmpty,
   )
   // 移除中间节点
-  addCmdsToRemoveNodesBetween(cmds, startP, endP)
+  tryToRemoveNodesBetween(cmds, startAncestor, endAncestor)
 
   // endAncestor 被移除, 插回开始内容
   // const isEndAncestorWouldBeRemoved = !endPartialOuter
@@ -251,12 +258,12 @@ const removeSpanningComplexParagraph = (
     if (startUnselected.hasChildNodes()) {
       cmds.push(cmd.insertContent({
         content: startUnselected,
-        execAt: destCaretRange,
+        execAt: startInsertAt,
       }))
       destCaretRange = cr.caretEndAuto(startUnselected.lastChild as Et.Node)
     }
     cmds[cmds.length - 1].destCaretRange = destCaretRange
-    ctx.commandManager.push(cmds)
+    ctx.commandManager.push(...cmds)
     return true
   }
   const endNext = endPartial ? endPartial.nextSibling : endP.firstChild
@@ -272,7 +279,10 @@ const removeSpanningComplexParagraph = (
   let destCaretRange
   if (needMergeParagraph) {
     destCaretRange = addCmdsToMergeEqualParagraph(
-      cmds, startP, endP, startPartial, endPartial, startUnselected, endUnselected,
+      cmds, startP, endP,
+      startPartial, endPartial,
+      startUnselected, endUnselected,
+      ctx.affinityPreference,
     )
   }
   // 不合并, 各自插回内容
@@ -302,13 +312,10 @@ const removeSpanningComplexParagraph = (
     if (needMergeParagraph && endPartialOuter === endP) {
       endPartialOuter = endP.nextSibling
     }
-    const moveRange = cr.spanRange(endPartialOuter, endAncestor.lastChild)
-    if (moveRange) {
-      cmds.push(cmd.moveNodes(moveRange, cr.caretOutEnd(startPartialOuter)))
-    }
+    tryToMoveNodes(cmds, endPartialOuter, endAncestor.lastChild, cr.caretOutEnd(startPartialOuter))
   }
   cmds[cmds.length - 1].destCaretRange = destCaretRange
-  ctx.commandManager.push(cmds)
+  ctx.commandManager.push(...cmds)
   return true
 }
 
@@ -319,23 +326,23 @@ const removeSpanningComplexParagraph = (
  * @param endPartial 结束位置所在段落下的部分选择节点
  * @returns 一个片段二元组
  */
-const cloneUnselectedContentsOfPartial = (
-  targetRange: Et.ValidTargetRange,
+export const cloneUnselectedContentsOfPartial = (
+  targetRange: Et.StaticRange,
   startPartial: Et.NodeOrNull,
   endPartial: Et.NodeOrNull,
 ): [Et.Fragment, Et.Fragment] => {
   const r = document.createRange() as Et.Range
-  let startDf = null, endDf = null
+  let startDf, endDf
   if (startPartial) {
     r.setStartBefore(startPartial)
-    r.setEnd(targetRange.startNode, targetRange.startOffset)
+    r.setEnd(targetRange.startContainer, targetRange.startOffset)
     startDf = fragmentUtils.cleanEtFragment(r.cloneContents())
   }
   else {
     startDf = document.createDocumentFragment() as Et.Fragment
   }
   if (endPartial) {
-    r.setStart(targetRange.endNode, targetRange.endOffset)
+    r.setStart(targetRange.endContainer, targetRange.endOffset)
     r.setEndAfter(endPartial)
     endDf = fragmentUtils.cleanEtFragment(r.cloneContents())
   }
@@ -353,8 +360,8 @@ const cloneUnselectedContentsOfPartial = (
  * @param startAncestor 选区开始位置在 commonAncestor下的最外层祖先
  * @returns 选区开始位置在 startAncestor 下的最外层祖先, 若 startP 就是 startAncestor, 那么返回 startP
  */
-const addCmdsToRemoveStartPartiallyContained = (
-  cmds: Et.Command[],
+export const addCmdsToRemoveStartPartiallyContained = (
+  cmds: Et.CommandQueue,
   startPartial: Et.NodeOrNull,
   startP: Et.Paragraph,
   startAncestor: Et.Node,
@@ -402,8 +409,8 @@ const addCmdsToRemoveStartPartiallyContained = (
  *  endP, 当 endP 就是 endAncestor\
  *  否则, 返回选区结束位置在 endAncestor 下的最外层祖先
  */
-const addCmdsToRemoveEndPartiallyContained = (
-  cmds: Et.Command[],
+export const addCmdsToRemoveEndPartiallyContained = (
+  cmds: Et.CommandQueue,
   endPartial: Et.NodeOrNull,
   endP: Et.Paragraph,
   endAncestor: Et.Node,
@@ -412,8 +419,9 @@ const addCmdsToRemoveEndPartiallyContained = (
   let removeRange
   let endNext = endPartial ? endPartial.nextSibling : endP.firstChild
   if (endAncestor === endP) {
-    if (!endNext) {
+    if (!endNext && isPartialUnselectedContentsEmpty) {
       cmds.push(cmd.removeNode({ node: endP }))
+      return null
     }
     else {
       removeRange = cr.spanRange(endP.firstChild, endPartial)
@@ -460,28 +468,6 @@ const addCmdsToRemoveEndPartiallyContained = (
 }
 
 /**
- * 添加一组命令, 删除俩节点之间的兄弟节点, 俩节点不同层或中间无兄弟, 则不添加命令
- * @param cmds 命令数组
- * @param startNode 起始节点(不包含)
- * @param endNode 结束节点(不包含)
- */
-const addCmdsToRemoveNodesBetween = (
-  cmds: Et.Command[],
-  startNode: Et.Node, endNode: Et.Node,
-) => {
-  if (startNode.parentNode !== endNode.parentNode) {
-    return
-  }
-  if (startNode.nextSibling === endNode) {
-    return
-  }
-  const removeRange = cr.spanRange(startNode.nextSibling, endNode.previousSibling)
-  if (removeRange) {
-    cmds.push(cmd.removeContent({ removeRange }))
-  }
-}
-
-/**
  * 合并俩相同段落, 该方法只能在判定 startP 和 endP 可合并后调用
  * @param cmds 命令数组
  * @param startP 选区范围开始段落
@@ -493,17 +479,18 @@ const addCmdsToRemoveNodesBetween = (
  * @returns 命令结束光标位置
  */
 const addCmdsToMergeEqualParagraph = (
-  cmds: Et.Command[],
+  cmds: Et.CommandQueue,
   startP: Et.Paragraph, endP: Et.Paragraph,
   startPartial: Et.NodeOrNull, endPartial: Et.NodeOrNull,
   startUnselected: Et.Fragment, endUnselected: Et.Fragment,
+  affinityPreference?: boolean,
 ) => {
   const startPrev = startPartial ? startPartial.previousSibling : startP.lastChild
   const endNext = endPartial ? endPartial.nextSibling : endP.firstChild
-  let startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
+  let startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
   let mergedContents: Et.Fragment | null = null, destCaretRange
   const out = fragmentUtils.getMergedEtFragmentAndCaret(
-    startUnselected, endUnselected, false, false, true, // 优先亲和光标到前者
+    startUnselected, endUnselected, false, false, affinityPreference ?? true, // 若为定义, 优先亲和到前者
   )
   if (out) {
     mergedContents = out[0]
@@ -543,34 +530,14 @@ const addCmdsToMergeEqualParagraph = (
   cmds.push(cmd.removeNode({ node: endP }))
   // 移动剩余节点
   if (endNext) {
-    const moveRange = cr.spanRange(endNext, endP.lastChild)
-    if (moveRange) {
-      cmds.push(cmd.moveNodes(moveRange, startInsertAt))
-    }
+    tryToMoveNodes(cmds, endNext, endP.lastChild, startInsertAt)
   }
   return destCaretRange
 }
 
 /**
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- * @param ctx
- * @param targetRange
- * @param startP
- * @param endP
- * @returns
+ * @deprecated 该方法已被 {@link removeSpanningParagraphs} 取代
  */
-
 export const removeInDifferentParagraphWithSameParent = (
   ctx: Et.EditorContext,
   targetRange: Et.ValidTargetRange,
@@ -579,6 +546,9 @@ export const removeInDifferentParagraphWithSameParent = (
   // return removeInDifferentParagraph(ctx, targetRange, startP, endP)
   return removeSpanningParagraphs(ctx, targetRange, startP, endP)
 }
+/**
+ * @deprecated 该方法已被 {@link removeSpanningParagraphs} 取代
+ */
 export const removeInDifferentParagraphWithSameTopElement = (
   ctx: Et.EditorContext,
   targetRange: Et.ValidTargetRange,
@@ -587,6 +557,9 @@ export const removeInDifferentParagraphWithSameTopElement = (
   // return removeInDifferentParagraph(ctx, targetRange, startP, endP)
   return removeSpanningParagraphs(ctx, targetRange, startP, endP)
 }
+/**
+ * @deprecated 该方法已被 {@link removeSpanningParagraphs} 取代
+ */
 export const removeInDifferentTopElement = (
   ctx: Et.EditorContext,
   targetRange: Et.ValidTargetRange,

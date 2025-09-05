@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 // import { HtmlCharEnum } from '../enums'
 // import { handlerUtils } from '../handler'
 import { runInputSolver } from './beforeinput'
@@ -8,7 +7,7 @@ import { runInputSolver } from './beforeinput'
  * 删除内容后（更新上下文前），若当前效应元素内容为零宽字符，则一起删除，并合并前后可合并节点
  */
 // const checkRemoveZWSNodeAfterDeleteContent = (ev: Et.InputEvent, ctx: Et.UpdatedContext) => {
-//   // fix. 命令handler中已经更新了ctx.range和ctx.node, 应直接从ctx.node向上找EtElement，
+//   // fixed. 命令handler中已经更新了ctx.range和ctx.node, 应直接从ctx.node向上找EtElement，
 //   // 因为ctrl删除时ctx.effectElement可能是段落
 //   // 若剩下零宽字符，则ctx.node必定存在
 //   if (!ctx.node) return false

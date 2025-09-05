@@ -76,6 +76,15 @@ export interface EditorConfig {
   WITH_EDITOR_DEFAULT_LOGGER: boolean
   /** 是否在按下空格时自动将前面一个全角标点字符替换为半角字符; 默认 true */
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: boolean
+  /** 插入(硬)换行时是否使用 br, 否则使用`\n`, 默认 false */
+  INSERT_BR_FOR_LINE_BREAK: boolean
+  /**
+   * // TODO 使用插件方式实现
+   * 是否动态设置contenteditable; 默认 false; (该配置仅 Chromium 有效)\
+   * 仅 Chromium 平台在 100w 字符量级下需要开启, 用于优化输入法输入性能和体验\
+   * Firefox 和 Safari 平台下不需要开启, 这俩平台输入法与普通输入拥有同等性能表现
+   */
+  // DYNAMIC_CONTENTEDITABLE: boolean
 }
 
 type IndexSchema = Readonly<Record<string, EffectElementCtor>>

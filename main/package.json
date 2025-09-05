@@ -1,0 +1,51 @@
+{
+  "name": "effitor",
+  "version": "0.3.5-alpha",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "effitor",
+    "web editor",
+    "markdown"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles/*": {
+      "default": "./dist/styles/*"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git"
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Ausprain/effitor/issues"
+  },
+  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "scripts": {
+    "build:main": "tsup",
+    "test": "vitest --project unit --project intg",
+    "test-unit": "vitest unit",
+    "test-e2e:chrome": "vitest e2e --browser chromium"
+  },
+  "devDependencies": {
+    "fs-extra": "^11.3.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@effitor/core": "workspace:*"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

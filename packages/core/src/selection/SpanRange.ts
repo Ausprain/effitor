@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { dom } from '../utils'
 import { EtCaret } from './EtCaret'
 

@@ -1,4 +1,4 @@
-import { Et } from '../@types'
+import type { Et } from '../@types'
 
 export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement> {
   /**

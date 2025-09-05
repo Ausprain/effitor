@@ -1,9 +1,9 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-import { SpanRange } from '~/core/selection/SpanRange'
+import type { Et } from '../../@types'
+import { cr } from '../../selection'
+import { SpanRange } from '../../selection/SpanRange'
 
 // TODO: 此 const enum 仅作本模块内静态替换; 下面的 CmdType 常量对外导出;
 // 构建生产打包时, 通过 swc 插件对所有 CmdType.XXX 的显式调用进行"静态"替换
@@ -352,7 +352,7 @@ const execReplaceText = function (this: CmdReplaceText) {
 const execInsertNode = function (this: CmdInsertNode | CmdRemoveNode) {
   const execAt = (this as CmdInsertNode).execAt.toCaret()
   // 插入点不是节点边缘, 禁止插入
-  if (execAt.isSurroundText || !execAt.isValid) {
+  if (execAt.isSurroundText || !execAt.isConnected) {
     return false
   }
   // 此处插入节点不使用 execAt.toRange()?.insertNode 方式插入
@@ -431,7 +431,7 @@ const execFunctional = function (this: CmdFunctional, ctx: Et.EditorContext) {
 }
 const undoFunctional = function (this: CmdFunctional, ctx: Et.EditorContext) {
   this.undoCallback?.(ctx)
-  return false
+  return true
 }
 
 const cmdExecMap = {
@@ -719,6 +719,37 @@ const cmd = (() => {
   _cmd.FUNC = CmdTypeEm.Functional
 
   /**
+   * 创建一个空命令\
+   * 这在那些无命令执行却需要拥有撤回恢复光标位置能力的场景会用到
+   * @returns 一个由空执行回调和空撤销回调组成的 Functional 命令
+   */
+  _cmd.null = function () {
+    return this.functional({
+      execCallback() { /** 空命令 */ },
+      undoCallback() { /** 空命令 */ },
+    })
+  }
+
+  /**
+   * 这是对 Delete_Text 命令的封装, 旨在简化使用 range 删除时的命令配置
+   * @param textNode 文本节点
+   * @param start 开始位置(包含)
+   * @param end 结束位置(不包含)
+   * @param isBackward 是否为 Backspace 删除, 否则为 Delete 删除; 这决定多个删除文本命令合并时的文本合并方向
+   * @param setCaret 是否设置光标
+   * @returns 一个 Delete_Text 命令
+   */
+  _cmd.removeText = function (textNode: Et.Text, start: number, end: number, isBackward = true, setCaret = true) {
+    return cmd.deleteText({
+      text: textNode,
+      data: textNode.data.slice(start, end),
+      offset: start,
+      isBackward,
+      setCaret,
+    })
+  }
+
+  /**
    * 创建一个批量移动节点命令, 该命令是一个 Functional 命令
    * @param moveRange 被移动的节点范围
    * @param moveTo 被移动到的位置
@@ -762,19 +793,31 @@ const cmdHandler = {
    * 执行一组命令, 调用前必须判断 cmds长度 > 0
    * * 此方法会给第一个命令赋值srcCaretRange, 记录此刻光标位置
    */
-  handle(cmds: readonly Command[], ctx: Et.EditorContext, destCaretRange?: Et.CaretRange) {
+  handle(cmds: readonly Command[], recordCmds: ExecutedCmd[], ctx: Et.EditorContext, destCaretRange?: Et.CaretRange) {
     // 记录初始光标位置
     const srcCaretRange = ctx.selection.getCaretRange()
     let lastCaretRange: Et.CaretRange | null = null
 
-    const recordCmds = []
+    // const recordCmds = []
     for (const cmd of cmds) {
-      if ((cmd as CmdWithExec).exec(ctx)) {
-        // 命令执行返回true 记录, 否则丢弃
-        recordCmds.push(cmd)
-        if (cmd.destCaretRange) {
-          lastCaretRange = cmd.destCaretRange
+      try {
+        if ((cmd as CmdWithExec).exec(ctx)) {
+          // 命令执行返回true 记录, 否则丢弃
+          recordCmds.push(cmd)
+          if (cmd.destCaretRange !== void 0) {
+            // null 也要记录, 因为 null 代表强制不设置结束光标位置, 而不是缺省的意思
+            lastCaretRange = cmd.destCaretRange
+          }
         }
+      }
+      catch (_) {
+        // 其中一个命令失败, 终止所有命令, 并撤回已执行命令
+        for (let i = recordCmds.length - 1; i >= 0; i--) {
+          (recordCmds[i] as CmdWithExec).undo(ctx)
+        }
+        recordCmds.length = 0
+        ctx.assists.logger?.error(`cmdHandler.handle error, cmdType: ${cmd.type}`, 'cmdHandler')
+        return null
       }
     }
     // 首个命令未设置初始光标位置
@@ -789,10 +832,7 @@ const cmdHandler = {
     else {
       recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange
     }
-    if (lastCaretRange) {
-      ctx.setSelection(lastCaretRange.isCaret() ? lastCaretRange.toTextAffinity() : lastCaretRange)
-    }
-    return recordCmds as readonly ExecutedCmd[]
+    return lastCaretRange
   },
   /**
    * 撤回一个撤回栈事务内的所有命令

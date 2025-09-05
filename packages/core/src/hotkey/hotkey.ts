@@ -1,3 +1,5 @@
-export type { HotkeyAction as Action, ActionGroupMap } from './config'
+export type { HotkeyAction as Action, ActionGroupMap_ as ActionGroupMap } from './config'
 export { HotkeyManager as Manager, type HotkeyManagerOptions as ManagerOptions } from './HotkeyManager'
+export { Key } from './Key'
+export { CtrlCmd, LineModifier, Mod, WordModifier } from './Mod'
 export { create, createAction, modKey, withMod } from './util'

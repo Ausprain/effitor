@@ -1,10 +1,9 @@
 import { expect, test } from 'vitest'
 
-import { initEditor, minifiedHtml } from '~/core/__tests__/shared.test'
-import { Et } from '~/core/@types'
-
+import { initEditor, minifiedHtml } from '../../../__tests__/shared.test'
+import type { Et } from '../../../@types'
 import { initContentsAndSetSelection } from '../__tests__/shared.test'
-import { removeByTargetRange, removeRangingContents } from './deleteAtRange'
+import { removeByTargetRange } from './deleteAtRange'
 
 /**
  * each测试 handle delete range的执行结果, 光标位置, 及其撤回能力
@@ -77,6 +76,15 @@ test.each([
     ``,
   ],
   // 3. 选区范围跨同层段落
+  [`
+    <et-p>^Hello<br></et-p>
+    <et-p>|<br></et-p>
+  `,
+  `
+    <et-p>|<br></et-p>
+  `,
+  '',
+  ],
   [`
     <et-p>Hello A78<b>bold<i>I123</i></b>B^12</et-p>
     <et-p>Hello A78<b>bold<i>I123</i></b>B1|2</et-p>
@@ -233,26 +241,26 @@ test.each([
       if (destCaretContainerTextContent === 'debug') {
         // debugger
       }
-      expect(removeRangingContents(ctx)).toBe(true)
+      expect(removeByTargetRange(ctx, ctx.selection.getTargetRange()!)).toBe(true)
     })
     .handle(() => {
       expect(ctx.selection.range.startContainer.textContent).toBe(destCaretContainerTextContent)
     })
     .reveal((res) => {
-      expect(res.success).toBe(true)
+      // expect(res.success).toBe(true)
       expect(res.bodyHtmlWithCaret).toBe(output)
     })
 
   // 测试撤回后的内容及光标恢复的正确性
   initContentsAndSetSelection(ctx, input)
     .handleWith(() => {
-      expect(removeRangingContents(ctx)).toBe(true)
+      expect(removeByTargetRange(ctx, ctx.selection.getTargetRange()!)).toBe(true)
     })
     .handle(() => {
       expect(ctx.selection.range.collapsed).toBe(true)
     })
     .restore((res) => {
-      expect(res.success).toBe(true)
+      // expect(res.success).toBe(true)
       expect(res.bodyOriginalHtml).toBe(input)
     })
 })

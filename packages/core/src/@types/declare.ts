@@ -4,6 +4,7 @@ import type { EtEditorElement, EtParagraph } from '../element'
 import { EtCodeTarget } from '../element/config'
 import type { EffectElement, EffectElementCtor } from '../element/EffectElement'
 import { MIMETypeEnum } from '../enums'
+import { InputTypeEnum, KeyboardCodeEnum, KeyboardKeyEnum } from './enums'
 /* -------------------------------------------------------------------------- */
 /*                                 编辑器内容                                  */
 /* -------------------------------------------------------------------------- */

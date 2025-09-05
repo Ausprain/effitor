@@ -211,8 +211,24 @@ export class HotkeyManager {
   /**
    * 获取 KeyboardEvent.key 对应的 IME 字符
    */
-  keyboardWritableKeyToImeChar(key: string): string | undefined {
+  getImeChar(key: string): string | undefined {
     return this._imeCharMap[key]
+  }
+
+  /**
+   * 获取一个 ime 字符对应的 KeyboardEvent.key 可写字符; 如 `。 -> .`
+   * @param imeChar ime字符
+   * @returns 一个长度为 1 的字符串, 或 undefined
+   */
+  getWritableKey(imeChar: string): string | undefined {
+    return this._imeCharToWritableKey[imeChar]
+  }
+
+  /**
+   * 获取 IME 字符映射表, 在需要自定义 ime 字符映射时需要
+   */
+  getImeCharsMap() {
+    return { ...this._imeCharMap }
   }
 
   /**
@@ -226,19 +242,6 @@ export class HotkeyManager {
         this._imeCharToWritableKey[this._imeCharMap[key] = char.slice(0, 2)] = key
       }
     }
-  }
-
-  /**
-   * 获取一个 ime 字符对应的 KeyboardEvent.key 可写字符; 如 `。 -> .`
-   * @param imeChar ime字符
-   * @returns 一个长度为 1 的字符串, 或 undefined
-   */
-  getWritableKey(imeChar: string): string | undefined {
-    return this._imeCharToWritableKey[imeChar]
-  }
-
-  getImeCharsMap() {
-    return { ...this._imeCharMap }
   }
 
   /**

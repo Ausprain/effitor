@@ -1,22 +1,33 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { BuiltinConfig } from '../enums'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
   'default': (ev, ctx) => {
+    const targetRange = ctx.selection.getTargetRange()
+    if (!targetRange) {
+      return false
+    }
     if (ctx.effectInvoker.invoke(
       ctx.commonEtElement,
       BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect,
       ctx,
-      ev,
+      {
+        data: ev.data,
+        dataTransfer: ev.dataTransfer,
+        targetRange,
+      },
     )) {
       ev.preventDefault()
     }
-    ctx.commandManager.handle()
+    ctx.commandManager.handleAndUpdate()
   },
   /** 未声明或不合法的inputType, 执行此回调 */
   '': (ev, ctx) => {
     if (ev.data) {
+      const targetRange = ctx.selection.getTargetRange()
+      if (!targetRange) {
+        return false
+      }
       // 将 InputEvent 不接受的 inputType写入 data 中来读取
       const effect = ev.data[0].toUpperCase() === ev.data[0]
         ? ev.data
@@ -26,9 +37,13 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
         ctx.commonEtElement,
         effect as Et.InputTypeEffect,
         ctx,
-        ev,
+        {
+          data: ev.data,
+          dataTransfer: ev.dataTransfer,
+          targetRange,
+        },
       )
-      if (ctx.commandManager.handle()) {
+      if (ctx.commandManager.handleAndUpdate()) {
         ev.preventDefault()
       }
       return
@@ -75,18 +90,20 @@ export const getBeforeinputListener = (
   return (ev: Et.InputEvent) => {
     // console.log('beforeinput', ev.inputType, ev.data)
     // 输入法会话内 跳过delete 处理, 因为其不可 preventDefault
-    if (
-      ctx.inCompositionSession && [
+    if (ctx.inCompositionSession) {
+      if ([
         'deleteContentBackward', // Windows
         'deleteWordBackward', // MacOS
         'deleteContentForward',
         'deleteWordForward',
-      ].includes(ev.inputType)
-    ) {
-      return false
+      ].includes(ev.inputType)) {
+        return
+      }
+      // 输入法相关 inputType 不走插件, 直接进入 MainSolver
+      runInputSolver(ev, ctx, main, void 0)
+      return
     }
 
-    // TODO 输入法相关 inputType 不应走插件, 而应直接进入 MainSolver
     runInputSolver(ev, ctx, main, solver)
 
     if (!ev.defaultPrevented) {
@@ -99,9 +116,10 @@ export const getBeforeinputListener = (
       // 阻止所有beforeinput默认行为
       // FIXME 拖拽插入(deleteByDrag) 若不在 drag/drop 事件中阻止默认行为, 此处阻止无效
       ev.preventDefault()
+      return
     }
     // MacOS 下 Safari 有 deleteCompositionText 也无法 preventDefault
-    else if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
+    if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
       // 默认事件被取消, 手动dispatch input事件
       ctx.dispatchInputEvent('input', {
         inputType: ev.inputType,

@@ -1,8 +1,7 @@
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-
+import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
 import { cmd } from '../../command'
-import { createEffectHandle, fragmentUtils } from '../../utils'
+import { createEffectHandle } from '../../utils'
 
 export const initEditorContents = createEffectHandle('InitEditorContents', (
   _this, ctx, payload,
@@ -12,7 +11,7 @@ export const initEditorContents = createEffectHandle('InitEditorContents', (
   const { create, isFirstInit } = payload
   const out = create
     ? create()
-    : ctx.editor.callbacks.firstInsertedParagraph?.() ?? ctx.createParagraph()
+    : ctx.editor.callbacks.firstInsertedParagraph?.() ?? ctx.createPlainParagraph()
   if (Array.isArray(out)) {
     newP = out[0]
     dest = out[1]
@@ -30,15 +29,15 @@ export const initEditorContents = createEffectHandle('InitEditorContents', (
   }
 
   if (bodyEl.hasChildNodes()) {
-    ctx.commandManager.push('Remove_Content', {
+    ctx.commandManager.push(cmd.removeContent({
       removeRange: cr.spanRangeAllIn(bodyEl) as Et.SpanRange,
-    })
+    }))
   }
 
-  ctx.commandManager.push('Insert_Node', {
+  ctx.commandManager.push(cmd.insertNode({
     node: newP,
     execAt: cr.caretInStart(bodyEl),
-  }).handle(dest)
+  })).handleAndUpdate(dest)
 
   return true
 })
@@ -82,9 +81,6 @@ export const updateEditorContentsFromMarkdown = createEffectHandle('UpdateEditor
 })
 
 export const transformInsertContents = createEffectHandle('TransformInsertContents', (_this, _ctx, payload) => {
-  const { fragment, insertToEtElement } = payload
-  // 依据效应码过滤
-  fragmentUtils.normalizeAndCleanEtFragment(
-    fragment, insertToEtElement, true,
-  )
+  // 原样返回
+  return payload.fragment
 })

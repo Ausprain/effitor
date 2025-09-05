@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../../../@types'
 import { cmd } from '../../command'
 import {
   removeNodesAndChildlessAncestorAndMergeSiblings,
@@ -45,7 +44,7 @@ export const checkBackspaceAtCaretDeleteText = (
 export const checkBackspaceAtCaretDeleteParagraph = (
   _this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
 ) => {
-  if (!targetCaret.isCaretAtParagraphStart) {
+  if (!targetCaret.isCaretAtParagraphStart()) {
     return false
   }
   // 首段落开头, 不用删除
@@ -150,7 +149,7 @@ export const checkDeleteAtCaretDeleteText = (
 export const checkDeleteAtCaretDeleteParagraph = (
   _this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
 ) => {
-  if (!targetCaret.isCaretAtParagraphEnd) {
+  if (!targetCaret.isCaretAtParagraphEnd()) {
     return false
   }
   const res = _this.DeleteAtParagraphEnd?.(_this, ctx, targetCaret)

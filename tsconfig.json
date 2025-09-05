@@ -1,16 +1,19 @@
 {
-  "include": ["./packages", "./env.d.ts"],
+  "files": ["./env.d.ts"],
+  "include": ["./packages", "./main"],
+  "exclude": ["**/dist/**/*"],
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "rootDir": ".",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "lib": ["esnext", "DOM", "dom.iterable"],
+    "skipLibCheck": true,
     "paths": {
-      "@effitor/*": ["./packages/*/src/index.ts"],
-      "~/core/*": ["./packages/core/src/*"]
+      "@effitor/*": ["./packages/*/src/index.ts"]
     }
   }
 }

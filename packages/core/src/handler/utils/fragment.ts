@@ -1,7 +1,7 @@
-import type { Et } from '~/core/@types'
-import { etcode } from '~/core/element'
-import { cr } from '~/core/selection'
-import { dom, traversal } from '~/core/utils'
+import type { Et } from '../../@types'
+import { etcode } from '../../element'
+import { cr } from '../../selection'
+import { dom, traversal } from '../../utils'
 
 /* -------------------------------------------------------------------------- */
 /*                               clean fragment                               */
@@ -143,11 +143,12 @@ export const normalizeToEtFragment = (df: DocumentFragment, ctx: Et.EditorContex
     for (const node of df.childNodes) {
       if (!ctx.isEtParagraph(node)) {
         if (!node.textContent) {
+          // 删除空节点
           // 迭代器内不可删除节点, 延迟删除
           nodeToRemove.push(node)
         }
         else {
-          const newP = ctx.createParagraph(false)
+          const newP = ctx.createPlainParagraph(false)
           newP.textContent = node.textContent
           node.replaceWith(newP)
         }
@@ -187,11 +188,15 @@ export const cleanEtFragment = (df: Et.Fragment) => {
   return df
 }
 
-const filterToClean = (node: Et.Node, recordArray: ChildNode[]) => {
+const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
+  if (!dom.isElementOrText(node)) {
+    removeArray.push(node)
+    return 2 /** NodeFilter.FILTER_REJECT */
+  }
   if (node.localName === 'br') {
     // 若某节点下只有一个br, 则移除
     if (!node.previousSibling && !node.nextSibling) {
-      recordArray.push(traversal.outermostAncestorWithSelfAsOnlyChild(node))
+      removeArray.push(traversal.outermostAncestorWithSelfAsOnlyChild(node))
     }
     return 2 /** NodeFilter.FILTER_REJECT */
   }
@@ -205,7 +210,7 @@ const filterToClean = (node: Et.Node, recordArray: ChildNode[]) => {
   if (node.nodeType === 1) {
     if (!node.textContent) {
       // 不可边遍历边移除, node从父节点移除后其nextSibling为 null, 会终止遍历
-      recordArray.push(node)
+      removeArray.push(node)
       // 节点被移除, 不应再遍历其后代
       return 2 /** NodeFilter.FILTER_REJECT */
     }
@@ -227,7 +232,7 @@ const filterToClean = (node: Et.Node, recordArray: ChildNode[]) => {
 export const checkEtFragmentHasParagraphAndNormalize = (
   df: Et.Fragment, ctx: Et.EditorContext, clean: boolean,
 ) => {
-  let hasParagraph = false, allPlainParagraph = true
+  let hasParagraph = false, allPlainParagraph
   traversal.traverseNode(df, (el) => {
     if (ctx.isEtParagraph(el)) {
       hasParagraph = true
@@ -238,6 +243,7 @@ export const checkEtFragmentHasParagraphAndNormalize = (
     whatToShow: 1, /** NodeFilter.SHOW_ELEMENT */
   })
   if (hasParagraph) {
+    allPlainParagraph = true
     let needToNorm = false
     for (const node of df.childNodes) {
       if (!ctx.isPlainParagraph(node)) {
@@ -340,7 +346,7 @@ export const getMergedEtFragmentAndCaret = (
   clone = false,
   clean = true,
   affinityToFormer?: boolean,
-): [Et.Fragment, Et.CaretRange] | null => {
+): [Et.Fragment, Et.EtCaret] | null => {
   if (clone) {
     f1 = f1.cloneNode(true) as Et.Fragment
     f2 = f2.cloneNode(true) as Et.Fragment
@@ -487,10 +493,10 @@ export const mergeHtmlNode = (
       return cr.caret(former, (former as Text).length)
     }
     else if (latterType === 3) {
-      if (affinityToFormer === true) {
+      if (affinityToFormer) {
         // 需要优先亲和到前者末尾
         const formerLast = traversal.innermostEditableLastChild(former)
-        return cr.caretInEnd(formerLast)
+        return cr.caretInEndNow(formerLast)
       }
       return cr.caretInStart(latter)
     }
@@ -503,7 +509,7 @@ export const mergeHtmlNode = (
     if (innermost.nodeType === 3) {
       return cr.caret(innermost, (innermost as Text).length)
     }
-    return cr.caretInEnd(former)
+    return cr.caretInEndNow(former)
   }
   else if (latter) {
     const innermost = traversal.innermostEditableFirstChild(latter)
@@ -554,7 +560,7 @@ export const mergeHtmlElement = (
     former.append(...latter.childNodes)
   }
   else {
-    out = cr.caretInEnd(former)
+    out = cr.caretInEndNow(former)
   }
   // 移除后者
   latter.remove()
@@ -588,7 +594,7 @@ const innermostMiddlePosition = (former: Et.HTMLNodeOrNull, latter: Et.HTMLNodeO
 
   if (toFormer) {
     if (inner.nodeType === 3) {
-      caretRange = cr.caretInEnd(inner as Et.Text)
+      caretRange = cr.caretInEndNow(inner as Et.Text)
     }
     else {
       caretRange = cr.caretOutEnd(inner as Et.HTMLElement)

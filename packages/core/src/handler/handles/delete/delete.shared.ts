@@ -7,176 +7,12 @@
  * ref.
  * [EditorCommand::GetTargetRanges](github/chromium/third_party/blink/renderer/core/editing/commands/editor_command.cc:2224)
  */
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-import { dom, traversal } from '~/core/utils'
-
+import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
+import { dom, traversal } from '../../../utils'
 import { cmd } from '../../command'
 import { fragmentUtils } from '../../utils'
 import { cloneRangeUnselectedContents } from '../shared'
-
-/**
- * 判断俩段落是否相同, 相同则 添加智能删除命令并返回 true, 否则返回 false,
- * 用于段落开头 Backspace 或末尾 Delete;\
- * 智能删除: 智能处理边缘合并, 以及合并后的光标位置\
- * @param mergeTo 保留的段落
- * @param toRemoved 要移除的段落
- */
-export const checkEqualParagraphSmartRemoveAndMerge = (
-  ctx: Et.EditorContext,
-  mergeTo: Et.Paragraph,
-  toRemoved: Et.Paragraph,
-): boolean => {
-  if (!mergeTo.isEqualTo(toRemoved)) {
-    return false
-  }
-
-  // 后为空, 删除后, 光标置于前末尾
-  if (!toRemoved.hasChildNodes()) {
-    ctx.commandManager.push(cmd.removeNode({
-      node: toRemoved,
-      destCaretRange: cr.caretInEnd(mergeTo),
-    }))
-    return true
-  }
-  // 前为空, 删除后, 将后内容移动到前末尾, 光标置于前末尾
-  if (!mergeTo.hasChildNodes()) {
-    const postLast = toRemoved.lastChild
-    const destCaretRange = postLast
-      ? cr.caretInEnd(postLast)
-      : undefined
-    ctx.commandManager.push(cmd.removeNode({
-      node: toRemoved,
-    }))
-    moveParagraphChilNodesToOtherTail(ctx, mergeTo, toRemoved, destCaretRange)
-    return true
-  }
-
-  // 俩段落均有至少一个子节点
-  // 1. 移除 mergeTo段落 的末尾节点 和 toRemoved段落 的开头节点
-  // 2. 克隆上述俩节点并合并插入到 mergeTo段落 末尾
-  // 3. 提取 toRemoved段落 的剩余内容 (不克隆, 直接转移到 mergeTo段落 末尾)
-  // 4. 移除 toRemoved段落
-  // 5. 光标置于合并内容中间位置
-
-  const prevLast = mergeTo.lastChild as Et.Node
-  const nextFirst = toRemoved.firstChild as Et.Node
-
-  const out = fragmentUtils.cloneAndMergeNodesToEtFragmentAndCaret(prevLast, nextFirst, false)
-  // TODO 什么情况下会返回 null? 即什么情况会让 prevLast 和 nextFirst 合并结果为空?
-  // 若为空, 则删除这俩节点之后, 还需要考虑 prevLast.prev, nextFirst.next是否可合并的问题
-  if (!out) {
-    return false
-  }
-  const [mergedNode, destCaretRange] = out
-  const mergeInsertAt = cr.caretOutStart(prevLast)
-
-  ctx.commandManager.push([
-    cmd.removeNode({ node: prevLast }),
-    cmd.removeNode({ node: nextFirst }),
-    cmd.insertContent({
-      content: mergedNode,
-      execAt: mergeInsertAt,
-    }),
-  ])
-  moveParagraphChilNodesToOtherTail(ctx, mergeTo, toRemoved)
-  ctx.commandManager.push(cmd.removeNode({ node: toRemoved, destCaretRange }))
-  return true
-}
-const moveParagraphChilNodesToOtherTail = (
-  ctx: Et.EditorContext,
-  mergeTo: Et.Paragraph,
-  toRemoved: Et.Paragraph,
-  destCaretRange?: Et.CaretRange,
-) => {
-  ctx.commandManager.push(cmd.functional({
-    meta: {
-      from: toRemoved,
-      to: mergeTo,
-      startChild: null as Et.NodeOrNull,
-    },
-    execCallback() {
-      const { from, to } = this.meta
-      let next = from.firstChild
-      this.meta.startChild = next
-      while (next) {
-        to.appendChild(next)
-        next = from.firstChild
-      }
-    },
-    undoCallback() {
-      const { from, startChild } = this.meta
-      if (!startChild) {
-        return
-      }
-      let next = startChild.nextSibling
-      while (next) {
-        from.appendChild(next)
-        next = startChild.nextSibling
-      }
-      from.prepend(startChild)
-    },
-    destCaretRange,
-  }))
-}
-/**
- * 移除一个段落, 并克隆段落内容(根据效应元素类型自动过滤)插入另一段落末尾;
- * 用于 toRemoved段落开头 Backspace 或mergeTo段落末尾 Delete;
- * * mergeTo 和 toRemoved 由调用者判断, 是不同的段落, 且 mergeTo 是 toRemoved 的前兄弟, 才会调用此方法
- * @param mergeTo 克隆内容插入到的段落
- * @param toRemoved 要移除的段落
- */
-export const removeParagraphAndMergeCloneContentsToOther = (
-  ctx: Et.EditorContext,
-  mergeTo: Et.Paragraph,
-  toRemoved: Et.Paragraph,
-): boolean => {
-  const r = document.createRange() as Et.Range
-  r.selectNodeContents(toRemoved)
-  const cloneDf = r.cloneContents()
-  fragmentUtils.normalizeAndCleanEtFragment(cloneDf, mergeTo, true)
-
-  const prevLast = mergeTo.lastChild
-  const nextFirst = cloneDf.firstChild
-
-  if (!nextFirst) {
-    ctx.commandManager.push(cmd.removeNode({
-      node: toRemoved,
-    }))
-    ctx.setCaretToAParagraph(mergeTo, false)
-    return true
-  }
-
-  if (!prevLast) {
-    ctx.commandManager.push(cmd.removeNode({ node: toRemoved }))
-    ctx.commandManager.push(cmd.insertContent({
-      content: cloneDf,
-      execAt: cr.caretOutEnd(mergeTo),
-    }))
-    return true
-  }
-
-  // 前后都不为空, 要考虑是否合并的问题
-  if (dom.isEqualNode(prevLast, nextFirst)) {
-    const prevDf = document.createDocumentFragment() as Et.Fragment
-    prevDf.appendChild(prevLast.cloneNode(true))
-    const out = fragmentUtils.getMergedEtFragmentAndCaret(prevDf, cloneDf)
-    if (!out) {
-      return false
-    }
-    ctx.commandManager.push([
-      cmd.removeNode({
-        node: prevLast,
-      }),
-      cmd.insertContent({
-        content: out[0],
-        execAt: cr.caretOutStart(prevLast),
-        destCaretRange: out[1],
-      }),
-    ])
-  }
-  return true
-}
 
 /**
  * 移除一个节点或多个同层节点, 并自动连带删除移除后没有子节点的祖先(包含自身, 若未提供ancestorUnder, 则不包括段落),
@@ -223,7 +59,7 @@ export const removeNodesAndChildlessAncestorAndMergeSiblings = (
  * @param startNode 开始节点, 包含在移除范围中
  * @param endNode 结束节点, 包含在移除范围中
  */
-export const removeNodesAndMergeSiblingsIfCan = (
+const removeNodesAndMergeSiblingsIfCan = (
   ctx: Et.EditorContext,
   startNode: Et.Node,
   endNode = startNode,
@@ -272,27 +108,30 @@ export const removeNodesAndMergeSiblingsIfCan = (
     )
     return true
   }
-  ctx.commandManager.push([
+  ctx.commandManager.push(
     cmd.removeContent({ removeRange }),
     cmd.insertContent({
       content: out[0],
       execAt: removeRange.removeAt(),
       destCaretRange: out[1],
     }),
-  ])
+  )
   return true
 }
 
 /**
  * 扩大删除, 并根据选区范围, 克隆插回未选择的内容; 可选插入额外内容以及判定插回位置前后节点与
  * 插回片段是否需要合并;
+ * * 此方法不判断插入内容在插入位置的合法性
  * * 跨段落使用该方法时, 不可启用合并, 否则可能会导致前后段落被合并, 而未被 range 选择的段落本不该合并
  * @param staticRange 目标选区
  * @param startExpandNode 扩大删除的起始节点
  * @param endExpandNode 扩大删除的结束节点
  * @param extraContents 额外内容, 若提供, 则会在删除范围前插入
  * @param includeExpandNode 克隆是否包含扩大节点
- * @param checkNeedMerge 是否需要检查合并
+ * @param checkNeedMerge 是否需要检查合并插入片段与前后兄弟节点;
+ *    这在 includeExpandNode 为 false, 时是有必要的; 因为扩大节点会被删除, 而如果
+ *    插入内容不含扩大节点边缘, 则扩大节点前后兄弟与插入内容边缘节点可能存在可合并的情况.
  * @returns 是否成功添加命令, 若 起始/结束 扩大节点不是同层节点, 或不在页面上, 返回 false
  */
 export const expandRemoveInsert = (
@@ -371,16 +210,17 @@ export const expandRemoveInsert = (
     df1 = fragmentUtils.mergeEtFragments(df1, extraContents)
   }
 
+  // 合并内容, 结束光标位置优先亲和到前者末尾
   const out = checkNeedMerge
-    ? fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, true) // 需要合并时添加一个清理, 避免出现空节点
-    : fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, false) // 上面已经 clean, 这里不用再clean
+    ? fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, true, ctx.affinityPreference) // 需要合并时添加一个清理, 避免出现空节点
+    : fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, false, ctx.affinityPreference) // 上面已经 clean, 这里不用再clean
 
   // 插入内容为空, 仅删除, 同时判断是否连带删除空祖先
   if (!out) {
     return removeNodesAndChildlessAncestorAndMergeSiblings(ctx, startExpandNode, endExpandNode)
   }
 
-  ctx.commandManager.push([
+  ctx.commandManager.push(
     startExpandNode === endExpandNode
       ? cmd.removeNode({ node: startExpandNode })
       : cmd.removeContent({ removeRange }),
@@ -389,6 +229,6 @@ export const expandRemoveInsert = (
       execAt: removeRange.removeAt(),
       destCaretRange: out[1],
     }),
-  ])
+  )
   return true
 }

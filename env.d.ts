@@ -4,7 +4,7 @@ interface ImportMeta {
 
 interface ImportMetaEnv {
   DEV: boolean
-  VITE_CONTEXT_DEV: boolean
+  VITE_CONTEXT_DEV?: boolean
 }
 
 // css 模块

@@ -1,16 +1,34 @@
-import type { Et } from '~/core/@types'
-
-import { cmd, cmdHandler, CmdType, type Command } from './cmds'
+import type { Et } from '../../@types'
+import { cmd, cmdHandler, CmdType, type Command, ExecutedCmd } from './cmds'
 import { UndoStack } from './UndoStack'
+
+export interface CommandQueue {
+  push: (...args: Command[]) => void
+}
 
 /**
  * 命令管理器
  */
-export class CommandManager {
+export class CommandManager implements CommandQueue {
   private readonly _cmds: Command[] = []
   private _inTransaction = false
   private _undoStack: UndoStack
   private _commitNext = false
+
+  private _afterHandleCallbacks: (() => void)[] = []
+
+  private _lastCaretRange: Et.CaretRange | null = null
+
+  /**
+   * 最近一次执行命令后设置的光标位置, 若获取前未执行 handle,
+   * 则可能返回上一次 handle 的光标位置; 若未设置, 则返回 null
+   */
+  get lastCaretRange() {
+    if (this._lastCaretRange) {
+      return this._lastCaretRange.toTextAffinity()
+    }
+    return null
+  }
 
   constructor(
     private readonly _ctx: Et.EditorContext,
@@ -29,11 +47,11 @@ export class CommandManager {
   }
 
   /** 有排队未处理的命令 */
-  get hasCmds() {
+  get hasQueuedCmds() {
     return this._cmds.length > 0
   }
 
-  private clearQueue() {
+  clearQueue() {
     this._cmds.length = 0
   }
 
@@ -48,28 +66,12 @@ export class CommandManager {
    * @param typeName 命令类型名称
    * @param init 命令初始化参数
    */
-  push<T extends keyof typeof CmdType, Meta>(
-    typeName: T, init: Parameters<typeof cmd<typeof CmdType[T], Meta>>[1]): this
-  /**
-   * 添加一个或一组由cmd工厂构造的命令到队列中
-   * @param cmd 由命令工厂函数cmd创建的命令或命令数组
-   */
-  push(cmd: Command | Command[]): this
-  push(
-    cmdOrType: keyof typeof CmdType | Command | Command[],
-    init?: Parameters<typeof cmd>[1],
+  pushByName<T extends keyof typeof CmdType, Meta>(
+    typeName: T, init: Prettify<Parameters<typeof cmd<typeof CmdType[T], Meta>>[1]>): this
+  pushByName(
+    typeName: keyof typeof CmdType, init: Parameters<typeof cmd>[1],
   ) {
-    if (typeof cmdOrType === 'object') {
-      if (Array.isArray(cmdOrType)) {
-        this._cmds.push(...cmdOrType)
-      }
-      else {
-        this._cmds.push(cmdOrType)
-      }
-      return this
-    }
-    const type = CmdType[cmdOrType]
-
+    const type = CmdType[typeName]
     if (type && init) {
       this._cmds.push(cmd(type, init) as Command)
     }
@@ -77,22 +79,85 @@ export class CommandManager {
   }
 
   /**
+   * 添加一个或一组由cmd工厂构造的命令到队列中
+   * @param cmd 由命令工厂函数cmd创建的命令或命令数组
+   */
+  push(...cmds: Command[]) {
+    this._cmds.push(...cmds)
+    return this
+  }
+
+  /**
+   * 注册一个回调函数, 在下一次调用 `handle` 时(命令执行之后)执行,
+   * * 此回调函数的行为不可撤销, 不要在回调函数中修改编辑区内容
+   * * 若执行 `handle` 时命令队列没有命令, 则不执行此函数添加的回调函数,
+   *   并且会清空回调函数队列; 若依然希望执行回调, 可添加一个空命令 (
+   *   可通过 `cmd.null()` 创建)
+   * @param callback 命令执行后回调函数
+   */
+  pushHandleCallback(callback: () => void): void
+  /**
+   * @param arg 回调函数参数
+   */
+  pushHandleCallback<T>(callback: (arg: T) => void, arg: T): void
+  pushHandleCallback<T>(callback: (arg?: T) => void, arg?: T): void {
+    if (!arg) {
+      this._afterHandleCallbacks.push(callback)
+      return
+    }
+    this._afterHandleCallbacks.push(() => callback(arg))
+  }
+
+  private handleCallbacks() {
+    if (this._afterHandleCallbacks.length) {
+      for (const fn of this._afterHandleCallbacks) {
+        fn()
+      }
+      this._afterHandleCallbacks.length = 0
+    }
+  }
+
+  private clearHandleCallbacks() {
+    this._afterHandleCallbacks.length = 0
+  }
+
+  /**
    * 则先按顺序先执行之前push的命令
    * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
-   * 即会覆盖最后一个命令中的destCaretRange属性
+   *    即会覆盖最后一个命令中的destCaretRange属性
    * @returns 是否执行了至少一个命令
    */
   handle(destCaretRange?: Et.CaretRange): boolean {
-    if (!this.hasCmds) {
+    if (!this.hasQueuedCmds) {
+      this.clearHandleCallbacks()
       return false
     }
-    this._undoStack.record(cmdHandler.handle(this._cmds, this._ctx, destCaretRange))
+    const successCmds = [] as ExecutedCmd[]
+    this._lastCaretRange = cmdHandler.handle(this._cmds, successCmds, this._ctx, destCaretRange)
+    this._undoStack.record(successCmds)
     this.clearQueue()
     if (this._commitNext) {
       this._commitNext = false
       this.commit()
     }
+    this.handleCallbacks()
     return true
+  }
+
+  /**
+   * 则先按顺序先执行之前push的命令并更新上下文和选区信息
+   * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
+   *    即会覆盖最后一个命令中的destCaretRange属性
+   * @returns 是否执行了至少一个命令
+   */
+  handleAndUpdate(destCaretRange?: Et.CaretRange): boolean {
+    if (this.handle(destCaretRange)) {
+      if (this._lastCaretRange) {
+        this._ctx.setSelection(this._lastCaretRange.toTextAffinity())
+      }
+      return true
+    }
+    return false
   }
 
   /**
@@ -151,7 +216,7 @@ export class CommandManager {
    * 若有未处理的命令, 则会先handle再commit;
    */
   closeTransaction() {
-    if (this.hasCmds) this.handle()
+    if (this.hasQueuedCmds) this.handleAndUpdate()
     this._inTransaction = false
     return this.commit()
   }
@@ -165,8 +230,16 @@ export class CommandManager {
   withTransaction(cmds: Command[], destCaretRange?: Et.CaretRange) {
     this.closeTransaction()
     this.startTransaction()
-    this.push(cmds).handle(destCaretRange)
-    return this.closeTransaction()
+    try {
+      this.push(...cmds).handleAndUpdate(destCaretRange)
+    }
+    catch (_) {
+      this.discard()
+      this._ctx.assists.logger?.error('withTransaction error', 'CommandManager')
+    }
+    finally {
+      this.closeTransaction()
+    }
   }
 
   /**
@@ -177,61 +250,43 @@ export class CommandManager {
   withTransactionFn(fn: (cm: this) => boolean) {
     this.closeTransaction()
     this.startTransaction()
-    if (fn(this) && (this.hasCmds ? this.handle() : true)) {
-      this.closeTransaction()
-      return true
-    }
-    else {
-      this.discard()
-      return false
-    }
-  }
-
-  withTransactionSequential(
-    startTarget: Et.SelectionTarget | null | undefined,
-    handles: SequentialHandle[],
-  ) {
-    this.closeTransaction()
-    if (!startTarget) {
-      startTarget = this._ctx.selection.getTargetRange()
-    }
-    if (!startTarget || !startTarget.isValid()) {
-      return false
-    }
-    this.startTransaction()
-    for (const handle of handles) {
-      startTarget = startTarget.isCaret()
-        ? handle(this._ctx, startTarget)
-        : handle(this._ctx, startTarget)
-      if (startTarget === void 0) {
-        break
+    try {
+      if (fn(this) && (this.hasQueuedCmds ? this.handleAndUpdate() : true)) {
+        this.closeTransaction()
+        return true
       }
-      if (!startTarget) {
-        try {
-          this.handle()
-        }
-        catch (_e) {
-          this.discard()
-          return false
-        }
-        startTarget = this._ctx.selection.getTargetRange()
-        if (!startTarget || !startTarget.isValid()) {
-          this.discard()
-          return false
-        }
-      }
-      if (!startTarget.isValid()) {
+      else {
         this.discard()
         return false
       }
     }
-    return this.closeTransaction()
+    catch (_) {
+      this._ctx.assists.logger?.error('withTransactionFn error', 'CommandManager')
+      return false
+    }
+    finally {
+      this.discard()
+      this.closeTransaction()
+    }
+  }
+
+  /**
+   * 为撤销重做做准备
+   */
+  private prepareUndoRedo() {
+    // 清除未执行命令, 防止撤销重做改变文档内容后, 下次 handle 已过时的命令
+    this.clearQueue()
+    // 执行undo前先判断是否有未入栈命令
+    this.commit()
+    // 若在事务内, commit 会失败, 恢复到事务前的状态
+    this.discard()
   }
 
   /**
    * 撤回事务
    */
   undoTransaction(): void {
+    this.prepareUndoRedo()
     this._undoStack.undo(this._ctx)
   }
 
@@ -239,23 +294,7 @@ export class CommandManager {
    * 重做事务
    */
   redoTransaction(): void {
+    this.prepareUndoRedo()
     this._undoStack.redo(this._ctx)
   }
-}
-
-interface SequentialHandle {
-  /**
-   * 顺序处理函数
-   * @param ctx 编辑器上下文
-   * @param target 目标范围
-   * @returns 新的目标光标或范围,
-   *  若返回null, 则调用 handle 函数执行命令并从 ctx.selection 上获取最新光标位置作为下一个目标范围
-   *  若返回undefined, 则提前直接结束事务并回滚
-   *  若其中发生异常, 则会回滚事务
-   *  若返回值为空, 则不会调用 handle 函数, 即不会主动执行命令
-   */
-  (
-    ctx: Et.EditorContext,
-    target: Et.ValidTargetCaret | Et.ValidTargetRange
-  ): Et.SelectionTarget | null | undefined
 }

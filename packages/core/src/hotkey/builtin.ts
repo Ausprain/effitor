@@ -2,8 +2,7 @@
  * 系统层面的编辑行为按键映射
  */
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { platform } from '../config'
 import type { ActionRun } from './config'
 import { Key } from './Key'
@@ -156,6 +155,37 @@ else {
  * 系统层面的编辑行为, 在 (插件)KeydownSovler 之前执行, 执行成功则结束keydown事件周期
  */
 export const keyboardCodeKeyDownBuiltinMap: KeyboardCodeKeyDownEffectMap = {
+
+  /* -------------------------------------------------------------------------- */
+  /*                                 撤销 / 重做                                 */
+  /* -------------------------------------------------------------------------- */
+  // 1. 撤销重做放这里 而不放 hotkey, 是因为要支持 repeat
+  // 2. Windows 下 ctrl+y 是传统的重做快捷键
+  [create(Key.Z, CtrlCmd)]: 'historyUndo',
+  [create(Key.Z, CtrlCmd | Mod.Shift)]: 'historyRedo',
+
+  // TODO ...
+
+  ...(platform.isMac
+    /* -------------------------------------------------------------------------- */
+    /*                            MacOS 下的特殊按键映射                            */
+    /* -------------------------------------------------------------------------- */
+    ? {
+
+      }
+    /* -------------------------------------------------------------------------- */
+    /*                           Windows 下的特殊按键映射                           */
+    /* -------------------------------------------------------------------------- */
+    : {
+        // Windows 下重做快捷键
+        [create(Key.Y, CtrlCmd)]: 'historyRedo',
+      }),
+}
+
+/**
+ * 默认的编辑行为按键映射, 在 MainKeydownSolver 之后执行
+ */
+export const keyboardCodeKeyDownDefaultMap: KeyboardCodeKeyDownEffectMap = {
   /* -------------------------------------------------------------------------- */
   /*                                 光标移动/选择                                */
   /* -------------------------------------------------------------------------- */
@@ -202,43 +232,23 @@ export const keyboardCodeKeyDownBuiltinMap: KeyboardCodeKeyDownEffectMap = {
   [create(Key.ArrowRight, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'word') && ctx.forceUpdate(),
   [create(Key.ArrowLeft, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary') && ctx.forceUpdate(),
   [create(Key.ArrowRight, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary') && ctx.forceUpdate(),
+  // ctrl+a 逐级全选
+  [create(Key.A, CtrlCmd)]: ctx => ctx.selection.selectAllGradually() && ctx.forceUpdate(),
 
   /* -------------------------------------------------------------------------- */
-  /*                                 撤销 / 重做                                 */
+  /*                                   编辑行为                                  */
   /* -------------------------------------------------------------------------- */
-  // 1. 撤销重做放这里 而不放 hotkey, 是因为要支持 repeat
-  // 2. Windows 下 ctrl+y 是传统的重做快捷键
-  [create(Key.Z, CtrlCmd)]: 'historyUndo',
-  [create(Key.Z, CtrlCmd | Mod.Shift)]: 'historyRedo',
 
-  // TODO ...
-
-  ...(platform.isMac
-    /* -------------------------------------------------------------------------- */
-    /*                            MacOS 下的特殊按键映射                            */
-    /* -------------------------------------------------------------------------- */
-    ? {
-
-      }
-    /* -------------------------------------------------------------------------- */
-    /*                           Windows 下的特殊按键映射                           */
-    /* -------------------------------------------------------------------------- */
-    : {
-        // Windows 下重做快捷键
-        [create(Key.Y, CtrlCmd)]: 'historyRedo',
-      }),
-}
-
-/**
- * 默认的编辑行为按键映射, 在 MainKeydownSolver 之后执行
- */
-export const keyboardCodeKeyDownDefaultMap: KeyboardCodeKeyDownEffectMap = {
+  // 删除相关
   [create(Key.Backspace, Mod.None)]: 'deleteContentBackward',
   [create(Key.Backspace, WordModifier)]: 'deleteWordBackward',
   [create(Key.Delete, Mod.None)]: 'deleteContentForward',
   [create(Key.Delete, WordModifier)]: 'deleteWordForward',
   [create(Key.Backspace, LineModifier)]: 'deleteSoftLineBackward',
   [create(Key.Delete, LineModifier)]: 'deleteSoftLineForward',
+  // 插入相关
+  [create(Key.Enter, Mod.None)]: 'insertParagraph',
+  [create(Key.Enter, Mod.Shift)]: 'insertLineBreak',
   // TODO ...
 }
 

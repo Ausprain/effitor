@@ -40,7 +40,7 @@ export const effectInvoker = {
     }
     // Reflect.get() 性能不好
     // const handle = Reflect.get(Cls, effect)
-    const handle = Cls[effect as keyof typeof Cls] as EffectHandle<EditorContext>
+    const handle = Cls[effect as keyof typeof Cls] as EffectHandle
     if (typeof handle === 'function') {
       return !!handle.call(Cls, Cls, ctx, payload)
     }

@@ -6,11 +6,11 @@
 //  *
 //  */
 
-import { Et } from '../@types'
-import { removeRangingContents } from './handles'
-import { insertTextAtCaret, insertTextAtRange } from './handles/insert'
+import type { Et } from '../@types'
+import { cmd } from './command'
+import { checkRemoveTargetRange, removeByTargetRange } from './handles/delete/deleteAtRange'
+import { insertElementAtCaret, insertTextAtCaret, insertTextAtRange } from './handles/insert'
 
-// import type { Et } from '~/core/@types'
 // import { etcode } from '../element'
 // import { EtTypeEnum, HtmlCharEnum } from '../enums'
 // import { cr } from '../selection'
@@ -229,8 +229,10 @@ import { insertTextAtCaret, insertTextAtRange } from './handles/insert'
  */
 export class CommonHandlers {
   private readonly _ctx: Et.EditorContext
+  private readonly commander: Et.EditorContext['commandManager']
   constructor(ctx: Et.EditorContext) {
     this._ctx = ctx
+    this.commander = ctx.commandManager
   }
 
   /**
@@ -241,34 +243,115 @@ export class CommonHandlers {
    */
   insertText(
     data: string,
-    insertAt: Et.SelectionTarget | null,
+    insertAt: Et.TargetSelection | null,
     destCaretRange?: Et.CaretRange,
   ) {
     return this._ctx.selection.checkSelectionTarget(insertAt, {
       caretFn: (caret) => {
-        insertTextAtCaret(this._ctx as Et.UpdatedContext, data, caret)
-        return this._ctx.commandManager.handle(destCaretRange)
+        insertTextAtCaret(this._ctx, data, caret)
+        return this.commander.handleAndUpdate(destCaretRange)
       },
       rangeFn: (range) => {
-        insertTextAtRange(this._ctx as Et.UpdatedContext, data, range)
-        return this._ctx.commandManager.handle(destCaretRange)
+        insertTextAtRange(this._ctx, data, range)
+        return this.commander.handleAndUpdate(destCaretRange)
       },
     })
   }
 
+  deleteText(
+    textNode: Text,
+    offset: number,
+    delDataOrLen: string | number,
+    destCaretRange: Et.CaretRange | true = true,
+  ) {
+    if (typeof delDataOrLen === 'number') {
+      delDataOrLen = textNode.data.slice(offset, offset + delDataOrLen)
+    }
+    if (!delDataOrLen) {
+      return false
+    }
+    this.commander.push(cmd.deleteText({
+      text: textNode as Et.Text,
+      data: delDataOrLen,
+      offset,
+      isBackward: true,
+      setCaret: destCaretRange === true,
+    }))
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
+    }
+    return this.commander.handle()
+  }
+
+  insertElement(el: Et.Element, insertAt: Et.EtCaret, destCaretRange?: Et.CaretRange) {
+    const tc = this._ctx.selection.createTargetCaret(insertAt)
+    if (!tc) {
+      return false
+    }
+    insertElementAtCaret(this._ctx, el, tc, destCaretRange)
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(destCaretRange)
+    }
+    return this.commander.handle()
+  }
+
   /**
-   * 移除当前选区内容, 若collapsed, 则直接返回
+   * 删除节点, 节点不在页面上, 返回 false
+   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;
+   *    若为 null, 命令执行后不更新选区和上下文; 默认为 true
+   */
+  removeNode(node: Et.Node, destCaretRange: Et.CaretRange | null | true = true) {
+    if (!node.isConnected) {
+      return false
+    }
+    this.commander.push(cmd.removeNode({ node, setCaret: destCaretRange === true }))
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+    }
+    return this.commander.handle()
+  }
+
+  /**
+   * 移除当前选区内容, 移除失败返回 false, 若当前选区collapsed, 则直接返回true
    * @param destCaretRange 最终光标位置
    */
   removeRangingContents(destCaretRange?: Et.CaretRange) {
-    if (!this._ctx.isUpdated() || !removeRangingContents(this._ctx)) {
+    const tr = this._ctx.selection.getTargetRange()
+    if (!this._ctx.isUpdated() || !tr) {
       return false
     }
-    this._ctx.commandManager.handle(destCaretRange)
-    // 删除选区后必须更新光标位置
+    if (tr.collapsed) {
+      return true
+    }
+    if (!removeByTargetRange(this._ctx, tr)) {
+      return false
+    }
+    this.commander.handleAndUpdate(destCaretRange)
+    // 删除当前选区后必须更新选区和上下文
     if (!destCaretRange) {
       this._ctx.forceUpdate()
     }
     return true
+  }
+
+  /**
+   * 判断一个目标选区是否合法且是个范围, 若是合法范围, 则先删除范围内容, 获取删除结果的光标位置,
+   * 然后执行回调函数, 若是一个合法光标, 则直接执行回调
+   * * 该方法与 `handlerUtils.checkRemoveTargetRange` 方法不同在于,
+   *   使用了 `commandManager.withTransactionFn` 封装
+   * @param targetRange 目标选区
+   * @param fn 回调函数
+   */
+  checkRemoveTargetRange(
+    targetRange: Et.TargetSelection, fn: (ctx: Et.EditorContext, caret: Et.ValidTargetCaret) => boolean,
+  ) {
+    if (!targetRange.isValid()) {
+      return false
+    }
+    return this.commander.withTransactionFn(() => {
+      return checkRemoveTargetRange(this._ctx, targetRange, (caret) => {
+        return fn(this._ctx, caret)
+      })
+    })
   }
 }

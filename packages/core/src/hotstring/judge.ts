@@ -1,13 +1,11 @@
-import type { Et } from '~/core/@types'
-
-import { RemoveHotstringAction } from './actions'
+import type { Et } from '../@types'
 
 export interface HotstringAction {
   /**
    * 热字符串触发回调
    * @param removeInsertedHotstring 移除已输入的热字符串
    */
-  (ctx: Et.EditorContext, removeInsertedHotstring: RemoveHotstringAction): void
+  (ctx: Et.EditorContext, removeInsertedHotstring: () => void): void
 }
 /**
  * 热字符串类，用于判断输入字符是否匹配热字符串, 匹配后执行相应动作

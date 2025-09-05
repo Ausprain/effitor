@@ -11,68 +11,57 @@
 //   _this.TransformInsertContents()
 // }
 
-import { MIMETypeEnum } from '~/core/enums'
-
+import { MIMETypeEnum } from '../../../enums'
 import { createEffectHandle, createInputEffectHandle } from '../../utils'
-import { checkRemoveRangingContents } from '../delete/deleteAtRange'
 import { insertContentsAtCaret, insertTextAtCaret } from './insert.shared'
 
-export const insertFromPaste = createInputEffectHandle((_this, ctx, ev) => {
-  const clipboardData = ev.dataTransfer
+export const insertFromPaste = createInputEffectHandle((_this, ctx, pl) => {
+  const clipboardData = pl.dataTransfer
   if (!clipboardData) {
     return true
   }
-  const tr = ctx.selection.getTargetRange()
-  if (!tr) {
-    return true
-  }
-  ctx.commandManager.withTransactionFn(() => {
-    checkRemoveRangingContents(ctx, (caret) => {
-      const html = clipboardData.getData(MIMETypeEnum.TEXT_HTML)
-      if (html) {
-        const etFragment = ctx.editor.htmlProcessor.fromHtml(ctx, html)
-        if (_this.TransformInsertContents) {
-          _this.TransformInsertContents(_this, ctx, {
-            fragment: etFragment,
-            insertToEtElement: caret.anchorEtElement,
-          })
-        }
-        if (etFragment.hasChildNodes()) {
-          insertContentsAtCaret(ctx, etFragment, caret)
-          return true
-        }
+  return ctx.commonHandlers.checkRemoveTargetRange(pl.targetRange, (ctx, caret) => {
+    const html = clipboardData.getData(MIMETypeEnum.TEXT_HTML)
+    if (html) {
+      const etFragment = ctx.editor.htmlProcessor.fromHtml(ctx, html)
+      if (_this.TransformInsertContents) {
+        _this.TransformInsertContents(_this, ctx, {
+          fragment: etFragment,
+          insertToEtElement: caret.anchorEtElement,
+        })
       }
-      const plainText = clipboardData.getData(MIMETypeEnum.TEXT_PLAIN)
-      if (plainText) {
-        insertTextAtCaret(ctx, plainText, caret)
+      if (etFragment.hasChildNodes()) {
+        insertContentsAtCaret(ctx, etFragment, caret)
+        return true
       }
-    })
-    return true
+    }
+    const plainText = clipboardData.getData(MIMETypeEnum.TEXT_PLAIN)
+    if (plainText) {
+      return insertTextAtCaret(ctx, plainText, caret)
+    }
+    return false
   })
-  return true
 })
 
 /**
  * 内置隐藏粘贴行为, 用于粘贴从编辑器自身复制的内容
  */
 export const insertFromEtHtml = createEffectHandle('InsertFromEtHtml' as 'E', (_this, ctx, etHtml) => {
-  if (typeof etHtml !== 'string') {
+  const tr = ctx.selection.getTargetRange()
+  if (!tr || typeof etHtml !== 'string') {
     return false
   }
-  ctx.commandManager.withTransactionFn(() => {
-    checkRemoveRangingContents(ctx, (caret) => {
-      const df = ctx.createFragment(etHtml)
-      if (_this.TransformInsertContents) {
-        _this.TransformInsertContents(_this, ctx, {
-          fragment: df,
-          insertToEtElement: caret.anchorEtElement,
-        })
-      }
-      if (df.hasChildNodes()) {
-        insertContentsAtCaret(ctx, df, caret)
-      }
-    })
-    return true
+  return ctx.commonHandlers.checkRemoveTargetRange(tr, (ctx, caret) => {
+    const df = ctx.createFragment(etHtml)
+    if (_this.TransformInsertContents) {
+      _this.TransformInsertContents(_this, ctx, {
+        fragment: df,
+        insertToEtElement: caret.anchorEtElement,
+      })
+    }
+    if (df.hasChildNodes()) {
+      return insertContentsAtCaret(ctx, df, caret)
+    }
+    return false
   })
-  return true
 })

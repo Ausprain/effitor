@@ -1,11 +1,10 @@
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
 import { etcode, type EtParagraphElement } from '../element'
-import { CssClassEnum, EtTypeEnum } from '../enums'
+import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandlers } from '../handler/common'
 import { effectInvoker } from '../handler/invoker'
@@ -116,7 +115,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 这样我们就可以在激活 insertText 之前, 通过该属性判断插入的标点, 是否应当是全角的;
    * 对应的全角字符可通过 HotkeyManager 自定义配置
    *
-   * {@link HotkeyManager}
+   * {@link HotkeyManager.getImeChar}
    */
   isUsingIME = false
   /** 是否处于输入法会话中, 即compositionstart与compositionend之间 */
@@ -127,23 +126,38 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    */
   compositionUpdateCount = 0
   /**
+   * 记录compositionstart时, 段落的最后一个节点;
+   * 用于在compositionend时, 恢复段落的最后一个节点
+   */
+  paragraphLastNodeInCompositionStart: Et.NodeOrNull | undefined = void 0
+  /**
    * 有完成InsertText的input事件，用于在selchange中判断该
    * selchange是否因用户输入（非输入法）文本而触发\
-   * TODO: 应该可用skipSelChange替代, 因为inputText之后会调用ctx.setSelection()
+   * // TODO: 应该可用skipSelChange替代, 因为inputText之后会调用ctx.setSelection()
    */
   hasInsertText = false
+  /**
+   * 光标亲和性偏好, true 优先亲和到前节点末尾, false 优先亲和到后节点开头,
+   * undefined 优先亲和到最近一个文本节点, 没有文本节点则定位到前者(相当于 true)\
+   * 这在和平片段内容时, 决定光标落点优先在前者末尾 or 后者开头,
+   * 这主要用于删除时, 区分是 Backspace 删除还是 Delete 删除, 以更精确
+   * 地设置结束光标为了, 利于下一次删除动作获取对应的 TargetRange
+   * * 每次 keyup 会重置为 undefined
+   */
+  affinityPreference?: boolean
 
   /** 编辑区对象 */
   readonly body: EditorBody
   /** 编辑器选区对象, 在 mount 之前为 null */
   readonly selection: ContextSelection
+  /** 文本分词器 */
   readonly segmenter: Segmenter
-  /** 效应调用器 */
+  /** 效应激活器 */
   readonly effectInvoker: Et.EffectInvoker
+  /** 命令管理器 */
+  readonly commandManager: CommandManager
   /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
   readonly commonHandlers: CommonHandlers
-  /** 命令控制器 */
-  readonly commandManager: CommandManager
   /** 热键管理器 */
   readonly hotkeyManager: Et.hotkey.Manager
   /** 热字符串管理器 */
@@ -176,9 +190,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.selection = new EtSelection(this.body)
     this.segmenter = new Segmenter(options.locale)
     this.effectInvoker = effectInvoker
-    this.commonHandlers = new CommonHandlers(this as UpdatedContext)
     this.commandManager = new CommandManager(this)
-    this.hotkeyManager = new HotkeyManager(this as UpdatedContext, options.hotkeyOptions)
+    // 只能在命令管理器创建之后创建
+    this.commonHandlers = new CommonHandlers(this)
+    this.hotkeyManager = new HotkeyManager(this, options.hotkeyOptions)
     this.hotstringManager = getHotstringManager(this)
 
     this.__onEffectElementChanged = options.onEffectElementChanged
@@ -258,7 +273,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
   private set focusEtElement(v) {
     if (this._focusEtElement === v || !v) return
-    // fix. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback;
+    // fixed. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback;
     // 因为旧的节点直接就是回调函数的this, 可以直接拿到, 而新的节点需要ctx获得
     const old = this._focusEtElement
     this._focusEtElement = v
@@ -399,9 +414,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
+   * 设置光标定位优先倾向, 'former' 优先定位到前节点末尾; 'latter'优先定位到后节点开头
+   */
+  setCaretAffinityPreference(toFormer?: boolean) {
+    this.affinityPreference = toFormer
+  }
+
+  /**
    * 设置光标到一个段落的开头/末尾; 由于段落有多种类型(普通段落, 组件段落, Blockquote段落...),
    * 因此需要此方法来统一根据段落类型设置光标位置; 该设置光标的动作是默认异步的 (requestAnimationFrame)
-   * @param [bySync=false] 是否同步设置光标位置
+   * @param [bySync=false] 是否同步设置光标位置, 默认 false(异步)
    */
   setCaretToAParagraph(paragraph: Et.Paragraph, toStart: boolean, bySync = false) {
     if (etcode.check(paragraph, EtTypeEnum.Component)) {
@@ -417,14 +439,14 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
     if (bySync) {
       this.setSelection(toStart
-        ? paragraph.innerStartEditingBoundary()
-        : paragraph.innerEndEditingBoundary())
+        ? paragraph.innerStartEditingBoundary().toTextAffinity()
+        : paragraph.innerEndEditingBoundary().toTextAffinity())
     }
     else {
       requestAnimationFrame(() => {
         this.setSelection(toStart
-          ? paragraph.innerStartEditingBoundary()
-          : paragraph.innerEndEditingBoundary())
+          ? paragraph.innerStartEditingBoundary().toTextAffinity()
+          : paragraph.innerEndEditingBoundary().toTextAffinity())
       })
     }
   }
@@ -472,6 +494,20 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     return node.localName === this.schema.paragraph.elName
   }
 
+  /** 默认创建一个带br的schema段落 */
+  createPlainParagraph(withBr = true): Et.EtParagraphElement {
+    const p = this.schema.paragraph.create()
+    if (withBr) {
+      if (this.editor.config.INSERT_BR_FOR_LINE_BREAK) {
+        p.appendChild(document.createElement('br'))
+      }
+      else {
+        p.appendChild(document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE))
+      }
+    }
+    return p
+  }
+
   /**
    * 根据当前段落克隆一个段落; 克隆规则如下: \
    * 若当前段落是普通段落(schema.paragraph), 则返回一个新的普通段落 \
@@ -482,14 +518,14 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    */
   cloneParagraph(pEl = this._focusParagraph, withBr = true) {
     if (!pEl) {
-      return this.createParagraph(withBr)
+      return this.createPlainParagraph(withBr)
     }
     if (
       pEl.localName === this.schema.paragraph.elName
       || pEl.etCode & EtTypeEnum.Heading
       || pEl.etCode & EtTypeEnum.Component
     ) {
-      return this.createParagraph(withBr)
+      return this.createPlainParagraph(withBr)
     }
     // 浅克隆 元素名 + 属性
     const clone = pEl.cloneNode(false) as Et.Paragraph
@@ -498,15 +534,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     // 去掉状态class
     clone.classList.remove(CssClassEnum.Active, CssClassEnum.CaretIn, CssClassEnum.Selected)
     return clone
-  }
-
-  /** 默认创建一个带br的schema段落 */
-  createParagraph(withBr = true): Et.EtParagraphElement {
-    const p = this.schema.paragraph.create()
-    if (withBr) {
-      p.appendChild(document.createElement('br'))
-    }
-    return p
   }
 
   /** 调用et元素对应类的create方法创建同类元素 */

@@ -1,4 +1,4 @@
-import { type A_hotkey, type ActionGroupMap, type HotkeyAction, HotkeyEnum } from './config'
+import { type A_hotkey, type ActionGroupMap_, type HotkeyAction, HotkeyEnum } from './config'
 import { Key } from './Key'
 import { CtrlCmd, Mod } from './Mod'
 
@@ -43,7 +43,7 @@ export const modKey = (ev: KeyboardEvent) => {
  * @param canCustom 是否可绑定自定义快捷键， 默认false
  * @param run 操作执行函数
  */
-export const createAction = (group: keyof ActionGroupMap, title: string, {
+export const createAction = (group: keyof ActionGroupMap_, title: string, {
   hotkey = '',
   descr = '',
   canCustom = false,

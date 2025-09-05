@@ -1,5 +1,4 @@
-/* eslint-disable @stylistic/max-len */
-import type { Et } from '~/core/@types'
+import type { Et } from './@types'
 
 declare global {
   interface Object {

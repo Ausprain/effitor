@@ -1,10 +1,9 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import type { EditorBody } from '../context/EditorBody'
 import { dom } from '../utils'
 import { CaretRange } from './CaretRange'
 import { cr } from './cr'
-import { getTargetRangeCtor, ValidTargetRange } from './EtTargetRange'
+import { getTargetRangeCtor, ValidTargetCaret, ValidTargetRange } from './EtTargetRange'
 
 const enum SelectAllLevel {
   No_Select_All = 0,
@@ -29,8 +28,12 @@ export class EtSelection {
    * 非脚本聚焦编辑器时, 由浏览器处理新的选区位置
    */
   private _caretRange: CaretRange | null = null
-  private _targetRange: ReturnType<typeof this.TargetRange['fromRange']> | null = null
+  private _targetRange: Et.TargetRange | null = null
 
+  /**
+   * 选区是否被冻结, 冻结后, 执行命令将不会更新选区
+   */
+  // private _isFrozen = false
   private _isForward: boolean | undefined
   private _commonEtElement: Et.EtElement | null | undefined
   private _focusEtElement: Et.EtElement | null | undefined
@@ -39,17 +42,6 @@ export class EtSelection {
   /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
   private _rawEl: HTMLInputElement | HTMLTextAreaElement | null = null
   private _revealIdleCallbackId = 0
-  // private readonly requestIdleCallback = globalThis.requestIdleCallback
-  //   ? globalThis.requestIdleCallback.bind(globalThis)
-  //   : (cb: () => void, options?: { timeout: number }) => {
-  //       return globalThis.setTimeout(cb, options?.timeout ?? 500)
-  //     }
-
-  // private readonly cancelIdleCallback = globalThis.cancelIdleCallback
-  //   ? globalThis.cancelIdleCallback.bind(globalThis)
-  //   : (id: number) => {
-  //       globalThis.clearTimeout(id)
-  //     }
 
   /**
    * 全选等级, 1 全选当前行, 2 全选当前段落, 3 全选文档,
@@ -98,6 +90,17 @@ export class EtSelection {
       return this._targetRange.commonAncestor
     }
     return null
+  }
+
+  /**
+   * 当 anchorText 非空时, 返回光标或选区起始位置在 anchorText 中的偏移量
+   * 当 anchorText 为空时, 返回 0
+   */
+  get anchorOffset() {
+    if (this.range) {
+      return this.range.startOffset
+    }
+    return 0
   }
 
   /** 选区是否是向前选择的, collapsed时始终返回true; 其他情况, 只要不是明确 backward 的, 都是 forward 的 */
@@ -221,22 +224,22 @@ export class EtSelection {
 
   /** 光标是否在段落内开头 */
   get isCaretAtParagraphStart() {
-    return this._targetRange && this._targetRange.isCaretAtParagraphStart
+    return this._targetRange && this._targetRange.isCaretAtParagraphStart()
   }
 
   /** 光标是否在段落内结尾 */
   get isCaretAtParagraphEnd() {
-    return this._targetRange && this._targetRange.isCaretAtParagraphEnd
+    return this._targetRange && this._targetRange.isCaretAtParagraphEnd()
   }
 
   /** 光标是否在编辑区开头 */
   get isCaretAtBodyStart() {
-    return this._targetRange && this._targetRange.isCaretAtBodyStart
+    return this._targetRange && this._targetRange.isCaretAtBodyStart()
   }
 
   /** 光标是否在编辑区结尾 */
   get isCaretAtBodyEnd() {
-    return this._targetRange && this._targetRange.isCaretAtBodyEnd
+    return this._targetRange && this._targetRange.isCaretAtBodyEnd()
   }
 
   /**
@@ -262,21 +265,51 @@ export class EtSelection {
   }
 
   /**
-   * 创建一个 EtTargetCaret 实例, 若光标位置不合法, 返回 null
-   * @param anchorNode 光标所在节点
-   * @param anchorOffset 光标所在节点偏移量
+   * 从 EtCaretRange 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
+   * @param caretRange EtCaretRange 实例
    */
-  createTargetCaret(anchorNode: Et.HTMLNode, anchorOffset: number): Et.ValidTargetCaret | null {
-    if (!anchorNode.isConnected) {
+  createTargetCaret(caretRange: Et.CaretRange): ValidTargetCaret | null
+  /**
+   * 从 Range 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
+   * @param range Range 实例
+   */
+  createTargetCaret(range: Range): ValidTargetCaret | null
+  /**
+   * 创建一个 EtTargetCaret 实例, 若光标位置不合法, 返回 null
+   * @param container 光标所在节点
+   * @param offset 光标所在节点偏移量
+   */
+  createTargetCaret(container: Et.HTMLNode, offset: number): ValidTargetCaret | null
+  createTargetCaret(target: Et.HTMLNode | Et.CaretRange | Range, offset?: number): ValidTargetCaret | null {
+    if ((target as Et.EtCaret).toRange) {
+      target = (target as Et.EtCaret).toRange() as Range
+    }
+    if (!target) {
       return null
     }
-    const tc = this.TargetRange.createCaret(anchorNode, anchorOffset)
+    let tc: Et.TargetCaret | null
+    if (target instanceof Range) {
+      if (!target.collapsed) {
+        return null
+      }
+      tc = this.TargetRange.createCaret(target.endContainer as Et.HTMLNode, target.endOffset)
+    }
+    else {
+      if (!(target as Node).isConnected || offset === void 0) {
+        return null
+      }
+      tc = this.TargetRange.createCaret(target as Et.HTMLNode, offset)
+    }
     if (!tc.isValid()) {
       return null
     }
     return tc
   }
 
+  /**
+   * 从 EtCaretRange 构建一个 EtTargetRange 实例; 若不存在或不合法, 将返回 null
+   */
+  createTargetRange(caretRange: Et.CaretRange): ValidTargetRange | null
   /**
    * 从Range构建一个 EtTargetRange 实例; 若范围不合法, 将返回 null
    */
@@ -293,10 +326,16 @@ export class EtSelection {
     endNode: Et.HTMLNode, endOffset: number,
   ): Et.ValidTargetRange | null
   createTargetRange(
-    rangeOrStartNode: Et.HTMLNode | Range, startOffset?: number,
+    rangeOrStartNode: Et.HTMLNode | Range | Et.CaretRange, startOffset?: number,
     endNode?: Et.HTMLNode, endOffset?: number,
   ): Et.ValidTargetRange | null {
     let tr
+    if ((rangeOrStartNode as Et.EtRange).toRange) {
+      rangeOrStartNode = (rangeOrStartNode as Et.EtRange).toRange() as Range
+    }
+    if (!rangeOrStartNode) {
+      return null
+    }
     if (rangeOrStartNode instanceof Range) {
       tr = this.TargetRange.fromRange(rangeOrStartNode)
     }
@@ -304,9 +343,9 @@ export class EtSelection {
       return null
     }
     else {
-      tr = this.TargetRange.createRange(rangeOrStartNode, startOffset, endNode, endOffset)
+      tr = this.TargetRange.createRange(rangeOrStartNode as Et.HTMLNode, startOffset, endNode, endOffset)
     }
-    if (!tr.isValid()) {
+    if (!tr || !tr.isValid()) {
       return null
     }
     return tr
@@ -345,7 +384,7 @@ export class EtSelection {
    * * options.rangeFn 范围函数
    */
   checkSelectionTarget(
-    target: Et.SelectionTarget | null,
+    target: Et.TargetSelection | null,
     {
       caretFn,
       rangeFn,
@@ -565,7 +604,7 @@ export class EtSelection {
     const rects = this.range.getClientRects()
     let rect = rects[toStart ? 0 : rects.length - 1]
     if (!rect) {
-      // fix. 若光标collapsed在节点边缘(类似光标在input/textarea 内的情况), rects 可能为空 ()
+      // fixed. 若光标collapsed在节点边缘(类似光标在input/textarea 内的情况), rects 可能为空 ()
       let anchorEl = this.range.endContainer.childNodes.item(this.range.endOffset)
       if (!anchorEl) {
         anchorEl = this.range.endContainer.hasChildNodes()
@@ -636,13 +675,13 @@ export class EtSelection {
    */
   selectParagraph() {
     const tr = this.getTargetRange()
-    if (!tr) {
-      return false
+    if (tr && tr.startParagraph && tr.endParagraph) {
+      const r = document.createRange() as Et.Range
+      tr.startParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
+      tr.endParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
+      return this.selectRange(r)
     }
-    const r = document.createRange() as Et.Range
-    tr.startParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
-    tr.endParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
-    return this.selectRange(r)
+    return false
   }
 
   /**
@@ -664,18 +703,46 @@ export class EtSelection {
    * 渐进式全选: 光标 -> 当前行 -> 当前段落 -> 当前顶层节点 -> 文档
    */
   selectAllGradually() {
+    const tr = this.getTargetRange()
+    if (!tr) {
+      return false
+    }
+    if (tr.collapsed) {
+      this._selectAllLevel = SelectAllLevel.No_Select_All
+    }
+    else {
+      const startP = tr.startParagraph
+      const endP = tr.endParagraph
+      if (startP === endP && endP) {
+        if (tr.DOMRange.getClientRects().length > 1
+          && this._selectAllLevel < SelectAllLevel.Select_Soft_Line
+        ) {
+          this._selectAllLevel = SelectAllLevel.Select_Soft_Line
+        }
+        else if (endP.getClientRects().length === 1) {
+          this._selectAllLevel = SelectAllLevel.Select_Paragraph
+        }
+      }
+      else if (this._selectAllLevel < SelectAllLevel.Select_Soft_Line) {
+        this._selectAllLevel = SelectAllLevel.Select_Soft_Line
+      }
+    }
     if (this._selectAllLevel === SelectAllLevel.Select_Document) {
       return true
     }
-    if (this._selectAllLevel++ === SelectAllLevel.No_Select_All) {
+    if (this._selectAllLevel === SelectAllLevel.No_Select_All) {
+      this._selectAllLevel++
       return this.selectSoftLine()
     }
-    if (this._selectAllLevel++ === SelectAllLevel.Select_Soft_Line) {
+    if (this._selectAllLevel === SelectAllLevel.Select_Soft_Line) {
+      this._selectAllLevel++
       return this.selectParagraph()
     }
-    if (this._selectAllLevel++ === SelectAllLevel.Select_Paragraph) {
+    if (this._selectAllLevel === SelectAllLevel.Select_Paragraph) {
+      this._selectAllLevel++
       return this.selectDocument()
     }
+    return false
   }
 
   /**

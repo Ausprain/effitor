@@ -4,6 +4,7 @@ import stylistic from '@stylistic/eslint-plugin'
 import importPlugin from 'eslint-plugin-import'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import vitest from 'eslint-plugin-vitest'
+import globals from 'globals'
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -14,7 +15,7 @@ export default tseslint.config(
   {
     rules: {
       '@stylistic/max-len': ['error', {
-        code: 100,
+        code: 120,
         comments: 120,
         ignoreComments: true,
         ignoreTrailingComments: true,
@@ -112,6 +113,16 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+
+  // scripts
+  {
+    files: ['./scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
 )

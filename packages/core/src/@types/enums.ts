@@ -1,7 +1,7 @@
 /**
  * KeyboardEvent.code;
  */
-declare const enum KeyboardCodeEnum {
+export const enum KeyboardCodeEnum {
   /** Windows 下使用 AutoHotKey 热字符串功能自动替换时, .code 可能为空字符串 */
   '' = '',
 
@@ -118,7 +118,7 @@ declare const enum KeyboardCodeEnum {
 /**
  * KeyboardEvent.key枚举; 小写字母使用大写字母映射
  */
-declare const enum KeyboardKeyEnum {
+export const enum KeyboardKeyEnum {
   /** Windows 下 Chrome 在开启输入法, keydown 按下可输入字符.key为 Process */
   'Process' = 'Process',
   /** Windows 下使用 AutoHotKey 热字符串功能自动替换时, .key 可能为 Undefined */
@@ -242,7 +242,7 @@ declare const enum KeyboardKeyEnum {
  *  "formatFontName"
  * ```
  */
-declare const enum InputTypeEnum {
+export const enum InputTypeEnum {
   /**
    * 未初始化 或 不是规定以内的值;
    * 该值作为保留, 其对应真正的inputType为空串"" 仅`MainInputTypeSolver`可实现;

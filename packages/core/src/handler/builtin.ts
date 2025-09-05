@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import {
   deleteCompositionText,
   insertCompositionText,
@@ -17,6 +16,10 @@ import {
   deleteSoftLineForward,
 } from './handles/delete/deleteLine'
 import {
+  backspaceAtParagraphStart,
+  deleteAtParagraphEnd,
+} from './handles/delete/deleteParagraph'
+import {
   deleteWordBackward,
   deleteWordForward,
 } from './handles/delete/deleteWord'
@@ -24,16 +27,14 @@ import {
   insertFromEtHtml,
   insertFromPaste,
 } from './handles/insert/insertFromPaste'
+import { insertLineBreak } from './handles/insert/insertLineBreak'
+import { insertParagraph } from './handles/insert/insertParagraph'
 import { insertText } from './handles/insert/insertText'
 import {
   initEditorContents,
   transformInsertContents,
   updateEditorContentsFromMarkdown,
-} from './handles/no-standard/default'
-import {
-  backspaceAtParagraphStart,
-  deleteAtParagraphEnd,
-} from './handles/no-standard/delete'
+} from './handles/others/default'
 
 export const buintinHandler: Et.EffectHandleMap = {
   // 输入法相关
@@ -43,6 +44,9 @@ export const buintinHandler: Et.EffectHandleMap = {
 
   // 插入相关
   EinsertText: insertText,
+  EinsertLineBreak: insertLineBreak,
+  EinsertParagraph: insertParagraph,
+
   EinsertFromPaste: insertFromPaste,
 
   // 删除相关

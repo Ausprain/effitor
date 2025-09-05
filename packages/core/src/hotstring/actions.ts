@@ -11,16 +11,9 @@ export const removeHotstringOnTrigger: RemoveHotstringAction = (ctx, hotstring) 
   if (!ctx.selection.isCollapsed) return false
   const text = ctx.selection.anchorText
   if (!text) return false
-  if (!text.data.endsWith(hotstring)) return false
-  const startOffset = text.length - hotstring.length
-  ctx.commandManager
-    .push('Delete_Text', {
-      text,
-      data: hotstring,
-      offset: startOffset,
-      isBackward: true,
-      setCaret: true,
-    })
-    .handle()
-  return true
+  const startOffset = ctx.selection.anchorOffset - hotstring.length
+  if (text.data.slice(startOffset, startOffset + hotstring.length) === hotstring) {
+    return ctx.commonHandlers.deleteText(text, startOffset, hotstring, true)
+  }
+  return false
 }

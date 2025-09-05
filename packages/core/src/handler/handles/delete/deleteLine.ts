@@ -1,3 +1,6 @@
+/**
+ * // TODO 此处依赖当前选区 ctx.selection, 尚未完全转移到仅依据 TargetRange 进行删除
+ */
 import { createInputEffectHandle } from '../../utils'
 import { removeByTargetRange } from './deleteAtRange'
 
@@ -10,7 +13,11 @@ export const deleteEntireSoftLine = createInputEffectHandle((_this, ctx) => {
     ['extend', 'forward', 'lineboundary'],
   ])
   ctx.forceUpdate()
-  return removeByTargetRange(ctx, ctx.selection.range)
+  const tr = ctx.selection.getTargetRange()
+  if (!tr || tr.collapsed) {
+    return false
+  }
+  return removeByTargetRange(ctx, tr)
 })
 export const deleteSoftLineBackward = createInputEffectHandle((_this, ctx) => {
   if (ctx.selection.isCaretAtParagraphStart) {
@@ -18,7 +25,11 @@ export const deleteSoftLineBackward = createInputEffectHandle((_this, ctx) => {
   }
   ctx.selection.modify('extend', 'backward', 'lineboundary', false)
   ctx.forceUpdate()
-  return removeByTargetRange(ctx, ctx.selection.range)
+  const tr = ctx.selection.getTargetRange()
+  if (!tr || tr.collapsed) {
+    return false
+  }
+  return removeByTargetRange(ctx, tr)
 })
 export const deleteSoftLineForward = createInputEffectHandle((_this, ctx) => {
   if (ctx.selection.isCaretAtParagraphEnd) {
@@ -26,7 +37,11 @@ export const deleteSoftLineForward = createInputEffectHandle((_this, ctx) => {
   }
   ctx.selection.modify('extend', 'forward', 'lineboundary', false)
   ctx.forceUpdate()
-  return removeByTargetRange(ctx, ctx.selection.range)
+  const tr = ctx.selection.getTargetRange()
+  if (!tr || tr.collapsed) {
+    return false
+  }
+  return removeByTargetRange(ctx, tr)
 })
 // export const deleteHardLineBackward = createInputEffectHandle((_this, ctx, ev) => {
 //   return true

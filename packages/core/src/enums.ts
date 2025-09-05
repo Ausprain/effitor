@@ -35,6 +35,7 @@ export const enum MIMETypeEnum {
 export const enum HtmlCharEnum {
   ZERO_WIDTH_SPACE = '\u200B',
   NBSP = '\u00A0',
+  MOCK_LINE_BREAK = '\n\u200B',
 }
 /** html元素自定义属性名 */
 export const enum HtmlAttrEnum {
@@ -83,11 +84,11 @@ export const enum EtTypeEnum {
   Paragraph = 1 << 3,
   /** 引用块(段落组), 是block的, 其子元素只能是段落 */
   Blockquote = 1 << 4,
-  /** 标题, 只能是et-body的子节点, heading是block的, 也属于段落, 添加heading效应时应同时添加paragraph */
+  /** 标题, 只能是et-body的子节点, heading是block的, 也属于段落 */
   Heading = 1 << 5,
   /** 含嵌套contenteditable的才算组件, component是block的, 同时也属于段落 */
   Component = 1 << 6,
-  /** 整体不可编辑的才算embed, embed不一定是block的 */
+  /** 整体不可编辑的才算embed, embed不一定是block的, 但一定不是段落 */
   Embedment = 1 << 7,
   /** 含此效应的效应元素在创建时会设置contenteditable=false */
   Uneditable = 1 << 8,

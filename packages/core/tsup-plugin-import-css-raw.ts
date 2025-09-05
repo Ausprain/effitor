@@ -1,7 +1,8 @@
+import fs from 'node:fs'
+import { join, resolve } from 'node:path'
+
 import * as esbuild from 'esbuild'
 import { Plugin } from 'esbuild'
-import fs from 'node:fs'
-import { resolve } from 'path'
 
 export interface ImportCssRawOptions {
   /**
@@ -87,12 +88,12 @@ export function importCssRawPlugin(options?: ImportCssRawOptions): Plugin {
     setup(build) {
       build.onResolve({ filter }, (args) => {
         return {
-          path: resolve(args.resolveDir, args.path),
+          path: resolve(args.resolveDir, args.path).replace(__dirname, ''),
           namespace: 'import-css-raw',
         }
       })
       build.onLoad({ filter, namespace: 'import-css-raw' }, async (args) => {
-        let contents = await processCssFile(args.path.slice(0, -4))
+        let contents = await processCssFile(join(__dirname, args.path.slice(0, -4)))
         if (options?.transform) {
           contents = await options.transform(contents, esbuild.transform)
         }

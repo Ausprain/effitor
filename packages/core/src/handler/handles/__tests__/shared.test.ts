@@ -1,6 +1,6 @@
-import { minifiedHtml } from '~/core/__tests__/shared.test'
-import { Et } from '~/core/@types'
-import { dom, traversal } from '~/core/utils'
+import { minifiedHtml } from '../../../__tests__/shared.test'
+import type { Et } from '../../../@types'
+import { dom, traversal } from '../../../utils'
 
 export const initContentsAndSetSelection = (ctx: Et.EditorContext, html: string) => {
   ctx.commandManager.commitAll()
@@ -67,7 +67,9 @@ const handler = (ctx: Et.EditorContext) => {
         }
       }
       ctx.commandManager.startTransaction()
-      const success = ctx.commandManager.handle()
+      // const hasCmds = ctx.commandManager.hasQueuedCmds
+      // const success = ctx.commandManager.handleAndUpdate()
+      ctx.commandManager.handleAndUpdate()
 
       fn?.()
 
@@ -77,14 +79,14 @@ const handler = (ctx: Et.EditorContext) => {
          */
         reveal: (fn: (result: {
           /** 是否 handle 成功 */
-          success: boolean
+          // success: boolean
           /** 命令执行后, 文档树的 html 字符串 (带^|光标位置) */
           bodyHtmlWithCaret: string
         }) => void) => {
           revealSelection()
           removeAttrs()
           fn({
-            success,
+            // success,
             bodyHtmlWithCaret: ctx.bodyEl.innerHTML,
           })
         },
@@ -93,15 +95,16 @@ const handler = (ctx: Et.EditorContext) => {
          */
         restore: (fn: (result: {
           /** 是否撤销成功 */
-          success: boolean
+          // success: boolean
           /** 命令执行前, 文档树的 html 字符串 (带^|光标位置) */
           bodyOriginalHtml: string
         }) => void) => {
-          const success = ctx.commandManager.discard()
+          // const success = !hasCmds || ctx.commandManager.discard()
+          ctx.commandManager.discard()
           revealSelection()
           removeAttrs()
           fn({
-            success,
+            // success,
             bodyOriginalHtml: ctx.bodyEl.innerHTML,
           })
         },

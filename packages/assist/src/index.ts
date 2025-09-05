@@ -1,3 +1,3 @@
-import { core } from '@effitor/core'
+// import { core } from '@effitor/core'
 
 export const assist = 3

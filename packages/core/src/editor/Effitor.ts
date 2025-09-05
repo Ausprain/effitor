@@ -2,8 +2,7 @@
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import baseCss from '../assets/base.css?raw'
 import builtinCss from '../assets/builtin.css?raw'
 import { defaultConfig, platform } from '../config'
@@ -559,7 +558,7 @@ const formatEffitorStructure = (
     editorEl.classList.add('default-style')
   }
   // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
-  // fix. 若为 relative, 会让内部的 anchor-position失效
+  // fixed. 若为 relative, 会让内部的 anchor-position失效
   // host.style.position = 'relative'
 
   editorEl.append(body)
@@ -710,8 +709,8 @@ const addListenersToEditorBody = (
       ctx.isFocused = true
 
       // focus时 重新获取selection
-      // fix. HMR热更新时 旧的selection对象可能丢失
-      // fix. focus瞬间 还未获取光标位置
+      // fixed. HMR热更新时 旧的selection对象可能丢失
+      // fixed. focus瞬间 还未获取光标位置
       requestAnimationFrame(() => {
         // 手动更新ctx和光标位置, 再绑定sel监听器
         ctx.update()
@@ -724,7 +723,7 @@ const addListenersToEditorBody = (
     // import.meta.env.DEV && console.error('body blur')
     // 编辑器已经blur, 直接执行回调
     if (!ctx.isFocused) {
-      // fix.
+      // fixed.
       // 有些插件(如assist.dialog), 可能在展开时需要移动光标到某些编辑区外部的节点上;
       // 此时需要主动调用编辑器.blur()方法令其失去焦点
       // 然后此处应立即将selectionchange监听器移除; 否则会将新的焦点位置更新到caret上,

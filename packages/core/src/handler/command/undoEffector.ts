@@ -8,7 +8,7 @@
  * 3. 删除行为
  *      Backspace, Delete
  */
-import type { Et } from '~/core/@types'
+import type { Et } from '../../@types'
 
 const keyupSolver: Et.KeyboardKeySolver = {
   ArrowDown: (_ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
@@ -30,8 +30,6 @@ const afterInputSolver: Et.InputTypeSolver = {
 }
 const beforeInputSolver: Et.InputTypeSolver = {
   historyUndo: (ev, ctx) => {
-    // 执行undo前先判断是否有未入栈命令
-    ctx.commandManager.commit()
     ctx.commandManager.undoTransaction()
     ev.preventDefault()
     return true
@@ -62,7 +60,7 @@ const htmlEventSolver: Et.HTMLEventSolver = {
     ctx.commandManager.commit()
   },
   focusout: (_ev, ctx) => {
-    // fix. 编辑器blur后触发focusout事件, 并执行相应监听器, 到此处, 整个事件都是同步执行的;
+    // fixed. 编辑器blur后触发focusout事件, 并执行相应监听器, 到此处, 整个事件都是同步执行的;
     // 这也意味着先开启事务, 后插入 `<div>aaaI</div>` I代表光标位置, 然后执行 discard,
     // 丢弃该插入, 即删除该`<div>aaa</div>` 则会导致编辑器blur, 然后执行此处的commit,
     // 而discard是需要丢弃该命令的, 就产生了冲突, 即本该丢弃的命令, 却因编辑器失去焦点而先将该命令commit了,

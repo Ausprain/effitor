@@ -1,9 +1,8 @@
 import { describe, expect, suite, test } from 'vitest'
 
-import type { Et } from '~/core/@types'
-import { cr } from '~/core/selection'
-
 import { initEditor, minifiedHtml } from '../../../__tests__/shared.test'
+import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
 
 suite('delete backward at caret', async () => {
   const editor = await initEditor(`<et-p class="etp et">Hello ABC<b>bold</b></et-p>`)
@@ -23,7 +22,7 @@ suite('delete backward at caret', async () => {
     })
     expect(p.innerHTML).toBe(`ABC<b>bold</b>`)
 
-    ctx.setSelection(cr.caretInEnd(p.children[0].firstChild as any))
+    ctx.setSelection(cr.caretInEndNow(p.children[0].firstChild as any))
     ctx.dispatchInputEvent('beforeinput', {
       inputType: 'deleteWordBackward',
     })
@@ -33,7 +32,7 @@ suite('delete backward at caret', async () => {
   test('in samp paragraph (removeNode)', () => {
     body.innerHTML = `<et-p class="etp et">Hello ABC<b>bold</b></et-p>`
     let p = body.children[0] as Et.EtParagraphElement
-    ctx.setSelection(cr.caretInEnd(p.children[0] as any))
+    ctx.setSelection(cr.caretInEndNow(p.children[0] as any))
     ctx.dispatchInputEvent('beforeinput', {
       inputType: 'deleteWordBackward',
     })

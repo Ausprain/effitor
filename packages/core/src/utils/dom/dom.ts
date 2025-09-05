@@ -3,8 +3,7 @@
  * DOM 相关的工具函数, 通过 dom 工具对象统一导出,\
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../../@types'
 import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../../enums'
 
 /* -------------------------------------------------------------------------- */
@@ -25,19 +24,19 @@ export const nodeIndex = (node: Node) => {
   if (!node.parentNode) {
     return -1
   }
-  let i = 0
-  node = node.previousSibling as Node
-  while (node) {
-    i++
-    node = node.previousSibling as Node
-  }
-  return i
+  return prevSiblingCount(node)
 }
 /** 获取节点在父节点中的索引; 若节点不在页面上, 返回 -1 */
 export const connectedNodeIndex = (node: Node) => {
   if (!node.isConnected) {
     return -1
   }
+  return prevSiblingCount(node)
+}
+/**
+ * 计算节点的前兄弟节点个数
+ */
+export const prevSiblingCount = (node: Node) => {
   let i = 0
   node = node.previousSibling as Node
   while (node) {
@@ -110,6 +109,7 @@ export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null
 export const isText = (node: Node): node is Et.Text => node.nodeType === 3 /** Node.TEXT_NODE */
 export const isElement = (node: Node): node is Et.Element => node.nodeType === 1 /** Node.ELEMENT_NODE */
 export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instanceof HTMLElement
+export const isElementOrText = (node: Node): node is Element | Text => node.nodeType === 1 || node.nodeType === 3
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
 export const isBrElement = (node: Node): node is HTMLBRElement => (node as Et.Node).localName === 'br'
 /**

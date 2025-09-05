@@ -218,7 +218,7 @@ export class EditorBody {
 
   /**
    * 获取 node 在 under祖先下的最外层祖先节点 (即 under 的子节点)
-   * node 必须是 under 的后代
+   * 若 node 不是 under 的后代, 将返回 null
    */
   outerNodeUnder(node: Et.Node, under?: Et.Node) {
     if (!under) {
@@ -229,17 +229,19 @@ export class EditorBody {
       node = p
       p = p.parentNode
     }
+    if (p !== under) {
+      return null
+    }
     return node
   }
 
   /**
    * 向上（包括自身）找第一个`Et.EtElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
-   * 使用"鸭子类型",  Effitor 内拥有`etCode`属性的元素被视为效应元素
+   * 使用"鸭子类型",  Effitor 内拥有`EtCode`Symbol属性的元素被视为效应元素
    */
-  findEffectParent(node: Et.NodeOrNull): Et.EtElement | null {
+  findInclusiveEtParent(node: Et.NodeOrNull): Et.EtElement | null {
     while (node) {
       if (node[EtCode] !== void 0) return node as Et.EtElement
-      if (node === this.el) return null
       node = node.parentNode
     }
     return null
@@ -248,10 +250,10 @@ export class EditorBody {
   /**
    * 向上查找最近一个`Et.ParagraphElement`, `etCode`匹配段落 EtType, 则视为段落效应元素
    */
-  findParagraph(node: Et.NodeOrNull): Et.Paragraph | null {
+  findInclusiveParagraph(node: Et.NodeOrNull): Et.Paragraph | null {
     while (node) {
       if (node === this.el) return null
-      if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.Paragraph
+      if (node[EtCode] && (node[EtCode] & EtTypeEnum.Paragraph)) return node as Et.Paragraph
       node = node.parentNode
     }
     return null

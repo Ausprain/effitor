@@ -1,5 +1,4 @@
-import type { Et } from '~/core/@types'
-
+import type { Et } from '../@types'
 import { BuiltinElName, EtTypeEnum } from '../enums'
 import { EtParagraph } from './EtParagraph'
 
@@ -21,12 +20,22 @@ export abstract class EtBlockquote extends EtParagraph {
     | EtTypeEnum.RichText
 
   /** Blockquote 内的第一个段落 */
-  abstract get firstParagraph(): EtParagraph
+  get firstParagraph(): EtParagraph {
+    return this.firstChild as EtParagraph
+  }
+
   /** Blockquote 内的最后一个段落 */
-  abstract get lastParagraph(): EtParagraph
+  get lastParagraph(): EtParagraph {
+    return this.lastChild as EtParagraph
+  }
 
   /** 当前blockquote内部可编辑开始边界, 理论上为firstParagraph内开头 */
-  abstract innerStartEditingBoundary(): Et.EtCaret
+  innerStartEditingBoundary(): Et.EtCaret {
+    return this.firstParagraph.innerStartEditingBoundary()
+  }
+
   /** 当前blockquote内部可编辑末尾边界, 理论上为lastParagraph内结尾 */
-  abstract innerEndEditingBoundary(): Et.EtCaret
+  innerEndEditingBoundary(): Et.EtCaret {
+    return this.lastParagraph.innerEndEditingBoundary()
+  }
 }

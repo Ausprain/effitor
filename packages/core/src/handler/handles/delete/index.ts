@@ -1,6 +1,8 @@
 export {
-  removeNodesAndMergeSiblingsIfCan,
+  expandRemoveInsert,
+  removeNodesAndChildlessAncestorAndMergeSiblings,
 } from './delete.shared'
 export {
-  removeRangingContents,
+  checkRemoveTargetRange,
+  removeByTargetRange,
 } from './deleteAtRange'

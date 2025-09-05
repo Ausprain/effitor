@@ -1,4 +1,4 @@
-import type { Et } from '~/core/@types'
+import type { Et } from './@types'
 
 export const platform = {
   locale: navigator.language,
@@ -23,6 +23,7 @@ export const defaultConfig: Readonly<Et.EditorConfig> = {
   WITH_EDITOR_DEFAULT_STYLE: true,
   WITH_EDITOR_DEFAULT_LOGGER: false,
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: true,
+  INSERT_BR_FOR_LINE_BREAK: false,
 }
 
 // export type DefaultConfig = typeof defaultConfig

@@ -1,13 +1,13 @@
-import type { Et } from '~/core/@types'
-import { etcode } from '~/core/element'
-import { cr } from '~/core/selection'
-import { dom } from '~/core/utils'
-
+import type { Et } from '../../../@types'
+import { etcode } from '../../../element'
+import { HtmlCharEnum } from '../../../enums'
+import { cr } from '../../../selection'
+import { dom } from '../../../utils'
 import { cmd } from '../../command'
 import { fragmentUtils } from '../../utils'
 import { expandRemoveInsert } from '../delete/delete.shared'
-import { removeByTargetRange } from '../delete/deleteAtRange'
 import { cloneRangeUnselectedContents } from '../shared'
+import { insertParagraphAtCaret } from './insertParagraph'
 
 /**
  * 在光标位置插入文本
@@ -21,12 +21,25 @@ export const insertTextAtCaret = (
     return true
   }
   if (targetCaret.isAtText()) {
-    ctx.commandManager.push(cmd.insertText({
-      text: targetCaret.container,
-      data,
-      offset: targetCaret.offset,
-      setCaret: true,
-    }))
+    // 若前一个字符是零宽空格, 则替换为当前字符
+    const offset = targetCaret.offset
+    if (offset > 0 && targetCaret.container.data[offset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      ctx.commandManager.push(cmd.replaceText({
+        text: targetCaret.container,
+        data,
+        delLen: 1,
+        offset: offset - 1,
+        setCaret: true,
+      }))
+    }
+    else {
+      ctx.commandManager.push(cmd.insertText({
+        text: targetCaret.container,
+        data,
+        offset: targetCaret.offset,
+        setCaret: true,
+      }))
+    }
   }
   else {
     // 不在#text节点上, 插入新节点
@@ -60,15 +73,9 @@ export const insertTextAtRange = (
     return true
   }
   // 选区跨文本节点, 先删除选区
-  return ctx.commandManager.withTransactionFn((cm) => {
-    if (removeByTargetRange(ctx, targetRange) && cm.handle()) {
-      const caret = ctx.selection.getTargetCaret()
-      if (caret) {
-        insertTextAtCaret(ctx, data, caret)
-        return cm.handle()
-      }
-    }
-    return false
+  return ctx.commonHandlers.checkRemoveTargetRange(targetRange, (ctx, caret) => {
+    insertTextAtCaret(ctx, data, caret)
+    return true
   })
 }
 
@@ -85,15 +92,152 @@ export const insertElementAtCaret = (
   targetCaret: Et.ValidTargetCaret,
   destCaretRange?: Et.CaretRange,
 ) => {
-  // 插入效应元素, 判断效应合法性
-  if (dom.isEtElement(element) && !etcode.checkIn(targetCaret.anchorEtElement, element.etCode)) {
-    ctx.assists.logger?.warn('deny insert element by etcode.checkIn', 'handler')
+  // 0. 过滤元素, 只接受合法br, 段落, 其他效应元素
+  // 1. 是 br, 拆 partial 节点插入
+  // 2. 段落效应元素, 先 insertParagraph, 再在光标落点段落前插入
+  // 3. 其他效应元素, 逐级向上找到接受此元素效应的效应祖先, 拆该祖先下的 partial 节点插入
+  //    若未找到, 则禁止插入
+
+  if (dom.isBrElement(element)) {
+    if (!targetCaret.anchorParagraph) {
+      return false
+    }
+    if (splitPartialToInsertElementInEtElement(
+      ctx, element, targetCaret.anchorParagraph, targetCaret, destCaretRange,
+    )) {
+      if (ctx.isPlainParagraph(targetCaret.anchorParagraph)
+        && targetCaret.anchorParagraph.lastChild
+        && !dom.isBrElement(targetCaret.anchorParagraph.lastChild)
+      ) {
+        // 普通段落末尾无 br, 则补充一个
+        ctx.commandManager.push(cmd.insertNode({
+          node: dom.createElement('br'),
+          execAt: cr.caretInEnd(targetCaret.anchorParagraph),
+        }))
+      }
+      return true
+    }
     return false
   }
-  if (!destCaretRange) {
-    destCaretRange = cr.caretEndAuto(element)
+  if (ctx.isEtParagraph(element)) {
+    return insertParagraphElementAtCaret(ctx, element, targetCaret, destCaretRange)
   }
-  return checkSplitTextToInsertNode(ctx, element, targetCaret, destCaretRange)
+  if (etcode.check(element)) {
+    return insertElseEtElementAtCaret(ctx, element, targetCaret, destCaretRange)
+  }
+  ctx.assists.logger?.warn('deny inserting element', 'handler')
+  return false
+}
+/**
+ * 在效应元素(partialParent)节点内部指定光标位置插入元素, 可能需要拆分该节点下的`partial`节点
+ * @param ctx 编辑器上下文
+ * @param el 元素
+ * @param insertIn 要插入元素的效应元素节点
+ * @param targetCaret 目标光标
+ * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入元素末尾
+ */
+const splitPartialToInsertElementInEtElement = (
+  ctx: Et.EditorContext,
+  el: Et.Element,
+  insertIn: Et.EtElement,
+  targetCaret: Et.ValidTargetCaret,
+  destCaretRange?: Et.CaretRange,
+) => {
+  const anchorNode = targetCaret.container
+  let insertAt
+  if (anchorNode === insertIn) {
+    insertAt = targetCaret.etCaret
+  }
+  else if (dom.isText(anchorNode) && anchorNode.parentNode === insertIn) {
+    if (targetCaret.offset === 0) {
+      insertAt = cr.caretOutStart(anchorNode)
+    }
+    else if (targetCaret.offset === anchorNode.length) {
+      insertAt = cr.caretOutEnd(anchorNode)
+    }
+  }
+  if (insertAt) {
+    ctx.commandManager.push(cmd.insertNode({
+      node: el as Et.Element,
+      execAt: insertAt,
+      destCaretRange,
+    }))
+    return true
+  }
+  // 拆 partial 节点
+  const partialNode = ctx.body.outerNodeUnder(anchorNode, insertIn)
+  if (!partialNode) {
+    // 等同于上边 anchorNode === currP, 理论上不会到此
+    return false
+  }
+  const df = document.createDocumentFragment() as Et.Fragment
+  df.appendChild(el)
+  return expandRemoveInsert(ctx, targetCaret, partialNode, partialNode, df, true, false)
+}
+const insertParagraphElementAtCaret = (
+  ctx: Et.EditorContext,
+  pEl: Et.Paragraph,
+  targetCaret: Et.ValidTargetCaret,
+  destCaretRange?: Et.CaretRange,
+) => {
+  // 先插入一个"Enter"
+  return ctx.commandManager.withTransactionFn((cm) => {
+    if (!insertParagraphAtCaret(ctx, targetCaret)) {
+      return false
+    }
+    if (!cm.handle() || !cm.lastCaretRange) {
+      return false
+    }
+    const tc = ctx.selection.createTargetCaret(cm.lastCaretRange)
+    if (!tc || !tc.anchorParagraph || !tc.anchorTopElement) {
+      return false
+    }
+    // FIXME 以下判断逻辑尚不完善, 考虑如下情况
+    // <et-list>
+    //    <et-li>AA</et-li>
+    //    <et-li>|BB</et-li>
+    // </et-list>
+    // 插入 <et-p>, 会变成
+    // <et-p></et-p>
+    // <et-list>
+    //    <et-li>AA</et-li>
+    //    <et-li>|BB</et-li>
+    // </et-list>
+    let insertAt
+    if (pEl.localName === tc.anchorParagraph.localName
+      || etcode.checkIn(tc.anchorTopElement, pEl)
+    ) {
+      insertAt = cr.caretOutStart(tc.anchorParagraph)
+    }
+    else {
+      insertAt = cr.caretOutStart(tc.anchorTopElement)
+    }
+    cm.push(cmd.insertNode({
+      node: pEl,
+      execAt: insertAt,
+      destCaretRange,
+    }))
+    return true
+  })
+}
+const insertElseEtElementAtCaret = (
+  ctx: Et.EditorContext,
+  etel: Et.EtElement,
+  targetCaret: Et.ValidTargetCaret,
+  destCaretRange?: Et.CaretRange,
+) => {
+  let etParent: Et.EtElement | null = targetCaret.anchorEtElement
+  while (etParent) {
+    if (etcode.checkIn(etParent, etel)) {
+      break
+    }
+    etParent = ctx.body.findInclusiveEtParent(etParent.parentNode)
+  }
+  if (etParent) {
+    return splitPartialToInsertElementInEtElement(ctx, etel, etParent, targetCaret, destCaretRange)
+  }
+  ctx.assists.logger?.warn('deny inserting effect element by etcode check', 'handler')
+  return false
 }
 
 /**
@@ -128,6 +272,17 @@ export const insertContentsAtCaret = (
   if (!hasParagraph) {
     return insertNoParagraphContentsAtCaret(ctx, contents, targetCaret)
   }
+  if (!targetCaret.anchorParagraph || !targetCaret.anchorTopElement) {
+    if (targetCaret.container === ctx.bodyEl) {
+      // 段落缝隙间插入
+      ctx.commandManager.push(cmd.insertContent({
+        content: contents,
+        execAt: targetCaret.etCaret,
+      }))
+      return true
+    }
+    return false
+  }
   if (allPlainParagraph || targetCaret.anchorParagraph === targetCaret.anchorTopElement) {
     // 拆当前段落
     /**
@@ -138,7 +293,8 @@ export const insertContentsAtCaret = (
     </et-p>
      */
     return splitParagraphToInsertParagraphContents(
-      ctx, contents, targetCaret, targetCaret.anchorParagraph)
+      ctx, contents, targetCaret, targetCaret.anchorParagraph, targetCaret.getPartialNode('paragraph'),
+    )
   }
   else {
     // 插入内容不全是普通段落, 且顶层节点不是当前段落, 拆顶层节点
@@ -151,10 +307,9 @@ export const insertContentsAtCaret = (
     </list>
      */
     return splitParagraphToInsertParagraphContents(
-      ctx, contents, targetCaret, targetCaret.anchorTopElement,
+      ctx, contents, targetCaret, targetCaret.anchorTopElement, targetCaret.getPartialNode('topelement'),
     )
   }
-  return true
 }
 
 const insertNoParagraphContentsAtCaret = (
@@ -162,15 +317,19 @@ const insertNoParagraphContentsAtCaret = (
   contents: Et.Fragment,
   targetCaret: Et.ValidTargetCaret,
 ) => {
-  const partialNode = targetCaret.getPartialNode('paragraph')
-  if (!partialNode) {
+  let partialNode = targetCaret.getPartialNode('paragraph')
+  if (!partialNode || dom.isBrElement(partialNode)) {
     // partial 节点为 null, 说明光标在段落末尾, 直接插入
     // 按当前段落效应清理片段
     fragmentUtils.normalizeAndCleanEtFragment(contents, targetCaret.anchorParagraph, true)
-    ctx.commandManager.push(cmd.insertContent({
-      content: contents,
-      execAt: targetCaret.etCaret,
-    }))
+    const lastChild = contents.lastChild
+    if (lastChild) {
+      ctx.commandManager.push(cmd.insertContent({
+        content: contents,
+        execAt: targetCaret.etCaret,
+        destCaretRange: cr.caretEndAuto(lastChild),
+      }))
+    }
     return true
   }
   const etel = targetCaret.anchorEtElement
@@ -178,33 +337,6 @@ const insertNoParagraphContentsAtCaret = (
     // 当前效应元素就是段落, 直接拆分段落 partial 节点
     fragmentUtils.normalizeAndCleanEtFragment(contents, targetCaret.anchorParagraph, true)
     return expandRemoveInsert(ctx, targetCaret, partialNode, partialNode, contents, true, true)
-    // const [df1, df2] = cloneRangeUnselectedContents(
-    //   targetCaret,
-    //   partialNode,
-    //   partialNode,
-    //   true,
-    // )
-    // let df = fragmentUtils.mergeEtFragments(df1, contents)
-    // if (destCaretRange) {
-    //   df = fragmentUtils.mergeEtFragments(df, df2)
-    // }
-    // else {
-    //   const out = fragmentUtils.getMergedEtFragmentAndCaret(df, df2, false, false)
-    //   if (!out) {
-    //   // 无合并内容, 不用插入
-    //     return true
-    //   }
-    //   df = out[0]
-    //   destCaretRange = out[1]
-    // }
-    // // 按段落效应清理片段
-    // fragmentUtils.cleanAndNormalizeFragment(df, targetCaret.anchorParagraph, true)
-    // ctx.commandManager.push(cmd.insertContent({
-    //   content: df,
-    //   execAt: targetCaret.etCaret,
-    //   destCaretRange,
-    // }))
-    // return true
   }
   // 拆效应元素?
   // 先判断效应
@@ -217,10 +349,10 @@ const insertNoParagraphContentsAtCaret = (
   }
   if (allChildAllowIn) {
     // 拆分效应元素 partial 节点
-    const partialNode = targetCaret.getPartialNode('etelement')
+    partialNode = targetCaret.getPartialNode('etelement')
     // 按效应元素清理片段
     fragmentUtils.normalizeAndCleanEtFragment(contents, targetCaret.anchorEtElement, true)
-    if (!partialNode) {
+    if (!partialNode || dom.isBrElement(partialNode)) {
       // 直接插入效应元素末尾
       ctx.commandManager.push(cmd.insertContent({
         content: contents,
@@ -232,7 +364,7 @@ const insertNoParagraphContentsAtCaret = (
   }
   // 插入内容拥有当前效应元素所不接受的效应子节点, 拆效应元素
   // 用更上层的效应节点清理片段
-  const etParent = ctx.body.findEffectParent(targetCaret.anchorEtElement)
+  const etParent = ctx.body.findInclusiveEtParent(targetCaret.anchorEtElement)
   if (etParent) {
     fragmentUtils.normalizeAndCleanEtFragment(contents, targetCaret.anchorTopElement, true)
   }
@@ -243,14 +375,17 @@ const splitParagraphToInsertParagraphContents = (
   contents: Et.Fragment,
   targetCaret: Et.ValidTargetCaret,
   splitParagraph: Et.Paragraph,
+  /** 光标位置在 splitParagraph 下的最外层祖先节点 */
+  partialNode: Et.NodeOrNull,
 ) => {
-  let isCurrPlainParagraph = true
   const currParagraph = splitParagraph
+  const paragraphEtParent = ctx.body.findInclusiveEtParent(currParagraph)
+  let isCurrPlainParagraph = true
+  // 当前段落不是普通段落, 规范插入内容以适应当前段落类别
   if (!ctx.isPlainParagraph(currParagraph)) {
     isCurrPlainParagraph = false
     // 当前段落不是普通段落, 根据效应父节点类型适应为当前段落类别
-    const etParent = ctx.body.findEffectParent(currParagraph)
-    if (!etParent || !etcode.checkIn(etParent, ctx.schema.paragraph.etType)) {
+    if (!paragraphEtParent || !etcode.checkIn(paragraphEtParent, ctx.schema.paragraph.etType)) {
       // 当前(目标光标位置)段落无效应父节点(不应该发生), 或效应父节点不接受普通段落效应,
       // 将普通段落转为当前段落类型
       for (const child of contents.childNodes) {
@@ -265,25 +400,37 @@ const splitParagraphToInsertParagraphContents = (
     }
   }
   // 当前段落就是普通段落, 或已经适应段落类别, 直接拆分插入
-  const partialNode = targetCaret.getPartialNode('paragraph')
+  const caretAfterCurrP = cr.caretOutEnd(currParagraph)
   // 取出第一个段落
   const firstParagraph = contents.firstChild
   if (!firstParagraph) {
-    return false
+    return true
   }
-  firstParagraph.remove()
-  const firstParagraphContents = fragmentUtils.extractNodeContentsToEtFragment(firstParagraph)
-  if (!isCurrPlainParagraph) {
-    // 非普通段落, 按效应父节点清理片段
-    fragmentUtils.normalizeAndCleanEtFragment(
-      firstParagraphContents, currParagraph, true)
+  // 与当前段落相同类别, 合并内容
+  let firstContents
+  if (currParagraph.isEqualTo(firstParagraph as Et.Paragraph)) {
+    firstParagraph.remove()
+    firstContents = fragmentUtils.extractNodeContentsToEtFragment(firstParagraph)
+    if (!isCurrPlainParagraph && currParagraph.localName !== firstParagraph.localName) {
+      // 当前非普通段落, 按效应父节点清理片段
+      fragmentUtils.normalizeAndCleanEtFragment(
+        firstContents, currParagraph, true)
+    }
   }
-  if (!partialNode) {
+  else {
+    firstContents = document.createDocumentFragment() as Et.Fragment
+    // 当前段落的父效应元素节点接受插入内容的第一个段落, 则将整个段落加入合并
+    if (paragraphEtParent && etcode.checkIn(paragraphEtParent, firstParagraph)) {
+      firstParagraph.remove()
+      firstContents.appendChild(firstParagraph)
+    }
+  }
+  if (!partialNode || dom.isBrElement(partialNode)) {
     // 当前光标在段落内末尾, 直接插入第一个段落的内容到当前段落末尾
-    const lastChild = firstParagraphContents.lastChild
+    const lastChild = firstContents.lastChild
     if (lastChild) {
       ctx.commandManager.push(cmd.insertContent({
-        content: firstParagraphContents,
+        content: firstContents,
         execAt: targetCaret.etCaret,
         destCaretRange: cr.caretEndAuto(lastChild),
       }))
@@ -292,70 +439,111 @@ const splitParagraphToInsertParagraphContents = (
       // 剩余段落插入当前段落外末尾
       ctx.commandManager.push(cmd.insertContent({
         content: contents,
-        execAt: cr.caretOutEnd(currParagraph),
+        execAt: caretAfterCurrP,
       }))
     }
     return true
   }
-  // 拆分 partial 节点, 前半内容与首段落内容合并插回当前段落
-  // 后半内容与末段落合并插入新段落, 剩余未选择内容移动到新段落内末尾
-  // 中间段落插入当前段落外末尾
+  // 1. 移除 partial 节点, 从光标位置拆分, 前半内容与首段落内容合并插回当前段落
+  // 2. 剩余未选择内容移动到新段落内末尾, 后半内容与末段落合并插入新段落内开头, 光标置于合并处,
+  // 3. 中间段落插入当前段落外末尾
 
-  // 1. 获取拆分内容
+  let destCaretRange
+  // 1. 获取拆分内容, 移除partial 节点
   let [df1, df2] = cloneRangeUnselectedContents(
     targetCaret,
     partialNode,
     partialNode,
     true,
   )
+  ctx.commandManager.push(cmd.removeNode({ node: partialNode }))
 
-  // 2. 创建新段落
-  const newP = ctx.cloneParagraph(currParagraph)
-  // 3. 移动剩余节点到新段落 (如果有)
+  // 2. 前半内容与首段落内容合并插入当前段落, 设置最终光标位置
+  df1 = fragmentUtils.mergeEtFragments(df1, firstContents)
+  const lastChild = df1.lastChild
+  if (lastChild) {
+    ctx.commandManager.push(cmd.insertContent({
+      content: df1,
+      execAt: cr.caretOutStart(partialNode),
+    }))
+    destCaretRange = cr.caretEndAuto(lastChild)
+  }
+
+  // 3. 创建新段落
+  const newP = ctx.cloneParagraph(currParagraph, false)
+  // 4. 移动剩余节点到新段落 (如果有)
   const nextChild = partialNode.nextSibling
+  let isEmptyNewP = true
   if (nextChild) {
     const removeRange = cr.spanRange(nextChild, currParagraph.lastChild)
     if (removeRange) {
+      isEmptyNewP = false
       ctx.commandManager.push(cmd.moveNodes(removeRange, cr.caretInStart(newP)))
     }
   }
-  // 4. 末段落内容与后半部分内容合并插入新段路内开头
-  // 取出最后一个段落
+  // 5. 末段落内容与后半部分内容合并插入新段落内开头
+  // 取出最后一个段落, 是普通段落或与当前段落类别相同, 抽出内容; 否则原样插入新段落外开头
+  destCaretRange = void 0
   const lastParagraph = contents.lastChild
+  let lastContents
   if (lastParagraph) {
-    lastParagraph.remove()
-    const lastParagraphContents = fragmentUtils.extractNodeContentsToEtFragment(lastParagraph)
-    if (!isCurrPlainParagraph) {
-      // 非普通段落, 按效应父节点清理片段
-      fragmentUtils.normalizeAndCleanEtFragment(lastParagraphContents, newP, true)
+    if (currParagraph.isEqualTo(lastParagraph as Et.Paragraph)) {
+      lastParagraph.remove()
+      lastContents = fragmentUtils.extractNodeContentsToEtFragment(lastParagraph)
+      if (!isCurrPlainParagraph && currParagraph.localName !== lastParagraph.localName) {
+        // 非普通段落, 按效应父节点清理片段
+        fragmentUtils.normalizeAndCleanEtFragment(lastContents, newP, true)
+      }
     }
-    df2 = fragmentUtils.mergeEtFragments(lastParagraphContents, df2)
+    else {
+      lastContents = document.createDocumentFragment() as Et.Fragment
+      if (paragraphEtParent && etcode.checkIn(paragraphEtParent, lastParagraph)) {
+        lastParagraph.remove()
+        lastContents.appendChild(lastParagraph)
+      }
+    }
+    const out = fragmentUtils.getMergedEtFragmentAndCaret(
+      lastContents, df2, false, false, ctx.affinityPreference,
+    )
+    if (out) {
+      df2 = out[0]
+      destCaretRange = out[1]
+    }
   }
   if (df2.hasChildNodes()) {
+    if (!destCaretRange) {
+      // 并没有将 lastParagraph 内容合并, 则光标置于拆分内容后半部的开头
+      destCaretRange = cr.caretStartAuto(df2.firstChild as Et.Node)
+    }
+    isEmptyNewP = false
     ctx.commandManager.push(cmd.insertContent({
       content: df2,
       execAt: cr.caretInStart(newP),
+      destCaretRange,
     }))
   }
-  // 5. 中间段落插入当前段落外末尾
+  // 插入新段落
+  if (isEmptyNewP) {
+    // 新段落为空, 插入一个br
+    newP.appendChild(document.createElement('br'))
+    destCaretRange = cr.caretInStart(newP)
+  }
+  else {
+    destCaretRange = undefined
+  }
+  ctx.commandManager.push(cmd.insertNode({
+    node: newP,
+    execAt: caretAfterCurrP,
+    destCaretRange,
+  }))
+  // 6. 中间段落插入当前段落外末尾
   if (contents.hasChildNodes()) {
     ctx.commandManager.push(cmd.insertContent({
       content: contents,
-      execAt: cr.caretOutEnd(currParagraph),
+      execAt: caretAfterCurrP,
     }))
   }
-  // 6. 前半内容与首段落内容合并插入当前段落, 设置最终光标位置
-  const out = fragmentUtils.getMergedEtFragmentAndCaret(df1, firstParagraphContents, false, false) // 上游已经 clean
-  if (out) {
-    df1 = out[0]
-  }
-  if (df1.hasChildNodes()) {
-    ctx.commandManager.push(cmd.insertContent({
-      content: df1,
-      execAt: targetCaret.etCaret,
-      destCaretRange: out ? out[1] : undefined,
-    }))
-  }
+
   return true
 }
 
@@ -377,7 +565,9 @@ export const insertElementAtCaretTemporarily = (
   // 因为临时插入最终都是要撤销的, 那么就不必考虑文档结构问题
   ctx.commandManager.closeTransaction()
   ctx.commandManager.startTransaction()
-  return checkSplitTextToInsertNode(ctx, element, targetCaret, destCaretRange)
+  const df = document.createDocumentFragment() as Et.Fragment
+  df.appendChild(element)
+  return checkSplitTextToInsertContentsTemporarily(ctx, df, targetCaret, destCaretRange)
 }
 
 /**
@@ -394,20 +584,27 @@ export const insertContentsAtCaretTemporarily = (
 ) => {
   ctx.commandManager.closeTransaction()
   ctx.commandManager.startTransaction()
-  return checkSplitTextToInsertNode(ctx, contents, targetCaret, destCaretRange)
+  return checkSplitTextToInsertContentsTemporarily(ctx, contents, targetCaret, destCaretRange)
 }
 
 /**
  * 在一个光标位置插入内容, 若光标在文本节点中间, 则会自动拆分该文本节点
+ * * 该方法不会判断插入节点或片段内容在插入位置的合法性
  */
-const checkSplitTextToInsertNode = (
+const checkSplitTextToInsertContentsTemporarily = (
   ctx: Et.EditorContext,
-  node: Et.Element | Et.Fragment,
+  content: Et.Fragment,
   targetCaret: Et.ValidTargetCaret,
   destCaretRange?: Et.CaretRange,
 ) => {
+  if (!content.hasChildNodes()) {
+    return false
+  }
   let execAt
   const { container, offset } = targetCaret
+  if (!destCaretRange) {
+    destCaretRange = cr.caretEndAuto(content.lastChild as Et.Node)
+  }
   if (!dom.isText(container)) {
     execAt = cr.caret(container, offset)
   }
@@ -420,33 +617,17 @@ const checkSplitTextToInsertNode = (
   else {
     const preText = container.data.slice(0, offset)
     const postText = container.data.slice(offset)
-    if (dom.isFragment(node)) {
-      node.prepend(preText)
-      node.append(postText)
-    }
-    else {
-      const df = document.createDocumentFragment() as Et.Fragment
-      df.append(preText, node, postText)
-      node = df
-    }
+    content.prepend(preText)
+    content.append(postText)
     execAt = cr.caretOutStart(container)
     ctx.commandManager.push(cmd.removeNode({ node: container }))
   }
 
-  if (dom.isFragment(node)) {
-    ctx.commandManager.push(cmd.insertContent({
-      content: node,
-      execAt,
-      destCaretRange,
-    }))
-  }
-  else {
-    ctx.commandManager.push(cmd.insertNode({
-      node: node,
-      execAt,
-      destCaretRange,
-    }))
-  }
+  ctx.commandManager.push(cmd.insertContent({
+    content: content,
+    execAt,
+    destCaretRange,
+  }))
 
   return true
 }

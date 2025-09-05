@@ -129,7 +129,7 @@ declare const enum InputTypeEffectDeclaration {
 /** 从拖拽中插入; issue: ShadowDOM 内无法识别插入位置 (Chromium 120) */
 - [ ] insertFromDrop
 /** 插入粘贴 */
-- [ ] insertFromPaste
+- [x] insertFromPaste
 /** 仅 Firefox 实现 */
 - [ ] insertFromPasteAsQuotation
 /** 从编辑器内部复制剪贴板(yank)粘贴 */
@@ -158,22 +158,36 @@ declare const enum InputTypeEffectDeclaration {
 
 #### insertFromPaste
 
-插入粘贴, 若`Selection`类型为`'Range'`,
-需先手动发送一个`deleteContentBackward`的`beforeinput`让光标`collapsed`
+插入粘贴, 若`Selection`类型为`'Range'`, 先删除选区让光标`collapsed`
 
-1. 粘贴文本或富文本
+1.  编辑器内部复制粘贴
+    复制为 html 纯文本, 以 `text/et-html` 类型存入 clipboardData 中,
+    由于是自定义类型, 只在当前浏览器内有效
 
-```ts
-ev.data: 要粘贴内容的html文本
-    为安全起见，onpaste仅从clipboardData中读取text/et-html, text/plain的内容
-ev.dataTransfer: null
-```
+    TODO: 考虑封装 navigator.clipboard 方法, 然后维护一个内部剪切板(yank), 识别到
+    编辑器内部复制粘贴时, 触发 `insertFromYank` 从 yank 中粘贴; 这样就不用在 keydown
+    事件中专门放行`复制/剪切/粘贴`的快捷键行为, 可以拦截所有keydown 默认行为了.
 
-2. 粘贴图片
+    难点在于, 如何判断是否是编辑器内部复制粘贴;
+
+    方案 1: 从编辑器复制时, 写入clipboard 的`text/html`内容中写入一个头信息,
+    如`<!-- et-html -->` 或 `<meta name="et-html">`, 粘贴时判断是否包含该头信息;
+    若包含, 则说明是编辑器内部复制粘贴, 从 yank 中粘贴;
+    若不包含, 则说明是普通粘贴, 从 navigator.clipboard.read 内容粘贴, 并清理 yank
+    记录;
+
+    ps. yank 还可以方便的实现类似 vscode的多选区复制/粘贴
+
+2.  粘贴文本或富文本, 或从 markdown粘贴(快捷键支持)
+
+    > 由`@effitor/core`实现, 从 ev.dataTransfer 中提取 `text/plain`或`text/html`进行粘贴
+
+3.  粘贴文件(图片/音视频/文档)
+    > 由插件在`Effector.pasteCallback`中实现
 
 ```ts
 ev.data: null
-ev.dataTransfer: 包含复制到剪切板的图片
+ev.dataTransfer: 包含复制到剪切板的文件
 ```
 
 #### insertFromPasteAsQuotation
@@ -246,9 +260,9 @@ ev.dataTransfer: 包含复制到剪切板的图片
 
 ```ts
 /** Ctrl+z撤销 */
-- [ ] historyUndo
+- [x] historyUndo
 /** Ctrl+y重做 */
-- [ ] historyRedo
+- [x] historyRedo
 
 /** 加粗 */
 - [ ] formatBold
