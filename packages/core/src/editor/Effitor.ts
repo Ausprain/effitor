@@ -121,13 +121,14 @@ export class Effitor {
         callbacks = {},
         hotkeyOptions,
     }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
-    // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
-    // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
+    // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM, 则强制不使用 ShadowDOM
     if (shadow) {
       shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
     }
     this.isShadow = shadow
     this.config = { ...defaultConfig, ...config }
+    // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
+    // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
     plugins = [{ name: '__plugin_$undo', effector: useUndoEffector() }, ...plugins]
     const schema = {
       editor: EtEditorElement,

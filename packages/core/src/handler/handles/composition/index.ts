@@ -3,16 +3,19 @@ import { cmd } from '../../command'
 import { createInputEffectHandle } from '../../utils'
 import { insertTextAtCaret } from '../insert/insert.shared'
 
-export const insertCompositionText = createInputEffectHandle((_this, ctx, pl) => {
-  // safari 中, 不用合并 InsertCompositionText 命令
-  if (platform.isSafari || !pl.data) {
-    return true
-  }
-  ctx.commandManager.push(cmd.insertCompositionText({
-    data: pl.data,
-  }))
-  return true
-})
+export const insertCompositionText = platform.isSupportInsertFromComposition
+  // Safari 或 MacOS webview 中可通过insertFromComposition拦截输入法输入,
+  // 不用合并 InsertCompositionText 命令, 直接返回true 即可
+  ? () => true
+  : createInputEffectHandle((_this, ctx, pl) => {
+      if (!pl.data) {
+        return true
+      }
+      ctx.commandManager.push(cmd.insertCompositionText({
+        data: pl.data,
+      }))
+      return true
+    })
 
 /**
  * 输入法会话中删除输入法组合串文本, 仅 Safari; 不用处理
