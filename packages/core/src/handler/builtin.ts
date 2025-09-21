@@ -30,13 +30,14 @@ import {
 import { insertLineBreak } from './handles/insert/insertLineBreak'
 import { insertParagraph } from './handles/insert/insertParagraph'
 import { insertText } from './handles/insert/insertText'
+import { dblSpace, tabout } from './handles/others/caretout'
 import {
   initEditorContents,
   transformInsertContents,
   updateEditorContentsFromMarkdown,
 } from './handles/others/default'
 
-export const buintinHandler: Et.EffectHandleMap = {
+export const buintinHandler: Et.EffectHandler = {
   // 输入法相关
   EinsertCompositionText: insertCompositionText,
   EdeleteCompositionText: deleteCompositionText,
@@ -71,4 +72,7 @@ export const buintinHandler: Et.EffectHandleMap = {
 
   // @ts-expect-error no error, deliberately, do not expose this effect outside package `@effitor/core`.
   InsertFromEtHtml: insertFromEtHtml,
+
+  tabout: tabout,
+  dblSpace: dblSpace,
 }

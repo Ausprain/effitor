@@ -1,3 +1,5 @@
+# 算法
+
 ## 接管除输入法输入外的所有 keydown 行为, 使用当前光标位置, 手动判断要删除的内容
 
 注意事项: \
@@ -10,6 +12,7 @@ sol. \
 Selection.modify 方法太重, 每次执行 浏览器都要计算布局 (`Document::UpdateStyleAndLayout`)
 
 算法:
+@deprecated
 
 ```ts
 let node = new Text("AB👨👩👧👦C"); // node.length = 11
@@ -24,6 +27,8 @@ node.deleteData(offset - textChar.length, textChar.length); // delData = '👦'
 // '👨🏽' -> '👨' -> ''
 // 因为 '👨🏽'.length==4, 由'👨'和'🏽'合成; 但这样也不妨碍视觉表现, 因此此算法是可行的, 不至于出现`�`的情况
 ```
+
+sol. 使用 [Intl.Segmenter](packages/core/src/intl/Segmenter.ts)
 
 ## 判断光标是否在段落开头/末尾
 
@@ -113,3 +118,35 @@ isAffinityTo(caret: EtCaret) {
    */
 }
 ```
+
+# 设计
+
+## 使用效应思路实现光标的左右, 以获取更精细化的实现和更好的性能
+
+case:
+
+```css
+<div>aaaa|<b>abc</b></div>
+现在的方案, 使用 Selection.modify 方式移动光标; 则光标右移一位得到以下新的位置
+<div>aaaa<b>a|bc</b></div>
+然后左移一位得到
+<div>aaaa|<b>abc</b></div>
+也就是我们无法获得定位于<b>内开头的位置, 即通过 modify, 无法得到
+<div>aaaa<b>|abc</b></div>
+于是通过零宽字符来救场
+<div>aaaa|<b>0abc</b></div>
+0 代表零宽字符, 光标右移一位得到以下位置, 由于零宽字符, 视觉就可以得到<b>内开头的位置了
+<div>aaaa<b>0|abc</b></div>
+```
+
+这么做的的弊端, 在于每个我们需要此需求的场景, 都必须手动维护这些零宽字符, 要么删除时添加额外的逻辑去处理这些零宽字符; 要么任由这些零宽字符在文档中残留
+
+`sol. // TODO `
+
+```html
+<div>aaaa|<b>abc</b></div>
+```
+
+假设 `<b>` 是个效应元素, 则按下右键时, 若光标在文本末尾, 则找下一个节点, 若下一个节点是效应元素, 尝试激活其"从开始端接收光标"效应, 让效应元素来决定如何定位光标位置
+特别的, 对于embedment 节点, 光标无法落入其中, 则直接定位到该效应元素外末尾;
+而对于嵌套可编辑的 Component 节点, 则让其将光标定位到内部可编辑的对应位置.

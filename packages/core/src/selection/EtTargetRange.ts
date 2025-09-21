@@ -9,6 +9,7 @@ import type { Et } from '../@types'
 import { EtCaret } from './EtCaret'
 import { EtRange } from './EtRange'
 
+// 以别名方式导出内部class类型
 export type EtTargetCaret = TargetCaret
 export type EtTargetRange = TargetRange
 export interface ValidTargetCaret extends EtTargetCaret {
@@ -84,6 +85,13 @@ class TargetCaret implements _SelectionTarget {
 
   isAtText(): this is this & { container: Et.Text } {
     return this.container.nodeType === 3 /** Node.TEXT_NODE */
+  }
+
+  isAtEnd() {
+    return this.offset === (this.container.nodeType === 3
+      ? (this.container as Text).length
+      : this.container.childNodes.length
+    )
   }
 
   toTargetCaret(): TargetCaret extends this ? TargetCaret : ValidTargetCaret {

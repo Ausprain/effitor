@@ -1,52 +1,23 @@
 import type { Et } from '../@types'
-import { etcode } from '../element'
-import { EtTypeEnum } from '../enums'
-// import { cr } from '../selection'
 import { type MainKeyboardSolver, runKeyboardSolver } from './keydown'
 
 const keyupSolver: MainKeyboardSolver = {
-  ArrowDown: (_ev, ctx) => {
-    ctx.forceUpdate()
-  },
-  ArrowUp: (_ev, ctx) => {
-    ctx.forceUpdate()
-  },
-  ArrowLeft: (_ev, ctx) => {
-    ctx.forceUpdate()
-  },
-  ArrowRight: (_ev, ctx) => {
-    ctx.forceUpdate()
-  },
-
-  Tab: (ev, ctx) => {
-    if (ev.ctrlKey || ev.altKey) return
-    if (!ctx.selection.isCollapsed) {
-      ctx.selection.collapse(false)
-      return
+  // 样式节点内双击空格, 跳出最外层样式节点
+  ' ': (_ev, ctx) => {
+    if (ctx.prevUpKey === ' ') {
+      const tr = ctx.selection.getTargetRange()
+      if (!tr || !tr.collapsed) {
+        return
+      }
+      return ctx.getEtHandler(tr.startEtElement).dblSpace?.(ctx, tr.toTargetCaret())
     }
-    if (etcode.check(ctx.commonEtElement, EtTypeEnum.CaretOut)) {
-      // 在富文本`or`组件节点内, 跳到下一节点开头
-      // return ctx.commonHandlers.tabout(ctx)
-    }
-    // TODO 使用 commonHandlers
-    // const text = ctx.selection.anchorText
-    // // 有文本节点，插入制表符
-    // if (text) {
-    //   return ctx.commandManager
-    //     .push('Insert_Text', {
-    //       data: '\t',
-    //       text: text,
-    //       offset: ctx.selection.anchorOffset,
-    //     })
-    //     .handle(cr.caret(text, ctx.selection.anchorOffset + 1))
-    // }
   },
 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class MainKeyupKeySolver implements Et.KeyboardKeySolver {
-  [k: string]: Et.KeyboardAction | undefined
+  [k: string]: Et.KeyboardAction
 }
 Object.assign(MainKeyupKeySolver.prototype, keyupSolver)
 
@@ -70,6 +41,6 @@ export const getKeyupListener = (
     }
     doubleKeyTimer = window.setTimeout(() => {
       ctx.prevUpKey = undefined
-    }, 111)
+    }, 211)
   }
 }

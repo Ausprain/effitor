@@ -13,7 +13,7 @@ export const removeHotstringOnTrigger: RemoveHotstringAction = (ctx, hotstring) 
   if (!text) return false
   const startOffset = ctx.selection.anchorOffset - hotstring.length
   if (text.data.slice(startOffset, startOffset + hotstring.length) === hotstring) {
-    return ctx.commonHandlers.deleteText(text, startOffset, hotstring, true)
+    return ctx.commonHandlers.deleteInTextNode(text, startOffset, hotstring, true)
   }
   return false
 }

@@ -90,87 +90,28 @@ const keydownKeySolver: MainKeyboardSolver = {
       ev.stopPropagation()
     }
   },
-  // ' ': (ev, ctx) => {
-  //   if (ctx.prevUpKey === ' ' && (
-  //   // 双击空格跳出组件or富文本节点
-  //     etcode.check(ctx.effectElement, EtTypeEnum.CaretOut)
-  //   )) {
-  //     if (ctx.commonHandlers.dblSpace(ctx)) {
-  //       ev.preventDefault()
-  //     }
-  //   }
-  // },
-  // 'A': (ev, ctx) => { /** 放行默认全选 */
-  //   if ((!ev.metaKey && !ev.ctrlKey) || ev.shiftKey || ev.altKey) {
-  //     return
-  //   }
 
-  //   // FIXME Mac中, 连续的第二下 cmd+a 会被系统接管, 此处监听不到
-
-  //   const rangeLevel = ctx.selection.rangeLevel
-  //   if (rangeLevel === 0) {
-  //     if (ctx.currDownKey === 'a') {
-  //       // 上一个按键是全选
-  //       ctx.selection.selectNodeContents(ctx.body, true)
-  //     }
-  //     else {
-  //       ctx.selection.selectNodeContents(ctx.paragraphEl, true)
-  //     }
-  //     return ctx.preventAndSkipDefault(ev)
-  //   }
-  // },
   C: () => { /** 放行默认复制 */ },
   V: () => { /** 放行默认粘贴 */ },
   X: () => { /** 放行默认剪切 */ },
-  ArrowDown: () => { /** 放行方向键 */ },
-  ArrowLeft: () => { /** 放行方向键 */ },
-  ArrowRight: () => { /** 放行方向键 */ },
-  ArrowUp: () => { /** 放行方向键 */ },
 
-  // Tab: (ev) => {
-  //   // tab效应移动到keyup中
-  //   ev.preventDefault()
-  // },
+  // 在样式节点内按下 tab, 跳出样式节点, 否则插入制表符
+  Tab: (ev, ctx) => {
+    if (ev.ctrlKey || ev.altKey) return
+    if (!ctx.selection.isCollapsed) {
+      ctx.selection.collapse(false)
+      return
+    }
+    const tr = ctx.selection.getTargetRange()
+    if (!tr) {
+      return
+    }
+    if (tr.collapsed) {
+      return ctx.getEtHandler(tr.startEtElement).tabout?.(ctx, tr.toTargetCaret())
+    }
+    ctx.selection.collapse(false, true)
+  },
 
-  // Enter: (ev, ctx) => {
-  //   if (ev.isComposing) return
-  //   ev.preventDefault()
-
-  //   if (ev.shiftKey) {
-  //     if (etcode.check(ctx.paragraphEl, EtTypeEnum.Heading)) {
-  //       // 标题内禁用软换行
-  //       return
-  //     }
-  //     // 插入软换行 (其实是硬换行<br>, 只是inputType叫软换行)
-  //     ctx.dispatchInputEvent('beforeinput', {
-  //       inputType: 'insertLineBreak',
-  //     })
-  //   }
-  //   else if (platform.isMac ? ev.metaKey : ev.ctrlKey) {
-  //     // 当前段落后边插入新段落
-  //     // ctx.commonHandlers.appendParagraph(ctx)
-  //   }
-  //   else {
-  //     ctx.dispatchInputEvent('beforeinput', {
-  //       inputType: 'insertParagraph',
-  //     })
-  //   }
-  // },
-  // Backspace: platform.isMac
-  //   ? (ev, ctx) => {
-  //       ev.preventDefault()
-  //       ctx.dispatchInputEvent('beforeinput', {
-  //         inputType: ev.altKey ? 'deleteWordBackward' : 'deleteContentBackward',
-
-  //       })
-  //     }
-  //   : (ev, ctx) => {
-  //       ev.preventDefault()
-  //       ctx.dispatchInputEvent('beforeinput', {
-  //         inputType: ev.ctrlKey ? 'deleteWordBackward' : 'deleteContentBackward',
-
-  //       })
-  //     },
   // TODO 放 handler 中处理
   //   if (!ctx.selection.isCollapsed || !ctx.selection.anchorText) return
   //   // 毗邻零宽字符, 移动光标
@@ -197,19 +138,22 @@ const keydownKeySolver: MainKeyboardSolver = {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class MainKeydownKeySolver implements Et.KeyboardKeySolver {
-  [k: string]: Et.KeyboardAction | undefined
+  [k: string]: Et.KeyboardAction
 }
 Object.assign(MainKeydownKeySolver.prototype, keydownKeySolver)
 
 export const runKeyboardSolver = (
   ev: Et.KeyboardEvent, ctx: Et.UpdatedContext,
-  main: Et.KeyboardKeySolver, solver?: Et.KeyboardKeySolver,
+  main: Et.KeyboardKeySolver, solver?: Et.KeyboardSolver,
 ) => {
   const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
 
   let fn
   if (solver) {
-    fn = solver[key as keyof typeof solver] ?? solver.default
+    fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
+    if (!fn) {
+      fn = solver[key as keyof typeof solver] || solver.default
+    }
     if (typeof fn === 'function') {
       fn(ev, ctx)
     }
@@ -217,8 +161,9 @@ export const runKeyboardSolver = (
   // ctx标记skipDefault跳过默认effector
   if (ctx.defaultSkipped) return false
 
-  // mainKeydownSolver需要在其他效应器后执行, 因为会dispatch beforeinput事件；如果先执行, 就会先执行beforeinput再执行其他keydownSolver
-  fn = main[key as keyof typeof main] || main['default']
+  // mainKeydownSolver需要在其他效应器后执行, 因为会dispatch beforeinput事件；
+  // 如果先执行, 就会先执行beforeinput再执行其他keydownSolver
+  fn = main[key as keyof typeof main] || main.default
   if (typeof fn === 'function') {
     fn(ev, ctx)
   }
@@ -248,10 +193,16 @@ export const runKeyboardSolver = (
  *
  */
 export const getKeydownListener = (
-  ctx: Et.EditorContext, main: MainKeydownKeySolver, solver?: Et.KeyboardKeySolver,
+  ctx: Et.EditorContext, main: MainKeydownKeySolver, solver?: Et.KeyboardSolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
-    // console.error('keydown start', ev.key, ev.isComposing)
+    // console.warn('keydown', {
+    //   comp: ev.isComposing,
+    //   skip: ctx.nextKeydownSkipped && ctx.skipNextKeydown(),
+    //   key: ev.key,
+    //   prevUp: ctx.prevUpKey,
+    // })
+
     // 没有effectElement 或没有选区 阻止后续输入
     if (!ctx.isUpdated()) {
       if (import.meta.env.DEV) {
@@ -263,9 +214,12 @@ export const getKeydownListener = (
       ctx.editor.blur()
       return
     }
+
     // fixed. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
     // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
     if ((ctx.inCompositionSession = ev.isComposing)) {
+      ev.preventDefault()
+      ev.stopPropagation()
       return
     }
 
@@ -275,6 +229,8 @@ export const getKeydownListener = (
       // TODO 此处可去掉 'Process' 判断, 以实现多平台一致的输入法行为
       //    如果此处为 Process 跳过了, 那么后续的  keyboardWritableKeyToImeChar(ev.key)
       //    输入法标点符号映射将不奏效, 也就造成了多平台不一致的输入法行为
+      ev.preventDefault()
+      ev.stopPropagation()
       return
     }
 
@@ -349,6 +305,8 @@ export const getKeydownListener = (
     // 设置当前按下的按键, 用于在下一个 keydown 中判断是否连续按下相同的按键
     ctx.currDownKey = ev.key
     // 若光标为Range, 设为null, 并在keyup中跳过
-    ctx.prevUpKey = ctx.selection.isCollapsed ? undefined : null
+    if (!ctx.selection.isCollapsed) {
+      ctx.prevUpKey = null
+    }
   }
 }

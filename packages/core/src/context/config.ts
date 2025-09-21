@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-
 import type { EditorSchema, EditorSettings, Effitor } from '../editor'
 import type { EditorLogger } from './EditorLogger'
 
@@ -11,8 +9,10 @@ export interface EditorAssists {
 }
 /**
  * 编辑器插件上下文
+ * @extendable
  */
-export interface EditorPluginContext {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface EditorPluginContext extends Record<symbol, unknown> {}
 /**
  * 编辑器上下文元数据, 在编辑器 mount 前, 暴露给插件, 以增强编辑器上下文
  */
@@ -23,7 +23,10 @@ export interface EditorContextMeta {
   readonly schema: EditorSchema
   /** 编辑器助手插件 */
   readonly assists: EditorAssists
-  /** 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示 */
+  /**
+   * 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示
+   * * 不同于效应器上下文(ectx), 插件上下文是局部的(每个编辑器实例的上下文 ctx 独有)
+   */
   readonly pctx: EditorPluginContext
   /**
    * 编辑器设置, 类似EditorCallbacks, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \

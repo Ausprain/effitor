@@ -3,8 +3,10 @@
  * DOM 相关的工具函数, 通过 dom 工具对象统一导出,\
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
+
+import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../../@types'
-import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../../enums'
 
 /* -------------------------------------------------------------------------- */
 /*                                  node utils                                */
@@ -208,7 +210,7 @@ export const isEqualElement = (el1: Element, el2: Element, statusClasses: string
  * @returns class列表元素集合相同返回true, 否则false
  */
 export const isEqualClass = (class1: string, class2: string, statusClasses: string[] = []) => {
-  statusClasses.push(CssClassEnum.Active, CssClassEnum.Selected)
+  statusClasses.push('', CssClassEnum.Active, CssClassEnum.Selected, CssClassEnum.CaretIn)
   const cls1Set = new Set(class1.split(' '))
   const cls2Set = new Set(class2.split(' '))
   for (const cls of statusClasses) {

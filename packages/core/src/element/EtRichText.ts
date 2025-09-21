@@ -1,4 +1,5 @@
-import { BuiltinElName, EtTypeEnum } from '../enums'
+import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
+
 import { cssStyle2cssText } from '../utils'
 import { EffectElement } from './EffectElement'
 

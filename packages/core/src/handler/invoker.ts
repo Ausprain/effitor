@@ -1,6 +1,6 @@
 import type { EditorContext, UpdatedContext } from '../context'
 import type { EffectElement } from '../element'
-import type { EffectHandle, EffectHandleMap } from './config'
+import type { EffectHandle, EffectHandler } from './config'
 
 // 增强效应元素构造器类型
 type EtElementCtorProps = Record<string, undefined | null | string | number | object | EffectHandle>
@@ -9,7 +9,7 @@ type EtElementCtorProps = Record<string, undefined | null | string | number | ob
  * 效应激活器
  */
 export const effectInvoker = {
-  /** 获取元素或元素构造器的原型对象 */
+  /** 获取效应元素或效应元素构造器的原型对象 */
   getEtProto<T extends EffectElement | typeof EffectElement>(el: T) {
     return (el.__proto__ ?? Object.getPrototypeOf(el)) as T
   },
@@ -25,8 +25,8 @@ export const effectInvoker = {
    * @param ctx 更新后的上下文对象, 即 effector 回调里的 ctx
    * @param payload 效应负载, InputType 效应的负载为对应的 beforeinput 事件的 InputEvent 对象
    */
-  invoke<E extends keyof EffectHandleMap,
-    Args extends (Required<EffectHandleMap>[E] extends (...args: infer P) => unknown ? P : never),
+  invoke<E extends keyof EffectHandler,
+    Args extends (Required<EffectHandler>[E] extends (...args: infer P) => unknown ? P : never),
   >(
     el: EffectElement,
     effect: E,

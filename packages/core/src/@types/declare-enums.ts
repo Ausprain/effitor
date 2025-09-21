@@ -116,7 +116,7 @@ export const enum KeyboardCodeEnum {
   'PageDown' = 'PageDown',
 }
 /**
- * KeyboardEvent.key枚举; 小写字母使用大写字母映射
+ * KeyboardEvent.key枚举;
  */
 export const enum KeyboardKeyEnum {
   /** Windows 下 Chrome 在开启输入法, keydown 按下可输入字符.key为 Process */
@@ -150,6 +150,33 @@ export const enum KeyboardKeyEnum {
   'X' = 'X',
   'Y' = 'Y',
   'Z' = 'Z',
+
+  'a' = 'a',
+  'b' = 'b',
+  'c' = 'c',
+  'd' = 'd',
+  'e' = 'e',
+  'f' = 'f',
+  'g' = 'g',
+  'h' = 'h',
+  'i' = 'i',
+  'j' = 'j',
+  'k' = 'k',
+  'l' = 'l',
+  'm' = 'm',
+  'n' = 'n',
+  'o' = 'o',
+  'p' = 'p',
+  'q' = 'q',
+  'r' = 'r',
+  's' = 's',
+  't' = 't',
+  'u' = 'u',
+  'v' = 'v',
+  'w' = 'w',
+  'x' = 'x',
+  'y' = 'y',
+  'z' = 'z',
   // 由于枚举不可单纯数字, 这里数字键名前添加'Num', 实际 key 值为数字
   'Num0' = '0',
   'Num1' = '1',

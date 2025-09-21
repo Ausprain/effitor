@@ -1,13 +1,18 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./packages/*/src/**/*", "./main/src/**/*"],
+  "include": [], // override
   "exclude": [
-    "./**/*.help.ts",
-    "./**/*.test.ts",
+    "**/dist/**/*",
     "**/__tests__/**/*",
-    "**/dist/**/*"
+    "**/*.test.ts",
+    "**/*.help.ts",
+    "**/packages/*/main.ts"
   ],
   "compilerOptions": {
-    "outDir": "./dist"
+    "baseUrl": ".",
+    // override, only need shared which is not a package
+    "paths": {
+      "@effitor/shared": ["./packages/shared/src/index.ts"]
+    }
   }
 }

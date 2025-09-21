@@ -21,7 +21,7 @@ import {
   tryToRemoveNodesBetween,
 } from '../shared'
 
-export const insertParagraph = createInputEffectHandle((_this, ctx, pl) => {
+export const insertParagraph = createInputEffectHandle((_that, ctx, pl) => {
   if (!pl.targetRange.collapsed) {
     return insertParagraphAtRange(ctx, pl.targetRange)
   }

@@ -3,9 +3,11 @@
  * 无法获取 isTrusted 的剪切板事件, 受浏览器安全限制, 非 trusted 的
  * 剪切板事件将不会有任何效果, 因此需要额外实现剪切板功能
  */
+
+import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { type EffectElement, etcode } from '../element'
-import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '../enums'
 import { dom, traversal } from '../utils'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }

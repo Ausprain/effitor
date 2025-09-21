@@ -1,5 +1,6 @@
+import { BuiltinElName } from '@effitor/shared'
+
 import type { Et } from '../../@types'
-import { BuiltinElName } from '../../enums'
 import { dom } from '../dom'
 
 type TreeWalkNode<T> = T extends 1 ? Et.Element : T extends 4 ? Et.Text : T extends 5 ? Et.Node : never
@@ -361,6 +362,43 @@ export const closestEditableAncestor = (node: Et.Node, stopTag = BuiltinElName.E
     p = p.parentElement
   }
   return node
+}
+
+/**
+ * 找当前节点在编辑区根节点下的所有匹配searchTag的祖先元素节点, 若未提供searchTag,
+ * 则返回所有祖先节点;
+ * 返回结果始终不包含编辑区根节点(et-body)
+ * @param node 起始节点, 若为元素节点, 则从该节点开始搜索(即结果可能包含此节点)
+ * @param searchTag 需要查找的元素的小写标签名
+ */
+export const outerElements = <T extends HTMLElement>(
+  node: Et.Node,
+  searchTag?: keyof Et.DefinedEtElementMap | keyof HTMLElementTagNameMap,
+  stopTag = BuiltinElName.ET_BODY,
+): T[] => {
+  const elements: Et.HTMLElement[] = []
+  let p = node.nodeType === 1 ? node : node.parentElement
+  if (searchTag) {
+    while (p) {
+      if (p.localName === stopTag) {
+        break
+      }
+      if (p.localName === searchTag) {
+        elements.push(p as Et.HTMLElement)
+      }
+      p = p.parentElement
+    }
+  }
+  else {
+    while (p) {
+      if (p.localName === stopTag) {
+        break
+      }
+      elements.push(p as Et.HTMLElement)
+      p = p.parentElement
+    }
+  }
+  return elements as unknown as T[]
 }
 
 /* ------------------------------ inner utils ------------------------------ */

@@ -59,9 +59,10 @@
               c. 光标移动到 nextTop 开头 (需判断段落类型), true
  */
 
+import { EtTypeEnum } from '@effitor/shared'
+
 import type { Et } from '../../../@types'
 import { etcode } from '../../../element'
-import { EtTypeEnum } from '../../../enums'
 import { cr } from '../../../selection'
 import { dom } from '../../../utils'
 import { cmd } from '../../command'
@@ -71,7 +72,7 @@ import { removeByTargetRange } from './deleteAtRange'
 /**
  * 处理在段落开头 Backspace
  */
-export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagraphStart', (_this, ctx, targetCaret) => {
+export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagraphStart', (_that, ctx, targetCaret) => {
   // if (targetCaret.isCaretAtBodyStart) {
   //   // 编辑区开头 Backspace
   //   return true
@@ -207,7 +208,7 @@ export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagrap
 /**
  * 处理在段落末尾 Delete
  */
-export const deleteAtParagraphEnd = createEffectHandle('DeleteAtParagraphEnd', (_this, ctx, targetCaret) => {
+export const deleteAtParagraphEnd = createEffectHandle('DeleteAtParagraphEnd', (_that, ctx, targetCaret) => {
   // if (targetCaret.isCaretAtBodyEnd) {
   //   // 编辑区结尾 Delete
   //   return true

@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  // override, 防止 ts 将 dist 目录内的.d.ts也考虑在内
+  "include": ["./src", "../shared"]
+}

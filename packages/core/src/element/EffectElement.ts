@@ -1,8 +1,9 @@
+import { BuiltinConfig, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
-import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { dom } from '../utils'
-import { EtCode, InEtCode, NotInEtCode } from './config'
+import { ETCODE, EtCode, IN_ETCODE, NOT_IN_ETCODE } from './config'
 
 interface HTMLElementCallbacks {
   connectedCallback?(this: EffectElement): void
@@ -33,13 +34,30 @@ export type EffectBlocker = (effect: string) => boolean
  */
 export abstract class EffectElement
   extends (HTMLElement as {
-    new (): Et.HTMLElement
+    new(): Et.HTMLElement
     prototype: Et.HTMLElement
   })
   implements HTMLElementCallbacks,
-             EffectElementCallbacks,
-             Required<EtCode>,
-             Et.ToMdast {
+  EffectElementCallbacks,
+  Required<EtCode>,
+  Et.ToMdast {
+  /**
+   * 当前效应元素类的父类效应处理器(本质上是该构造器的原型), 基类EffectElement指向 HTMLElement\
+   * 该属性在 registerEtElement 注册时初始化, 用于快速访问父类的效应处理器
+   */
+  declare static readonly superHandler: Readonly<Et.EffectHandler>
+  /**
+   * 当前效应元素类的效应处理器(本质上是构造器自身), 该属性在 registerEtElement 注册时初始化,
+   * 用于快速访问该类对象上的效应处理器;
+   * * 该属性只可用于调用效应处理器 ( 替代 `ctx.effectInvoker.invoke` 好让 IDE 追踪到调用处 )
+   * * 使用该属性调用效应处理器无需第一个_that 参数, 会自动将参数绑定为该 thisHandler 属性
+   * * 性能优先场景应使用 `ctx.effectInvoker.invoke`
+   */
+  declare static readonly thisHandler: Readonly<{
+    [k in keyof Et.EffectHandler]: (
+      ...args: TupleTail<Parameters<Required<Et.EffectHandler>[k]>>) => ReturnType<Required<Et.EffectHandler>[k]>
+  }>
+
   /** 效应类型，即该类元素的效应码；用于初始化元素对象的etCode属性 */
   static etType = 0
   /** 该效应元素直接子节点允许的效应元素类型 */
@@ -80,23 +98,23 @@ export abstract class EffectElement
     return el
   }
 
-  readonly [EtCode]: number = 0
-  readonly [InEtCode]: number = 0
-  readonly [NotInEtCode]: number = 0
+  declare readonly [ETCODE]: number
+  declare readonly [IN_ETCODE]: number
+  declare readonly [NOT_IN_ETCODE]: number
 
   /** 效应码，绑在this上以判断该效应元素内部拥有何种效应 */
   get etCode() {
-    return this[EtCode]
+    return this[ETCODE]
   }
 
   /** 内部效应码, 该元素允许何种效应的子节点; */
   get inEtCode() {
-    return this[InEtCode]
+    return this[IN_ETCODE]
   }
 
   /** 内部禁止效应码, 该元素禁止何种效应的子节点; */
   get notInEtCode() {
-    return this[NotInEtCode]
+    return this[NOT_IN_ETCODE]
   }
 
   constructor() {
@@ -106,9 +124,9 @@ export abstract class EffectElement
       this.__proto__ ?? Object.getPrototypeOf(this)
     ).constructor as typeof EffectElement
 
-    this[EtCode] = etType === void 0 ? 0 : etType
-    this[InEtCode] = inEtType === void 0 ? 0 : inEtType
-    this[NotInEtCode] = notInEtType === void 0 ? 0 : notInEtType
+    this[ETCODE] = etType === void 0 ? 0 : etType
+    this[IN_ETCODE] = inEtType === void 0 ? 0 : inEtType
+    this[NOT_IN_ETCODE] = notInEtType === void 0 ? 0 : notInEtType
 
     // 添加一个et类名（因为外部样式文件的标签选择器优先级不够, 这样可以用 et-p.et 来提高优先级 ）
     // fixed. document.createElement 时元素对象不可有属性 延迟添加;
@@ -120,8 +138,27 @@ export abstract class EffectElement
       if (etType & EtTypeEnum.Paragraph) {
         this.classList.add(CssClassEnum.ParagraphLike)
       }
-      this.classList.add('et')
+      this.classList.add(CssClassEnum.Et)
     })
+  }
+
+  /**
+   * // FIXME 待完善
+   * 为当前效应元素添加css类名, 为防止类名冲突, 会添加前缀: `ET_cls_` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
+   */
+  addCssClass(cls: string) {
+    this.classList.add(BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls)
+  }
+
+  /**
+   * 为当前效应元素移除css类名, 为防止类名冲突, 会添加前缀: `ET_cls_` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
+   */
+  removeCssClass(cls: string) {
+    this.classList.remove(BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls)
+  }
+
+  hasCssClass(cls: string) {
+    return this.classList.contains(BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls)
   }
 
   /**
@@ -216,8 +253,13 @@ export abstract class EffectElement
   /** <builtin> 属性被修改时调用, 需static定义监听的 属性列表 observedAttributes: string[] */
   attributeChangedCallback?(name: string, oldValue: string, newValue: string): void
 
-  focusinCallback?(_ctx: Et.EditorContext): void
-  focusoutCallback?(_ctx: Et.EditorContext): void
+  focusinCallback(_ctx: Et.EditorContext) {
+    this.classList.add(CssClassEnum.CaretIn)
+  }
+
+  focusoutCallback(_ctx: Et.EditorContext) {
+    this.classList.remove(CssClassEnum.CaretIn)
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                                    html                                    */
@@ -277,7 +319,7 @@ export abstract class EffectElement
    */
   static readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap
   /**
-   * mdast节点转换器(对节点原地修改)\
+   * mdast节点转换器(对节点原地修改), 当且仅当返回 true 时终止后续transformer对该节点的处理\
    * 转换器会在toMarkdown的最后阶段（序列化为字符串前）执行，对mdast树进行修改
    */
   static readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap

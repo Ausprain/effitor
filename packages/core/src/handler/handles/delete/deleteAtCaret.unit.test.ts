@@ -17,6 +17,8 @@ import {
 test('checkBackspaceAtCaretDeleteText', async () => {
   const editor = await initEditor('<et-p>Hello A78<b>bold<i>I123</i></b>B12</et-p>')
   const ctx = editor.context as Et.UpdatedContext
+  // 清空撤回栈, 清除上一个测试的命令状态
+  ctx.commandManager.commitAll()
   const body = editor.bodyEl
   const p = body.children[0] as Et.EtParagraphElement
 
@@ -52,6 +54,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p><b>AA</b>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -87,6 +91,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -116,6 +122,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p><b>Second</b>paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -141,6 +149,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -162,6 +172,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p><b>Second</b>paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -184,6 +196,8 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     <et-p>third paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -214,6 +228,8 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
   test('del only node itself', async () => {
     const editor = await initEditor('<et-p>Hello<b>bold</b>text</et-p>')
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p = body.children[0] as Et.EtParagraphElement
 
@@ -225,6 +241,8 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
   test('del node with only child ancestor and merge siblings', async () => {
     const editor = await initEditor('<et-p>Hello<b>bold</b>text</et-p>')
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p = body.children[0] as Et.EtParagraphElement
 
@@ -260,6 +278,7 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
 // tes('checkBackspaceAtCaretInTextStart', () => {
 //   const editor = initEditor('<et-p>Hello A78<b>bold<i>I123</i></b>B12</et-p>')
 //   const ctx = editor.context as Et.UpdatedContext
+// 清空撤回栈, 清除上一个测试的命令状态
 //   const body = editor.bodyEl
 //   const p = body.children[0] as Et.EtParagraphElement
 //   // 测试在文本节点开头
@@ -270,6 +289,8 @@ describe('checkBackspaceAtCaretDeleteNode', () => {
 test('checkDeleteAtCaretDeleteText', async () => {
   const editor = await initEditor('<et-p>Hello A78<b>bold<i>I123</i></b>B12</et-p>')
   const ctx = editor.context as Et.UpdatedContext
+  // 清空撤回栈, 清除上一个测试的命令状态
+  ctx.commandManager.commitAll()
   const body = editor.bodyEl
   const p = body.children[0] as Et.EtParagraphElement
 
@@ -293,6 +314,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     // const p2 = body.children[1] as Et.EtParagraphElement
@@ -317,6 +340,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -346,6 +371,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p><b>Second</b>paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
@@ -371,6 +398,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p>Second paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
 
@@ -391,6 +420,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p><b>Second</b>paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
 
@@ -412,6 +443,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     <et-p>third paragraph</et-p>
   `))
     const ctx = editor.context as Et.UpdatedContext
+    // 清空撤回栈, 清除上一个测试的命令状态
+    ctx.commandManager.commitAll()
     const body = editor.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
 
@@ -438,6 +471,8 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
 test('checkDeleteAtCaretDeleteNode', async () => {
   const editor = await initEditor('<et-p>Hello<b>bold</b>text</et-p>')
   const ctx = editor.context as Et.UpdatedContext
+  // 清空撤回栈, 清除上一个测试的命令状态
+  ctx.commandManager.commitAll()
   const body = editor.bodyEl
   const p = body.children[0] as Et.EtParagraphElement
 

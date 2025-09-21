@@ -10,8 +10,7 @@
     "dev": "vite"
   },
   "dependencies": {
-    "effitor": "workspace:*",
-    "@effitor/core": "workspace:*"
+    "effitor": "workspace:*"
   },
   "devDependencies": {
     "vite": "^7.0.6"

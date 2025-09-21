@@ -1,4 +1,4 @@
-import type { EffectHandleMap, InputEffectHandle } from '../config'
+import type { EffectHandler, InputEffectHandle } from '../config'
 
 export * as fragmentUtils from './fragment'
 
@@ -9,9 +9,9 @@ export * as fragmentUtils from './fragment'
  *
  * @bundle-perf 此方法直接返回参数函数, 用于协助开发, 打包构建生产产物时, 解包此方法
  */
-export const createEffectHandle = <E extends keyof EffectHandleMap>(
+export const createEffectHandle = <E extends keyof EffectHandler>(
   _effect: E,
-  fn: Required<EffectHandleMap>[E],
+  fn: Required<EffectHandler>[E],
 ) => {
   return fn
 }

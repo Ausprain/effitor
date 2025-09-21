@@ -1,6 +1,7 @@
+import { CssClassEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { etcode } from '../element'
-import { CssClassEnum } from '../enums'
 // import { debounce } from '../utils'
 
 export const getSelectionChangeListener = (

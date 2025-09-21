@@ -1,12 +1,13 @@
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../../../@types'
-import { HtmlCharEnum } from '../../../enums'
 import { cr } from '../../../selection'
 import { dom } from '../../../utils'
 import { cmd } from '../../command'
 import { createInputEffectHandle } from '../../utils'
 import { insertTextAtRange } from './insert.shared'
 
-export const insertText = createInputEffectHandle((_this, ctx, pl) => {
+export const insertText = createInputEffectHandle((_that, ctx, pl) => {
   if (!pl.data) {
     return true
   }

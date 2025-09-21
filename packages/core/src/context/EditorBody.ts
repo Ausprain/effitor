@@ -1,8 +1,8 @@
 /* eslint-disable @stylistic/max-len */
+import { EtTypeEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { type EtBodyElement, etcode } from '../element'
-import { EtCode } from '../element/config'
-import { EtTypeEnum } from '../enums'
 
 // const enum EditorBodyEventName {
 //   HeadingChainUpdated = 'headingchainupdated',
@@ -193,14 +193,23 @@ export class EditorBody {
     return null
   }
 
+  /**
+   * 检查节点是否在编辑区内, 若 node 就是编辑区根节点, 返回 true
+   * @param node 要检查的节点
+   * @returns 若节点在编辑区内, 返回 true, 否则返回 false
+   */
   isNodeInBody(node: Node): node is Et.Node {
     return node.isConnected && this.isNodeContainsOther(this.el, node)
   }
 
   /**
    * 这是对 Node.contains 方法的复现, 旨在缩短查找距离(在 bodyEl 内), 提高效率
+   * 若 node === other, 返回 true
    */
   isNodeContainsOther(node: Node, other: Node) {
+    if (node === other) {
+      return true
+    }
     if (node.isConnected !== other.isConnected) {
       return false
     }
@@ -241,7 +250,7 @@ export class EditorBody {
    */
   findInclusiveEtParent(node: Et.NodeOrNull): Et.EtElement | null {
     while (node) {
-      if (node[EtCode] !== void 0) return node as Et.EtElement
+      if (node.etCode !== void 0) return node as Et.EtElement
       node = node.parentNode
     }
     return null
@@ -253,7 +262,7 @@ export class EditorBody {
   findInclusiveParagraph(node: Et.NodeOrNull): Et.Paragraph | null {
     while (node) {
       if (node === this.el) return null
-      if (node[EtCode] && (node[EtCode] & EtTypeEnum.Paragraph)) return node as Et.Paragraph
+      if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.Paragraph
       node = node.parentNode
     }
     return null
@@ -323,5 +332,40 @@ export class EditorBody {
       otherNode = otherNode.parentNode as Et.HTMLNode
     }
     return stopNode
+  }
+
+  /**
+   * 返回一个生成器, 向上查找所有祖先元素, 直到编辑区根节点
+   * @param anchor 查找的起始节点(不包含)
+   * @param filter 筛选函数, 默认为 Boolean, 即返回所有节点
+   */
+  * outerElements(anchor: Et.Node, filter: (node: Et.Node) => boolean = Boolean) {
+    let p = anchor.parentElement
+    while (p && p !== this.el) {
+      if (filter(p)) {
+        yield p
+      }
+      p = p.parentElement
+    }
+  }
+
+  /**
+   * 返回一个生成器, 递归获取外层效应元素, 直到编辑区根节点
+   * @param anchor 查找的起始节点(不包含)
+   * @param filter 筛选函数, 默认为 Boolean, 即返回所有节点
+   */
+  * outerEtElements(anchor: Et.Node, filter: (el: Et.EtElement) => boolean = Boolean) {
+    let p = anchor.parentElement as Et.EtElement | null
+    if (!p) {
+      return
+    }
+    p = this.findInclusiveEtParent(p)
+    while (p && p !== this.el) {
+      if (filter(p)) {
+        yield p
+      }
+      p = p.parentElement as Et.EtElement
+      p = this.findInclusiveEtParent(p)
+    }
   }
 }

@@ -2,6 +2,7 @@ import { Window } from 'happy-dom'
 
 import type { Et } from '../@types'
 import { Effitor } from '../editor'
+import { traversal } from '../utils'
 
 const window = new Window()
 const document = window.document
@@ -31,4 +32,20 @@ export const initEditor = async (html: string, options?: Et.CreateEditorOptions)
 
 export const minifiedHtml = (html: string) => {
   return html.replaceAll(/(?<=>)\s+|\s+(?=<)/g, '').trim()
+}
+
+export const clearHtmlAttrs = (html: string) => {
+  const div = document.createElement('div')
+  div.innerHTML = html
+  traversal.traverseNode(div as any, null, {
+    whatToShow: NodeFilter.SHOW_ELEMENT,
+    filter(el) {
+      if (el instanceof HTMLElement) {
+        el.removeAttribute('style')
+        el.removeAttribute('class')
+      }
+      return NodeFilter.FILTER_SKIP
+    },
+  })
+  return div.innerHTML
 }

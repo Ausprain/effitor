@@ -1,10 +1,11 @@
-import { HtmlCharEnum } from '../../../enums'
+import { HtmlCharEnum } from '@effitor/shared'
+
 import { cr } from '../../../selection'
 import { dom } from '../../../utils'
 import { createInputEffectHandle } from '../../utils'
 import { insertElementAtCaret } from './insert.shared'
 
-export const insertLineBreak = createInputEffectHandle((_this, ctx, pl) => {
+export const insertLineBreak = createInputEffectHandle((_that, ctx, pl) => {
   // 选区非 collapsed, 禁止插入 br, 折叠选区到focus 位置
   if (!pl.targetRange.collapsed) {
     ctx.selection.collapse(!ctx.selection.isForward)

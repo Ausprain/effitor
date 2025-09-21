@@ -27,6 +27,7 @@ export abstract class CaretRange {
    */
   markValid() {
     this.__connected = true
+    return this
   }
 
   /**

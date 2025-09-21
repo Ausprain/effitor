@@ -252,16 +252,16 @@ type CmdWithExec<C extends Cmd = Cmd, A extends Cmd = C> = C & {
 }
 
 type Command
-    = | CmdWithExec<CmdInsertCompositionText>
-      | CmdWithExec<CmdInsertText>
-      | CmdWithExec<CmdDeleteText>
-      | CmdWithExec<CmdReplaceText>
-      | CmdWithExec<CmdInsertNode>
-      | CmdWithExec<CmdRemoveNode>
-      | CmdWithExec<CmdReplaceNode>
-      | CmdWithExec<CmdInsertContent>
-      | CmdWithExec<CmdRemoveContent>
-      | CmdWithExec<CmdFunctional>
+  = | CmdWithExec<CmdInsertCompositionText>
+    | CmdWithExec<CmdInsertText>
+    | CmdWithExec<CmdDeleteText>
+    | CmdWithExec<CmdReplaceText>
+    | CmdWithExec<CmdInsertNode>
+    | CmdWithExec<CmdRemoveNode>
+    | CmdWithExec<CmdReplaceNode>
+    | CmdWithExec<CmdInsertContent>
+    | CmdWithExec<CmdRemoveContent>
+    | CmdWithExec<CmdFunctional>
 
 /** 首次执行之后的命令, 其一些可选属性将变为必选且只读 */
 type ExecutedCmd<C extends Cmd = Cmd> = C & Readonly<Required<Pick<C, ExecutedRequiresMap[C['type']]>>>
@@ -654,7 +654,7 @@ const functional = <MetaType>(init: CmdFunctionalInit<MetaType>) => {
 /**
  * 命令工厂函数, 可通过扩展此接口实现自定义命令;
  * 类似 cmd.moveNodes, 就是一个 Functional 命令的封装
- * @expendable
+ * @extendable
  */
 interface CmdFactory {
   <T extends CmdTypeEm, MetaType>(type: T, init: CmdInit<CmdMap<MetaType>[T], MetaType, CmdInitOmits[T]>): CmdWithExec<CmdMap<MetaType>[T]>
@@ -795,7 +795,6 @@ const cmdHandler = {
    */
   handle(cmds: readonly Command[], recordCmds: ExecutedCmd[], ctx: Et.EditorContext, destCaretRange?: Et.CaretRange) {
     // 记录初始光标位置
-    const srcCaretRange = ctx.selection.getCaretRange()
     let lastCaretRange: Et.CaretRange | null = null
 
     // const recordCmds = []
@@ -820,10 +819,10 @@ const cmdHandler = {
         return null
       }
     }
-    // 首个命令未设置初始光标位置
+    // 为首个命令设置初始光标位置
     // 仅当第一个命令未设置srcCaretRange(为undefined)时, 才设置
     if (recordCmds.length && recordCmds[0].srcCaretRange === void 0) {
-      recordCmds[0].srcCaretRange = srcCaretRange
+      recordCmds[0].srcCaretRange = ctx.selection.getCaretRange()
     }
     if (destCaretRange) {
       recordCmds[recordCmds.length - 1].destCaretRange = destCaretRange

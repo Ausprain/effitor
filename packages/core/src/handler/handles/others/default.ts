@@ -4,7 +4,7 @@ import { cmd } from '../../command'
 import { createEffectHandle } from '../../utils'
 
 export const initEditorContents = createEffectHandle('InitEditorContents', (
-  _this, ctx, payload,
+  _that, ctx, payload,
 ) => {
   let newP, dest
   const bodyEl = ctx.bodyEl
@@ -43,7 +43,7 @@ export const initEditorContents = createEffectHandle('InitEditorContents', (
 })
 
 export const updateEditorContentsFromMarkdown = createEffectHandle('UpdateEditorContentsFromMarkdown', (
-  _this, ctx, payload,
+  _that, ctx, payload,
 ) => {
   const { mdText, mdOptions } = payload
   const df = ctx.fromMarkdown(mdText, mdOptions)
@@ -80,7 +80,7 @@ export const updateEditorContentsFromMarkdown = createEffectHandle('UpdateEditor
   return true
 })
 
-export const transformInsertContents = createEffectHandle('TransformInsertContents', (_this, _ctx, payload) => {
+export const transformInsertContents = createEffectHandle('TransformInsertContents', (_that, _ctx, payload) => {
   // 原样返回
   return payload.fragment
 })

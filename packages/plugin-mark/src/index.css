@@ -1,0 +1,107 @@
+et-editor,
+:host  {
+  --et_mark-color-marker: #7799dd;
+}
+
+et-editor.dark,
+:host(.dark),
+:host-context(:root.dark),
+:host-context(body.dark) {
+  --et_mark-color-marker: #7f9fdf;
+}
+
+et-mark {
+  display: inline;
+  /* 
+    margin: 0px 2px; 
+    padding: 0 3px;
+  */
+  border-radius: 2px;
+  word-break: break-all;
+}
+
+et-mark.caret-in {
+  padding: 0;
+}
+
+et-mark::after, et-mark::before {
+  display: none;
+  color: #7799dd;
+  font-family: Consolas;
+  font-weight: normal;
+}
+et-mark::after {
+  padding-left: 1px;
+  padding-right: 3px;
+}
+et-mark::before {
+  padding-left: 3px;
+  padding-right: 1px;
+}
+et-mark.caret-in::after, et-mark:has(.caret-in)::after, 
+et-mark.caret-in::before, et-mark:has(.caret-in)::before {
+  display: inline;
+}
+.ET_cls_hinting-hidden et-mark::after, 
+.ET_cls_hinting-hidden et-mark::before {
+  display: none !important;
+}
+et-mark.marking::after {
+  color: #ddddee
+}
+
+.selection-range et-mark::before,
+.selection-range et-mark::after {
+  display: none;
+}
+
+
+et-mark.ET_cls_code {
+  margin: 0px 2px; 
+  padding: 3px 3px 2px;
+  background-color: #f7f7ff;
+  color: #ec3639;
+  font-size: 14px;
+  font-family: 'Cascadia Code', Courier, monospace;
+}
+et-mark.ET_cls_code.caret-in {
+  padding: 3px 0 2px;
+}
+et-mark.ET_cls_code::after, et-mark.ET_cls_code::before {
+  content: "`";
+}
+
+
+et-mark.ET_cls_bold {
+  font-weight: bold;
+}
+et-mark.ET_cls_bold::after, et-mark.ET_cls_bold::before {
+  content: "**";
+}
+
+
+et-mark.ET_cls_italic {
+  font-style: italic;
+  /* 斜体右边增加一点间距 避免字符顶部重叠 */
+  margin-inline-end: 0.12em;
+}
+et-mark.ET_cls_italic::after, et-mark.ET_cls_italic::before {
+  content: "*";
+}
+
+
+et-mark.ET_cls_delete {
+  text-decoration: line-through;
+}
+et-mark.ET_cls_delete::after, et-mark.ET_cls_delete::before {
+  content: "~~";
+}
+
+
+et-mark.ET_cls_highlight {
+  background-color: #fcd13c;
+  padding: 1px 0;
+}
+et-mark.ET_cls_highlight::after, et-mark.ET_cls_highlight::before {
+  content: "==";
+}

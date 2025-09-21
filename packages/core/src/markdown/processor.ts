@@ -1,3 +1,4 @@
+import type * as mdast from 'mdast'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 import { visit } from 'unist-util-visit'
@@ -5,15 +6,18 @@ import { visit } from 'unist-util-visit'
 import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
 import type {
-  MdastHandlersMap,
   MdastNodeHandlerMap,
   MdastNodeTransformerMap,
-  MdastTransformersMap,
   ToMarkdownHandlerMap,
 } from './config'
-import { handleMdastRoot } from './fromMarkdown'
+import { handleMdastRoot, type MdastHandlersMap } from './fromMarkdown'
 import { mdParser } from './parser'
 import { buildMdastRoot, mdastNode } from './toMarkdown'
+
+type MdastTransformer = (
+  node: mdast.Nodes, ctx: Et.EditorContext, index?: number, parent?: mdast.Parents
+) => boolean
+type MdastTransformersMap = Partial<Record<mdast.Nodes['type'], MdastTransformer[]>>
 
 export interface GetMdPorcesserOptions {
   /** mdast处理器列表，直接将mdast节点转为html节点 */

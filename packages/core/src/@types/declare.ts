@@ -1,10 +1,11 @@
 /* eslint-disable @stylistic/max-len */
+import { MIMETypeEnum } from '@effitor/shared'
+
 import type { Effitor } from '../editor/Effitor'
 import type { EtEditorElement, EtParagraph } from '../element'
 import { EtCodeTarget } from '../element/config'
 import type { EffectElement, EffectElementCtor } from '../element/EffectElement'
-import { MIMETypeEnum } from '../enums'
-import { InputTypeEnum, KeyboardCodeEnum, KeyboardKeyEnum } from './enums'
+import { InputTypeEnum, KeyboardCodeEnum, KeyboardKeyEnum } from './declare-enums'
 /* -------------------------------------------------------------------------- */
 /*                                 编辑器内容                                  */
 /* -------------------------------------------------------------------------- */
@@ -29,7 +30,7 @@ export type HTMLElementOrNull = HTMLElement | null
 
 /**
  * 自定义EtElement设置属性
- * @expendable
+ * @extendable
  */
 export interface ElAttrs {
   part: string

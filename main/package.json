@@ -19,33 +19,46 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./styles/*": {
-      "default": "./dist/styles/*"
+    "./effector": {
+      "import": "./dist/effector/index.js",
+      "types": "./dist/effector/index.d.ts",
+      "default": "./dist/effector/index.js"
+    },
+    "./element": {
+      "import": "./dist/element/index.js",
+      "types": "./dist/element/index.d.ts",
+      "default": "./dist/element/index.js"
+    },
+    "./handler": {
+      "import": "./dist/handler/index.js",
+      "types": "./dist/handler/index.d.ts",
+      "default": "./dist/handler/index.js"
+    },
+    "./plugins": {
+      "import": "./dist/plugins/index.js",
+      "types": "./dist/plugins/index.d.ts",
+      "default": "./dist/plugins/index.js"
+    },
+    "./utils": {
+      "import": "./dist/utils/index.js",
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
     }
   },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https://github.com/Ausprain/effitor#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ausprain/effitor.git"
   },
-  "author": "Henvn Leaf",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Ausprain/effitor/issues"
-  },
-  "homepage": "https://github.com/Ausprain/effitor#readme",
-  "scripts": {
-    "build:main": "tsup",
-    "test": "vitest --project unit --project intg",
-    "test-unit": "vitest unit",
-    "test-e2e:chrome": "vitest e2e --browser chromium"
+  "dependencies": {
+    "@effitor/core": "workspace:*",
+    "@effitor/mark": "workspace:*"
   },
   "devDependencies": {
     "fs-extra": "^11.3.1",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
-  },
-  "dependencies": {
-    "@effitor/core": "workspace:*"
-  },
-  "packageManager": "pnpm@10.14.0"
+  }
 }

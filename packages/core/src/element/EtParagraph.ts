@@ -1,5 +1,6 @@
+import { EtTypeEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
-import { EtTypeEnum } from '../enums'
 import { EffectElement } from './EffectElement'
 
 /**

@@ -38,7 +38,7 @@ import {
 /**
  * 删除当前选区内容 (Chrome ~137 无此 inputType)
  */
-export const deleteContent = createInputEffectHandle((_this, ctx, pl) => {
+export const deleteContent = createInputEffectHandle((_that, ctx, pl) => {
   if (pl.targetRange.collapsed) {
     return true
   }
@@ -47,7 +47,7 @@ export const deleteContent = createInputEffectHandle((_this, ctx, pl) => {
 /**
  * 删除光标后方(文档树前)一个字符, 或一个节点(当该节点是不可编辑或"整体"节点时)
  */
-export const deleteContentBackward = createInputEffectHandle((_this, ctx, pl) => {
+export const deleteContentBackward = createInputEffectHandle((_that, ctx, pl) => {
   ctx.setCaretAffinityPreference(true)
   if (!pl.targetRange.collapsed) {
     return removeByTargetRange(ctx, pl.targetRange)
@@ -57,7 +57,7 @@ export const deleteContentBackward = createInputEffectHandle((_this, ctx, pl) =>
     // 光标在文本节点上
     checkBackspaceAtCaretDeleteText(ctx, tc, false)
     // 光标在段落开头?
-    || checkBackspaceAtCaretDeleteParagraph(_this, ctx, tc)
+    || checkBackspaceAtCaretDeleteParagraph(_that, ctx, tc)
     // 光标落在非文本节点边缘?
     || checkBackspaceAtCaretDeleteNode(ctx, tc)
     // 光标落在文本节点开头?
@@ -67,7 +67,7 @@ export const deleteContentBackward = createInputEffectHandle((_this, ctx, pl) =>
 /**
  * 删除光标前方(文档树后)一个字符, 或一个节点(当节点是不可编辑或"整体"节点时)
  */
-export const deleteContentForward = createInputEffectHandle((_this, ctx, pl) => {
+export const deleteContentForward = createInputEffectHandle((_that, ctx, pl) => {
   ctx.setCaretAffinityPreference(false)
   if (!pl.targetRange.collapsed) {
     return removeByTargetRange(ctx, pl.targetRange)
@@ -77,7 +77,7 @@ export const deleteContentForward = createInputEffectHandle((_this, ctx, pl) => 
     // 光标在文本节点上
     checkDeleteAtCaretDeleteText(ctx, tc, false)
     // 光标在段落末尾
-    || checkDeleteAtCaretDeleteParagraph(_this, ctx, tc)
+    || checkDeleteAtCaretDeleteParagraph(_that, ctx, tc)
     // 光标在非文本节点边缘
     || checkDeleteAtCaretDeleteNode(ctx, tc)
     // 光标落在文本节点末尾

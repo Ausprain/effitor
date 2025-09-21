@@ -1,5 +1,6 @@
+import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
-import { BuiltinElName, EtTypeEnum } from '../enums'
 import { EtParagraph } from './EtParagraph'
 
 /**

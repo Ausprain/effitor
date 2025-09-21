@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/prefer-literal-enum-member */
-
 /** 内置配置 */
 export const enum BuiltinConfig {
   /** 内置Effect前缀, 便于effectBlocker过滤 */
   BUILTIN_EFFECT_PREFFIX = 'E',
+  /**
+   * 编辑器内部元素 css 类名前缀\
+   * 效应元素使用 add/removeCssClass 方法添加/删除类名自动添加此前缀
+   */
+  EDITOR_CSS_CLASS_PREFIX = 'ET_cls_',
   /** 一个粘贴效应名, 定义在这里, 而不是效应列表中, 目的是隐藏内部粘贴行为入口 */
   INSERT_FROM_ET_HTML = 'InsertFromEtHtml',
 }
@@ -46,6 +50,9 @@ export const enum HtmlAttrEnum {
 }
 /** css类名 */
 export const enum CssClassEnum {
+  Et = 'et',
+  Effitor = 'effitor',
+  DefaultStyle = 'default-style',
   /** 当前活跃 */
   Active = 'active',
   /** 当前元素被选择 */
@@ -70,6 +77,7 @@ export const enum CssClassEnum {
   /** 主题背景按钮, 具有hover/active/selected状态主题背景色交互 */
   ThemeItem = 'theme-item',
 }
+
 /**
  * 预设效应类型枚举; 含混合效应
  */

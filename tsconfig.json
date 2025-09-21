@@ -1,17 +1,17 @@
 {
   "files": ["./env.d.ts"],
   "include": ["./packages", "./main"],
-  "exclude": ["**/dist/**/*"],
+  "exclude": ["**/dist", "./packages/*/main.ts"],
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
-    "rootDir": ".",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "bundler",
     "isolatedModules": true,
-    "lib": ["esnext", "DOM", "dom.iterable"],
+    // "preserveConstEnums": true,
     "skipLibCheck": true,
+    "noEmit": true,
+    "lib": ["esnext", "DOM", "dom.iterable"],
     "paths": {
       "@effitor/*": ["./packages/*/src/index.ts"]
     }

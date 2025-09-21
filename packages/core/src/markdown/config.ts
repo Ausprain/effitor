@@ -6,6 +6,8 @@ import type { EditorContext } from '../context'
 import type { MdastHandleManager } from './fromMarkdown'
 import type { CreateMdastNode } from './toMarkdown'
 
+export type MdastNodes = mdast.Nodes
+
 export type MdastHandlerReturnType = DocumentFragment | HTMLElement | Text | null
 export interface MdastNodeHandler<N extends mdast.Nodes | mdast.Nodes['type']> {
   /**
@@ -28,31 +30,23 @@ export type MdastNodeHandlerMap = {
  */
 export interface MdastNodeTransformer<N extends mdast.Nodes | mdast.Nodes['type']> {
   /**
-   * 对一个mdast进行转换(原地修改)
+   * 对一个mdast进行转换(原地修改), 当且仅当返回 true 时终止后续transformer的处理
    * @param node 当前mdast节点
    * @param ctx 编辑器上下文对象
    * @param index 当前node位于父节点的children的索引
    * @param parent node的父节点
    */
-  (node: N extends mdast.Nodes ? N : Extract<mdast.Nodes, { type: N }>, ctx: EditorContext, index?: number, parent?: mdast.Parents): boolean
+  (node: N extends mdast.Nodes ? N : Extract<mdast.Nodes, { type: N }>, ctx: EditorContext, index?: number, parent?: mdast.Parents): TrueOrVoid
 }
 export type MdastNodeTransformerMap = {
   [k in mdast.Nodes['type']]?: MdastNodeTransformer<k>
 }
-/** 自定义mdast节点处理器 */
-export type ToMarkdownHandlerMap = Partial<Handlers>
-// /**
-//  * 自定义扩展mdast
-//  */
-// declare module 'mdast' {
-//     interface RootContentMap {
-//         name: CustomNode
-//     }
-// }
-export type MdastHandler = <N extends mdast.Nodes>(node: N, ctx: EditorContext, index: number, parent: mdast.Parents, manager: MdastHandleManager) => MdastHandlerReturnType
-export type MdastHandlersMap = Partial<Record<mdast.Nodes['type'], MdastHandler[]>>
-export type MdastTransformer = (node: mdast.Nodes, ctx: EditorContext, index?: number, parent?: mdast.Parents) => boolean
-export type MdastTransformersMap = Partial<Record<mdast.Nodes['type'], MdastTransformer[]>>
+/**
+ * 自定义mdast节点处理器
+ */
+export type ToMarkdownHandlerMap = {
+  [k in keyof Handlers]?: Handlers[k]
+}
 
 export type ToMdastResult = mdast.Nodes | mdast.Nodes[] | null
 export interface ToMdast {

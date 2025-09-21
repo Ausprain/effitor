@@ -46,11 +46,17 @@ export interface ParagraphCreator {
    */
   (): [EtParagraph] | [EtParagraph, CaretRange]
 }
+
 /**
  * 编辑器设置, 类似于编辑器回调, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \
  * 其最大的意义是, 在编辑器创建之后, 在不重启编辑器的情况下更改编辑器及其插件的配置
+ * @extendable
  */
-export type EditorSettings = Record<string, (...args: unknown[]) => void>
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export interface EditorSettings {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: (...args: any[]) => any
+}
 
 /**
  * 编辑器配置
@@ -98,10 +104,7 @@ export interface EditorSchema extends IndexSchema {
   /** 当前段落元素类 */
   readonly paragraph: EtParagraphCtor
 }
-export type EditorSchemaSetter = (init: Partial<OmitStringIndexKey<EditorSchema>>) => void
-type OmitStringIndexKey<T> = {
-  [K in keyof T as string extends K ? never : K]: T[K]
-}
+export type EditorSchemaSetter = (init: Partial<OmitStringIndexSignature<EditorSchema>>) => void
 
 export interface EditorPluginSupportInline extends EditorPlugin {
   readonly effector: EffectorSupportInline | EffectorSupportInline[]
@@ -146,7 +149,7 @@ export interface EditorPlugin {
    * ```
    */
   readonly registry?: (
-    ctx: EditorContextMeta, setSchema: EditorSchemaSetter, extentEtElement: ExtentEtElement
+    ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, extentEtElement: ExtentEtElement
   ) => void
 };
 

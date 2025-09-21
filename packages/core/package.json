@@ -23,24 +23,17 @@
       "default": "./dist/styles/*"
     }
   },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https://github.com/Ausprain/effitor#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ausprain/effitor.git"
   },
-  "author": "Henvn Leaf",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Ausprain/effitor/issues"
-  },
-  "homepage": "https://github.com/Ausprain/effitor#readme",
   "scripts": {
     "dev": "vite",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"
-  },
-  "devDependencies": {
-    "@types/node": "^24.3.1",
-    "esbuild": "^0.25.9"
   },
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.2",
@@ -52,5 +45,8 @@
     "micromark-extension-gfm": "^3.0.0",
     "unist-util-visit": "^5.0.0"
   },
-  "packageManager": "pnpm@10.14.0"
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "esbuild": "^0.25.9"
+  }
 }

@@ -8,6 +8,7 @@
 
 import type { Et } from '../@types'
 import { cmd } from './command'
+import { removeNodesAndChildlessAncestorAndMergeSiblings } from './handles'
 import { checkRemoveTargetRange, removeByTargetRange } from './handles/delete/deleteAtRange'
 import { insertElementAtCaret, insertTextAtCaret, insertTextAtRange } from './handles/insert'
 
@@ -238,7 +239,7 @@ export class CommonHandlers {
   /**
    * 插入文本
    * @param data 要插入的文本
-   * @param insertAt 插入位置; 若缺省, 则使用当前选区位置
+   * @param insertAt 插入位置; 若为 null, 则使用当前选区位置
    * @param destCaretRange 命令执行后光标位置; 若缺省, 则使用插入文本后的位置
    */
   insertText(
@@ -258,11 +259,38 @@ export class CommonHandlers {
     })
   }
 
-  deleteText(
+  /**
+   * 在文本节点中插入文本
+   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用插入文本后的位置; 若为 false, 则不设置光标位置也不更新上下文和选区
+   */
+  insertInTextNode(
+    textNode: Text,
+    offset: number,
+    data: string,
+    destCaretRange: Et.CaretRange | boolean = true,
+  ) {
+    this.commander.push(cmd.insertText({
+      text: textNode as Et.Text,
+      offset,
+      data,
+      setCaret: destCaretRange === true,
+    }))
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
+    }
+    return this.commander.handle()
+  }
+
+  /**
+   * 删除文本节点中的文本, 该方法不会判断删除后文本节点是否为空;
+   * * 此方法使用 backward 方向删除
+   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用删除文本后的位置; 若为 false, 则不设置光标位置也不更新上下文和选区
+   */
+  deleteInTextNode(
     textNode: Text,
     offset: number,
     delDataOrLen: string | number,
-    destCaretRange: Et.CaretRange | true = true,
+    destCaretRange: Et.CaretRange | boolean = true,
   ) {
     if (typeof delDataOrLen === 'number') {
       delDataOrLen = textNode.data.slice(offset, offset + delDataOrLen)
@@ -297,14 +325,31 @@ export class CommonHandlers {
 
   /**
    * 删除节点, 节点不在页面上, 返回 false
+   * * 该方法只删除目标节点, 不会连带删除空祖先
    * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;
-   *    若为 null, 命令执行后不更新选区和上下文; 默认为 true
+   *    若为 false, 命令执行后不更新选区和上下文; 默认为 true
    */
-  removeNode(node: Et.Node, destCaretRange: Et.CaretRange | null | true = true) {
+  removeNode(node: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
     if (!node.isConnected) {
       return false
     }
     this.commander.push(cmd.removeNode({ node, setCaret: destCaretRange === true }))
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+    }
+    return this.commander.handle()
+  }
+
+  /**
+   * 删除节点, 连带删除空祖先, 并合并前后可合并内容
+   * @param node 待删除节点
+   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;
+   *    若为 false, 命令执行后不更新选区和上下文; 默认为 true
+   */
+  removeNodeAndMerge(node: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
+    if (!removeNodesAndChildlessAncestorAndMergeSiblings(this._ctx, node, node, null)) {
+      return false
+    }
     if (destCaretRange) {
       return this.commander.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
     }

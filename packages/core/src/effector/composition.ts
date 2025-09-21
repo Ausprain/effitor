@@ -1,6 +1,7 @@
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { platform } from '../config'
-import { HtmlCharEnum } from '../enums'
 import { dom } from '../utils'
 
 export const getCompositionStart = (ctx: Et.EditorContext) => {
@@ -58,11 +59,11 @@ export const getCompositionEnd = (ctx: Et.EditorContext) => {
       const pLast = ctx.focusParagraph.lastChild
       if (pLast && dom.isBrElement(pLast) && pLast !== ctx.paragraphLastNodeInCompositionStart) {
         if (!ctx.paragraphLastNodeInCompositionStart) {
-        // 这是浏览器私自插入的 br, 移除
+          // 这是浏览器私自插入的 br, 移除
           pLast.remove()
         }
         else if (dom.isBrElement(ctx.paragraphLastNodeInCompositionStart)) {
-        // 或替换为一开始被浏览器私自删除的 br
+          // 或替换为一开始被浏览器私自删除的 br
           pLast.replaceWith(ctx.paragraphLastNodeInCompositionStart)
         }
       }
@@ -77,14 +78,19 @@ export const getCompositionEnd = (ctx: Et.EditorContext) => {
     // 输入法插入字符, 去掉插入位置前导的零宽字符
     if (ev.data && ctx.selection.anchorText
       && ctx.selection.anchorText.data[ctx.selection.anchorOffset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
-      ctx.commonHandlers.deleteText(ctx.selection.anchorText, ctx.selection.anchorOffset - 1, 1)
+      ctx.commonHandlers.deleteInTextNode(ctx.selection.anchorText, ctx.selection.anchorOffset - 1, 1, false)
     }
 
-    // 解决 MacOS 下 Safari 的 composition 事件先于 keydown 执行, 导致输入法结束后
+    if (ev.data && ctx.focusEtElement) {
+      // ctx.effectInvoker.invoke(ctx.focusEtElement, 'InsertCompositionTextSuccess', ctx, ev.data)
+      ctx.getEtHandler(ctx.focusEtElement).InsertCompositionTextSuccess?.(ctx, ev.data)
+    }
+
+    // fixed. 解决 MacOS 下 Safari 的 composition 事件先于 keydown 执行, 导致输入法结束后
     // 多执行一个 keydown 引起的 beforeinput 事件的问题
     ctx.skipNextKeydown()
 
-    if (!platform.isSafari) {
+    if (!platform.isSupportInsertFromComposition) {
       // Safari 的输入法插入文本可拦截, 使用 insertText 命令插入 并设置设置光标位置, 更新ctx
       // 非 Safari 下, 输入法插入无法拦截, 需手动更新上下文
       ctx.forceUpdate()

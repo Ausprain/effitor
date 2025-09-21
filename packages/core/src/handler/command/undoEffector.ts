@@ -87,19 +87,19 @@ export const useUndoEffector = (): Et.EffectorSupportInline => {
     beforeInputSolver,
     afterInputSolver,
     htmlEventSolver,
-    onMounted: (_ctx, signal) => {
-      // 防止编辑器外ctrl+z时对编辑器内容撤销
-      document.addEventListener('beforeinput', (ev) => {
-        if (ev.inputType === 'historyUndo' || ev.inputType === 'historyRedo') {
-          // console.warn('document historyUndo or historyRedo', ev.getTargetRanges())
-          // 阻止没有targetRange的undo/redo, 编辑器在shadowRoot内, 外边无法获取到, 即targetRanges为空数组
-          if (ev.getTargetRanges().length === 0) {
-            ev.preventDefault()
-          }
-          // fixme Mac下document的撤销无法preventDefault, 但并未见异常
-        }
-      }, { signal: signal })
-    },
+    // onMounted: (_ctx, signal) => {
+    //   // 防止编辑器外ctrl+z时对编辑器内容撤销
+    //   document.addEventListener('beforeinput', (ev) => {
+    //     if (ev.inputType === 'historyUndo' || ev.inputType === 'historyRedo') {
+    //       // console.warn('document historyUndo or historyRedo', ev.getTargetRanges())
+    //       // 阻止没有targetRange的undo/redo, 编辑器在shadowRoot内, 外边无法获取到, 即targetRanges为空数组
+    //       if (ev.getTargetRanges().length === 0) {
+    //         ev.preventDefault()
+    //       }
+    //       // fixme Mac下document的撤销无法preventDefault, 但并未见异常
+    //     }
+    //   }, { signal: signal })
+    // },
     /**
      * 卸载时移除对应撤回栈并 确认所有事务
      */

@@ -480,7 +480,7 @@ export const mergeHtmlNode = (
     const latterType = latter.nodeType
     if (formerType === 3 && latterType === 3) {
       const offset = (former as Text).length
-                ; (former as Text).data += (latter as Text).data
+        ; (former as Text).data += (latter as Text).data
       latter.remove()
       return cr.caret(former, offset)
     }

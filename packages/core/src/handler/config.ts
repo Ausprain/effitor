@@ -1,28 +1,28 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { BuiltinConfig } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 
 import type { Et } from '../@types'
 import type { InputType } from '../@types/declare'
 import type { EditorContext, UpdatedContext } from '../context'
 import type { EffectElement, EtParagraphElement } from '../element'
-import { BuiltinConfig } from '../enums'
 
 export type EffectHandleReturnType = boolean | number | object | string
 /**
- * Effect处理器
+ * Effect处理函数
  * @returns 是否成功处理该效应
  */
-export interface EffectHandle {
+export interface EffectHandle<Payload = any> {
   /**
    * 效应处理函数
-   * @param _this 当前invoke的效应元素类对象(构造器)
+   * @param _that 激活此效应的那个效应元素类对象(构造器)
    * @param ctx 更新后的上下文
    * @param payload 效应负载
    * @returns 是否成功处理该效应
    */
   // 由于函数逆变特性, 后续声明的 handle 的参数列表必须是此处参数列表的父类, 因而此处 payload 只能是 any
-  (_this: EffectHandleThis, ctx: EditorContext, payload?: any): EffectHandleReturnType
+  (_that: EffectHandleThis, ctx: EditorContext, payload: Payload): EffectHandleReturnType
 }
 /**
  * InputEvent.inputType效应处理器
@@ -30,12 +30,12 @@ export interface EffectHandle {
 export interface InputEffectHandle {
   /**
    * 处理指定InputEvent.inputType效应
-   * @param _this 当前invoke的效应元素类对象(构造器)
+   * @param _that 激活此效应的那个效应元素类对象(构造器)
    * @param ctx 更新后的上下文
    * @param ev 输入事件
    * @returns 是否成功处理该效应
    */
-  (_this: EffectHandleThis, ctx: UpdatedContext, payload: InputEffectPayload): boolean
+  (_that: EffectHandleThis, ctx: UpdatedContext, payload: InputEffectPayload): boolean
 }
 export interface InputEffectPayload {
   readonly data?: string | null
@@ -53,12 +53,17 @@ export type DefaultEffectHandleMap = InputTypeEffectHandleMap & {
    * 在段落开头 Backspace; 处理成功, 返回 true; 未处理, 返回topElement 的前兄弟, 处理失败, 返回false
    * @param targetCaret 目标光标, 必须是段落开头位置
    */
-  BackspaceAtParagraphStart: (_this: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  BackspaceAtParagraphStart: (_that: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
    * 在段落结尾 Delete; 处理成功, 返回 true; 未处理, 返回topElement 的后兄弟, 处理失败, 返回false
    * @param targetCaret 目标光标, 必须是段落结尾位置
    */
-  DeleteAtParagraphEnd: (_this: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  DeleteAtParagraphEnd: (_that: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  /**
+   * 这是一个回调, 当 compositionend 事件中 event.data 非空时调用ctx.focusEtElement 的该效应处理函数
+   * @param data 输入法输入的文本
+   */
+  InsertCompositionTextSuccess: (_that: EffectHandleThis, ctx: EditorContext, data: string) => void
   /**
    * 初始化编辑器内容, 一般初始化为一个普通段落, 可通过编辑器 firstInsertedParagraph 回调自定义;
    * 若编辑器已有内容, 则会先清空再重新初始化
@@ -66,12 +71,12 @@ export type DefaultEffectHandleMap = InputTypeEffectHandleMap & {
    * * `create?`: 首段落创建函数
    * * `isFirstInit`: 是否首次初始化, 即编辑器是否为空
    */
-  InitEditorContents: (_this: EffectHandleThis, ctx: EditorContext, payload: {
+  InitEditorContents: (_that: EffectHandleThis, ctx: EditorContext, payload: {
     create?: Et.ParagraphCreator
     isFirstInit: boolean
   }) => void
   /** 使用 markdown 文本更新编辑器内容 */
-  UpdateEditorContentsFromMarkdown: (_this: EffectHandleThis, ctx: EditorContext, payload: {
+  UpdateEditorContentsFromMarkdown: (_that: EffectHandleThis, ctx: EditorContext, payload: {
     mdText: string
     mdOptions?: FmOptions
   }) => void
@@ -83,7 +88,7 @@ export type DefaultEffectHandleMap = InputTypeEffectHandleMap & {
    * * `payload.fragment`, 要转换的内容(原地转换)
    * * `payload.insertToEtElement`, 插入位置所属效应元素
    */
-  TransformInsertContents: (_this: EffectHandleThis, ctx: EditorContext, payload: {
+  TransformInsertContents: (_that: EffectHandleThis, ctx: EditorContext, payload: {
     fragment: Et.Fragment
     insertToEtElement: Et.EtElement
   }) => void
@@ -99,16 +104,21 @@ export type DefaultEffectHandleMap = InputTypeEffectHandleMap & {
  */
 export interface EffectHandleDeclaration extends Record<string, EffectHandle> {
   E: EffectHandle
+  /** tab效应, 具有`CaretOut`效应的元素, 默认行为是跳到下一节点开头; 其他节点默认行为是插入制表符 */
+  tabout: EffectHandle<Et.ValidTargetCaret>
+  /** 双击空格效应, 具有`CaretOut`效应的元素, 默认行为是跳出最外层同类节点 */
+  dblSpace: EffectHandle<Et.ValidTargetCaret>
 }
 /**
- * 用于创建 handler 时提供类型提示
+ * Effect处理器\
+ * 可用于创建 handler 时提供类型提示
  */
-export type EffectHandleMap = Partial<
+export type EffectHandler = Partial<
   // 去掉索引签名, 用于在 invoke 方法中获得参数提示
   OmitStringIndexSignature<EffectHandleDeclaration> & DefaultEffectHandleMap
 >
 
-export type EffectHandleThis = typeof EffectElement & EffectHandleMap
+export type EffectHandleThis = typeof EffectElement & EffectHandler
 
 /**
  * InputEvent 初始化参数, 包含效应码; 这是一个扩展, 用于在那些浏览器自身不支持的

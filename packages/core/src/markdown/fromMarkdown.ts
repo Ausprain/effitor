@@ -2,7 +2,9 @@
 import type * as mdast from 'mdast'
 
 import type { Et } from '../@types'
-import type { MdastHandler, MdastHandlersMap } from './config'
+
+export type MdastHandler = <N extends mdast.Nodes>(node: N, ctx: Et.EditorContext, index: number, parent: mdast.Parents, manager: MdastHandleManager) => Et.MdastHandlerReturnType
+export type MdastHandlersMap = Partial<Record<mdast.Nodes['type'], MdastHandler[]>>
 
 const enum ManagerStatus {
   NONE = 1,

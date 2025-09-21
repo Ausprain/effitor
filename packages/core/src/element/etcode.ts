@@ -1,5 +1,6 @@
-import { EtType, EtTypeEnum } from '../enums'
-import { EtCode, EtCodeTarget } from './config'
+import { EtType, EtTypeEnum } from '@effitor/shared'
+
+import { ETCODE, EtCodeTarget } from './config'
 import type { EffectElement } from './EffectElement'
 import type { EtBlockquote } from './EtBlockquote'
 import type { EtComponent } from './EtComponent'
@@ -33,7 +34,7 @@ interface CodeElementMap {
 let count = Object.keys(Em).length
 const codeMap = new Map<string, number>()
 /**
- * 根据string获取一个唯一code，存在提取，不存在创建, 最多能保有30个code \
+ * 根据string(一般用小写元素名)获取一个唯一code，存在提取，不存在创建, 最多能保有30个code \
  * 为提高效率，获取后应另外保存副本，需要时直接调用副本
  */
 const get = (key: string) => {
@@ -54,8 +55,8 @@ const get = (key: string) => {
 const check = <T extends EffectElement, C extends number = number>(
   el: EtCodeTarget, code?: C,
 ): el is (EffectElement extends T ? CodeElementMap[C] : T) => {
-  if (!code) return el[EtCode] !== void 0
-  return !!(el[EtCode] && (el[EtCode] & code))
+  if (!code) return el[ETCODE] !== void 0
+  return !!(el[ETCODE] && (el[ETCODE] & code))
 }
 /**
  * 校验一个EtElement下是否允许某节点或某效应, 即其子节点是否允许为该节点或含有某效应类型的节点 \
@@ -114,6 +115,16 @@ const parseCode = (code: number) => {
   return [...keySet.keys()]
 }
 
+const printCode = (el: EffectElement) => {
+  let code = el[ETCODE]
+  console.log(code)
+  console.log(parseCode(code))
+  code = el.etCode
+  console.log(code)
+  console.log(parseCode(code))
+  return code
+}
+
 const etcode = import.meta.env.DEV
   ? {
       Em,
@@ -122,6 +133,7 @@ const etcode = import.meta.env.DEV
       checkIn,
       checkSum,
       parseCode,
+      printCode,
     } as const
   : {
       Em,
@@ -129,6 +141,7 @@ const etcode = import.meta.env.DEV
       check,
       checkIn,
       checkSum,
+      printCode,
     } as const
 
 export { etcode }

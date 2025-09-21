@@ -3,19 +3,20 @@
 //  */
 // const TransformInsertContents = (): DocumentFragment => {
 //   // 子类实现时, 可通过获取原型调用父类实现获取父类处理结果
-//   const df = ctx.effectInvoker.getEtProto(_this).TransformInsertContents()
+//   const df = ctx.effectInvoker.getEtProto(_that).TransformInsertContents()
 //   ...
 // }
 // const insertFromPaste = (): boolean => {
 //   // 调用当前解析方法
-//   _this.TransformInsertContents()
+//   _that.TransformInsertContents()
 // }
 
-import { MIMETypeEnum } from '../../../enums'
+import { MIMETypeEnum } from '@effitor/shared'
+
 import { createEffectHandle, createInputEffectHandle } from '../../utils'
 import { insertContentsAtCaret, insertTextAtCaret } from './insert.shared'
 
-export const insertFromPaste = createInputEffectHandle((_this, ctx, pl) => {
+export const insertFromPaste = createInputEffectHandle((_that, ctx, pl) => {
   const clipboardData = pl.dataTransfer
   if (!clipboardData) {
     return true
@@ -24,8 +25,8 @@ export const insertFromPaste = createInputEffectHandle((_this, ctx, pl) => {
     const html = clipboardData.getData(MIMETypeEnum.TEXT_HTML)
     if (html) {
       const etFragment = ctx.editor.htmlProcessor.fromHtml(ctx, html)
-      if (_this.TransformInsertContents) {
-        _this.TransformInsertContents(_this, ctx, {
+      if (_that.TransformInsertContents) {
+        _that.TransformInsertContents(_that, ctx, {
           fragment: etFragment,
           insertToEtElement: caret.anchorEtElement,
         })
@@ -46,15 +47,15 @@ export const insertFromPaste = createInputEffectHandle((_this, ctx, pl) => {
 /**
  * 内置隐藏粘贴行为, 用于粘贴从编辑器自身复制的内容
  */
-export const insertFromEtHtml = createEffectHandle('InsertFromEtHtml' as 'E', (_this, ctx, etHtml) => {
+export const insertFromEtHtml = createEffectHandle('InsertFromEtHtml' as 'E', (_that, ctx, etHtml) => {
   const tr = ctx.selection.getTargetRange()
   if (!tr || typeof etHtml !== 'string') {
     return false
   }
   return ctx.commonHandlers.checkRemoveTargetRange(tr, (ctx, caret) => {
     const df = ctx.createFragment(etHtml)
-    if (_this.TransformInsertContents) {
-      _this.TransformInsertContents(_this, ctx, {
+    if (_that.TransformInsertContents) {
+      _that.TransformInsertContents(_that, ctx, {
         fragment: df,
         insertToEtElement: caret.anchorEtElement,
       })

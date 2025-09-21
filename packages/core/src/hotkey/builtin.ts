@@ -177,7 +177,7 @@ export const keyboardCodeKeyDownBuiltinMap: KeyboardCodeKeyDownEffectMap = {
     /*                           Windows 下的特殊按键映射                           */
     /* -------------------------------------------------------------------------- */
     : {
-        // Windows 下重做快捷键
+      // Windows 下重做快捷键
         [create(Key.Y, CtrlCmd)]: 'historyRedo',
       }),
 }

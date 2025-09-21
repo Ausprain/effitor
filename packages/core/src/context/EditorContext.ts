@@ -1,10 +1,10 @@
+import { BuiltinConfig, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
 import type { Et } from '../@types'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
 import { etcode, type EtParagraphElement } from '../element'
-import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandlers } from '../handler/common'
 import { effectInvoker } from '../handler/invoker'
@@ -36,6 +36,7 @@ export interface UpdatedContext extends EditorContext {
   focusParagraph: NodeHasParent<Et.Paragraph>
   focusTopElement: NodeHasParent<Et.Paragraph>
   selection: UpdatedContextSelection
+  targetRange: Et.ValidTargetRange
 }
 
 export interface CreateEditorContextOptions {
@@ -70,14 +71,14 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   private _focusEtElement: Et.EtElement | null = null
   private _focusParagraph: Et.Paragraph | null = null
   private _focusTopElement: Et.Paragraph | null = null
+  private _targetRange?: Et.ValidTargetRange | null = void 0
 
   /** 是否跳过默认 effector */
   private _skipDefault = false
   /**
    * 是否跳过下一次keydown, 在 compositionupdate 中赋值为true;
-   * 用于解决 MacOS 下 Safari 的 composition事件先于 keydown 触发, 从而导致
-   * 每次输入法输入最后都多余的插入一个空格或执行多一次 keydown 的问题
-  */
+   * {@link EditorContext.nextKeydownSkipped }
+   */
   private _skipNextKeydown = false
   /** 是否跳过下一次selectionchange事件 */
   private _skipSelChange = false
@@ -92,7 +93,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   currDownKey?: string = undefined
   /**
    * 上一个抬起的按键; 用于判定双击按键 \
-   * 每当按键抬起后111ms重设为undefined; 若在keydown时光标为Range状态,
+   * 每当按键抬起后211ms重设为undefined; 若在keydown时光标为Range状态,
    * 则设置为null, 并在keyup中为null时不记录该按键
    * * 该值等于event.key
    */
@@ -169,6 +170,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   selectedTextContent = () => this.selection.selectedTextContent
 
   // 回调
+  // TODO 加入 effector 中, 类似 onMounted 等
   private readonly __onEffectElementChanged?: OnEffectElementChanged
   private readonly __onParagraphChanged?: OnParagraphChanged
   private readonly __onTopElementChanged?: OnParagraphChanged
@@ -209,6 +211,9 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 更新编辑器上下文
    */
   update() {
+    // console.log('upda ')
+    // console.trace()
+    this._targetRange = void 0
     if (!this.selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
@@ -221,6 +226,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
     this._oldNode = this.selection.anchorText
 
+    // topElement 非空, 则 paragraph 非空, 则 etElement 非空
     if (!this.selection.focusTopElement || !this.selection.commonEffectElement) {
       if (import.meta.env.DEV) {
         console.error('effect element or paragraph not found')
@@ -253,6 +259,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
+   * 获取当前光标范围对象, 等价于 ctx.selection.getTargetRange(), 但该属性有缓存, 且存在必定合法
+   */
+  get targetRange(): Et.ValidTargetRange | null {
+    if (this._targetRange !== void 0) {
+      return this._targetRange
+    }
+    return this._targetRange = this.selection.getTargetRange()
+  }
+
+  /**
    * 编辑区元素, 等价于 ctx.body.el
    */
   get bodyEl() {
@@ -281,12 +297,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.__onEffectElementChanged(v, old, this)
     }
     // 旧的效应元素不是旧段落时, 调用focusoutCallback, 避免在段落更新时重复调用
-    if (old && old.focusoutCallback && old !== this._focusParagraph) {
+    if (old && old !== this._focusParagraph) {
       old.focusoutCallback(this)
     }
-    if (v.focusinCallback) {
-      v.focusinCallback(this)
-    }
+    v.focusinCallback(this)
   }
 
   /**
@@ -304,11 +318,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     if (this.__onParagraphChanged) {
       this.__onParagraphChanged(v, old, this)
     }
-    if (old && old.focusoutCallback) {
+    if (old) {
       old.focusoutCallback(this)
     }
     // 新段落不是新效应元素时, 调用focusinCallback, 避免重复调用
-    if (v.focusinCallback && v !== this._focusEtElement) {
+    if (v !== this._focusEtElement) {
       v.focusinCallback(this)
     }
   }
@@ -339,6 +353,26 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
+  /** 编辑区失去焦点时调用 */
+  blurCallback() {
+    if (this._focusParagraph) {
+      this._focusParagraph.focusoutCallback?.(this)
+    }
+    if (this._focusEtElement && this._focusEtElement !== this._focusParagraph) {
+      this._focusEtElement.focusoutCallback?.(this)
+    }
+
+    this._updated = false
+    this._oldNode = null
+    this._focusEtElement = null
+    this._focusParagraph = null
+    this._focusTopElement = null
+    this._commonEtElement = null
+
+    this.commandManager.closeTransaction()
+    this.isFocused = false
+  }
+
   /**
    * 是否跳过了一次 selectionchange 事件; 该getter 只能在 selectionchange 事件中使用;
    * 调用时, 会重置为 false
@@ -359,6 +393,12 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     return (this._skipSelChange = true)
   }
 
+  /**
+   * 检查是否跳过了下一次 keydown 事件; 在 compositionupdate 中赋值为true;
+   * 用于解决 MacOS 下 Safari 的 composition事件先于 keydown 触发, 从而导致
+   * 每次输入法输入最后都多余的插入一个空格或执行多一次 keydown 的问题
+   * * 该值只可读取一次, 读取时重置为 false
+   */
   get nextKeydownSkipped() {
     if (this._skipNextKeydown) {
       this._skipNextKeydown = false
@@ -451,31 +491,31 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
-  /**
-   * 判断当前位置是否允许某效应; 即判断指定效应元素是否
-   * 允许为当前光标所在效应元素(ctx.effectElement)的子节点 \
-   * 光标range时始终为false
-   * @param target 效应值 | 效应元素类 | 效应元素对象; 若传入值<=0, 则返回true
-   */
-  checkIn(target: number | Et.EtElement | Et.EtElementCtor) {
-    if (!this.selection.isCollapsed || !this._focusEtElement) {
-      return false
-    }
-    let code: number
-    if (typeof target === 'number') {
-      if (target <= 0) {
-        return true
-      }
-      code = target as number
-    }
-    else {
-      code = (target as Et.EtElement).etCode
-      if (code === void 0) {
-        code = (target as Et.EtElementCtor).etType
-      }
-    }
-    return code && !(~this._focusEtElement.inEtCode & code)
-  }
+  // /**
+  //  * 判断当前光标位置是否允许某效应; 即判断指定效应元素是否
+  //  * 允许为当前光标所在效应元素(ctx.effectElement)的子节点 \
+  //  * 光标range时始终为false
+  //  * @param target 效应值 | 效应元素类 | 效应元素对象; 若传入值<=0, 则返回true
+  //  */
+  // checkIn(target: number | Et.EtElement | Et.EtElementCtor) {
+  //   if (!this.selection.isCollapsed || !this._focusEtElement) {
+  //     return false
+  //   }
+  //   let code: number
+  //   if (typeof target === 'number') {
+  //     if (target <= 0) {
+  //       return true
+  //     }
+  //     code = target as number
+  //   }
+  //   else {
+  //     code = (target as Et.EtElement).etCode
+  //     if (code === void 0) {
+  //       code = (target as Et.EtElementCtor).etType
+  //     }
+  //   }
+  //   return code && !(~this._focusEtElement.inEtCode & code)
+  // }
 
   /**
    * 判断一个节点是否为 EtParagraph 实例, 即是否具有段落效应
@@ -571,6 +611,20 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       cancelable: true,
       ...init,
     }))
+  }
+
+  /** 获取一个 css 类名的编辑器内部表示 */
+  cssClassName(cls: string) {
+    return BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls
+  }
+
+  /**
+   * 获取一个效应元素的效应处理器, 这是一个便利方法, 返回值为 `effectInvoker.getEtElCtor(el).thisHandler`
+   * @param el 效应元素
+   * @returns 效应元素的处理器
+   */
+  getEtHandler(el: Et.EtElement) {
+    return this.effectInvoker.getEtElCtor(el).thisHandler
   }
 
   /** 获取EtElement对应的Markdown文本 */

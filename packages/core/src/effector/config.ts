@@ -1,5 +1,6 @@
 import type { Et } from '../@types'
 import type { EditorContext, UpdatedContext } from '../context'
+import type { DefinedEtElementMap } from '../element'
 import type { MainBeforeInputTypeSolver } from './beforeinput'
 import type { MainAfterInputTypeSolver } from './input'
 import type { MainKeydownKeySolver } from './keydown'
@@ -37,14 +38,38 @@ export interface Effector extends Partial<Solvers> {
   readonly onBeforeUnmount?: (ctx: EditorContext) => void
 }
 export interface Solvers {
-  /** keydown中处理按键响应 ev.key -> action */
-  readonly keydownSolver: KeyboardKeySolver
-  /** keyup中处理按键响应 */
-  readonly keyupSolver: KeyboardKeySolver
-  /** beforeinput中处理inputType */
-  readonly beforeInputSolver: InputTypeSolver
-  /** input中处理inputType */
-  readonly afterInputSolver: InputTypeSolver
+  /**
+   * keydown中处理按键响应 ev.key -> action
+   * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
+   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
+   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   */
+  readonly keydownSolver: KeyboardSolver
+  /**
+   * keyup中处理按键响应
+   * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
+   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
+   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   */
+  readonly keyupSolver: KeyboardSolver
+  /**
+   * beforeinput中处理inputType
+   * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
+   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
+   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   */
+  readonly beforeInputSolver: InputSolver
+  /**
+   * input中处理inputType
+   * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
+   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
+   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   */
+  readonly afterInputSolver: InputSolver
   /**
    * 其他html事件监听器; 在这些监听器中, 通过 `ev.stopImmediatePropagation`
    * 来阻止Effitor的相同事件行为, 而不是`ctx.preventAndSkipDefault(ev)`
@@ -62,9 +87,9 @@ export interface Solvers {
    *  effector的selchange回调统一在该监听器内执行
    */
   readonly selChangeCallback: SelChangeAction
-  /** 编辑器focus后调用, 这不是立即调用的, 它们会在编辑器focus后的第一次selectionchange之后调用 */
+  /** 编辑器focus后调用, 这不是立即调用的, 它们会在编辑器focus且更新上下文和选区后调用(在第一次selectionchange之前) */
   readonly focusinCallback: FocusEventAction
-  /** 编辑器失去焦点时立即调用 */
+  /** 编辑器失去焦点时立即调用 (解绑selectionchange事件之前以及相关效应元素 focusoutCallback 前) */
   readonly focusoutCallback: FocusEventAction
 }
 export type Solver = KeyboardKeySolver | InputTypeSolver | HTMLEventSolver
@@ -75,9 +100,6 @@ export interface MainEffector {
   readonly beforeInputSolver: MainBeforeInputTypeSolver
   readonly afterInputSolver: MainAfterInputTypeSolver
 }
-
-// type KeyboardSolver = Partial<Record<string, KeyboardAction>>;
-// type InputSolver = Partial<Record<string, InputAction>>;
 
 /**
  * keydown/keyup中处理按键响应 ev.key -> action \
@@ -94,6 +116,17 @@ export type KeyboardKeySolver = Partial<Record<Et.KeyboardKey, KeyboardAction>> 
 export type InputTypeSolver = Partial<Record<Exclude<Et.InputType, 'undefined'>, InputAction>> & {
   default?: InputAction
 }
+
+export type KeyboardSolverInEtElement = {
+  [k in keyof DefinedEtElementMap]?: KeyboardAction
+}
+export type InputTypeSolverInEtElement = {
+  [k in keyof DefinedEtElementMap]?: InputAction
+}
+
+export type KeyboardSolver = KeyboardKeySolver & KeyboardSolverInEtElement
+export type InputSolver = InputTypeSolver & InputTypeSolverInEtElement
+
 /**
  * 主inputType映射器
  */
@@ -112,9 +145,9 @@ export type HTMLEventSolver = {
 }
 
 // 输入行为的ctx 是更新了的, 即 effectElement, paragraphEl, topElement 非空
-export type KeyboardAction = (ev: Et.KeyboardEvent, ctx: UpdatedContext) => boolean
-export type InputAction = (ev: Et.InputEvent, ctx: UpdatedContext) => boolean
-export type ClipboardAction = (ev: Et.ClipboardEvent, ctx: UpdatedContext) => boolean
+export type KeyboardAction = (ev: Et.KeyboardEvent, ctx: UpdatedContext) => TrueOrVoid
+export type InputAction = (ev: Et.InputEvent, ctx: UpdatedContext) => TrueOrVoid
+export type ClipboardAction = (ev: Et.ClipboardEvent, ctx: UpdatedContext) => TrueOrVoid
 // html其他事件中对应元素可能为空
 export type HtmlEventAction<E = Event> = (ev: E, ctx: EditorContext) => void
 export type SelChangeAction = HtmlEventAction

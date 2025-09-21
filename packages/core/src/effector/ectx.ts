@@ -54,6 +54,9 @@ type EffectorContext<K extends string, V extends object> = Record<K, V> & typeof
 /**
  * 获取携带相关信息的effector上下文对象, 该对象可在effector的solver和callback
  * 中引用, 但必须使用`ectx`作为其标识符, 使用其他名字将导致异常
+ * * 仅支持内联的效应器需要此上下文
+ * * 效应器上下文(ectx)和插件上下文(ctx.pctx)的区别是, 效应器上下文是全局的(所有编辑器实例共享),
+ *   而插件上下文是局部的(每个编辑器实例的上下文 ctx 独有)
  * @example
     ```ts
     // case: mark effector
@@ -72,7 +75,7 @@ type EffectorContext<K extends string, V extends object> = Record<K, V> & typeof
         }
     }
     ```
-    多个useEffectorContext获取的上下文对象不相关联, 且后来者会将前者覆盖
+    * 多个useEffectorContext获取的上下文对象不相关联, 且后来者相同作用域内的同路径内容会将前者覆盖
     ```ts
     // file1.ts
     const ectx = useEffectorContext('some', { foo })
@@ -82,24 +85,24 @@ type EffectorContext<K extends string, V extends object> = Record<K, V> & typeof
     // 但实际上只要file1.ts执行了, 那么foo是存在于ectx的some作用域内的
     // 在确定情况下, 可禁用其ts警告; 或者在init对象中重新指定 foo
     ```
- * @param name 上下文作用域名
+ * @param scope 上下文作用域名
  * @param init 上下文内容
  * @returns effector上下文对象, 可用其创建effector或solver
  */
 export const useEffectorContext = <
   N extends string,
   T extends object,
->(name: N, init: T): EffectorContext<N, T> => {
-  const ectx = effectorContext
-  const namespace = Reflect.get(ectx, name)
+>(scope: N, init: T): EffectorContext<N, T> => {
+  const ectx = effectorContext as EffectorContext<N, T>
+  const namespace = ectx[scope]
   if (namespace) {
     Object.assign(namespace, init)
   }
   else {
-    Reflect.set(ectx, name, init)
+    ectx[scope] = init as EffectorContext<N, T>[N]
   }
 
-  return ectx as EffectorContext<N, T>
+  return ectx
 }
 
 /**
@@ -131,17 +134,19 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
     keys: Set<string>
   }>
   const singleEffector = {} as any
-  // 遍历所有effector, 合并钩子和callback, 提取所有solver的key, 为了正确添加default缺省值
+  // 遍历所有effector, 合并钩子和callback, 提取所有solver的key以正确添加default缺省值
   for (const etor of effectors) {
     for (const [name, val] of Object.entries(etor)) {
+      // callback 直接添加到对应数组
       if (typeof val === 'function') {
-        if (singleEffector[name]) {
+        if (name in singleEffector) {
           singleEffector[name].push(val)
         }
         else {
           singleEffector[name] = [val]
         }
       }
+      // solver 进行预解析, 将同类型的 Solver 的所有 key 提取出来
       else if (typeof val === 'object') {
         let solver
         if (!(solver = solversMap[name])) {
@@ -153,6 +158,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
     }
   }
   for (const [name, cbs] of Object.entries(singleEffector)) {
+    // 启用内联时, 使用 new Function 构造内敛函数, 并提供环境参数 ectx, cr, dom, etcode
     if (inline) {
       try {
         // 使用 new Function 构造内敛函数
@@ -168,6 +174,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         throw Error('启用Effector内联时 其Callback只能使用箭头函数, 并禁止使用 import.meta .')
       }
     }
+    // 不启用内联, 则使用数组局部变量存储相关回调
     else {
       singleEffector[name] = name.startsWith('on')
         ? (...args: any) => { for (const cb of (cbs as Function[])) { cb(...args) } }
@@ -175,9 +182,15 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
     }
   }
   for (const [name, solver] of Object.entries(solversMap)) {
+    // Record<keyof Solver, Function[]>
     const solverFunsMap = solver.solvers.reduce((pre, cur) => {
       for (const key of solver.keys) {
-        const fn = cur[key] ?? cur.default // effector自身未配置的key, 若有default, 则其他effector配置了的key, 都要添加这个default
+        // effector自身未配置的key, 若有default, 则其他effector配置了的key, 都要添加这个default
+        // 但效应元素特有 key 除外
+        let fn = cur[key]
+        if (!fn && !key.startsWith('et-')) {
+          fn = cur.default
+        }
         if (fn) {
           if (key in pre) {
             pre[key].push(fn)

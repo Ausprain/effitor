@@ -1,9 +1,0 @@
-packages:
-  - packages/*
-  - examples/*
-  - main
-  - algo-perf
-
-onlyBuiltDependencies:
-  - esbuild
-  - unrs-resolver

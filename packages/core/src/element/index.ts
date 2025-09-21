@@ -1,11 +1,12 @@
-import { BuiltinElName } from '../enums'
+import { BuiltinElName } from '@effitor/shared'
+
 import type { EtBodyElement } from './EtBodyElement'
 import type { EtEditorElement } from './EtEditorElement'
 import type { EtParagraphElement } from './EtParagraphElement'
 
 export type * from './config'
 export * from './EffectElement'
-export { EtBlockquote as EtBlockquote } from './EtBlockquote'
+export { EtBlockquote } from './EtBlockquote'
 export { EtBodyElement } from './EtBodyElement'
 export { etcode } from './etcode'
 export { EtComponent } from './EtComponent'
@@ -23,7 +24,7 @@ interface BuiltinEtElement {
 }
 /**
  * 定义的EtElement映射表, 用于document.createElement()的提示
- * @expendable
+ * @extendable
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DefinedEtElementMap extends BuiltinEtElement { }

@@ -1,4 +1,5 @@
 /* eslint-disable @stylistic/max-len */
+import { BuiltinElName, CssClassEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
@@ -27,7 +28,6 @@ import {
   EtParagraphElement,
 } from '../element'
 import { extentEtElement, registerEtElement } from '../element/register'
-import { BuiltinElName } from '../enums'
 import { useUndoEffector } from '../handler/command/undoEffector'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, MdProcessor } from '../markdown/processor'
@@ -110,17 +110,17 @@ export class Effitor {
   }
 
   constructor({
-        shadow = true,
-        schemaInit = {},
-        mainEffector = getMainEffector(),
-        effectorInline = false,
-        plugins = [],
-        config = {},
-        customStyleText = '',
-        customStyleLinks = [],
-        callbacks = {},
-        hotkeyOptions,
-    }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
+    shadow = true,
+    schemaInit = {},
+    mainEffector = getMainEffector(),
+    effectorInline = false,
+    plugins = [],
+    config = {},
+    customStyleText = '',
+    customStyleLinks = [],
+    callbacks = {},
+    hotkeyOptions,
+  }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM, 则强制不使用 ShadowDOM
     if (shadow) {
       shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
@@ -137,14 +137,14 @@ export class Effitor {
       ...schemaInit,
     } as Et.EditorSchema
     /** 初始化编辑器上下文 */
-    const contextMeta: Et.EditorContextMeta = {
+    const contextMeta = {
       editor: this,
       schema,
       assists: {},
       pctx: {},
       settings: {},
       keepDefaultModkeyMap: {},
-    }
+    } as Et.EditorContextMeta
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
@@ -206,7 +206,7 @@ export class Effitor {
     scrollContainer,
     locale = this.platform.locale,
     customStyleLinks = [...this.__meta.customStyleLinks],
-   }: EditorMountOptions = {}) {
+  }: EditorMountOptions = {}) {
     if (this.__host) {
       if (this.config.ALLOW_MOUNT_WHILE_MOUNTED) {
         this.unmount()
@@ -247,7 +247,7 @@ export class Effitor {
 
     // 配置了自动创建首段落
     if (this.config.AUTO_CREATE_FIRST_PARAGRAPH) {
-      this.initBody()
+      this.initBody(undefined, true)
     }
 
     for (const onMounted of pluginConfigs.onMounteds) {
@@ -375,7 +375,7 @@ export class Effitor {
       return this.mdProcessor.fromMarkdown(this.context, mdText, options)
     }
     const ctx = this.context
-    ctx.effectInvoker.invoke(ctx.bodyEl, 'UpdateEditorContentsFromMarkdown', ctx, {
+    ctx.getEtHandler(ctx.bodyEl).UpdateEditorContentsFromMarkdown?.(ctx, {
       mdText,
       mdOptions: options,
     })
@@ -386,11 +386,11 @@ export class Effitor {
    * 可用于配置 `AUTO_CREATE_FIRST_PARAGRAPH = false` 时手动创建第一个段落
    * @param create 首段落创建函数, 若没有则查询 `callbacks?.firstInsertedParagraph` 仍没有则使用ctx默认段落创建函数
    */
-  initBody(create?: Et.ParagraphCreator, firstInit = true) {
+  initBody(create?: Et.ParagraphCreator, isFirstInit = true) {
     const ctx = this.context
-    ctx.effectInvoker.invoke(ctx.bodyEl, 'InitEditorContents', ctx, {
+    ctx.getEtHandler(ctx.bodyEl).InitEditorContents?.(ctx, {
       create,
-      isFirstInit: firstInit,
+      isFirstInit,
     })
   }
 
@@ -423,9 +423,9 @@ export class Effitor {
    */
   observeEditing<ParagraphType extends HTMLElement = HTMLElement>({
     onTextUpdated,
-        onParagraphAdded,
-        onParagraphRemoved,
-        onParagraphUpdated,
+    onParagraphAdded,
+    onParagraphRemoved,
+    onParagraphUpdated,
   }: ObserveEditingInit<ParagraphType>) {
     const body = this.bodyEl
     const ctx = this.context
@@ -554,9 +554,9 @@ const formatEffitorStructure = (
   // 清空el并挂载editor
   host.innerHTML = ''
   host.append(editorEl)
-  host.classList.add('effitor')
+  host.classList.add(CssClassEnum.Effitor)
   if (editor.config.WITH_EDITOR_DEFAULT_STYLE) {
-    editorEl.classList.add('default-style')
+    editorEl.classList.add(CssClassEnum.DefaultStyle)
   }
   // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
   // fixed. 若为 relative, 会让内部的 anchor-position失效
@@ -690,72 +690,41 @@ const addListenersToEditorBody = (
     }
   }
 
-  // body在focusin/out时, 使用定时器延迟执行相应逻辑; 避免嵌套contenteditable时, 光标在内/外层contenteditable之间切换时频繁触发focusin/out的问题
-  // ps. 使用focus/blur事件并不能解决此问题, 必须使用定时器延迟相应逻辑
-  let bodyFocusTimer = 0, bodyBlurTimer = 0
   // 绑在shadowRoot上
   body.addEventListener('focusin', (ev) => {
     // import.meta.env.DEV && console.error('body focus')
-    // body无段落, 清空并插入
+    // body无段落, 清空并初始化
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
     }
-    if (bodyBlurTimer) {
-      clearTimeout(bodyBlurTimer)
-      return
-    }
-    bodyFocusTimer = window.setTimeout(() => {
-      bodyFocusTimer = 0
+    // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
+    if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
       // 编辑器聚焦时绑定上下文
       ctx.isFocused = true
-
-      // focus时 重新获取selection
       // fixed. HMR热更新时 旧的selection对象可能丢失
-      // fixed. focus瞬间 还未获取光标位置
+      // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
       requestAnimationFrame(() => {
-        // 手动更新ctx和光标位置, 再绑定sel监听器
+        // 手动更新上下文和选区, 再绑定sel监听器
         ctx.update()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
         listeners.focusin(ev)
       })
-    }, 0)
+    }
   }, { signal: ac.signal })
   body.addEventListener('focusout', (ev) => {
     // import.meta.env.DEV && console.error('body blur')
-    // 编辑器已经blur, 直接执行回调
-    if (!ctx.isFocused) {
-      // fixed.
-      // 有些插件(如assist.dialog), 可能在展开时需要移动光标到某些编辑区外部的节点上;
-      // 此时需要主动调用编辑器.blur()方法令其失去焦点
-      // 然后此处应立即将selectionchange监听器移除; 否则会将新的焦点位置更新到caret上,
-      // 导致编辑器内光标系统的光标信息定位到了编辑区外, 造成异常
-      clearTimeout(bodyFocusTimer)
-      focusoutCallback()
-      return
-    }
-    // 否则, 延迟执行, 避免嵌套contenteditable内外层切换时, 频繁focusout
-    if (bodyFocusTimer) {
-      clearTimeout(bodyFocusTimer)
-      return
-    }
-    bodyBlurTimer = window.setTimeout(focusoutCallback, 0)
 
-    function focusoutCallback() {
-      // 编辑器是去焦点时, 关闭命令事务
-      ctx.commandManager.closeTransaction()
-      ctx.isFocused = false
-      bodyBlurTimer = 0
+    // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
+    // 即焦点转移到编辑区(et-body)外 时
+    if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
+      // 编辑器失去焦点时, 结束命令事务
+      listeners.focusout(ev)
       // 解绑selectionchange
       document.removeEventListener('selectionchange', listeners.selectionchange)
-      listeners.focusout(ev)
-
       // 执行focusout回调, 先执行段落的
-      if (ctx.focusParagraph) {
-        ctx.focusParagraph.focusoutCallback?.(ctx)
-      }
-      if (ctx.focusEtElement && ctx.focusEtElement !== ctx.focusParagraph) {
-        ctx.focusEtElement.focusoutCallback?.(ctx)
-      }
+      requestAnimationFrame(() => {
+        ctx.blurCallback()
+      })
     }
   }, { signal: ac.signal })
 

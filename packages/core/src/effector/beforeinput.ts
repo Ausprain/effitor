@@ -1,5 +1,6 @@
+import { BuiltinConfig } from '@effitor/shared'
+
 import type { Et } from '../@types'
-import { BuiltinConfig } from '../enums'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
   'default': (ev, ctx) => {
@@ -62,7 +63,7 @@ Object.assign(MainBeforeInputTypeSolver.prototype, mainBeforeInputTypeSolver)
 
 export const runInputSolver = (
   ev: Et.InputEvent, ctx: Et.EditorContext,
-  main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
+  main: MainBeforeInputTypeSolver, solver?: Et.InputSolver,
 ) => {
   if (!ctx.isUpdated()) {
     ev.preventDefault()
@@ -71,21 +72,24 @@ export const runInputSolver = (
 
   let fn
   if (solver) {
-    fn = solver[ev.inputType] ?? solver.default
+    fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
+    if (!fn) {
+      fn = solver[ev.inputType] || solver.default
+    }
     if (typeof fn === 'function') {
       fn(ev, ctx)
     }
   }
   if (ctx.defaultSkipped) return false
 
-  fn = main[ev.inputType] ?? main.default
+  fn = main[ev.inputType] || main.default
   if (typeof fn === 'function') {
     fn(ev, ctx)
   }
 }
 
 export const getBeforeinputListener = (
-  ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solver?: Et.InputTypeSolver,
+  ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solver?: Et.InputSolver,
 ) => {
   return (ev: Et.InputEvent) => {
     // console.log('beforeinput', ev.inputType, ev.data)

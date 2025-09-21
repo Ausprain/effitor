@@ -129,6 +129,7 @@ export class CommandManager implements CommandQueue {
    */
   handle(destCaretRange?: Et.CaretRange): boolean {
     if (!this.hasQueuedCmds) {
+      this._lastCaretRange = null
       this.clearHandleCallbacks()
       return false
     }
@@ -158,6 +159,26 @@ export class CommandManager implements CommandQueue {
       return true
     }
     return false
+  }
+
+  /**
+   * 在回调中执行命令, 第一个命令的初始光标位置会被设置为参数srcCaretRange;
+   * 用于手动控制撤回时的光标落点位置;\
+   * 若有排队的命令, 则会先执行(不更新上下文和选区); 若回调结束后仍有排队命令,
+   * 则执行(并更新上下文和选区)
+   * @param srcCaretRange 命令执行前的光标位置, 仅标记, 不会改变当前光标位置
+   */
+  withSrcCaretRange(srcCaretRange: Et.CaretRange, fn: () => void) {
+    if (this.hasQueuedCmds) {
+      this.handle()
+    }
+    const nullCmd = cmd.null()
+    nullCmd.srcCaretRange = srcCaretRange
+    this._cmds.push(nullCmd)
+    fn()
+    if (this.hasQueuedCmds) {
+      this.handleAndUpdate()
+    }
   }
 
   /**
@@ -274,12 +295,13 @@ export class CommandManager implements CommandQueue {
    * 为撤销重做做准备
    */
   private prepareUndoRedo() {
-    // 清除未执行命令, 防止撤销重做改变文档内容后, 下次 handle 已过时的命令
+    // 清除未执行命令, 防止撤销重做改变文档内容后, 下次 handle 时执行已过时的命令
     this.clearQueue()
     // 执行undo前先判断是否有未入栈命令
-    this.commit()
-    // 若在事务内, commit 会失败, 恢复到事务前的状态
-    this.discard()
+    if (!this.commit()) {
+      // 若在事务内, commit 会失败, 恢复到事务前的状态
+      this.discard()
+    }
   }
 
   /**

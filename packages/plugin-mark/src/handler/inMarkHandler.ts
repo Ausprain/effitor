@@ -1,0 +1,68 @@
+import type { Et } from '@effitor/core'
+
+import { MarkEnum, markerMap, MarkType } from '../config'
+import { checkAllowNested } from './utils'
+
+/**
+ * 在 mark 节点内的效应处理器
+ */
+export const inMarkHandler: Et.EffectHandler = {
+  /* -------------------------------------------------------------------------- */
+  /*                       临时节点中插入内容, 取消临时节点标记                       */
+  /* -------------------------------------------------------------------------- */
+  EinsertText(_that, ctx, payload) {
+    if (_that.superHandler.EinsertText) {
+      if (payload.data === ' ') {
+        // 临时 mark 节点内空格撤回节点
+        const markType = ctx.pctx[MarkEnum.CtxKey].markState.markEl?.markType
+        if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(false)
+          && ctx.commandManager.discard()
+        ) {
+          if (markType === MarkType.BOLD) {
+          // bold 要插回一个 mark char
+            ctx.commonHandlers.insertText(markerMap[MarkType.BOLD].char, null)
+          }
+          return true
+        }
+        return _that.superHandler.EinsertText(_that, ctx, payload)
+      }
+      if (payload.data === markerMap[MarkType.BOLD].char && payload.data === ctx.prevUpKey) {
+        // 由于 prevUpKey 的限制, tr 一定 collapsed, 且焦点效应元素一定是 mark bold 节点
+        const tc = payload.targetRange.toTargetCaret()
+        const markEl = tc.anchorEtElement
+        if (ctx.schema.mark.is(markEl) && checkAllowNested(tc.anchorEtElement, MarkType.BOLD)) {
+          if (ctx.pctx[MarkEnum.CtxKey].markState.isMarking) {
+            markEl.changeMarkType(MarkType.BOLD)
+          }
+          if (tc.isAtText()) {
+            const text = tc.container
+            const offset = tc.offset
+            if (text.data[offset - 1] === payload.data) {
+              // 在一个非临时italic 中插入 bold
+              return !!_that.checkInsertMarkNode?.(_that, ctx, {
+                markType: MarkType.BOLD,
+                targetRange: tc,
+                removeMarkerChars: markerMap[MarkType.BOLD].char,
+              })
+            }
+          }
+          return true
+        }
+      }
+      if (_that.superHandler.EinsertText(_that, ctx, payload)) {
+        // 插入文本, 更改临时节点状态
+        if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(true)) {
+          ctx.commandManager.closeTransaction()
+        }
+        return true
+      }
+    }
+    return false
+  },
+  InsertCompositionTextSuccess(_that, ctx) {
+    // 输入法成功插入文本, 更改临时节点状态
+    if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(true)) {
+      ctx.commandManager.closeTransaction()
+    }
+  },
+}

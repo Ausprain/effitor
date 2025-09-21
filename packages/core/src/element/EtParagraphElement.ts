@@ -1,7 +1,6 @@
-import type * as mdast from 'mdast'
+import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
-import { BuiltinElName, EtTypeEnum, HtmlCharEnum } from '../enums'
 import { cr } from '../selection'
 import { EtParagraph } from './EtParagraph'
 
@@ -48,11 +47,13 @@ export class EtParagraphElement extends EtParagraph {
   }
 
   focusinCallback(_ctx: Et.EditorContext): void {
-    // this.classList.add(CssClassEnum.Active)
+    super.focusinCallback(_ctx)
+    this.classList.add(CssClassEnum.Active)
   }
 
   focusoutCallback(_ctx: Et.EditorContext): void {
-    // this.classList.remove(CssClassEnum.Active)
+    super.focusoutCallback(_ctx)
+    this.classList.remove(CssClassEnum.Active)
   }
 
   static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
@@ -65,7 +66,7 @@ export class EtParagraphElement extends EtParagraph {
     return document.createElement('p')
   }
 
-  toMdast(mdastNode: Et.CreateMdastNode): mdast.Nodes | mdast.Nodes[] | null {
+  toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
     if (this.textContent === '') {
       // 空内容段落使用 零宽字符 占位, 防止空段落被忽略
       // 插入的 零宽字符 会在 `ctx.fromMarkdown` 中调用 `DocumentFragment.normalizeAndCleanZWS` 去除

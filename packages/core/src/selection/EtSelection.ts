@@ -150,7 +150,7 @@ export class EtSelection {
     this.range = sel.getRangeAt(0) as Et.Range
     // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
     this.isCollapsed = this.range.collapsed
-    this._caretRange = null
+    this._caretRange = cr.fromRange(this.range).markValid()
     this._targetRange = this.TargetRange.fromRange(this.range)
 
     this._isForward = void 0
@@ -243,32 +243,28 @@ export class EtSelection {
   }
 
   /**
-   * 获取光标位置对应的 CaretRange 对象, 获取时会创建一个缓存,
-   * 该缓存在下一次 update 之前存活
+   * 获取光标位置对应的 CaretRange 对象
    * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
+   *  若当前选区为空, 则返回编辑区开头位置
    */
   getCaretRange() {
-    let caret = this._caretRange
-    if (caret) {
-      return caret
+    if (this._caretRange) {
+      return this._caretRange
     }
-    caret = cr.fromRange(this.range ?? {
+    return cr.fromRange(this.range ?? {
       collapsed: true,
       startContainer: this._body.el,
       startOffset: 0,
       endContainer: this._body.el,
       endOffset: 0,
-    })
-    this._caretRange = caret
-    caret.markValid()
-    return caret
+    }).markValid()
   }
 
   /**
    * 从 EtCaretRange 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
    * @param caretRange EtCaretRange 实例
    */
-  createTargetCaret(caretRange: Et.CaretRange): ValidTargetCaret | null
+  createTargetCaret(caretRange: Et.CaretRange | null): ValidTargetCaret | null
   /**
    * 从 Range 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
    * @param range Range 实例
@@ -280,7 +276,10 @@ export class EtSelection {
    * @param offset 光标所在节点偏移量
    */
   createTargetCaret(container: Et.HTMLNode, offset: number): ValidTargetCaret | null
-  createTargetCaret(target: Et.HTMLNode | Et.CaretRange | Range, offset?: number): ValidTargetCaret | null {
+  createTargetCaret(target: Et.HTMLNode | Et.CaretRange | Range | null, offset?: number): ValidTargetCaret | null {
+    if (!target) {
+      return null
+    }
     if ((target as Et.EtCaret).toRange) {
       target = (target as Et.EtCaret).toRange() as Range
     }
@@ -309,7 +308,7 @@ export class EtSelection {
   /**
    * 从 EtCaretRange 构建一个 EtTargetRange 实例; 若不存在或不合法, 将返回 null
    */
-  createTargetRange(caretRange: Et.CaretRange): ValidTargetRange | null
+  createTargetRange(caretRange: Et.CaretRange | null): ValidTargetRange | null
   /**
    * 从Range构建一个 EtTargetRange 实例; 若范围不合法, 将返回 null
    */
@@ -326,9 +325,12 @@ export class EtSelection {
     endNode: Et.HTMLNode, endOffset: number,
   ): Et.ValidTargetRange | null
   createTargetRange(
-    rangeOrStartNode: Et.HTMLNode | Range | Et.CaretRange, startOffset?: number,
+    rangeOrStartNode: Et.HTMLNode | Range | Et.CaretRange | null, startOffset?: number,
     endNode?: Et.HTMLNode, endOffset?: number,
   ): Et.ValidTargetRange | null {
+    if (!rangeOrStartNode) {
+      return null
+    }
     let tr
     if ((rangeOrStartNode as Et.EtRange).toRange) {
       rangeOrStartNode = (rangeOrStartNode as Et.EtRange).toRange() as Range
@@ -378,7 +380,7 @@ export class EtSelection {
 
   /**
    * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
-   * @param target 选区目标
+   * @param target 选区目标, 若为 null, 则使用当前选区目标
    * @param options
    * * options.caretFn 光标函数
    * * options.rangeFn 范围函数

@@ -1,6 +1,7 @@
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../../../@types'
 import { etcode } from '../../../element'
-import { HtmlCharEnum } from '../../../enums'
 import { cr } from '../../../selection'
 import { dom } from '../../../utils'
 import { cmd } from '../../command'

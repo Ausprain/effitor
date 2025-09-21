@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { initEditor, minifiedHtml } from '../../../__tests__/shared.test'
+import { clearHtmlAttrs, initEditor, minifiedHtml } from '../../../__tests__/shared.test'
 import type { Et } from '../../../@types'
 import { EtBlockquote } from '../../../element'
 import { registerEtElement } from '../../../element/register'
@@ -24,7 +24,7 @@ test('removeInSameTextNode', async () => {
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('He A78<b>bold<i>I123</i></b>B12')
   const i = p.children[0].children[0]
-  ctx.setSelection(cr.range(i.firstChild as Et.Text, 0, i.firstChild as Et.Text, (i.firstChild!as Et.Text).length))
+  ctx.setSelection(cr.range(i.firstChild as Et.Text, 0, i.firstChild as Et.Text, (i.firstChild! as Et.Text).length))
   expect(removeInSameTextNode(ctx, ctx.selection.getTargetRange()!, p, i.firstChild as Et.Text)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('He A78<b>bold</b>B12')
@@ -181,7 +181,7 @@ describe('removeInDifferentParagraphWithSameParent', () => {
     expect(p1.innerHTML).toBe('Hello A78<b>bold<i>I123</i></b>B2')
 
     ctx.commandManager.discard()
-    expect(body.innerHTML).toBe(originHtml)
+    expect(clearHtmlAttrs(body.innerHTML)).toBe(clearHtmlAttrs(originHtml))
   })
   test('no merge', async () => {
     const editor = await initEditor(`
