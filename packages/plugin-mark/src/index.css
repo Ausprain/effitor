@@ -1,19 +1,18 @@
 et-editor,
-:host  {
-  --et_mark-color__marker: #7799dd;
+:host {
+  --et_mark-color__marker: #79d;
   --et_mark-color__code_text: #ec3639;
   --et_mark-color__code_bg: #f7f7ff;
+  --et_mark-color__code_font: 'Cascadia Code';
   --et_mark-color__hl_text: #212223;
   --et_mark-color__hl_bg: #fcd13c;
 }
 
 et-editor.dark,
 :host(.dark),
-et-editor[et-theme="default-dark"],
-:host([et-theme="default-dark"]),
 :host-context(:root.dark),
 :host-context(body.dark) {
-  --et_mark-color__marker: #7f9fdf;
+  --et_mark-color__marker: #9bd;
 }
 
 /* TODO */
@@ -75,7 +74,7 @@ et-mark.ET_cls_code {
   background-color: var(--et_mark-color__code_bg);
   color: var(--et_mark-color__code_text);
   font-size: 14px;
-  font-family: 'Cascadia Code', monospace;
+  font-family: var(--et_mark-color__code_font), monospace ;
 }
 et-mark.ET_cls_code.caret-in {
   padding: 3px 0 2px;

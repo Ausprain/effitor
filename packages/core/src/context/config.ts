@@ -22,7 +22,7 @@ export interface EditorContextMeta {
   /** 编辑器文档规范 */
   readonly schema: EditorSchema
   /** 编辑器助手插件 */
-  readonly assists: EditorAssists
+  readonly assists: Partial<EditorAssists>
   /**
    * 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示
    * * 不同于效应器上下文(ectx), 插件上下文是局部的(每个编辑器实例的上下文 ctx 独有)

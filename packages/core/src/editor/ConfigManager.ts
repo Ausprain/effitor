@@ -5,7 +5,7 @@ type UserConfigItem = string | number | boolean | object | undefined
 
 /**
  * 用户编辑器配置
- * @expendable
+ * @extendable
  */
 export interface UserConfig extends Record<string, UserConfigItem> {
   editorConfig?: EditorConfig

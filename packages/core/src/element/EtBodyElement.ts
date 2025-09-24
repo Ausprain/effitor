@@ -16,18 +16,6 @@ export class EtBodyElement extends EffectElement {
   /** body子节点允许一切段落 */
   static readonly inEtType: number = EtTypeEnum.Paragraph
 
-  static readonly cssStyle = {
-    display: 'block !important',
-    minHeight: '128px',
-    margin: '8px auto',
-    outline: 'none',
-    border: 'none',
-    whiteSpace: 'pre-wrap',
-    fontFamily: 'ubuntu-font, PingFang SC, Lantinghei SC, Microsoft Yahei, Hiragino Sans GB, Microsoft Sans Serif, WenQuanYi Micro Hei, sans-serif',
-    fontWeight: '449',
-    fontSize: '15px',
-  }
-
   static create() {
     return document.createElement(BuiltinElName.ET_BODY) as EtBodyElement
   }

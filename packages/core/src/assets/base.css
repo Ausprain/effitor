@@ -4,6 +4,11 @@ et-editor,
 :host {
   color-scheme: light;
 
+  --et-font-family: 'ubuntu-font';
+  --et-font-size: 15px;
+  --et-font-weight: 449;
+  --et-letter-space: 0.02em;
+
   --et-color-bg: #fafbfc;
   --et-color-bg--hover: #ecedee;
   --et-color-bg--active: #e1e2e3;
@@ -15,24 +20,18 @@ et-editor,
   --et-color-border-2: #ddd;
   --et-color-border-3: #ccc;
 
-  --et-color-hinting: #79d;
-
   --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
     0 8px 16px rgb(0 0 0 / 0.12);
 
   --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
     6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
-
-  /* todo */
-  --var: 0;
-  --color: wheat;
 }
 
 /* 深色模式, 指向 et-editor.dark, 可类似的使用 :host(.theme) 来为编辑器设定不同的主题 */
 et-editor.dark,
 :host(.dark),
-et-editor[et-theme="default-dark"],
-:host([et-theme="default-dark"]),
+et-editor.dark[et-theme="default"],
+:host(.dark[et-theme="default"]),
 /* 指向 ed-editor 元素, 当其html或body具有 dark 类时生效 */
 :host-context(:root.dark),
 :host-context(body.dark) {
@@ -49,35 +48,33 @@ et-editor[et-theme="default-dark"],
   --et-color-border-2: #333;
   --et-color-border-3: #444;
 
-  --et-color-hinting: #9bd;
-
   --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
     0 8px 16px rgb(0 0 0 / 0.12);
 
   --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
     6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
-
-  /* todo */
-  --var: 1;
 }
 
-*,
-::before,
-::after {
-  margin: 0;
-  padding: 0;
-  outline: none;
-  box-sizing: border-box;
-}
 
 et-editor,
 :host {
+  *,
+  ::before,
+  ::after {
+    outline: none;
+    box-sizing: border-box;
+  }
+
   position: relative;
   /* 创建bfc 包含浮动 */
   display: flow-root;
 
   color: var(--et-color-text);
   background-color: var(--et-color-bg);
+  font-family: var(--et-font-family);
+  font-size: var(--et-font-size);
+  font-weight: var(--et-font-weight);
+  letter-spacing: var(--et-letter-space);
 }
 
 /* 默认编辑器外框样式 */
@@ -89,4 +86,16 @@ et-editor[et-theme="default"],
   margin: 8px auto;
   border: 1px solid var(--et-color-border-3);
   border-radius: 8px;
+}
+
+/* 编辑区内置样式 */
+et-body {
+  display: block !important;
+  min-height: 128px;
+  margin: 8px auto;
+  outline: none;
+  border: none;
+  hyphens: auto;  /* 末尾单词自动连接符 */
+  white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
+  
 }

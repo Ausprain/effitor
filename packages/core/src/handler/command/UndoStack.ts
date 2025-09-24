@@ -140,10 +140,10 @@ export class UndoStack {
   }
 
   /**
-     * 获取下一个undo操作的光标基准位置, 即上一个事务的光标结束位置destCaretRange,
-     * 因为执行undo前, srcCaretRange可能不在页面上(获取该位置没有意义) \
-     * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
-     */
+   * 获取下一个undo操作的光标基准位置, 即上一个事务的光标结束位置destCaretRange,
+   * 因为执行undo前, srcCaretRange可能不在页面上(获取该位置没有意义) \
+   * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
+   */
   undoCaretRange() {
     if (this._pos <= 0) {
       return null
