@@ -31,6 +31,8 @@ et-editor,
 /* 深色模式, 指向 et-editor.dark, 可类似的使用 :host(.theme) 来为编辑器设定不同的主题 */
 et-editor.dark,
 :host(.dark),
+et-editor[et-theme="default-dark"],
+:host([et-theme="default-dark"]),
 /* 指向 ed-editor 元素, 当其html或body具有 dark 类时生效 */
 :host-context(:root.dark),
 :host-context(body.dark) {
@@ -73,11 +75,14 @@ et-editor,
   position: relative;
   /* 创建bfc 包含浮动 */
   display: flow-root;
+
+  color: var(--et-color-text);
+  background-color: var(--et-color-bg);
 }
 
 /* 默认编辑器外框样式 */
-et-editor.default-style,
-:host(.default-style) {
+et-editor[et-theme="default"],
+:host([et-theme="default"]) {
   min-height: 300px;
   max-width: 760px;
   padding: 40px;

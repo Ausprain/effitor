@@ -646,7 +646,7 @@ const formatEffitorStructure = (
   host.append(editorEl)
   host.classList.add(CssClassEnum.Effitor)
   if (editor.config.WITH_EDITOR_DEFAULT_STYLE) {
-    editorEl.classList.add(CssClassEnum.DefaultStyle)
+    editorEl.setAttribute(BuiltinConfig.THEME_ATTR, BuiltinConfig.DEFAULT_THEME)
   }
   // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
   // fixed. 若为 relative, 会让内部的 anchor-position失效

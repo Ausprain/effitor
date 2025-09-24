@@ -11,6 +11,10 @@ export const enum BuiltinConfig {
   EDITOR_CSS_CLASS_PREFIX = 'ET_cls_',
   /** 一个粘贴效应名, 定义在这里, 而不是效应列表中, 目的是隐藏内部粘贴行为入口 */
   INSERT_FROM_ET_HTML = 'InsertFromEtHtml',
+  /** 编辑器主题属性名 */
+  THEME_ATTR = 'et-theme',
+  /** 编辑器默认内置主题 */
+  DEFAULT_THEME = 'default',
 }
 /** 内置自定义元素名 */
 export const enum BuiltinElName {
@@ -53,7 +57,6 @@ export const enum HtmlAttrEnum {
 export const enum CssClassEnum {
   Et = 'et',
   Effitor = 'effitor',
-  DefaultStyle = 'default-style',
   /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */
   Active = 'active',
   /** 当前元素被选择 */

@@ -1,14 +1,28 @@
 et-editor,
 :host  {
-  --et_mark-color-marker: #7799dd;
+  --et_mark-color__marker: #7799dd;
+  --et_mark-color__code_text: #ec3639;
+  --et_mark-color__code_bg: #f7f7ff;
+  --et_mark-color__hl_text: #212223;
+  --et_mark-color__hl_bg: #fcd13c;
 }
 
 et-editor.dark,
 :host(.dark),
+et-editor[et-theme="default-dark"],
+:host([et-theme="default-dark"]),
 :host-context(:root.dark),
 :host-context(body.dark) {
-  --et_mark-color-marker: #7f9fdf;
+  --et_mark-color__marker: #7f9fdf;
 }
+
+/* TODO */
+/* et-editor[et-theme="vue"],
+:host([et-theme="vue"]) {
+}
+et-editor.dark[et-theme="vue"],
+:host(.dark[et-theme="vue"]) {
+} */
 
 et-mark {
   display: inline;
@@ -26,8 +40,7 @@ et-mark.caret-in {
 
 et-mark::after, et-mark::before {
   display: none;
-  color: #7799dd;
-  font-family: Consolas;
+  color: var(--et_mark-color__marker);
   font-weight: normal;
 }
 et-mark::after {
@@ -59,10 +72,10 @@ et-mark.marking::after {
 et-mark.ET_cls_code {
   margin: 0px 2px; 
   padding: 3px 3px 2px;
-  background-color: #f7f7ff;
-  color: #ec3639;
+  background-color: var(--et_mark-color__code_bg);
+  color: var(--et_mark-color__code_text);
   font-size: 14px;
-  font-family: 'Cascadia Code', Courier, monospace;
+  font-family: 'Cascadia Code', monospace;
 }
 et-mark.ET_cls_code.caret-in {
   padding: 3px 0 2px;
@@ -99,8 +112,9 @@ et-mark.ET_cls_delete::after, et-mark.ET_cls_delete::before {
 
 
 et-mark.ET_cls_highlight {
-  background-color: #fcd13c;
-  padding: 1px 0;
+  color: var(--et_mark-color__hl_text);
+  background-color: var(--et_mark-color__hl_bg);
+  padding: 1px 2px;
 }
 et-mark.ET_cls_highlight::after, et-mark.ET_cls_highlight::before {
   content: "==";
