@@ -72,7 +72,7 @@ import { removeByTargetRange } from './deleteAtRange'
 /**
  * 处理在段落开头 Backspace
  */
-export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagraphStart', (_that, ctx, targetCaret) => {
+export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagraphStart', (ctx, targetCaret) => {
   // if (targetCaret.isCaretAtBodyStart) {
   //   // 编辑区开头 Backspace
   //   return true
@@ -208,7 +208,7 @@ export const backspaceAtParagraphStart = createEffectHandle('BackspaceAtParagrap
 /**
  * 处理在段落末尾 Delete
  */
-export const deleteAtParagraphEnd = createEffectHandle('DeleteAtParagraphEnd', (_that, ctx, targetCaret) => {
+export const deleteAtParagraphEnd = createEffectHandle('DeleteAtParagraphEnd', (ctx, targetCaret) => {
   // if (targetCaret.isCaretAtBodyEnd) {
   //   // 编辑区结尾 Delete
   //   return true

@@ -4,11 +4,10 @@ import { cmd } from '../../command'
 import { createEffectHandle } from '../../utils'
 
 export const initEditorContents = createEffectHandle('InitEditorContents', (
-  _that, ctx, payload,
+  ctx, { create, isFirstInit },
 ) => {
   let newP, dest
   const bodyEl = ctx.bodyEl
-  const { create, isFirstInit } = payload
   const out = create
     ? create()
     : ctx.editor.callbacks.firstInsertedParagraph?.() ?? ctx.createPlainParagraph()
@@ -43,9 +42,8 @@ export const initEditorContents = createEffectHandle('InitEditorContents', (
 })
 
 export const updateEditorContentsFromMarkdown = createEffectHandle('UpdateEditorContentsFromMarkdown', (
-  _that, ctx, payload,
+  ctx, { mdText, mdOptions },
 ) => {
-  const { mdText, mdOptions } = payload
   const df = ctx.fromMarkdown(mdText, mdOptions)
   const cm = ctx.commandManager
   const bodyEl = ctx.bodyEl
@@ -80,7 +78,7 @@ export const updateEditorContentsFromMarkdown = createEffectHandle('UpdateEditor
   return true
 })
 
-export const transformInsertContents = createEffectHandle('TransformInsertContents', (_that, _ctx, payload) => {
+export const transformInsertContents = createEffectHandle('TransformInsertContents', (_ctx, payload) => {
   // 原样返回
   return payload.fragment
 })

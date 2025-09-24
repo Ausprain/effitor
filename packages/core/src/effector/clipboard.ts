@@ -41,7 +41,7 @@ export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAct
     if (ctx.defaultSkipped) return false
 
     copySelectionToClipboard(ctx, ev.clipboardData)
-    ctx.dispatchInputEvent('beforeinput', {
+    ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'deleteByCut',
     })
   }
@@ -66,7 +66,7 @@ export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardA
     callback?.(ev, ctx)
     if (ctx.defaultSkipped) return false
     // 接管默认粘贴行为
-    ctx.dispatchInputEvent('beforeinput', {
+    ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'insertFromPaste',
       dataTransfer: ev.clipboardData,
     })

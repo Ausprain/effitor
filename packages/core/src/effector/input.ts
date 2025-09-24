@@ -43,11 +43,11 @@ export const getInputListener = (
       return false
     }
     // TODO 热字符串功能仅在段落下有效?
-    if (ev.inputType === 'insertText' && ctx.isPlainParagraph(ctx.focusEtElement)) {
-      ctx.hasInsertText = true
-      if (ev.data) {
-        ctx.hotstringManager.listen(ev.data)
-      }
+    if (ev.data && ev.inputType === 'insertText' && ctx.isPlainParagraph(ctx.focusEtElement)) {
+      ctx.hotstringManager.listen(ev.data)
+    }
+    else {
+      ctx.hotstringManager.needResetBeforeJudge()
     }
     runInputSolver(ev, ctx, main, sovler)
 

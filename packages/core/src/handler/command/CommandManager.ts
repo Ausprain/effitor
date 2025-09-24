@@ -197,7 +197,7 @@ export class CommandManager implements CommandQueue {
   commit(): boolean {
     // 输入法会话中禁止记录事务;
     // 防止输入法中按下Backspace等时, 将单个insertCompositionText记录入事务
-    if (this._inTransaction || this._ctx.inCompositionSession) return false
+    if (this._inTransaction || this._ctx.composition.inSession) return false
     return this._undoStack.pushTransaction(this._ctx)
   }
 

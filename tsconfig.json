@@ -1,7 +1,7 @@
 {
   "files": ["./env.d.ts"],
   "include": ["./packages", "./main"],
-  "exclude": ["**/dist", "./packages/*/main.ts"],
+  "exclude": ["**/dist"],
   "compilerOptions": {
     "strict": true,
     "target": "esnext",

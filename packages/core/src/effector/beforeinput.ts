@@ -94,7 +94,7 @@ export const getBeforeinputListener = (
   return (ev: Et.InputEvent) => {
     // console.log('beforeinput', ev.inputType, ev.data)
     // 输入法会话内 跳过delete 处理, 因为其不可 preventDefault
-    if (ctx.inCompositionSession) {
+    if (ctx.composition.inSession) {
       if ([
         'deleteContentBackward', // Windows
         'deleteWordBackward', // MacOS
@@ -125,7 +125,7 @@ export const getBeforeinputListener = (
     // MacOS 下 Safari 有 deleteCompositionText 也无法 preventDefault
     if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
       // 默认事件被取消, 手动dispatch input事件
-      ctx.dispatchInputEvent('input', {
+      ctx.body.dispatchInputEvent('input', {
         inputType: ev.inputType,
         data: ev.data,
       })

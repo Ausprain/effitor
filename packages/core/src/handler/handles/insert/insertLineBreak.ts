@@ -5,7 +5,7 @@ import { dom } from '../../../utils'
 import { createInputEffectHandle } from '../../utils'
 import { insertElementAtCaret } from './insert.shared'
 
-export const insertLineBreak = createInputEffectHandle((_that, ctx, pl) => {
+export const insertLineBreak = createInputEffectHandle((ctx, pl) => {
   // 选区非 collapsed, 禁止插入 br, 折叠选区到focus 位置
   if (!pl.targetRange.collapsed) {
     ctx.selection.collapse(!ctx.selection.isForward)

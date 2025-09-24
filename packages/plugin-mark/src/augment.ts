@@ -40,7 +40,7 @@ declare module '@effitor/core' {
     /*                              挂到EffectElement上                              */
     /* -------------------------------------------------------------------------- */
     /** 插入标记符节点 */
-    checkInsertMarkNode: (_that: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
+    checkInsertMarkNode: (ctx: Et.EditorContext, payload: {
       markType: MarkType
       /** 并移除已经插入页面的标记符文本, 若为 undefined 或空串, 则不检查 */
       removeMarkerChars?: string
@@ -48,7 +48,7 @@ declare module '@effitor/core' {
       targetRange?: Et.ValidTargetSelection | null
     }) => boolean
     /** 将选区转为mark节点 */
-    checkFormatMark: (_that: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
+    checkFormatMark: (ctx: Et.EditorContext, payload: {
       markType: MarkType
       /** 目标范围, 为空时使用当前选区 */
       targetRange?: Et.ValidTargetRange | null
@@ -58,10 +58,10 @@ declare module '@effitor/core' {
     /*                              挂到EtMarkElement上                              */
     /* -------------------------------------------------------------------------- */
     /** 撤销临时节点, 并插入该节点对应的标记字符 */
-    // regressToMarkChar: (_that: Et.EffectHandleThis, ctx: Et.EditorContext, markType: MarkType) => boolean
+    // regressToMarkChar: (ctx: Et.EditorContext, markType: MarkType) => boolean
     /** 移除标记节点, 插回文本 */
-    // unformatMark: (_that: Et.EffectHandleThis, ctx: Et.EditorContext) => boolean
+    // unformatMark: (ctx: Et.EditorContext) => boolean
     /** 标记节点内末尾Delete, 删除标记节点, 并将前标记字符与内容插回 */
-    // deleteAtMarkEnd: (_that: Et.EffectHandleThis, ctx: Et.EditorContext) => boolean
+    // deleteAtMarkEnd: (ctx: Et.EditorContext) => boolean
   }
 }

@@ -1,6 +1,6 @@
 import type { EditorContext, UpdatedContext } from '../context'
 import type { EffectElement } from '../element'
-import type { EffectHandle, EffectHandler } from './config'
+import type { EffectHandle, EffectHandler, EffectHandleThis } from './config'
 
 // 增强效应元素构造器类型
 type EtElementCtorProps = Record<string, undefined | null | string | number | object | EffectHandle>
@@ -13,10 +13,10 @@ export const effectInvoker = {
   getEtProto<T extends EffectElement | typeof EffectElement>(el: T) {
     return (el.__proto__ ?? Object.getPrototypeOf(el)) as T
   },
-  /** 获取 EffectElement的类对象（构造函数） */
+  /** 获取效应元素实例的类对象（构造器） */
   getEtElCtor<T extends typeof EffectElement>(el: InstanceType<T>) {
     // 使用 __proto__ 获取 DOM 对象的原型, jsperf实测性能更优 +60%
-    return this.getEtProto(el).constructor as T & EtElementCtorProps
+    return this.getEtProto(el).constructor as T & EtElementCtorProps & EffectHandleThis
   },
   /**
    * 激发一个效应元素上的效应, 传递相应参数并执行对应 handler
@@ -27,12 +27,13 @@ export const effectInvoker = {
    */
   invoke<E extends keyof EffectHandler,
     Args extends (Required<EffectHandler>[E] extends (...args: infer P) => unknown ? P : never),
+    Ret extends (Required<EffectHandler>[E] extends (...args: infer _) => infer R ? R : never),
   >(
     el: EffectElement,
     effect: E,
-    ctx: Args[1] extends UpdatedContext ? UpdatedContext : EditorContext,
-    payload: E extends 'E' ? unknown : Args[2],
-  ): boolean {
+    ctx: Args[0] extends UpdatedContext ? UpdatedContext : EditorContext,
+    payload: E extends 'E' ? unknown : Args[1],
+  ): Ret | false {
     const Cls = this.getEtElCtor(el)
     if (Cls.effectBlocker && Cls.effectBlocker(effect)) {
       // 阻止该效应
@@ -42,7 +43,7 @@ export const effectInvoker = {
     // const handle = Reflect.get(Cls, effect)
     const handle = Cls[effect as keyof typeof Cls] as EffectHandle
     if (typeof handle === 'function') {
-      return !!handle.call(Cls, Cls, ctx, payload)
+      return handle.call(Cls, ctx, payload) as Ret
     }
     return false
   },

@@ -61,26 +61,26 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
     // 首段落, 无命令执行
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(false)
 
     // 非开头, 禁止删除
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 1))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(false)
     // 非首段落, 允许删除
     ctx.setSelection(cr.caretIn(p2.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     ctx.commandManager.discard()
     // 亲和位置判断
     ctx.setSelection(cr.caretIn(p2.firstChild?.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -99,7 +99,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
 
     const srcCaret = cr.caretIn(p2.firstChild as Et.Text, 0)
     ctx.setSelection(srcCaret)
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -129,7 +129,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p2.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -156,7 +156,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p2.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -179,7 +179,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p2.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -203,7 +203,7 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p2.firstChild as Et.Text, 0))
-    expect(checkBackspaceAtCaretDeleteParagraph(
+    expect(checkBackspaceAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p2), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -323,11 +323,11 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     // 测试在段落结尾按Delete
     // 非末尾, 禁止删除
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 14)) // "First paragrap|h"
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(false)
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 15)) // "First paragraph|"
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -348,7 +348,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
 
     const srcCaret = cr.caretIn(p1.lastChild as Et.Text, 15)
     ctx.setSelection(srcCaret)
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -378,7 +378,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     const p2 = body.children[1] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p1.firstChild as Et.Text, 15))
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -404,7 +404,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     const p1 = body.children[0] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p1.lastChild as Et.Text, 1))
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -426,7 +426,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     const p1 = body.children[0] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p1.lastChild?.firstChild as Et.Text, 10))
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -449,7 +449,7 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     const p1 = body.children[0] as Et.EtParagraphElement
 
     ctx.setSelection(cr.caretIn(p1.lastChild?.firstChild as Et.Text, 10))
-    expect(checkDeleteAtCaretDeleteParagraph(
+    expect(checkDeleteAtCaretDeleteParagraph.call(
       ctx.effectInvoker.getEtElCtor(p1), ctx, ctx.selection.getTargetRange()!.toTargetCaret(),
     )).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)

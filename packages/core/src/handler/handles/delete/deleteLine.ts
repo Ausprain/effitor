@@ -4,7 +4,7 @@
 import { createInputEffectHandle } from '../../utils'
 import { removeByTargetRange } from './deleteAtRange'
 
-export const deleteEntireSoftLine = createInputEffectHandle((_that, ctx) => {
+export const deleteEntireSoftLine = createInputEffectHandle((ctx) => {
   if (ctx.selection.isCollapsed) {
     return true
   }
@@ -19,7 +19,7 @@ export const deleteEntireSoftLine = createInputEffectHandle((_that, ctx) => {
   }
   return removeByTargetRange(ctx, tr)
 })
-export const deleteSoftLineBackward = createInputEffectHandle((_that, ctx) => {
+export const deleteSoftLineBackward = createInputEffectHandle((ctx) => {
   if (ctx.selection.isCaretAtParagraphStart) {
     return false
   }
@@ -31,7 +31,7 @@ export const deleteSoftLineBackward = createInputEffectHandle((_that, ctx) => {
   }
   return removeByTargetRange(ctx, tr)
 })
-export const deleteSoftLineForward = createInputEffectHandle((_that, ctx) => {
+export const deleteSoftLineForward = createInputEffectHandle((ctx) => {
   if (ctx.selection.isCaretAtParagraphEnd) {
     return false
   }
@@ -43,9 +43,9 @@ export const deleteSoftLineForward = createInputEffectHandle((_that, ctx) => {
   }
   return removeByTargetRange(ctx, tr)
 })
-// export const deleteHardLineBackward = createInputEffectHandle((_that, ctx, ev) => {
+// export const deleteHardLineBackward = createInputEffectHandle((ctx, ev) => {
 //   return true
 // })
-// export const deleteHardLineForward = createInputEffectHandle((_that, ctx, ev) => {
+// export const deleteHardLineForward = createInputEffectHandle((ctx, ev) => {
 //   return true
 // })

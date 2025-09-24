@@ -11,7 +11,7 @@ import {
 } from './deleteAtCaret'
 import { removeByTargetRange } from './deleteAtRange'
 
-export const deleteWordBackward = createInputEffectHandle((_that, ctx, pl) => {
+export const deleteWordBackward = createInputEffectHandle(function (ctx, pl) {
   ctx.setCaretAffinityPreference(true)
   if (!pl.targetRange.collapsed) {
     return removeByTargetRange(ctx, pl.targetRange)
@@ -21,14 +21,14 @@ export const deleteWordBackward = createInputEffectHandle((_that, ctx, pl) => {
     // 光标在文本节点上
     checkBackspaceAtCaretDeleteText(ctx, tc, true)
     // 光标在段落开头?
-    || checkBackspaceAtCaretDeleteParagraph(_that, ctx, tc)
+    || checkBackspaceAtCaretDeleteParagraph.call(this, ctx, tc)
     // 光标落在非文本节点边缘?
     || checkBackspaceAtCaretDeleteNode(ctx, tc)
     // 光标落在文本节点开头?
     || checkBackspaceAtCaretInTextStart(ctx, tc)
   )
 })
-export const deleteWordForward = createInputEffectHandle((_that, ctx, pl) => {
+export const deleteWordForward = createInputEffectHandle(function (ctx, pl) {
   ctx.setCaretAffinityPreference(false)
   if (!pl.targetRange.collapsed) {
     return removeByTargetRange(ctx, pl.targetRange)
@@ -38,7 +38,7 @@ export const deleteWordForward = createInputEffectHandle((_that, ctx, pl) => {
     // 光标在文本节点上
     checkDeleteAtCaretDeleteText(ctx, tc, true)
     // 光标在段落末尾?
-    || checkDeleteAtCaretDeleteParagraph(_that, ctx, tc)
+    || checkDeleteAtCaretDeleteParagraph.call(this, ctx, tc)
     // 光标在非文本节点边缘
     || checkDeleteAtCaretDeleteNode(ctx, tc)
     // 光标落在文本节点末尾

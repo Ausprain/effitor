@@ -7,7 +7,7 @@ import { cmd } from '../../command'
 import { createInputEffectHandle } from '../../utils'
 import { insertTextAtRange } from './insert.shared'
 
-export const insertText = createInputEffectHandle((_that, ctx, pl) => {
+export const insertText = createInputEffectHandle((ctx, pl) => {
   if (!pl.data) {
     return true
   }
@@ -65,7 +65,8 @@ const insertTextAtCaretByTyping = (
     }
     return true
   }
-  const replaceChar = ctx.hotkeyManager.getWritableKey(
+  // 尝试将前一个全角字符替换为半角
+  const replaceChar = ctx.composition.getWritableKey(
     anchorText.data[offset - 1],
   )
   if (replaceChar) {

@@ -1,9 +1,21 @@
 import type { Et } from '../@types'
-import { builtinHotkeyActionMap, keyboardCodeKeyDownBuiltinMap, keyboardCodeKeyDownDefaultMap, KeyboardCodeKeyDownEffectMap, keyboardCodeKeydownToChineseImeChar, KeyboardWritableKeyToImeCharMap } from './builtin'
+import { ConfigManager } from '../editor/ConfigManager'
+import {
+  builtinHotkeyActionMap,
+  keyboardCodeKeyDownBuiltinMap,
+  keyboardCodeKeyDownDefaultMap,
+  KeyboardCodeKeyDownEffectMap,
+} from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
 import { keyChars } from './Key'
 import { Mod, modChar } from './Mod'
-import { create, createAction, withMod } from './util'
+import { create, createAction, modKey, withMod } from './util'
+
+declare module '../editor/ConfigManager' {
+  interface UserConfig {
+    hotkeyData?: HotkeyData
+  }
+}
 
 /** 快捷键 -> 操作名的映射，用于持久化存储 */
 type HotkeyActionKeyMapping = Record<A_hotkey, A_actionKey>
@@ -13,86 +25,15 @@ type ActionMap = Record<A_actionKey, HotkeyAction>
 /** 快捷键配置持久化存储对象 */
 interface HotkeyData {
   hotkeyMapping: HotkeyActionKeyMapping
-  imeCharMapping: KeyboardWritableKeyToImeCharMap
-}
-interface HotkeyDataSaver {
-  /** 存储快捷键列表 */
-  save: (m: HotkeyData) => void
-  /** 恢复快捷键列表 */
-  restore: () => HotkeyData
-}
-
-export interface HotkeyManagerOptions {
-  /** 存储器 */
-  saver: (m: HotkeyData) => void
-  /** 获取器 */
-  getter: () => HotkeyData
-}
-
-const getHotkeySaver = (options?: HotkeyManagerOptions) => {
-  if (options) {
-    return {
-      save: options.saver,
-      restore: options.getter,
-    }
-  }
-  return {
-    save: (m: HotkeyData) => {
-      return localStorage.setItem(HotkeyEnum.LocalStorageKey, JSON.stringify(m))
-    },
-    restore: () => {
-      try {
-        const data = localStorage.getItem(HotkeyEnum.LocalStorageKey)
-        const hotkeyMapping = {} as HotkeyActionKeyMapping
-        const imeCharMapping = {} as Record<string, string>
-        if (data) {
-          const hotkeyData = JSON.parse(data) as HotkeyData
-          for (const [k, v] of Object.entries(hotkeyData.hotkeyMapping)) {
-            if (typeof v !== 'string') {
-              continue
-            }
-            hotkeyMapping[k] = v
-          }
-          for (const [k, v] of Object.entries(hotkeyData.imeCharMapping)) {
-            if (typeof v !== 'string') {
-              continue
-            }
-            imeCharMapping[k] = v
-          }
-        }
-        return {
-          hotkeyMapping,
-          imeCharMapping,
-        }
-      }
-      catch (_e) {
-        return {
-          hotkeyMapping: {},
-          imeCharMapping: {},
-        }
-      }
-    },
-  }
 }
 
 /**
  * 快捷键管理器
  */
 export class HotkeyManager {
-  private readonly _ctx: Et.EditorContext
-  /**
-   * KeyboardEvent.key -> 输入字符 映射, 用于解决 MacOS 下无法通过 ev.key === 'Process'
-   * 判断当前是否为输入法输入, 从而无法正确地根据输入法状态输入全角标点的问题;
-   * 配合 ctx.isUsingIME, 为 true 时从该映射中获取输入字符, 否则输入 ev.key 字符
-   */
-  private readonly _imeCharMap = {} as Record<string, string>
-  /** ime字符 -> KeyboardEvent.key 映射, 用于输入全角的 ime 字符后按空格替换回半角字符 */
-  private readonly _imeCharToWritableKey = {} as Record<string, string>
   private readonly _builtinKeydownEffect: KeyboardCodeKeyDownEffectMap
   private readonly _defaultKeydownEffect: KeyboardCodeKeyDownEffectMap
 
-  /** 快捷键数据存储器 */
-  private readonly _hotkeyDataSaver: HotkeyDataSaver
   /** 快捷键配置, 快捷键-> 动作名; 用于自定义绑定动作的快捷键, 以及持久化配置 */
   private readonly _hotkeyActionKeyMap: HotkeyActionKeyMapping
   /** 快捷键map, 快捷键 -> 动作; 用于根据 hotkey 执行 action.run */
@@ -104,14 +45,27 @@ export class HotkeyManager {
   readonly withMod = withMod
   readonly createAction = createAction
 
-  constructor(
-    ctx: Et.EditorContext,
-    options?: HotkeyManagerOptions,
-  ) {
-    this._ctx = ctx
-    this._hotkeyDataSaver = getHotkeySaver(options)
-    const hotkeyData = this._hotkeyDataSaver.restore()
+  private _modkey = ''
+  /** 当前 keydown 按下的按键组合, 通过 `hotkey.modKey` 计算 */
+  get modkey() {
+    return this._modkey
+  }
 
+  /**
+   * 设置当前 keydown 按下的按键组合
+   * @param ev KeyboardEvent 事件对象
+   */
+  setModkey(ev: KeyboardEvent) {
+    this._modkey = modKey(ev)
+  }
+
+  private readonly _configManager: ConfigManager
+  constructor(
+    private readonly _ctx: Et.EditorContext,
+  ) {
+    // TODO 设置 hotkeyData 配置更新检查器
+    // this._configManager.setConfigChecker('hotkeyData', (config) => {})
+    this._configManager = _ctx.editor.configManager
     this._hotkeyActionMap = {}
     this._actionMap = {}
     this._hotkeyActionKeyMap = new Proxy({}, {
@@ -132,17 +86,32 @@ export class HotkeyManager {
     // 加载默认快捷键配置
     this.addActions(builtinHotkeyActionMap)
     // 恢复存储的快捷键配置
-    for (const [hotkey, actionKey] of Object.entries(hotkeyData.hotkeyMapping)) {
-      if (actionKey in this._actionMap) {
-        this._hotkeyActionKeyMap[hotkey] = actionKey
+    const hotkeyData = this._configManager.getConfig('hotkeyData')
+    let needUpdateConfig = false
+    if (hotkeyData && hotkeyData.hotkeyMapping) {
+      if (typeof hotkeyData.hotkeyMapping !== 'object') {
+        needUpdateConfig = true
+      }
+      else {
+        for (const [hotkey, actionKey] of Object.entries(hotkeyData.hotkeyMapping)) {
+          if (actionKey in this._actionMap) {
+            this._hotkeyActionKeyMap[hotkey] = actionKey
+          }
+          else {
+            needUpdateConfig = true
+          }
+        }
       }
     }
-    // 加载 ime 字符映射
-    this.setImeChars(keyboardCodeKeydownToChineseImeChar)
-    // 恢复存储的 ime 映射配置
-    for (const [key, imeChar] of Object.entries(hotkeyData.imeCharMapping)) {
-      this._imeCharMap[key] = imeChar
+    else {
+      needUpdateConfig = true
     }
+    if (needUpdateConfig) {
+      this._configManager.updateConfig('hotkeyData', {
+        hotkeyMapping: { ...this._hotkeyActionKeyMap },
+      })
+    }
+
     // 加载内置系统级按键行为
     this._builtinKeydownEffect = keyboardCodeKeyDownBuiltinMap
     // 加载默认按键行为
@@ -153,32 +122,23 @@ export class HotkeyManager {
    * 在 keydown 中监听内置系统级按键行为; 如 MacOS 下 `opt+ArrowLeft` 光标向左移动一个单词等;
    * 监听成功返回 true, 结束 keydown 事件周期
    */
-  listenBuiltin(modkey: string) {
-    const effect = this._builtinKeydownEffect[modkey]
+  listenBuiltin() {
+    const effect = this._builtinKeydownEffect[this._modkey]
     if (!effect) {
       return false
     }
-    // TODO 此处是否适合用Promise 来异步执行
     if (typeof effect === 'function') {
-      Promise.resolve().then(() => {
-        console.log('listen builtin run fun')
-        effect(this._ctx)
-      })
-      return true
+      return effect(this._ctx)
     }
-    Promise.resolve().then(() => {
-      this._ctx.dispatchInputEvent('beforeinput', {
-        inputType: effect,
-      })
-    })
+    this._ctx.body.dispatchInputEvent('beforeinput', { inputType: effect })
     return true
   }
 
   /**
    * 在 keydown 中监听快捷键绑定; 在 listenBuiltin 失败之后, 插件 keydownSovler 之前执行
    */
-  listenBinding(modkey: string) {
-    const action = this._hotkeyActionMap[modkey]
+  listenBinding() {
+    const action = this._hotkeyActionMap[this._modkey]
     if (action && action.run) {
       return action.run(this._ctx)
     }
@@ -188,60 +148,16 @@ export class HotkeyManager {
   /**
    * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
    */
-  listenDefault(modkey: string) {
-    const effect = this._defaultKeydownEffect[modkey]
+  listenDefault() {
+    const effect = this._defaultKeydownEffect[this._modkey]
     if (!effect) {
       return false
     }
-    // TODO 此处是否适合用Promise 来异步执行
     if (typeof effect === 'function') {
-      Promise.resolve().then(() => {
-        effect(this._ctx)
-      })
-      return true
+      return effect(this._ctx)
     }
-    Promise.resolve().then(() => {
-      this._ctx.dispatchInputEvent('beforeinput', {
-        inputType: effect,
-      })
-    })
+    this._ctx.body.dispatchInputEvent('beforeinput', { inputType: effect })
     return true
-  }
-
-  /**
-   * 获取 KeyboardEvent.key 对应的 IME 字符
-   */
-  getImeChar(key: string): string | undefined {
-    return this._imeCharMap[key]
-  }
-
-  /**
-   * 获取一个 ime 字符对应的 KeyboardEvent.key 可写字符; 如 `。 -> .`
-   * @param imeChar ime字符
-   * @returns 一个长度为 1 的字符串, 或 undefined
-   */
-  getWritableKey(imeChar: string): string | undefined {
-    return this._imeCharToWritableKey[imeChar]
-  }
-
-  /**
-   * 获取 IME 字符映射表, 在需要自定义 ime 字符映射时需要
-   */
-  getImeCharsMap() {
-    return { ...this._imeCharMap }
-  }
-
-  /**
-   * 设置IME输入替换字符
-   * @param mapping KeyboardEvent.key -> IME字符
-   */
-  setImeChars(mapping: KeyboardWritableKeyToImeCharMap) {
-    // 最多允许 2 个字符; 中文破折号/省略号为 2 个字符
-    for (const [key, char] of Object.entries(mapping)) {
-      if (char) {
-        this._imeCharToWritableKey[this._imeCharMap[key] = char.slice(0, 2)] = key
-      }
-    }
   }
 
   /**
@@ -292,9 +208,8 @@ export class HotkeyManager {
       // if (!confirm) return false
     }
     this._hotkeyActionKeyMap[hotkey] = actionKey
-    this._hotkeyDataSaver.save({
-      hotkeyMapping: this._hotkeyActionKeyMap,
-      imeCharMapping: this._imeCharMap,
+    this._configManager.updateConfig('hotkeyData', {
+      hotkeyMapping: { ...this._hotkeyActionKeyMap },
     })
     return true
   }

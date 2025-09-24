@@ -25,7 +25,7 @@ interface EditorBodyEventListener<K extends keyof EditorBodyEventMap> {
 }
 
 /**
- * 编辑器文档主体(编辑区)
+ * 编辑器编辑区对象
  */
 export class EditorBody {
   /** 获取编辑区所有文本 */
@@ -42,6 +42,7 @@ export class EditorBody {
     /** 编辑器所在滚动容器, 默认为根 html 元素 */
     public readonly scrollContainer: HTMLElement = document.documentElement,
   ) {
+    // TODO 插件化
     this.addEventListener('headingchainupdated', (ev) => {
       console.log('heading chain updated', ev.headingChain)
       return false
@@ -112,6 +113,12 @@ export class EditorBody {
     }
   }
 
+  /**
+   * 派发编辑区事件
+   * * DOM 事件请使用 body.el.dispatchEvent
+   * @param type 事件类型
+   * @param event 事件对象
+   */
   dispatchEvent<K extends keyof EditorBodyEventMap>(type: K, event: EditorBodyEventMap[K]): boolean {
     const handlers = this._eventHandlersMap[type]
     if (handlers) {
@@ -122,6 +129,18 @@ export class EditorBody {
       }
     }
     return true
+  }
+
+  /** 在编辑区触发一个input事件; */
+  dispatchInputEvent(
+    type: 'beforeinput' | 'input',
+    init: InputEventInit | Et.InputEventInitWithEffect,
+  ) {
+    this.el.dispatchEvent(new InputEvent(type, {
+      bubbles: false,
+      cancelable: true,
+      ...init,
+    }))
   }
 
   /**

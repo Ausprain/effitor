@@ -157,6 +157,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
       }
     }
   }
+  // 处理 callback 合并
   for (const [name, cbs] of Object.entries(singleEffector)) {
     // 启用内联时, 使用 new Function 构造内敛函数, 并提供环境参数 ectx, cr, dom, etcode
     if (inline) {
@@ -170,8 +171,8 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         // singleEffector[name] = eval(fnstr)
         singleEffector[name] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
       }
-      catch {
-        throw Error('启用Effector内联时 其Callback只能使用箭头函数, 并禁止使用 import.meta .')
+      catch (e) {
+        throw Error(`启用Effector内联时 其Callback只能使用箭头函数, 并禁止使用 import.meta . ${e}`)
       }
     }
     // 不启用内联, 则使用数组局部变量存储相关回调
@@ -181,6 +182,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         : (...args: any) => { for (const cb of (cbs as Function[])) { if (cb(...args)) return } }
     }
   }
+  // 处理 solver 合并
   for (const [name, solver] of Object.entries(solversMap)) {
     // Record<keyof Solver, Function[]>
     const solverFunsMap = solver.solvers.reduce((pre, cur) => {

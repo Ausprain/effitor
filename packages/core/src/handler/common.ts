@@ -142,7 +142,7 @@ import { insertElementAtCaret, insertTextAtCaret, insertTextAtRange } from './ha
 //       }),
 //     ], destCaretRange)
 
-//     ctx.dispatchInputEvent('input', {
+//     ctx.body.dispatchInputEvent('input', {
 //       inputType: 'insertParagraph',
 //     })
 //     return true
@@ -231,6 +231,9 @@ import { insertElementAtCaret, insertTextAtCaret, insertTextAtRange } from './ha
 export class CommonHandlers {
   private readonly _ctx: Et.EditorContext
   private readonly commander: Et.EditorContext['commandManager']
+  /**
+   * 创建一个通用效应处理器, 必须在上下文创建CommandManager之后
+   */
   constructor(ctx: Et.EditorContext) {
     this._ctx = ctx
     this.commander = ctx.commandManager

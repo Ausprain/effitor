@@ -5,6 +5,7 @@ import { Effitor } from '@effitor/core'
 import { useMarkPlugin } from './src'
 
 const editor = new Effitor({
+  // effectorInline: false,
   plugins: [
     useMarkPlugin(),
   ],

@@ -10,8 +10,8 @@ export const inMarkHandler: Et.EffectHandler = {
   /* -------------------------------------------------------------------------- */
   /*                       临时节点中插入内容, 取消临时节点标记                       */
   /* -------------------------------------------------------------------------- */
-  EinsertText(_that, ctx, payload) {
-    if (_that.superHandler.EinsertText) {
+  EinsertText(ctx, payload) {
+    if (this.superHandler.EinsertText) {
       if (payload.data === ' ') {
         // 临时 mark 节点内空格撤回节点
         const markType = ctx.pctx[MarkEnum.CtxKey].markState.markEl?.markType
@@ -24,7 +24,7 @@ export const inMarkHandler: Et.EffectHandler = {
           }
           return true
         }
-        return _that.superHandler.EinsertText(_that, ctx, payload)
+        return this.superHandler.EinsertText(ctx, payload)
       }
       if (payload.data === markerMap[MarkType.BOLD].char && payload.data === ctx.prevUpKey) {
         // 由于 prevUpKey 的限制, tr 一定 collapsed, 且焦点效应元素一定是 mark bold 节点
@@ -39,7 +39,7 @@ export const inMarkHandler: Et.EffectHandler = {
             const offset = tc.offset
             if (text.data[offset - 1] === payload.data) {
               // 在一个非临时italic 中插入 bold
-              return !!_that.checkInsertMarkNode?.(_that, ctx, {
+              return !!this.checkInsertMarkNode?.(ctx, {
                 markType: MarkType.BOLD,
                 targetRange: tc,
                 removeMarkerChars: markerMap[MarkType.BOLD].char,
@@ -49,7 +49,7 @@ export const inMarkHandler: Et.EffectHandler = {
           return true
         }
       }
-      if (_that.superHandler.EinsertText(_that, ctx, payload)) {
+      if (this.superHandler.EinsertText(ctx, payload)) {
         // 插入文本, 更改临时节点状态
         if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(true)) {
           ctx.commandManager.closeTransaction()
@@ -59,7 +59,7 @@ export const inMarkHandler: Et.EffectHandler = {
     }
     return false
   },
-  InsertCompositionTextSuccess(_that, ctx) {
+  InsertCompositionTextSuccess(ctx) {
     // 输入法成功插入文本, 更改临时节点状态
     if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(true)) {
       ctx.commandManager.closeTransaction()

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-literal-enum-member */
 /** 内置配置 */
 export const enum BuiltinConfig {
+  BUILTIN_UNDO_PLUGIN_NAME = '__et_plugin_$undo',
   /** 内置Effect前缀, 便于effectBlocker过滤 */
   BUILTIN_EFFECT_PREFFIX = 'E',
   /**

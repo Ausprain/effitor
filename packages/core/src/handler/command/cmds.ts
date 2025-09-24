@@ -283,7 +283,7 @@ interface ExecutedRequiresMap {
 /* -------------------------------------------------------------------------- */
 
 const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx: Et.EditorContext) {
-  if (ctx.compositionUpdateCount === 1) {
+  if (ctx.composition.updateCount === 1) {
     if (ctx.selection.anchorText) {
       this.newInserted = false
     }

@@ -1,5 +1,4 @@
 import type { Et } from '../@types'
-import { modKey } from '../hotkey/util'
 
 /**
  * 判断用户Backspace期望删除的内容是否为`uneditable`的内容; 是则需手动构造targetRange发送 beforeinput事件（`inputType="deleteContentBackward"`）,
@@ -34,7 +33,7 @@ import { modKey } from '../hotkey/util'
 //     delTargetRange = dom.caretStaticRangeOutNode(prevNode, 0)
 //   }
 
-//   ctx.dispatchInputEvent('beforeinput', {
+//   ctx.body.dispatchInputEvent('beforeinput', {
 //     inputType: 'deleteWordBackward',
 //     targetRanges: [delTargetRange],
 //   })
@@ -69,7 +68,7 @@ import { modKey } from '../hotkey/util'
 //     delTargetRange = dom.caretStaticRangeOutNode(nextNode, 0)
 //   }
 
-//   ctx.dispatchInputEvent('beforeinput', {
+//   ctx.body.dispatchInputEvent('beforeinput', {
 //     inputType: 'deleteContentForward',
 //     targetRanges: [delTargetRange],
 //   })
@@ -192,8 +191,55 @@ export const runKeyboardSolver = (
  *    才启用 default 行为; 如按下 Backspace 触发 `deleteContentBackward` 等.
  *
  */
+export const getKeydownCaptureListener = (
+  ctx: Et.EditorContext, solver?: Et.KeyboardSolver,
+) => {
+  return (ev: Et.KeyboardEvent) => {
+  // 没有effectElement 或没有选区 阻止后续输入
+    if (!ctx.isUpdated()) {
+      if (import.meta.env.DEV) {
+        console.error('keydown error: no effectelement', ctx)
+      }
+      ev.preventDefault()
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
+      // 强制编辑器失去焦点
+      ctx.editor.blur()
+      return
+    }
+
+    // fixed. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
+    // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
+    if ((ctx.composition.setInSession(ev.isComposing))) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
+      return
+    }
+
+    // Windows 下 Chrome 在开启输入法输入时, .key为Process
+    // MacOS 下 Safari 的输入法事件先于 keydown 事件触发, 通过nextKeydownSkipped判断跳过
+    if (ctx.nextKeydownSkipped || ev.key === 'Process') {
+    // TODO 此处可去掉 'Process' 判断, 以实现多平台一致的输入法行为
+    //    如果此处为 Process 跳过了, 那么后续的  keyboardWritableKeyToImeChar(ev.key)
+    //    输入法标点符号映射将不奏效, 也就造成了多平台不一致的输入法行为
+      ev.preventDefault()
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
+      return
+    }
+
+    if (solver) {
+      const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
+      const fn = solver[key as keyof typeof solver] || solver.default
+      if (typeof fn === 'function') {
+        fn(ev, ctx)
+      }
+    }
+  }
+}
 export const getKeydownListener = (
-  ctx: Et.EditorContext, main: MainKeydownKeySolver, solver?: Et.KeyboardSolver,
+  ctx: Et.UpdatedContext, main: MainKeydownKeySolver, solver?: Et.KeyboardSolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
     // console.warn('keydown', {
@@ -203,51 +249,20 @@ export const getKeydownListener = (
     //   prevUp: ctx.prevUpKey,
     // })
 
-    // 没有effectElement 或没有选区 阻止后续输入
-    if (!ctx.isUpdated()) {
-      if (import.meta.env.DEV) {
-        console.error('keydown error: no effectelement', ctx)
-      }
-      ev.preventDefault()
-      ev.stopPropagation()
-      // 强制编辑器失去焦点
-      ctx.editor.blur()
-      return
-    }
-
-    // fixed. chromium存在输入法会话结束后并未触发compositionend事件的情况, 因此需要
-    // 在此重新赋值, 避免ctx.inCompositionSession未能在输入法结束后赋值为false
-    if ((ctx.inCompositionSession = ev.isComposing)) {
-      ev.preventDefault()
-      ev.stopPropagation()
-      return
-    }
-
-    // Windows 下 Chrome 在开启输入法输入时, .key为Process
-    // MacOS 下 Safari 的输入法事件先于 keydown 事件触发, 通过nextKeydownSkipped判断跳过
-    if (ctx.nextKeydownSkipped || ev.key === 'Process') {
-      // TODO 此处可去掉 'Process' 判断, 以实现多平台一致的输入法行为
-      //    如果此处为 Process 跳过了, 那么后续的  keyboardWritableKeyToImeChar(ev.key)
-      //    输入法标点符号映射将不奏效, 也就造成了多平台不一致的输入法行为
-      ev.preventDefault()
-      ev.stopPropagation()
-      return
-    }
-
     // 光标在原生编辑节点内, 直接调用插件solver, 使用同步逻辑, 插件需自行判断是否为输入法输入;
     // 在 mainSolver 中对 ctrl+r 刷新 等浏览器行为做禁用兜底
     if (ctx.selection.rawEl) {
-      if (ctx.inCompositionSession) {
+      if (ctx.composition.inSession) {
         return
       }
       runKeyboardSolver(ev, ctx, main, solver)
       return
     }
-    ctx.modkey = modKey(ev)
+    ctx.hotkeyManager.setModkey(ev)
 
     // MacOS 下, 延迟1帧, 等待 compositionstart 激活以判断是否输入法输入
     requestAnimationFrame(() => {
-      if (ctx.inCompositionSession) {
+      if (ctx.composition.inSession) {
         return
       }
 
@@ -259,19 +274,19 @@ export const getKeydownListener = (
         }
 
         let data: string | undefined
-        if (ctx.isUsingIME) {
-          data = ctx.hotkeyManager.getImeChar(ev.key)
-          // 无对应ime 字符, 重置 ctx.isUsingIME 为false
+        if (ctx.composition.isUsingIME) {
+          data = ctx.composition.getImeChar(ev.key)
+          // 无对应ime 字符, 重置 ctx.composition.isUsingIME 为false
           if (!data) {
             data = ev.key
-            ctx.isUsingIME = false
+            ctx.composition.setUsingIME(false)
           }
         }
         else {
           data = ev.key
         }
         // console.log('keydown dispatch beforeinput')
-        ctx.dispatchInputEvent('beforeinput', {
+        ctx.body.dispatchInputEvent('beforeinput', {
           data,
           inputType: 'insertText',
         })
@@ -279,13 +294,13 @@ export const getKeydownListener = (
       }
 
       // 2. 监听内置系统级按键行为
-      if (ctx.hotkeyManager.listenBuiltin(ctx.modkey)) {
+      if (ctx.hotkeyManager.listenBuiltin()) {
         return
       }
 
       // 3. 监听绑定的快捷键 (快捷键不可 repeat触发)
       if (!ev.repeat) {
-        if (ctx.hotkeyManager.listenBinding(ctx.modkey)) {
+        if (ctx.hotkeyManager.listenBinding()) {
           return
         }
       }
@@ -293,12 +308,12 @@ export const getKeydownListener = (
       // 4. 插件 keydownSovler; 5. MainKeydownSolver
       if (runKeyboardSolver(ev, ctx, main, solver)) {
         // 5. 若插件未 skipDefault, 则执行默认行为
-        ctx.hotkeyManager.listenDefault(ctx.modkey)
+        ctx.hotkeyManager.listenDefault()
       }
     })
 
     // 禁用(除复制/剪切/粘贴外)所有原生默认行为 (必须同步执行才有效)
-    if (!ctx.keepDefaultModkeyMap[ctx.modkey]) {
+    if (!ctx.keepDefaultModkeyMap[ctx.hotkeyManager.modkey]) {
       ev.preventDefault()
     }
     ev.stopPropagation()

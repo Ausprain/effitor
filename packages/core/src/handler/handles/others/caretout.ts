@@ -26,7 +26,7 @@ const caretToNextText = (node: Et.Node, ctx: Et.EditorContext) => {
   return ctx.commandManager.handleAndUpdate(cr.caret(zws, 1))
 }
 
-export const tabout = createEffectHandle('tabout', (_that, ctx, tc) => {
+export const tabout = createEffectHandle('tabout', (ctx, tc) => {
   // 有光标跳出效应, 跳出光标
   if (etcode.check(tc.anchorEtElement, EtTypeEnum.CaretOut)) {
     return caretToNextText(tc.anchorEtElement, ctx)
@@ -39,7 +39,7 @@ export const tabout = createEffectHandle('tabout', (_that, ctx, tc) => {
   return false
 })
 
-export const dblSpace = createEffectHandle('dblSpace', (_that, ctx, tc) => {
+export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
   if (!etcode.check(tc.anchorEtElement, EtTypeEnum.CaretOut)) {
     return false
   }

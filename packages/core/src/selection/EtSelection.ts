@@ -760,6 +760,13 @@ export class EtSelection {
     }
     return this.range.cloneContents()
   }
+
+  /**
+   * 派发 selectionchange 事件
+   */
+  dispatchChange() {
+    document.dispatchEvent(new Event('selectionchange'))
+  }
 }
 
 /**

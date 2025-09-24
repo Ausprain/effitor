@@ -73,7 +73,7 @@ const formatMarkAtCaret = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
  * 创建 mark 节点的效应处理器
  */
 export const markHandler: Et.EffectHandler = {
-  checkInsertMarkNode: (_that, ctx, {
+  checkInsertMarkNode: (ctx, {
     markType,
     removeMarkerChars,
     targetRange: tr,
@@ -105,7 +105,7 @@ export const markHandler: Et.EffectHandler = {
       return false
     }
   },
-  checkFormatMark: (_that, ctx, {
+  checkFormatMark: (ctx, {
     markType,
     targetRange: tr,
   }) => {

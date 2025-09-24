@@ -1,5 +1,5 @@
 /* eslint-disable @stylistic/max-len */
-import { BuiltinElName, CssClassEnum } from '@effitor/shared'
+import { BuiltinConfig, BuiltinElName, CssClassEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
@@ -9,18 +9,7 @@ import builtinCss from '../assets/builtin.css?raw'
 import { defaultConfig, platform } from '../config'
 import { EditorContext } from '../context'
 import { getMainEffector } from '../effector'
-import { getBeforeinputListener } from '../effector/beforeinput'
-import { getCopyListener, getCutListener, getPasteListener } from '../effector/clipboard'
-import {
-  getCompositionEnd,
-  getCompositionStart,
-  getCompositionUpdate,
-} from '../effector/composition'
 import { solveEffectors } from '../effector/ectx'
-import { getInputListener } from '../effector/input'
-import { getKeydownListener } from '../effector/keydown'
-import { getKeyupListener } from '../effector/keyup'
-import { getSelectionChangeListener } from '../effector/selchange'
 import {
   EffectElement,
   EtBodyElement,
@@ -33,6 +22,8 @@ import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, MdProcessor } from '../markdown/processor'
 import { cssStyle2cssText } from '../utils'
 import type { EditorMountOptions } from './config'
+import { ConfigManager } from './ConfigManager'
+import { addListenersToEditorBody, initListeners } from './listeners'
 
 class EffitorNotMountedError extends Error {
   constructor() {
@@ -43,13 +34,38 @@ class EffitorNotMountedError extends Error {
 /**
  * 编辑器元信息
  */
-export interface EditorMeta {
+interface EditorMeta {
   readonly contextMeta: Readonly<Et.EditorContextMeta>
   readonly mainEffector: Readonly<Et.MainEffector>
   readonly pluginConfigs: Readonly<PluginConfigs>
   readonly cssText: string
   readonly customStyleLinks: readonly Et.CustomStyleLink[]
-  readonly hotkeyOptions?: Readonly<Et.hotkey.ManagerOptions>
+  readonly configManager: ConfigManager
+}
+export type PluginConfigs = Omit<Et.Effector, 'inline' | 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
+  cssText: string
+  onMounteds: Required<Et.Effector>['onMounted'][]
+  onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][]
+}
+interface ObserveEditingInit<ParagraphType extends Node = Node> {
+  /**
+   * 编辑区内部文本变化
+   * @param ctx 编辑器上下文对象
+   * @param text 文本变化了的Text节点
+   */
+  onTextUpdated?: (ctx: Et.EditorContext, text: Text, paragraph: ParagraphType) => void
+  /**
+   * 编辑区顶层节点(“段落”)新增
+   */
+  onParagraphAdded?: (ctx: Et.EditorContext, addedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
+  /**
+   * 编辑区顶层节点(“段落”)删除
+   */
+  onParagraphRemoved?: (ctx: Et.EditorContext, removedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
+  /**
+   * 编辑器顶层节点(“段落”)更新
+   */
+  onParagraphUpdated?: (ctx: Et.EditorContext, paragraph: ParagraphType, target: HTMLElement) => void
 }
 
 /**
@@ -71,6 +87,14 @@ export class Effitor {
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor
   public readonly callbacks: Et.EditorCallbacks
+  public readonly configManager: ConfigManager
+
+  private _storeCaretRange: Et.CaretRange | null = null
+  private _isFocused = false
+  /** 焦点是否在编辑区内 */
+  get isFocused() {
+    return this._isFocused
+  }
 
   /**
    * 编辑器宿主 div元素
@@ -119,17 +143,22 @@ export class Effitor {
     customStyleText = '',
     customStyleLinks = [],
     callbacks = {},
-    hotkeyOptions,
+    configManager = new ConfigManager(),
   }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM, 则强制不使用 ShadowDOM
     if (shadow) {
       shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
     }
+    this.configManager = configManager
     this.isShadow = shadow
-    this.config = { ...defaultConfig, ...config }
+    const restoreConfig = configManager.getConfig('editorConfig')
+    this.config = { ...defaultConfig, ...config, ...restoreConfig }
+    if (this.config.toString() !== restoreConfig?.toString()) {
+      configManager.updateConfig('editorConfig', this.config)
+    }
     // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
     // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
-    plugins = [{ name: '__plugin_$undo', effector: useUndoEffector() }, ...plugins]
+    plugins = [{ name: BuiltinConfig.BUILTIN_UNDO_PLUGIN_NAME, effector: useUndoEffector() }, ...plugins]
     const schema = {
       editor: EtEditorElement,
       body: EtBodyElement,
@@ -186,7 +215,7 @@ export class Effitor {
       cssText: baseCss + builtinCss + allCtorCssText,
       pluginConfigs: pluginConfigs,
       customStyleLinks: [...customStyleLinks],
-      hotkeyOptions,
+      configManager,
     }
     this.htmlProcessor = new HtmlProcessor(htmlTransformerMaps)
     this.mdProcessor = getMdProcessor({
@@ -194,7 +223,23 @@ export class Effitor {
       toMdTransformerMapList,
       toMdHandlerMap,
     })
-    this.callbacks = callbacks
+    const cbInEffector = Object.fromEntries(Object.entries(pluginConfigs).filter(([k]) => k.startsWith('on')))
+    this.callbacks = Object.assign(cbInEffector,
+      Object.entries(callbacks).reduce((acc, [k, v]) => {
+        if (k in cbInEffector) {
+          const fn = cbInEffector[k] as (...args: unknown[]) => void
+          acc[k] = (...args: unknown[]) => {
+            fn(...args)
+            v(...args)
+          }
+        }
+        else {
+          acc[k] = v
+        }
+        return acc
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }, {} as any),
+    )
   }
 
   /**
@@ -215,7 +260,7 @@ export class Effitor {
         throw Error('Editor already mounted')
       }
     }
-    const { contextMeta, mainEffector, cssText, pluginConfigs, hotkeyOptions } = this.__meta
+    const { contextMeta, mainEffector, cssText, pluginConfigs, configManager } = this.__meta
     const ac = new AbortController()
     const [root, bodyEl] = formatEffitorStructure(host, this, cssText, customStyleLinks, ac.signal)
     const context = new EditorContext({
@@ -224,7 +269,7 @@ export class Effitor {
       bodyEl,
       locale,
       scrollContainer,
-      hotkeyOptions,
+      configManager,
       onEffectElementChanged: this.callbacks.onEffectElementChanged,
       onParagraphChanged: this.callbacks.onParagraphChanged,
       onTopElementChanged: this.callbacks.onTopElementChanged,
@@ -277,19 +322,24 @@ export class Effitor {
     this.context.segmenter.setLocale(locale)
   }
 
-  /** 光标聚焦到编辑器末尾 */
-  focus() {
+  /**
+   * 让编辑区获取焦点, 若没有记录的光标位置, 则光标聚焦到编辑器末尾
+   * @param isManual 是否手动调用的, 默认 true; 在 focusin 事件中调用时为 false
+   */
+  focus(isManual = true) {
+    this._isFocused = true
+    if (!isManual) {
+      return
+    }
     const ctx = this.context
-    const restoreCaretRange = ctx.selection.getCaretRange()
     this.bodyEl.focus()
-    ctx.isFocused = true
-    const r = restoreCaretRange.toRange()
+    const r = this._storeCaretRange?.toRange()
+    this._storeCaretRange = null
     if (r) {
       ctx.selection.selectRange(r)
     }
     else {
       // 没有先前位置, 定位到末尾
-      // ctx.selection.modify('move', 'forward', 'documentboundary')
       const lastParagraph = ctx.body.lastParagraph
       if (lastParagraph) {
         ctx.setSelection(lastParagraph.innerEndEditingBoundary())
@@ -300,9 +350,9 @@ export class Effitor {
   /** 让编辑器失去焦点 */
   blur() {
     const ctx = this.context
-    ctx.selection.getCaretRange()
+    this._storeCaretRange = ctx.selection.getCaretRange()
     // 先标记编辑器失去焦点 再调用blur方法, 因为 `.blur() -> focusout事件监听器执行` 是同步的
-    ctx.isFocused = false
+    this._isFocused = false
     this.__body?.blur()
     // blur后要移除选区
     ctx.selection.selection?.removeAllRanges()
@@ -492,25 +542,65 @@ export class Effitor {
   }
 }
 
-interface ObserveEditingInit<ParagraphType extends Node = Node> {
-  /**
-   * 编辑区内部文本变化
-   * @param ctx 编辑器上下文对象
-   * @param text 文本变化了的Text节点
-   */
-  onTextUpdated?: (ctx: Et.EditorContext, text: Text, paragraph: ParagraphType) => void
-  /**
-   * 编辑区顶层节点(“段落”)新增
-   */
-  onParagraphAdded?: (ctx: Et.EditorContext, addedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
-  /**
-   * 编辑区顶层节点(“段落”)删除
-   */
-  onParagraphRemoved?: (ctx: Et.EditorContext, removedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
-  /**
-   * 编辑器顶层节点(“段落”)更新
-   */
-  onParagraphUpdated?: (ctx: Et.EditorContext, paragraph: ParagraphType, target: HTMLElement) => void
+const reducePlugins = (
+  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta, inline = false,
+): PluginConfigs => {
+  const pNameSet = new Set<Et.EditorPlugin['name']>()
+  const effectors = [],
+    preEffectors = [],
+    postEffectors = [],
+    onMounteds = [],
+    onBeforeUnmounts = [],
+    cssTexts = []
+  const setSchema: Et.EditorSchemaSetter = (init) => {
+    Object.assign(
+      ctx.schema,
+      Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
+    )
+  }
+  for (const cur of plugins) {
+    if (pNameSet.has(cur.name)) {
+      throw Error(`Duplicate plug-in named '${cur.name}'.`)
+    }
+    pNameSet.add(cur.name)
+    if (cur.cssText) {
+      cssTexts.push(cur.cssText)
+    }
+    if (cur.elements) {
+      cur.elements.forEach(e => elCtors.push(e))
+    }
+    const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
+    for (const et of ets) {
+      const { onMounted, onBeforeUnmount, ...solvers } = et
+      if (onMounted) {
+        onMounteds.push(onMounted)
+      }
+      if (onBeforeUnmount) {
+        onBeforeUnmounts.push(onBeforeUnmount)
+      }
+      if (et.enforce === void 0) {
+        effectors.push(solvers)
+      }
+      else if (et.enforce === 'pre') {
+        preEffectors.push(solvers)
+      }
+      else {
+        postEffectors.push(solvers)
+      }
+    }
+    cur.registry?.(ctx, setSchema, extentEtElement)
+  }
+  const pluginEffector = inline
+    ? solveEffectors(
+        [...preEffectors, ...effectors, ...postEffectors], true,
+      )
+    : solveEffectors([...preEffectors, ...effectors, ...postEffectors], false)
+  return {
+    cssText: cssTexts.join('\n'),
+    onMounteds,
+    onBeforeUnmounts,
+    ...pluginEffector,
+  }
 }
 
 /** 格式化容器div为Effitor初始化结构 */
@@ -572,186 +662,4 @@ const formatEffitorStructure = (
   // body.contentEditable = 'false'
   // body.editContext = new EditContext()
   return [root, body] as const
-}
-
-type PluginConfigs = Omit<Et.Effector, 'inline' | 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
-  cssText: string
-  onMounteds: Required<Et.Effector>['onMounted'][]
-  onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][]
-}
-const reducePlugins = (
-  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta, inline = false,
-): PluginConfigs => {
-  const pNameSet = new Set<Et.EditorPlugin['name']>()
-  const effectors = [],
-    preEffectors = [],
-    postEffectors = [],
-    onMounteds = [],
-    onBeforeUnmounts = [],
-    cssTexts = []
-  const setSchema: Et.EditorSchemaSetter = (init) => {
-    Object.assign(
-      ctx.schema,
-      Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
-    )
-  }
-  for (const cur of plugins) {
-    if (pNameSet.has(cur.name)) {
-      throw Error(`Duplicate plug-in named '${cur.name}'.`)
-    }
-    pNameSet.add(cur.name)
-    if (cur.cssText) {
-      cssTexts.push(cur.cssText)
-    }
-    if (cur.elements) {
-      cur.elements.forEach(e => elCtors.push(e))
-    }
-    const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
-    for (const et of ets) {
-      const { onMounted, onBeforeUnmount, ...solvers } = et
-      if (onMounted) {
-        onMounteds.push(onMounted)
-      }
-      if (onBeforeUnmount) {
-        onBeforeUnmounts.push(onBeforeUnmount)
-      }
-      if (et.enforce === void 0) {
-        effectors.push(solvers)
-      }
-      else if (et.enforce === 'pre') {
-        preEffectors.push(solvers)
-      }
-      else {
-        postEffectors.push(solvers)
-      }
-    }
-    cur.registry?.(ctx, setSchema, extentEtElement)
-  }
-  const pluginEffector = inline
-    ? solveEffectors(
-        [...preEffectors, ...effectors, ...postEffectors], true,
-      )
-    : solveEffectors([...preEffectors, ...effectors, ...postEffectors], false)
-  return {
-    cssText: cssTexts.join('\n'),
-    onMounteds,
-    onBeforeUnmounts,
-    ...pluginEffector,
-  }
-}
-const initListeners = (
-  ctx: Et.EditorContext, mainEffector: Et.MainEffector, pluginEffector: PluginConfigs,
-) => ({
-  // ): { [k in keyof Et.HTMLElementEventMap]?: (ev: Et.HTMLElementEventMap[k]) => void } => ({
-
-  keydown: getKeydownListener(ctx, mainEffector.keydownSolver, pluginEffector.keydownSolver),
-  keyup: getKeyupListener(ctx, mainEffector.keyupSolver, pluginEffector.keyupSolver),
-  beforeinput: getBeforeinputListener(ctx, mainEffector.beforeInputSolver, pluginEffector.beforeInputSolver),
-  input: getInputListener(ctx, mainEffector.afterInputSolver, pluginEffector.afterInputSolver), // ? GlobalEventHandlersEventMap为什么input事件对象是Event而非InputEvent
-  compositionstart: getCompositionStart(ctx),
-  compositionupdate: getCompositionUpdate(ctx),
-  compositionend: getCompositionEnd(ctx),
-
-  copy: getCopyListener(ctx, pluginEffector.copyCallback),
-  cut: getCutListener(ctx, pluginEffector.copyCallback),
-  paste: getPasteListener(ctx, pluginEffector.pasteCallback),
-
-  // mousedown: getMouseDownListener(ctx),
-  // mouseup: getMouseUpListener(ctx),
-  // click: getClickListener(ctx),
-  // dblclick: getDblClickListener(ctx),
-
-  // dragstart: getDragStartListener(ctx),
-  // drag: getDragListener(ctx),
-  // dragend: getDragEndListener(ctx),
-  // dragenter: getDragEnterListener(ctx),
-  // dragover: getDragOverListener(ctx),
-  // dragleave: getDragLeaveListener(ctx),
-  // drop: getDropListener(ctx),
-
-  selectionchange: getSelectionChangeListener(ctx, pluginEffector.selChangeCallback),
-
-  focusin: (ev: FocusEvent) => pluginEffector.focusinCallback?.(ev, ctx),
-  focusout: (ev: FocusEvent) => pluginEffector.focusoutCallback?.(ev, ctx),
-})
-const addListenersToEditorBody = (
-  // root: Et.ShadowRoot,
-  body: Et.EtBodyElement,
-  ac: AbortController,
-  ctx: Et.EditorContext,
-  listeners: ReturnType<typeof initListeners>,
-  htmlEventSolver?: Et.HTMLEventSolver,
-) => {
-  // 先为插件绑定其他监听器, 这样通过e.stopImmediatePropagation()可以阻止effitor相关事件的默认行为触发
-  if (htmlEventSolver) {
-    for (const [name, fn] of Object.entries(htmlEventSolver)) {
-      // @ts-expect-error name 是一个 string, 无法准确提取出 e 的类型
-      body.addEventListener(name, e => fn(e, ctx), { signal: ac.signal })
-    }
-  }
-
-  // 绑在shadowRoot上
-  body.addEventListener('focusin', (ev) => {
-    // import.meta.env.DEV && console.error('body focus')
-    // body无段落, 清空并初始化
-    if (body.childElementCount === 0) {
-      ctx.editor.initBody(void 0, false)
-    }
-    // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
-    if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      // 编辑器聚焦时绑定上下文
-      ctx.isFocused = true
-      // fixed. HMR热更新时 旧的selection对象可能丢失
-      // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
-      requestAnimationFrame(() => {
-        // 手动更新上下文和选区, 再绑定sel监听器
-        ctx.update()
-        document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
-        listeners.focusin(ev)
-      })
-    }
-  }, { signal: ac.signal })
-  body.addEventListener('focusout', (ev) => {
-    // import.meta.env.DEV && console.error('body blur')
-
-    // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
-    // 即焦点转移到编辑区(et-body)外 时
-    if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      // 编辑器失去焦点时, 结束命令事务
-      listeners.focusout(ev)
-      // 解绑selectionchange
-      document.removeEventListener('selectionchange', listeners.selectionchange)
-      // 执行focusout回调, 先执行段落的
-      requestAnimationFrame(() => {
-        ctx.blurCallback()
-      })
-    }
-  }, { signal: ac.signal })
-
-  body.addEventListener('keydown', listeners.keydown, { signal: ac.signal })
-  body.addEventListener('keyup', listeners.keyup, { signal: ac.signal })
-  // *wran. shadow dom内不会捕获isTrusted=true 的 inputType='insertFromDrop' 的 beforeinput事件
-  body.addEventListener('beforeinput', listeners.beforeinput, { signal: ac.signal })
-  body.addEventListener('input', listeners.input, { signal: ac.signal })
-
-  body.addEventListener('compositionstart', listeners.compositionstart, { signal: ac.signal })
-  body.addEventListener('compositionupdate', listeners.compositionupdate, { signal: ac.signal })
-  body.addEventListener('compositionend', listeners.compositionend, { signal: ac.signal })
-
-  body.addEventListener('copy', listeners.copy, { signal: ac.signal })
-  body.addEventListener('cut', listeners.cut, { signal: ac.signal })
-  body.addEventListener('paste', listeners.paste, { signal: ac.signal })
-
-  // body.addEventListener('mousedown', listeners.mousedown, { signal: ac.signal })
-  // body.addEventListener('mouseup', listeners.mouseup, { signal: ac.signal })
-  // body.addEventListener('click', listeners.click, { signal: ac.signal })
-  // body.addEventListener('dblclick', listeners.dblclick, { signal: ac.signal })
-
-  // body.addEventListener('dragstart', listeners.dragstart, { signal: ac.signal })
-  // body.addEventListener('drag', listeners.drag, { signal: ac.signal })
-  // body.addEventListener('dragend', listeners.dragend, { signal: ac.signal })
-  // body.addEventListener('dragenter', listeners.dragenter, { signal: ac.signal })
-  // body.addEventListener('dragover', listeners.dragover, { signal: ac.signal })
-  // body.addEventListener('dragleave', listeners.dragleave, { signal: ac.signal })
-  // body.addEventListener('drop', listeners.drop, { signal: ac.signal })
 }

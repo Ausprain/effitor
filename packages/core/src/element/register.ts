@@ -10,17 +10,7 @@ export const registerEtElement = (
   if (!customElements.get(ctor.elName)) {
     customElements.define(ctor.elName, ctor as unknown as typeof HTMLElement)
     Object.defineProperty(ctor, 'thisHandler', {
-      value: new Proxy(ctor, {
-        get(target, p) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-          const res = (target as Et.EffectHandler)[p as keyof Et.EffectHandler] as Function
-          if (typeof res === 'function') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (...args: any[]) => res.call(target, target, ...args)
-          }
-          return res
-        },
-      }),
+      value: ctor,
       configurable: false,
       enumerable: false,
       writable: false,

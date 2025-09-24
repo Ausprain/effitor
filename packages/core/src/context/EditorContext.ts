@@ -1,9 +1,11 @@
-import { BuiltinConfig, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
+import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
 import type { Et } from '../@types'
+import { platform } from '../config'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
+import { ConfigManager } from '../editor/ConfigManager'
 import { etcode, type EtParagraphElement } from '../element'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandlers } from '../handler/common'
@@ -13,9 +15,12 @@ import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { getHotstringManager } from '../hotstring/manager'
 import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
+import { Composition } from './Composition'
 import type { EditorContextMeta } from './config'
 import { EditorBody } from './EditorBody'
 import { EditorLogger } from './EditorLogger'
+import { EditorMode } from './EditorMode'
+import { EditorStyler } from './EditorStyler'
 
 type ContextSelection = Readonly<Omit<EtSelection, 'range'> & {
   // 限制 range 的能力, 剔除如 extractContents 等可能会破坏 DOM 结构的方法
@@ -31,21 +36,21 @@ type UpdatedContextSelection = ContextSelection & {
  * 否则继续执行效应器, 效应器中的上下文的效应元素/段落必定非空
  */
 export interface UpdatedContext extends EditorContext {
-  commonEtElement: NodeHasParent<Et.EtElement>
-  focusEtElement: NodeHasParent<Et.EtElement>
-  focusParagraph: NodeHasParent<Et.Paragraph>
-  focusTopElement: NodeHasParent<Et.Paragraph>
-  selection: UpdatedContextSelection
-  targetRange: Et.ValidTargetRange
+  readonly commonEtElement: NodeHasParent<Et.EtElement>
+  readonly focusEtElement: NodeHasParent<Et.EtElement>
+  readonly focusParagraph: NodeHasParent<Et.Paragraph>
+  readonly focusTopElement: NodeHasParent<Et.Paragraph>
+  readonly selection: UpdatedContextSelection
+  readonly targetRange: Et.ValidTargetRange
 }
 
 export interface CreateEditorContextOptions {
   readonly contextMeta: Readonly<EditorContextMeta>
   readonly root: Et.EditorRoot
   readonly bodyEl: Et.EtBodyElement
+  readonly configManager: ConfigManager
   readonly locale?: string
   readonly scrollContainer?: HTMLElement
-  readonly hotkeyOptions?: Readonly<Et.hotkey.ManagerOptions>
   readonly onEffectElementChanged?: OnEffectElementChanged
   readonly onParagraphChanged?: OnParagraphChanged
   readonly onTopElementChanged?: OnParagraphChanged
@@ -83,8 +88,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   /** 是否跳过下一次selectionchange事件 */
   private _skipSelChange = false
 
-  /** 当前编辑区是否聚焦 */
-  isFocused = false
   /**
    * 当前按下的按键, 在keydown结束时赋值当前按键; \
    * 在keydown事件中, 为上一个按下的按键; 可用于判断是否连续按下相同的按键
@@ -98,39 +101,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * * 该值等于event.key
    */
   prevUpKey?: string | null
-  /** 当前 keydown 按下的按键组合, 通过 `hotkey.modKey` 计算 */
-  modkey = ''
-  /**
-   * 一个推断属性, 根据当前用户的输入行为, 判断当前是否开启了输入法; 该判断是非严格的,
-   * 因为没有获取输入法状态的相关标准 API, 我们无法得知当前输入是否为输入法输入;
-   *
-   * 在 Windows平台的 Chorme 下, 可以通过 KeyboardEvent.key
-   * 属性是否为 'Process' 来判断, 但在 MacOS 下, 此方法无效; 并且在 Windows 下,
-   * 用户开启输入法(如中文), 输入标点符号时, .key是"Process"且会激活 compositionstart,
-   * 但在 MacOS 下, 输入法输入中文标点符号时, keydown 事件依旧无法判断是否为输入法输入,
-   * .key 依旧等于半角的符号值, 且不会激活 compositionstart; 这样我们就无法判断用户
-   * 是否预期插入输入法(全角)标点符号了;
-   *
-   * 因此需要此属性, 当用户使用输入法输入, 激活了 insertCompositionText 的 beforeinput 事件,
-   * 我们将该属性标记为 true; 并在下一个 "纯的"insertText 中将其重置为 false;
-   * 这样我们就可以在激活 insertText 之前, 通过该属性判断插入的标点, 是否应当是全角的;
-   * 对应的全角字符可通过 HotkeyManager 自定义配置
-   *
-   * {@link HotkeyManager.getImeChar}
-   */
-  isUsingIME = false
-  /** 是否处于输入法会话中, 即compositionstart与compositionend之间 */
-  inCompositionSession = false
-  /**
-   * 记录composingupdate次数, 用于跳过后续update导致的selectionchange;
-   * 当第一次触发输入法事务时, count=1
-   */
-  compositionUpdateCount = 0
-  /**
-   * 记录compositionstart时, 段落的最后一个节点;
-   * 用于在compositionend时, 恢复段落的最后一个节点
-   */
-  paragraphLastNodeInCompositionStart: Et.NodeOrNull | undefined = void 0
   /**
    * 有完成InsertText的input事件，用于在selchange中判断该
    * selchange是否因用户输入（非输入法）文本而触发\
@@ -149,10 +119,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
   /** 编辑区对象 */
   readonly body: EditorBody
+  /** 编辑器模式转换器 // TODO */
+  readonly mode: EditorMode
+  /** 编辑器样式器 */
+  readonly styler: EditorStyler
   /** 编辑器选区对象, 在 mount 之前为 null */
   readonly selection: ContextSelection
   /** 文本分词器 */
   readonly segmenter: Segmenter
+  /** 编辑器输入法对象 */
+  readonly composition: Composition
   /** 效应激活器 */
   readonly effectInvoker: Et.EffectInvoker
   /** 命令管理器 */
@@ -189,13 +165,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
     this.root = options.root
     this.body = new EditorBody(options.bodyEl, options.scrollContainer)
+    this.mode = new EditorMode(this)
+    this.styler = new EditorStyler(options.bodyEl)
     this.selection = new EtSelection(this.body)
     this.segmenter = new Segmenter(options.locale)
+    this.composition = new Composition(this, platform.isSupportInsertFromComposition)
     this.effectInvoker = effectInvoker
     this.commandManager = new CommandManager(this)
     // 只能在命令管理器创建之后创建
     this.commonHandlers = new CommonHandlers(this)
-    this.hotkeyManager = new HotkeyManager(this, options.hotkeyOptions)
+    this.hotkeyManager = new HotkeyManager(this)
     this.hotstringManager = getHotstringManager(this)
 
     this.__onEffectElementChanged = options.onEffectElementChanged
@@ -339,11 +318,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     if (this._focusTopElement === v || !v) return
     const old = this._focusTopElement
     this._focusTopElement = v
+    if (this.__onTopElementChanged) {
+      this.__onTopElementChanged(v, old, this)
+    }
     // 顶层节点不是当前段落时调用回调, 避免重复调用
     if (this._focusParagraph !== v) {
-      if (this.__onTopElementChanged) {
-        this.__onTopElementChanged(v, old, this)
-      }
       if (old && old.focusoutCallback) {
         old.focusoutCallback(this)
       }
@@ -370,7 +349,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this._commonEtElement = null
 
     this.commandManager.closeTransaction()
-    this.isFocused = false
   }
 
   /**
@@ -464,6 +442,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 设置光标到一个段落的开头/末尾; 由于段落有多种类型(普通段落, 组件段落, Blockquote段落...),
    * 因此需要此方法来统一根据段落类型设置光标位置; 该设置光标的动作是默认异步的 (requestAnimationFrame)
    * @param [bySync=false] 是否同步设置光标位置, 默认 false(异步)
+   * @returns 是否更新了上下文
    */
   setCaretToAParagraph(paragraph: Et.Paragraph, toStart: boolean, bySync = false) {
     if (etcode.check(paragraph, EtTypeEnum.Component)) {
@@ -478,7 +457,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       return
     }
     if (bySync) {
-      this.setSelection(toStart
+      return this.setSelection(toStart
         ? paragraph.innerStartEditingBoundary().toTextAffinity()
         : paragraph.innerEndEditingBoundary().toTextAffinity())
     }
@@ -490,32 +469,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       })
     }
   }
-
-  // /**
-  //  * 判断当前光标位置是否允许某效应; 即判断指定效应元素是否
-  //  * 允许为当前光标所在效应元素(ctx.effectElement)的子节点 \
-  //  * 光标range时始终为false
-  //  * @param target 效应值 | 效应元素类 | 效应元素对象; 若传入值<=0, 则返回true
-  //  */
-  // checkIn(target: number | Et.EtElement | Et.EtElementCtor) {
-  //   if (!this.selection.isCollapsed || !this._focusEtElement) {
-  //     return false
-  //   }
-  //   let code: number
-  //   if (typeof target === 'number') {
-  //     if (target <= 0) {
-  //       return true
-  //     }
-  //     code = target as number
-  //   }
-  //   else {
-  //     code = (target as Et.EtElement).etCode
-  //     if (code === void 0) {
-  //       code = (target as Et.EtElementCtor).etType
-  //     }
-  //   }
-  //   return code && !(~this._focusEtElement.inEtCode & code)
-  // }
 
   /**
    * 判断一个节点是否为 EtParagraph 实例, 即是否具有段落效应
@@ -596,35 +549,13 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     return document.createRange().createContextualFragment(data) as Et.Fragment
   }
 
-  /** 触发一个编辑区事件; */
-  dispatchEvent(event: Event) {
-    this.body.el.dispatchEvent(event)
-  }
-
-  /** 在编辑区触发一个input事件; */
-  dispatchInputEvent(
-    type: 'beforeinput' | 'input',
-    init: InputEventInit | Et.InputEventInitWithEffect,
-  ) {
-    return this.body.el.dispatchEvent(new InputEvent(type, {
-      bubbles: false,
-      cancelable: true,
-      ...init,
-    }))
-  }
-
-  /** 获取一个 css 类名的编辑器内部表示 */
-  cssClassName(cls: string) {
-    return BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls
-  }
-
   /**
    * 获取一个效应元素的效应处理器, 这是一个便利方法, 返回值为 `effectInvoker.getEtElCtor(el).thisHandler`
    * @param el 效应元素
    * @returns 效应元素的处理器
    */
   getEtHandler(el: Et.EtElement) {
-    return this.effectInvoker.getEtElCtor(el).thisHandler
+    return this.effectInvoker.getEtElCtor(el) as Et.EffectHandleThis
   }
 
   /** 获取EtElement对应的Markdown文本 */

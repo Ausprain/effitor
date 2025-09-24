@@ -10,15 +10,16 @@ import type {
   EtParagraphCtor,
 } from '../element'
 import type { ExtentEtElement } from '../element/register'
-import type { hotkey } from '../hotkey'
 import type { CaretRange } from '../selection'
+import { ConfigManager } from './ConfigManager'
 
 export type OnEffectElementChanged = (
   el: EffectElement, old: EffectElement | null, ctx: EditorContext) => void
 export type OnParagraphChanged = (
   el: EtParagraph, old: EtParagraph | null, ctx: EditorContext) => void
 /**
- * 编辑器回调, 编辑器核心会使用到的回调, 相当于编辑器钩子
+ * 编辑器回调, 编辑器核心会使用到的回调, 相当于编辑器钩子;
+ * * 其中on 开头的钩子, 也可通过 effector 添加, 并最终合并到editor.callbacks对象上
  */
 export interface EditorCallbacks {
   /**
@@ -30,7 +31,7 @@ export interface EditorCallbacks {
   onEffectElementChanged?: OnEffectElementChanged
   /** 光标位置所在段落改变时调用, 为避免影响性能，内部请使用异步操作 */
   onParagraphChanged?: OnParagraphChanged
-  /** 光标所在顶层节点发生改变时调用, 若顶层节点就是当前段落, 则不会调用 */
+  /** 光标所在顶层节点发生改变时调用 */
   onTopElementChanged?: OnParagraphChanged
   /**
    * 编辑器内容改变时调用
@@ -171,9 +172,9 @@ interface _CreateEditorOptions {
   /** 主效应器 */
   mainEffector?: Required<MainEffector>
   /**
-   * 是否将插件效应器内联, 默认false, 设置为true时, 只能使用支持内联effector的插件 \
-   * 内联效应器将内联到编辑器核心, 在插件数量较多时拥有更好的性能 \
-   * 内联的效应器将不可引用外部变量 (`etcode, dom, cr` 除外), 且相应函数必须是箭头函数, 也不可使用import.meta \
+   * 是否将插件效应器内联, 默认false, 设置为true时, 只能使用支持effector内联的插件 \
+   * 启用时, 插件 effector 将内联到编辑器核心, 在插件数量较多时能拥有更好的性能 \
+   * 内联的效应器将不可引用外部变量 (`ectx, dom, cr, etcode` 除外), 且相应函数必须是箭头函数, 也不可使用import.meta \
    * 具体见{@link EffectorSupportInline}
    */
   effectorInline?: boolean
@@ -190,7 +191,12 @@ interface _CreateEditorOptions {
   customStyleLinks?: CustomStyleLink[]
 
   callbacks?: EditorCallbacks
-  hotkeyOptions?: hotkey.ManagerOptions
+
+  /**
+   * 配置管理器, 用于恢复存储的编辑器配置, 并监听编辑器配置更新, 以持久化编辑器配置
+   * 通过该属性获取的配置的优先级是最高的, 会覆盖 config 传入的配置
+   */
+  configManager?: ConfigManager
 };
 export interface CustomStyleLink {
   href: string

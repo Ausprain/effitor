@@ -41,9 +41,9 @@ export const checkBackspaceAtCaretDeleteText = (
 /**
  * 判断光标是否在段落开头 Backspace, 然后智能处理段落删除和合并情况
  */
-export const checkBackspaceAtCaretDeleteParagraph = (
-  _that: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
-) => {
+export const checkBackspaceAtCaretDeleteParagraph = function (
+  this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+) {
   if (!targetCaret.isCaretAtParagraphStart()) {
     return false
   }
@@ -63,7 +63,7 @@ export const checkBackspaceAtCaretDeleteParagraph = (
   // 若 et-list 对此有意见, 如判断 返回的 Paragraph 是否也是 et-list 实例, 进而处理列表合并问题
   // 若 et-list 对此没意见, 则原样返回, 于是这里的 res 就可以拿到这个元素对象,
   // 然后将光标定位到该元素末尾 (即完成默认处理逻辑)
-  const res = _that.BackspaceAtParagraphStart?.(_that, ctx, targetCaret)
+  const res = this.BackspaceAtParagraphStart?.(ctx, targetCaret)
   if (typeof res === 'object') {
     ctx.setCaretToAParagraph(res, false)
     return true
@@ -146,13 +146,13 @@ export const checkDeleteAtCaretDeleteText = (
   }))
   return true
 }
-export const checkDeleteAtCaretDeleteParagraph = (
-  _that: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
-) => {
+export const checkDeleteAtCaretDeleteParagraph = function (
+  this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+) {
   if (!targetCaret.isCaretAtParagraphEnd()) {
     return false
   }
-  const res = _that.DeleteAtParagraphEnd?.(_that, ctx, targetCaret)
+  const res = this.DeleteAtParagraphEnd?.(ctx, targetCaret)
   if (typeof res === 'object') {
     ctx.setCaretToAParagraph(res, true)
     return true

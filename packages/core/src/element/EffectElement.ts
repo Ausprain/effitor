@@ -45,18 +45,14 @@ export abstract class EffectElement
    * 当前效应元素类的父类效应处理器(本质上是该构造器的原型), 基类EffectElement指向 HTMLElement\
    * 该属性在 registerEtElement 注册时初始化, 用于快速访问父类的效应处理器
    */
-  declare static readonly superHandler: Readonly<Et.EffectHandler>
+  declare static readonly superHandler: Et.EffectHandleThis
   /**
    * 当前效应元素类的效应处理器(本质上是构造器自身), 该属性在 registerEtElement 注册时初始化,
    * 用于快速访问该类对象上的效应处理器;
    * * 该属性只可用于调用效应处理器 ( 替代 `ctx.effectInvoker.invoke` 好让 IDE 追踪到调用处 )
-   * * 使用该属性调用效应处理器无需第一个_that 参数, 会自动将参数绑定为该 thisHandler 属性
    * * 性能优先场景应使用 `ctx.effectInvoker.invoke`
    */
-  declare static readonly thisHandler: Readonly<{
-    [k in keyof Et.EffectHandler]: (
-      ...args: TupleTail<Parameters<Required<Et.EffectHandler>[k]>>) => ReturnType<Required<Et.EffectHandler>[k]>
-  }>
+  declare static readonly thisHandler: Et.EffectHandleThis
 
   /** 效应类型，即该类元素的效应码；用于初始化元素对象的etCode属性 */
   static etType = 0

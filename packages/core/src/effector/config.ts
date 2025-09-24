@@ -1,5 +1,6 @@
 import type { Et } from '../@types'
 import type { EditorContext, UpdatedContext } from '../context'
+import type { EditorCallbacks } from '../editor'
 import type { DefinedEtElementMap } from '../element'
 import type { MainBeforeInputTypeSolver } from './beforeinput'
 import type { MainAfterInputTypeSolver } from './input'
@@ -10,13 +11,14 @@ import type { MainKeyupKeySolver } from './keyup'
  * 内联效应器 \
  * 除onMounted和onBeforeUnmount外, 其中所有执行器(函数)必须是箭头函数,
  * 且不可引用模块`import`对象以及任何函数作用域外的变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * 如需引用其他变量, 需使用 `useEffectorContext` 或 `withEffectorContext` 为其添加上下文
+ * 如需引用其他变量, 需使用 `useEffectorContext` 或 `withEffectorContext` 为其添加上下文\
+ * `rel. `[`ectx`](./ectx.ts)
  */
 export interface EffectorSupportInline extends Effector {
   readonly inline: true
 }
 /** 效应器, 响应用户操作, 执行对应Handler */
-export interface Effector extends Partial<Solvers> {
+export interface Effector extends Partial<Solvers & Hooks> {
   /** 用于标识该effector是否支持inline, 仅用于ts提示, 无特别作用 */
   readonly inline?: boolean
   /**
@@ -25,21 +27,35 @@ export interface Effector extends Partial<Solvers> {
    * TODO 暂时post依旧放在默认effector之前, 即无论pre还是post, 插件的effector始终在主effector前执行
    */
   readonly enforce?: 'pre' | 'post'
+}
+
+type HookKeysInEditorCallback = keyof {
+  [k in keyof EditorCallbacks as k extends `on${string}` ? k : never]: never
+}
+export interface Hooks extends Pick<EditorCallbacks, HookKeysInEditorCallback> {
   /**
    * 编辑器mount一个div时执行
    * * 对于支持内联的effector, 该方法不必遵守内联规则, 因其始终不会被内联
    * @param signal 与编辑器相关的事件监听器的终止监听信号, 所有与编辑器相关的事件监听器都应在此回调内绑定 并绑定该sinal
    */
-  readonly onMounted?: (ctx: EditorContext, signal: AbortSignal) => void
+  readonly onMounted: (ctx: EditorContext, signal: AbortSignal) => void
   /**
    * 卸载一个div前执行
    * * 对于支持内联的effector, 该方法不必遵守内联规则, 因其始终不会被内联
    */
-  readonly onBeforeUnmount?: (ctx: EditorContext) => void
+  readonly onBeforeUnmount: (ctx: EditorContext) => void
 }
 export interface Solvers {
   /**
-   * keydown中处理按键响应 ev.key -> action
+   * keydown.capture中处理按键响应, 类似 keydownSolver; 但能捕获所有按键, 并可通过
+   * `ev.stopImmediatePropagation` 阻止后续 keydown 事件的传播 (keydownSolver, MainKeydownKeySolver)
+   * * 此 solver 无 `效应元素特有效应器处理函数`
+   * * 如非必要, 不建议使用此solver, 此 solver 处理太多逻辑会影响性能, 降低编辑流畅性
+   */
+  readonly beforeKeydownSolver: KeyboardKeySolver
+  /**
+   * keydown中处理按键响应 ev.key -> action;
+   * * 若 ev.key长度为1 或为方向键, 则此 solver 捕获不到, 需使用 beforeKeydownSolver
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
    * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
    *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
