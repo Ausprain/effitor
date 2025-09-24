@@ -1,4 +1,4 @@
-import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
+import { BuiltinElName, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { cr } from '../selection'
@@ -44,16 +44,6 @@ export class EtParagraphElement extends EtParagraph {
       return cr.caretEndAuto(last)
     }
     return cr.caretInEndNow(this)
-  }
-
-  focusinCallback(_ctx: Et.EditorContext): void {
-    super.focusinCallback(_ctx)
-    this.classList.add(CssClassEnum.Active)
-  }
-
-  focusoutCallback(_ctx: Et.EditorContext): void {
-    super.focusoutCallback(_ctx)
-    this.classList.remove(CssClassEnum.Active)
   }
 
   static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

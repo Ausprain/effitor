@@ -195,7 +195,7 @@ export const getKeydownCaptureListener = (
   ctx: Et.EditorContext, solver?: Et.KeyboardSolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
-  // 没有effectElement 或没有选区 阻止后续输入
+    // 没有effectElement 或没有选区 阻止后续输入
     if (!ctx.isUpdated()) {
       if (import.meta.env.DEV) {
         console.error('keydown error: no effectelement', ctx)
@@ -231,9 +231,15 @@ export const getKeydownCaptureListener = (
 
     if (solver) {
       const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
-      const fn = solver[key as keyof typeof solver] || solver.default
-      if (typeof fn === 'function') {
-        fn(ev, ctx)
+      const fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
+        || solver[key as keyof typeof solver] || solver.default
+      if (typeof fn === 'function' && fn(ev, ctx)) {
+        ev.preventDefault()
+        ev.stopPropagation()
+        ev.stopImmediatePropagation()
+        // 消耗掉 defaultSkipped, 避免插件在 beforekeydown 中调用了 skipDefault, preventAndSkipDefault 等
+        // 影响下一次事件; 因为在 beforekeydown 中没有没有默认行为
+        return (ctx.defaultSkipped, void 0)
       }
     }
   }

@@ -13,8 +13,10 @@ const checkRemoveMarkChars = (ctx: Et.EditorContext, tr: Et.ValidTargetCaret, ma
   let offset = tr.offset
   if (text.data.slice(offset - marker.length, offset) === marker) {
     if (text.length === marker.length) {
+      // 先记录位置, 再移除节点
+      const ret = cr.caretOutStart(text)
       ctx.commonHandlers.removeNode(text, true)
-      return cr.caretOutStart(text)
+      return ret
     }
     else {
       offset = offset - marker.length

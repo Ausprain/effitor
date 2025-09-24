@@ -249,12 +249,20 @@ export abstract class EffectElement
   /** <builtin> 属性被修改时调用, 需static定义监听的 属性列表 observedAttributes: string[] */
   attributeChangedCallback?(name: string, oldValue: string, newValue: string): void
 
+  /**
+   * 光标落入其中时调用, 这与 focusin 事件无关, 也不是冒泡的;\
+   * 当当前效应元素被设置为 `ctx.focusEtElement/paragraph/topElement` 时会调用此回调
+   */
   focusinCallback(_ctx: Et.EditorContext) {
-    this.classList.add(CssClassEnum.CaretIn)
+    this.classList.add(CssClassEnum.Active)
   }
 
+  /**
+   * 光标移出其中时调用, 这与 focusout 事件无关, 也不是冒泡的;\
+   * 当当前效应元素从 `ctx.focusEtElement/paragraph/topElement` 移除时会调用此回调
+   */
   focusoutCallback(_ctx: Et.EditorContext) {
-    this.classList.remove(CssClassEnum.CaretIn)
+    this.classList.remove(CssClassEnum.Active)
   }
 
   /* -------------------------------------------------------------------------- */

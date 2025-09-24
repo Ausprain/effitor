@@ -41,7 +41,6 @@ export interface UpdatedContext extends EditorContext {
   readonly focusParagraph: NodeHasParent<Et.Paragraph>
   readonly focusTopElement: NodeHasParent<Et.Paragraph>
   readonly selection: UpdatedContextSelection
-  readonly targetRange: Et.ValidTargetRange
 }
 
 export interface CreateEditorContextOptions {
@@ -76,7 +75,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   private _focusEtElement: Et.EtElement | null = null
   private _focusParagraph: Et.Paragraph | null = null
   private _focusTopElement: Et.Paragraph | null = null
-  private _targetRange?: Et.ValidTargetRange | null = void 0
 
   /** 是否跳过默认 effector */
   private _skipDefault = false
@@ -190,9 +188,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 更新编辑器上下文
    */
   update() {
-    // console.log('upda ')
-    // console.trace()
-    this._targetRange = void 0
     if (!this.selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
@@ -213,6 +208,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.editor.blur()
       return (this._updated = false)
     }
+    // 更新上下文效应元素
+    // 特别的, 若 focusEtElement === focusParagraph === focusTopElement, 则
+    // focusinCallback 由 focusEtElement 调用
+    // focusoutCallback 由 focusTopElement 调用
     this._commonEtElement = this.selection.commonEffectElement
     this.focusEtElement = this.selection.focusEffectElement
     this.focusParagraph = this.selection.focusParagraph
@@ -238,22 +237,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
-   * 获取当前光标范围对象, 等价于 ctx.selection.getTargetRange(), 但该属性有缓存, 且存在必定合法
-   */
-  get targetRange(): Et.ValidTargetRange | null {
-    if (this._targetRange !== void 0) {
-      return this._targetRange
-    }
-    return this._targetRange = this.selection.getTargetRange()
-  }
-
-  /**
    * 编辑区元素, 等价于 ctx.body.el
    */
   get bodyEl() {
     return this.body.el
   }
 
+  /**
+   * 公共效应元素祖先; 当选区 collapsed 时, 等于 focusEtElement;
+   * 否则等于 Range.commonAncestorContainer 的第一个效应元素祖先, 可能为 null
+   */
   get commonEtElement() {
     return this._commonEtElement
   }
@@ -267,8 +260,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusEtElement(v) {
-    if (this._focusEtElement === v || !v) return
-    // fixed. 为防止focusoutCallback里用到context, 先更新this._effectElement, 再调用focusoutCallback;
+    if (this._focusEtElement === v) return
+    // fixed. 为防止focusoutCallback里用到context, 先更新this._focusEtElement, 再调用focusoutCallback;
     // 因为旧的节点直接就是回调函数的this, 可以直接拿到, 而新的节点需要ctx获得
     const old = this._focusEtElement
     this._focusEtElement = v
@@ -276,10 +269,16 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.__onEffectElementChanged(v, old, this)
     }
     // 旧的效应元素不是旧段落时, 调用focusoutCallback, 避免在段落更新时重复调用
-    if (old && old !== this._focusParagraph) {
-      old.focusoutCallback(this)
+    if (old) {
+      old.classList.remove(CssClassEnum.CaretIn)
+      if (old !== this._focusParagraph) {
+        old.focusoutCallback(this)
+      }
     }
-    v.focusinCallback(this)
+    if (v) {
+      v.classList.add(CssClassEnum.CaretIn)
+      v.focusinCallback(this)
+    }
   }
 
   /**
@@ -291,17 +290,18 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusParagraph(v) {
-    if (this._focusParagraph === v || !v) return
+    if (this._focusParagraph === v) return
     const old = this._focusParagraph
     this._focusParagraph = v
     if (this.__onParagraphChanged) {
       this.__onParagraphChanged(v, old, this)
     }
-    if (old) {
+    // 旧段落不是旧_topElement时, 调用focusoutCallback, 避免重复调用
+    if (old && old !== this._focusTopElement) {
       old.focusoutCallback(this)
     }
-    // 新段落不是新效应元素时, 调用focusinCallback, 避免重复调用
-    if (v !== this._focusEtElement) {
+    // 新段落不是新_focusEtElement时, 调用focusinCallback, 避免重复调用
+    if (v && v !== this._focusEtElement) {
       v.focusinCallback(this)
     }
   }
@@ -315,37 +315,28 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusTopElement(v) {
-    if (this._focusTopElement === v || !v) return
+    if (this._focusTopElement === v) return
     const old = this._focusTopElement
     this._focusTopElement = v
     if (this.__onTopElementChanged) {
       this.__onTopElementChanged(v, old, this)
     }
+    if (old && old.focusoutCallback) {
+      old.focusoutCallback(this)
+    }
     // 顶层节点不是当前段落时调用回调, 避免重复调用
-    if (this._focusParagraph !== v) {
-      if (old && old.focusoutCallback) {
-        old.focusoutCallback(this)
-      }
-      if (v.focusinCallback) {
-        v.focusinCallback(this)
-      }
+    if (v && v !== this._focusParagraph) {
+      v.focusinCallback(this)
     }
   }
 
   /** 编辑区失去焦点时调用 */
   blurCallback() {
-    if (this._focusParagraph) {
-      this._focusParagraph.focusoutCallback?.(this)
-    }
-    if (this._focusEtElement && this._focusEtElement !== this._focusParagraph) {
-      this._focusEtElement.focusoutCallback?.(this)
-    }
-
     this._updated = false
     this._oldNode = null
-    this._focusEtElement = null
-    this._focusParagraph = null
-    this._focusTopElement = null
+    this.focusEtElement = null
+    this.focusParagraph = null
+    this.focusTopElement = null
     this._commonEtElement = null
 
     this.commandManager.closeTransaction()
@@ -393,6 +384,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     return (this._skipNextKeydown = true)
   }
 
+  /** 是否跳过默认 effector; 该属性读取时会重置为 false */
   get defaultSkipped() {
     if (this._skipDefault) {
       this._skipDefault = false

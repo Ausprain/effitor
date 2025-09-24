@@ -11,8 +11,8 @@ import type { MainKeyupKeySolver } from './keyup'
  * 内联效应器 \
  * 除onMounted和onBeforeUnmount外, 其中所有执行器(函数)必须是箭头函数,
  * 且不可引用模块`import`对象以及任何函数作用域外的变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * 如需引用其他变量, 需使用 `useEffectorContext` 或 `withEffectorContext` 为其添加上下文\
- * `rel. `[`ectx`](./ectx.ts)
+ * 如需引用其他变量, 需使用 `useEffectorContext` 或 `withEffectorContext` 为其添加上下文
+ * @rel [`ectx`](./ectx.ts)
  */
 export interface EffectorSupportInline extends Effector {
   readonly inline: true
@@ -49,10 +49,10 @@ export interface Solvers {
   /**
    * keydown.capture中处理按键响应, 类似 keydownSolver; 但能捕获所有按键, 并可通过
    * `ev.stopImmediatePropagation` 阻止后续 keydown 事件的传播 (keydownSolver, MainKeydownKeySolver)
-   * * 此 solver 无 `效应元素特有效应器处理函数`
+   * * 若按键处理函数返回 true, 则会同时禁止(传播\冒泡\默认行为)
    * * 如非必要, 不建议使用此solver, 此 solver 处理太多逻辑会影响性能, 降低编辑流畅性
    */
-  readonly beforeKeydownSolver: KeyboardKeySolver
+  readonly beforeKeydownSolver: KeyboardSolver
   /**
    * keydown中处理按键响应 ev.key -> action;
    * * 若 ev.key长度为1 或为方向键, 则此 solver 捕获不到, 需使用 beforeKeydownSolver

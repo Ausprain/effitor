@@ -117,11 +117,7 @@ const parseCode = (code: number) => {
 
 const printCode = (el: EffectElement) => {
   let code = el[ETCODE]
-  console.log(code)
-  console.log(parseCode(code))
   code = el.etCode
-  console.log(code)
-  console.log(parseCode(code))
   return code
 }
 

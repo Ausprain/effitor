@@ -54,7 +54,7 @@ export const enum CssClassEnum {
   Et = 'et',
   Effitor = 'effitor',
   DefaultStyle = 'default-style',
-  /** 当前活跃 */
+  /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */
   Active = 'active',
   /** 当前元素被选择 */
   Selected = 'selected',
@@ -70,7 +70,7 @@ export const enum CssClassEnum {
   SelectionRange = 'selection-range',
   /** 段落类节点 */
   ParagraphLike = 'etp',
-  /** 光标在效应节点内, EffectElement.focusinCallback时添加, focusoutCallback时移除 */
+  /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
   CaretIn = 'caret-in',
 
   /** 灰度背景按钮, 具有hover/active/selected状态灰度背景色交互 */

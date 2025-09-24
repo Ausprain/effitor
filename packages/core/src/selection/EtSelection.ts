@@ -29,6 +29,7 @@ export class EtSelection {
    */
   private _caretRange: CaretRange | null = null
   private _targetRange: Et.TargetRange | null = null
+  private _validTargetRange?: Et.ValidTargetRange | null = void 0
 
   /**
    * 选区是否被冻结, 冻结后, 执行命令将不会更新选区
@@ -152,6 +153,7 @@ export class EtSelection {
     this.isCollapsed = this.range.collapsed
     this._caretRange = cr.fromRange(this.range).markValid()
     this._targetRange = this.TargetRange.fromRange(this.range)
+    this._validTargetRange = void 0
 
     this._isForward = void 0
     if (!oldText || oldText !== this.anchorText) {
@@ -261,6 +263,69 @@ export class EtSelection {
   }
 
   /**
+   * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, 返回 null
+   */
+  getTargetCaret() {
+    const range = this.getTargetRange()
+    if (!range || !range.collapsed) {
+      return null
+    }
+    return range.toTargetCaret()
+  }
+
+  /**
+   * 获取当前选区目标范围对象; 若选区范围不存在或不合法, 返回 null
+   * * 该选区可能是 collapsed 的; 可通过其.toTargetCaret()方法获取对应合法光标位置
+   */
+  getTargetRange() {
+    if (this._validTargetRange !== void 0) {
+      return this._validTargetRange
+    }
+    if (!this._targetRange || !this._targetRange.isValid()) {
+      return this._validTargetRange = null
+    }
+    if (!this.isForward) {
+      this._targetRange.isBackward = true
+    }
+    return this._validTargetRange = this._targetRange
+  }
+
+  /**
+   * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
+   * @param target 选区目标, 若为 null, 则使用当前选区目标
+   * @param options
+   * * options.caretFn 光标函数
+   * * options.rangeFn 范围函数
+   */
+  checkSelectionTarget(
+    target: Et.TargetSelection | null,
+    {
+      caretFn,
+      rangeFn,
+    }: {
+      caretFn: (caret: Et.ValidTargetCaret) => boolean
+      rangeFn: (range: Et.ValidTargetRange) => boolean
+    },
+  ) {
+    if (!target) {
+      target = this.getTargetRange()
+      if (!target) {
+        return false
+      }
+    }
+    if (!target.isValid()) {
+      return false
+    }
+    if (target.isCaret()) {
+      return caretFn(target)
+    }
+    else if (target.collapsed) {
+      return caretFn(target.toTargetCaret())
+    }
+    return rangeFn(target)
+  }
+
+  /**
    * 从 EtCaretRange 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
    * @param caretRange EtCaretRange 实例
    */
@@ -351,66 +416,6 @@ export class EtSelection {
       return null
     }
     return tr
-  }
-
-  /**
-   * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, 返回 null
-   */
-  getTargetCaret() {
-    const range = this.getTargetRange()
-    if (!range || !range.collapsed) {
-      return null
-    }
-    return range.toTargetCaret()
-  }
-
-  /**
-   * 获取当前选区目标范围对象; 若选区范围不存在或不合法, 返回 null
-   * * 该选区可能是 collapsed 的; 可通过其.toTargetCaret()方法获取对应合法光标位置
-   */
-  getTargetRange() {
-    if (!this._targetRange || !this._targetRange.isValid()) {
-      return null
-    }
-    if (!this.isForward) {
-      this._targetRange.isBackward = true
-    }
-    return this._targetRange
-  }
-
-  /**
-   * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
-   * @param target 选区目标, 若为 null, 则使用当前选区目标
-   * @param options
-   * * options.caretFn 光标函数
-   * * options.rangeFn 范围函数
-   */
-  checkSelectionTarget(
-    target: Et.TargetSelection | null,
-    {
-      caretFn,
-      rangeFn,
-    }: {
-      caretFn: (caret: Et.ValidTargetCaret) => boolean
-      rangeFn: (range: Et.ValidTargetRange) => boolean
-    },
-  ) {
-    if (!target) {
-      target = this.getTargetRange()
-      if (!target) {
-        return false
-      }
-    }
-    if (!target.isValid()) {
-      return false
-    }
-    if (target.isCaret()) {
-      return caretFn(target)
-    }
-    else if (target.collapsed) {
-      return caretFn(target.toTargetCaret())
-    }
-    return rangeFn(target)
   }
 
   /**

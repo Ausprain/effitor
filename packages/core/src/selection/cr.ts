@@ -124,7 +124,7 @@ export const cr = {
   },
   /**
    * 获取定位到节点外开头的光标位置;
-   * 若 node 在 DOM 上, 使用 node 的父节点作为 anchor;
+   * 若 node 在页面上, 使用 node 的父节点作为 anchor;
    * 否则以node作为 anchor
    */
   caretOutStart: (node: Et.Node) => {

@@ -2,6 +2,8 @@ import { expect, test } from 'vitest'
 
 import { initEditor, minifiedHtml } from '../../../__tests__/shared.test'
 import type { Et } from '../../../@types'
+import { EtBlockquote } from '../../../element'
+import { registerEtElement } from '../../../element/register'
 import { initContentsAndSetSelection } from '../__tests__/shared.test'
 import { removeByTargetRange } from './deleteAtRange'
 
@@ -232,6 +234,7 @@ test.each([
   input = minifiedHtml(input)
   output = minifiedHtml(output)
 
+  await Promise.resolve().then(() => registerEtElement(EtBlockquote))
   const editor = await initEditor('')
   const ctx = editor.context as Et.UpdatedContext
 

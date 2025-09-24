@@ -221,6 +221,7 @@ describe('removeInDifferentParagraphWithSameParent', () => {
 // 选区在不同段落内，且段落父节点不同，但 top 元素相同
 describe('removeInDifferentParagraphWithSameTopElement', () => {
   test('simple', async () => {
+    await Promise.resolve().then(() => registerEtElement(EtBlockquote))
     const editor = await initEditor(`
       <et-bq>
         <et-p>Hello A78<b>bold<i>I123</i></b>B12</et-p>
@@ -279,6 +280,7 @@ describe('removeInDifferentParagraphWithSameTopElement', () => {
     expect(ctx.selection.range.startOffset).toBe(5)
   })
   test('multi', async () => {
+    await Promise.resolve().then(() => registerEtElement(EtBlockquote))
     const editor = await initEditor(`
       <et-bq>
         <list>

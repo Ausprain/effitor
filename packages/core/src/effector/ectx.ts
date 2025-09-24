@@ -167,7 +167,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
           // onMounted, onBeforeUnmount 没有返回 true终止后续的特性
           ? `(...args)=>{${(cbs as Function[]).map(f => `(${f.toString()})(...args);`).join('\n')}}`
           // 其他 callback 返回 true 终止后续插件的同类行为
-          : `(...args)=>{${(cbs as Function[]).map(f => `if((${f.toString()})(...args)) return`).join('\n')}}`
+          : `(...args)=>{${(cbs as Function[]).map(f => `if((${f.toString()})(...args)) return true;`).join('\n')}}`
         // singleEffector[name] = eval(fnstr)
         singleEffector[name] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
       }
@@ -179,7 +179,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
     else {
       singleEffector[name] = name.startsWith('on')
         ? (...args: any) => { for (const cb of (cbs as Function[])) { cb(...args) } }
-        : (...args: any) => { for (const cb of (cbs as Function[])) { if (cb(...args)) return } }
+        : (...args: any) => { for (const cb of (cbs as Function[])) { if (cb(...args)) return true } }
     }
   }
   // 处理 solver 合并
@@ -210,7 +210,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         const funs = solverFunsMap[k] as Function[]
         try {
           // 返回 true, 终止后续solver
-          const fnstr = `(...args)=>{${funs.map(f => `if((${f.toString()})(...args)) return`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
+          const fnstr = `(...args)=>{${funs.map(f => `if((${f.toString()})(...args)) return true;`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
           // pre[k] = eval(fnstr)
           pre[k] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
         }
@@ -228,7 +228,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         pre[k] = (...args: any) => {
           for (const fn of funs) {
             if (fn(...args)) {
-              return
+              return true
             }
           }
         }

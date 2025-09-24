@@ -7,7 +7,7 @@ export const ectx = useEffectorContext(MarkEnum.CtxKey, {
     return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
       ctx.commonEtElement, 'checkInsertMarkNode', ctx, {
         markType,
-        removeMarkerChars: markerMap[markType].marker,
+        removeMarkerChars: markerMap[markType].marker.length > 1 ? markerMap[markType].char : undefined,
       },
     )
   },

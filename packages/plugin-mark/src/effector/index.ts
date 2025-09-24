@@ -2,34 +2,11 @@ import type { Et } from '@effitor/core'
 
 import { MarkEnum, MarkStatus, MarkType } from '../config'
 import { ectx } from './ectx'
-import { markKeyupSolver } from './keyup'
+import { markBeforeKeydownSolver } from './keydown'
 
 export const markEffector: Et.EffectorSupportInline = {
   inline: true,
-  keydownSolver: {
-    // mark 元素独占效应器处理函数
-    [MarkEnum.ElName]: (ev, ctx) => {
-      switch (ev.key) {
-        case 'Tab':
-        case 'Enter':
-        case 'Backspace':
-        case 'Delete':
-        case 'ArrowDown':
-        case 'ArrowUp':
-        case 'ArrowLeft':
-        case 'ArrowRight':
-        case 'Home':
-        case 'End':
-        {
-          if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(false)) {
-            ctx.commandManager.discard()
-            return ctx.skipDefault()
-          }
-        }
-      }
-    },
-  },
-  keyupSolver: markKeyupSolver,
+  beforeKeydownSolver: markBeforeKeydownSolver,
   htmlEventSolver: {
     mousedown: (_ev, ctx) => {
       if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(false)) {

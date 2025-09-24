@@ -14,9 +14,9 @@ import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
 
 export type OnEffectElementChanged = (
-  el: EffectElement, old: EffectElement | null, ctx: EditorContext) => void
+  el: EffectElement | null, old: EffectElement | null, ctx: EditorContext) => void
 export type OnParagraphChanged = (
-  el: EtParagraph, old: EtParagraph | null, ctx: EditorContext) => void
+  el: EtParagraph | null, old: EtParagraph | null, ctx: EditorContext) => void
 /**
  * 编辑器回调, 编辑器核心会使用到的回调, 相当于编辑器钩子;
  * * 其中on 开头的钩子, 也可通过 effector 添加, 并最终合并到editor.callbacks对象上
@@ -27,11 +27,11 @@ export interface EditorCallbacks {
    * @returns 返回一个元组或一个段落元素; 元组: [段落元素, 光标位置]
    */
   firstInsertedParagraph?: ParagraphCreator
-  /** 光标位置所在效应元素改变时调用, 为避免影响性能，内部请使用异步操作 */
+  /** 光标位置所在效应元素改变时调用, 这是同步执行的 */
   onEffectElementChanged?: OnEffectElementChanged
-  /** 光标位置所在段落改变时调用, 为避免影响性能，内部请使用异步操作 */
+  /** 光标位置所在段落改变时调用, 这是同步执行的 */
   onParagraphChanged?: OnParagraphChanged
-  /** 光标所在顶层节点发生改变时调用 */
+  /** 光标所在顶层节点发生改变时调用, 这是同步执行的 */
   onTopElementChanged?: OnParagraphChanged
   /**
    * 编辑器内容改变时调用
