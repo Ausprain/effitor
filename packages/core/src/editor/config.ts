@@ -10,6 +10,7 @@ import type {
   EtParagraphCtor,
 } from '../element'
 import type { ExtentEtElement } from '../element/register'
+import { HotstringOptions } from '../hotstring/manager'
 import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
 
@@ -189,9 +190,10 @@ interface _CreateEditorOptions {
   customStyleText?: string
   /** 自定义样式文件列表, 以<link>形式插入到编辑器根节点中 */
   customStyleLinks?: CustomStyleLink[]
-
+  /** 编辑器回调, 编辑器核心会主动调用的函数(钩子) */
   callbacks?: EditorCallbacks
-
+  /** */
+  hotstringOptions?: HotstringOptions
   /**
    * 配置管理器, 用于恢复存储的编辑器配置, 并监听编辑器配置更新, 以持久化编辑器配置
    * 通过该属性获取的配置的优先级是最高的, 会覆盖 config 传入的配置

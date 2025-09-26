@@ -1,1 +1,1 @@
-export { useMarkPlugin } from '@effitor/mark'
+export { useMarkPlugin } from '@effitor/plugin-mark'

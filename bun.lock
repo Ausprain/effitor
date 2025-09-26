@@ -54,7 +54,7 @@
     },
     "examples/playground": {
       "name": "@effitor/playground",
-      "version": "0.3.5",
+      "version": "0.3.5-alpha",
       "dependencies": {
         "effitor": "workspace:*",
       },
@@ -66,13 +66,45 @@
       "name": "effitor",
       "version": "0.3.5-alpha",
       "dependencies": {
+        "@effitor/assist-counter": "workspace:*",
+        "@effitor/assist-dialog": "workspace:*",
+        "@effitor/assist-dropdown": "workspace:*",
+        "@effitor/assist-message": "workspace:*",
         "@effitor/core": "workspace:*",
-        "@effitor/mark": "workspace:*",
+        "@effitor/plugin-mark": "workspace:*",
       },
       "devDependencies": {
         "fs-extra": "^11.3.1",
         "tsup": "^8.5.0",
         "typescript": "^5.8.3",
+      },
+    },
+    "packages/assist-counter": {
+      "name": "@effitor/assist-counter",
+      "version": "0.3.5-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/assist-dialog": {
+      "name": "@effitor/assist-dialog",
+      "version": "0.3.5-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/assist-dropdown": {
+      "name": "@effitor/assist-dropdown",
+      "version": "0.3.5-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/assist-message": {
+      "name": "@effitor/assist-message",
+      "version": "0.3.5-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
       },
     },
     "packages/core": {
@@ -88,13 +120,9 @@
         "micromark-extension-gfm": "^3.0.0",
         "unist-util-visit": "^5.0.0",
       },
-      "devDependencies": {
-        "@types/node": "^24.3.1",
-        "esbuild": "^0.25.9",
-      },
     },
     "packages/plugin-mark": {
-      "name": "@effitor/mark",
+      "name": "@effitor/plugin-mark",
       "version": "0.3.5-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
@@ -120,11 +148,19 @@
 
     "@effitor/algo-perf": ["@effitor/algo-perf@workspace:algo-perf"],
 
+    "@effitor/assist-counter": ["@effitor/assist-counter@workspace:packages/assist-counter"],
+
+    "@effitor/assist-dialog": ["@effitor/assist-dialog@workspace:packages/assist-dialog"],
+
+    "@effitor/assist-dropdown": ["@effitor/assist-dropdown@workspace:packages/assist-dropdown"],
+
+    "@effitor/assist-message": ["@effitor/assist-message@workspace:packages/assist-message"],
+
     "@effitor/core": ["@effitor/core@workspace:packages/core"],
 
-    "@effitor/mark": ["@effitor/mark@workspace:packages/plugin-mark"],
-
     "@effitor/playground": ["@effitor/playground@workspace:examples/playground"],
+
+    "@effitor/plugin-mark": ["@effitor/plugin-mark@workspace:packages/plugin-mark"],
 
     "@emnapi/core": ["@emnapi/core@1.5.0", "", { "dependencies": { "@emnapi/wasi-threads": "1.1.0", "tslib": "^2.4.0" } }, "sha512-sbP8GzB1WDzacS8fgNPpHlp6C9VZe+SJP3F90W9rLemaQj2PzIuTEl1qDOYQf58YIpyjViI24y9aPWCjEzY2cg=="],
 

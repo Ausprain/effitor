@@ -2,20 +2,26 @@ import { Et, useEffectorContext } from '@effitor/core'
 
 import { MarkEnum, markerMap, MarkType } from '../config'
 
+export const checkInsertMark = (ctx: Et.EditorContext, markType: MarkType, checkRemoveMarkChar = true) => {
+  return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
+    ctx.commonEtElement, 'checkInsertMark', ctx, {
+      markType,
+      removeMarkerChars: checkRemoveMarkChar && markerMap[markType].marker.length > 1
+        ? markerMap[markType].char
+        : undefined,
+    },
+  )
+}
+
+export const checkFormatMark = (ctx: Et.EditorContext, markType: MarkType) => {
+  return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
+    ctx.commonEtElement, 'checkFormatMark', ctx, { markType },
+  )
+}
+
 export const ectx = useEffectorContext(MarkEnum.CtxKey, {
-  checkInsertMarkNode: (ctx: Et.EditorContext, markType: MarkType) => {
-    return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
-      ctx.commonEtElement, 'checkInsertMarkNode', ctx, {
-        markType,
-        removeMarkerChars: markerMap[markType].marker.length > 1 ? markerMap[markType].char : undefined,
-      },
-    )
-  },
-  checkFormatMark: (ctx: Et.EditorContext, markType: MarkType) => {
-    return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
-      ctx.commonEtElement, 'checkFormatMark', ctx, { markType },
-    )
-  },
+  checkInsertMark,
+  checkFormatMark,
 
   // /**
   //  * 判断一个节点是否为 EtMarkElement

@@ -5,7 +5,8 @@
   "keywords": [
     "effitor",
     "web editor",
-    "markdown"
+    "markdown",
+    "WYSIWYG"
   ],
   "type": "module",
   "main": "dist/index.js",
@@ -18,6 +19,11 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./assists": {
+      "import": "./dist/assists/index.js",
+      "types": "./dist/assists/index.d.ts",
+      "default": "./dist/assists/index.js"
     },
     "./effector": {
       "import": "./dist/effector/index.js",
@@ -54,7 +60,11 @@
   },
   "dependencies": {
     "@effitor/core": "workspace:*",
-    "@effitor/mark": "workspace:*"
+    "@effitor/assist-counter": "workspace:*",
+    "@effitor/assist-dialog": "workspace:*",
+    "@effitor/assist-dropdown": "workspace:*",
+    "@effitor/assist-message": "workspace:*",
+    "@effitor/plugin-mark": "workspace:*"
   },
   "devDependencies": {
     "fs-extra": "^11.3.1",

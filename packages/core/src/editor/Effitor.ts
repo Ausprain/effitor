@@ -8,6 +8,7 @@ import baseCss from '../assets/base.css?raw'
 import builtinCss from '../assets/builtin.css?raw'
 import { defaultConfig, platform } from '../config'
 import { EditorContext } from '../context'
+import { CreateEditorContextOptionsFields } from '../context/EditorContext'
 import { getMainEffector } from '../effector'
 import { solveEffectors } from '../effector/ectx'
 import {
@@ -32,15 +33,13 @@ class EffitorNotMountedError extends Error {
 }
 
 /**
- * 编辑器元信息
+ * 编辑器元数据
  */
-interface EditorMeta {
-  readonly contextMeta: Readonly<Et.EditorContextMeta>
+interface EditorMeta extends CreateEditorContextOptionsFields {
   readonly mainEffector: Readonly<Et.MainEffector>
   readonly pluginConfigs: Readonly<PluginConfigs>
   readonly cssText: string
   readonly customStyleLinks: readonly Et.CustomStyleLink[]
-  readonly configManager: ConfigManager
 }
 export type PluginConfigs = Omit<Et.Effector, 'inline' | 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
   cssText: string
@@ -87,9 +86,11 @@ export class Effitor {
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor
   public readonly callbacks: Et.EditorCallbacks
+  /**
+   * 编辑器配置管理器, 可由构造函数参数提供; 用于自定义编辑器配置持久化, 如快捷键等
+   */
   public readonly configManager: ConfigManager
 
-  private _storeCaretRange: Et.CaretRange | null = null
   private _isFocused = false
   /** 焦点是否在编辑区内 */
   get isFocused() {
@@ -140,10 +141,11 @@ export class Effitor {
     effectorInline = false,
     plugins = [],
     config = {},
+    configManager = new ConfigManager(),
     customStyleText = '',
     customStyleLinks = [],
     callbacks = {},
-    configManager = new ConfigManager(),
+    hotstringOptions = undefined,
   }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM, 则强制不使用 ShadowDOM
     if (shadow) {
@@ -215,7 +217,7 @@ export class Effitor {
       cssText: baseCss + builtinCss + allCtorCssText,
       pluginConfigs: pluginConfigs,
       customStyleLinks: [...customStyleLinks],
-      configManager,
+      hotstringOptions,
     }
     this.htmlProcessor = new HtmlProcessor(htmlTransformerMaps)
     this.mdProcessor = getMdProcessor({
@@ -260,7 +262,7 @@ export class Effitor {
         throw Error('Editor already mounted')
       }
     }
-    const { contextMeta, mainEffector, cssText, pluginConfigs, configManager } = this.__meta
+    const { contextMeta, mainEffector, cssText, pluginConfigs, hotstringOptions } = this.__meta
     const ac = new AbortController()
     const [root, bodyEl] = formatEffitorStructure(host, this, cssText, customStyleLinks, ac.signal)
     const context = new EditorContext({
@@ -269,7 +271,7 @@ export class Effitor {
       bodyEl,
       locale,
       scrollContainer,
-      configManager,
+      hotstringOptions,
       onEffectElementChanged: this.callbacks.onEffectElementChanged,
       onParagraphChanged: this.callbacks.onParagraphChanged,
       onTopElementChanged: this.callbacks.onTopElementChanged,
@@ -324,22 +326,13 @@ export class Effitor {
 
   /**
    * 让编辑区获取焦点, 若没有记录的光标位置, 则光标聚焦到编辑器末尾
-   * @param isManual 是否手动调用的, 默认 true; 在 focusin 事件中调用时为 false
    */
-  focus(isManual = true) {
-    this._isFocused = true
-    if (!isManual) {
-      return
-    }
+  focus() {
+    this.markFocused()
     const ctx = this.context
     this.bodyEl.focus()
-    const r = this._storeCaretRange?.toRange()
-    this._storeCaretRange = null
-    if (r) {
-      ctx.selection.selectRange(r)
-    }
-    else {
-      // 没有先前位置, 定位到末尾
+    if (!ctx.selection.restore()) {
+      // 恢复选区失败, 定位到末尾
       const lastParagraph = ctx.body.lastParagraph
       if (lastParagraph) {
         ctx.setSelection(lastParagraph.innerEndEditingBoundary())
@@ -347,15 +340,29 @@ export class Effitor {
     }
   }
 
-  /** 让编辑器失去焦点 */
-  blur() {
-    const ctx = this.context
-    this._storeCaretRange = ctx.selection.getCaretRange()
-    // 先标记编辑器失去焦点 再调用blur方法, 因为 `.blur() -> focusout事件监听器执行` 是同步的
+  /**
+   * @internal
+   * 标记编辑器获得焦点, 仅内部使用
+   */
+  markFocused() {
+    this._isFocused = true
+  }
+
+  /**
+   * @internal
+   * 标记编辑器失去焦点, 仅内部使用
+   */
+  markBlurred() {
     this._isFocused = false
+  }
+
+  /**
+   * 让编辑器失去焦点
+   */
+  blur() {
+    // 先标记编辑器失去焦点 再调用blur方法, 因为 `.blur() -> focusout事件监听器执行` 是同步的
+    this.markBlurred()
     this.__body?.blur()
-    // blur后要移除选区
-    ctx.selection.selection?.removeAllRanges()
   }
 
   /**
@@ -645,6 +652,7 @@ const formatEffitorStructure = (
   host.innerHTML = ''
   host.append(editorEl)
   host.classList.add(CssClassEnum.Effitor)
+  host.style.position = 'relative'
   if (editor.config.WITH_EDITOR_DEFAULT_STYLE) {
     editorEl.setAttribute(BuiltinConfig.THEME_ATTR, BuiltinConfig.DEFAULT_THEME)
   }

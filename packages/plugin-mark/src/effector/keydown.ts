@@ -5,24 +5,24 @@ import { ectx } from './ectx'
 
 export const markBeforeKeydownSolver: Et.KeyboardSolver = {
   [markerMap[MarkType.CODE].char]: (_ev, ctx) => {
-    return ectx._et_$mark_.checkInsertMarkNode(ctx, MarkType.CODE)
+    return ectx._et_$mark_.checkInsertMark(ctx, MarkType.CODE)
   },
   [markerMap[MarkType.ITALIC].char]: (ev, ctx) => {
     // * 插入 italic
     if (ctx.prevUpKey !== ev.key) {
-      return ectx._et_$mark_.checkInsertMarkNode(ctx, MarkType.ITALIC)
+      return ectx._et_$mark_.checkInsertMark(ctx, MarkType.ITALIC)
     }
     // ** 插入 bold
     // 输入第二个*时, 一定在 italic 节点内, 因此在 inMarkHandler.insertText 中处理插入 bold
   },
   [markerMap[MarkType.DELETE].char]: (ev, ctx) => {
     if (ctx.prevUpKey === ev.key) {
-      return ectx._et_$mark_.checkInsertMarkNode(ctx, MarkType.DELETE)
+      return ectx._et_$mark_.checkInsertMark(ctx, MarkType.DELETE)
     }
   },
   [markerMap[MarkType.HIGHLIGHT].char]: (ev, ctx) => {
     if (ctx.prevUpKey === ev.key) {
-      return ectx._et_$mark_.checkInsertMarkNode(ctx, MarkType.HIGHLIGHT)
+      return ectx._et_$mark_.checkInsertMark(ctx, MarkType.HIGHLIGHT)
     }
   },
 

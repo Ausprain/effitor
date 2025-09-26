@@ -31,10 +31,6 @@ export class EtSelection {
   private _targetRange: Et.TargetRange | null = null
   private _validTargetRange?: Et.ValidTargetRange | null = void 0
 
-  /**
-   * 选区是否被冻结, 冻结后, 执行命令将不会更新选区
-   */
-  // private _isFrozen = false
   private _isForward: boolean | undefined
   private _commonEtElement: Et.EtElement | null | undefined
   private _focusEtElement: Et.EtElement | null | undefined
@@ -166,6 +162,30 @@ export class EtSelection {
   }
 
   /**
+   * 清除选区上下文
+   */
+  clear() {
+    this.range = null
+    // this._caretRange = null
+    this._targetRange = null
+    this._validTargetRange = void 0
+    this._commonEtElement = void 0
+    this._focusEtElement = void 0
+    this._focusParagraph = void 0
+    this._focusTopElement = void 0
+    this.selection?.removeAllRanges()
+  }
+
+  /** 尝试恢复选区 */
+  restore() {
+    if (!this._caretRange) {
+      return
+    }
+    const r = this._caretRange.toRange()
+    return r && this.selectRange(r)
+  }
+
+  /**
    * 获取当前选区范围内的文本内容
    */
   get selectedTextContent() {
@@ -291,41 +311,6 @@ export class EtSelection {
   }
 
   /**
-   * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
-   * @param target 选区目标, 若为 null, 则使用当前选区目标
-   * @param options
-   * * options.caretFn 光标函数
-   * * options.rangeFn 范围函数
-   */
-  checkSelectionTarget(
-    target: Et.TargetSelection | null,
-    {
-      caretFn,
-      rangeFn,
-    }: {
-      caretFn: (caret: Et.ValidTargetCaret) => boolean
-      rangeFn: (range: Et.ValidTargetRange) => boolean
-    },
-  ) {
-    if (!target) {
-      target = this.getTargetRange()
-      if (!target) {
-        return false
-      }
-    }
-    if (!target.isValid()) {
-      return false
-    }
-    if (target.isCaret()) {
-      return caretFn(target)
-    }
-    else if (target.collapsed) {
-      return caretFn(target.toTargetCaret())
-    }
-    return rangeFn(target)
-  }
-
-  /**
    * 从 EtCaretRange 构建一个 EtTargetCaret 实例, 若不存在或不合法, 返回 null
    * @param caretRange EtCaretRange 实例
    */
@@ -416,6 +401,71 @@ export class EtSelection {
       return null
     }
     return tr
+  }
+
+  /**
+   * 从 EtCaret 和 TargetSelection 中区分出 EtCaret 类型
+   */
+  tellEtCaret(target: Et.EtCaret | Et.TargetSelection): target is Et.EtCaret {
+    return (target as Et.EtCaret).anchor !== void 0
+  }
+
+  /**
+   * 检查插入位置是否合法, 并执行相应的回调函数
+   * @param insertAt 插入位置 可以是一个光标位置(EtCaret) 或目标选区(TargetCaret | TargetRange);
+   *                 若为 null, 则使用当前选区位置
+   * @param fn 回调函数, 接收一个参数: 合法的目标选区
+   * @returns 若检查通过, 返回 true; 否则, 返回 false
+   */
+  checkInsertAt(
+    insertAt: Et.EtCaret | Et.TargetSelection | null,
+    fn: (tc: Et.ValidTargetSelection) => boolean,
+  ) {
+    if (!insertAt) {
+      insertAt = this.getTargetCaret()
+    }
+    else if (this.tellEtCaret(insertAt)) {
+      insertAt = this.createTargetCaret(insertAt)
+    }
+    if (!insertAt || !insertAt.isValid()) {
+      return false
+    }
+    return fn(insertAt)
+  }
+
+  /**
+   * 检查一个选区目标是合法的光标还是范围, 并执行相应的回调函数
+   * @param target 选区目标, 若为 null, 则使用当前选区目标
+   * @param options
+   * * options.caretFn 光标函数
+   * * options.rangeFn 范围函数
+   */
+  checkSelectionTarget(
+    target: Et.TargetSelection | null,
+    {
+      caretFn,
+      rangeFn,
+    }: {
+      caretFn: (caret: Et.ValidTargetCaret) => boolean
+      rangeFn: (range: Et.ValidTargetRange) => boolean
+    },
+  ) {
+    if (!target) {
+      target = this.getTargetRange()
+      if (!target) {
+        return false
+      }
+    }
+    if (!target.isValid()) {
+      return false
+    }
+    if (target.isCaret()) {
+      return caretFn(target)
+    }
+    else if (target.collapsed) {
+      return caretFn(target.toTargetCaret())
+    }
+    return rangeFn(target)
   }
 
   /**
@@ -542,8 +592,8 @@ export class EtSelection {
   /**
    * 判断一个目标范围是否在编辑区内
    */
-  isValidRange(tr: Et.StaticRange) {
-    return this._body.isNodeInBody(tr.startContainer) && this._body.isNodeInBody(tr.endContainer)
+  isValidRange(sr: Et.StaticRange) {
+    return this._body.isNodeInBody(sr.startContainer) && this._body.isNodeInBody(sr.endContainer)
   }
 
   /**

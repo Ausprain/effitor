@@ -1,0 +1,35 @@
+{
+  "name": "@effitor/assist-dropdown",
+  "version": "0.3.5-alpha",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "effitor",
+    "web editor",
+    "markdown",
+    "WYSIWYG"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git"
+  },
+  "scripts": {},
+  "dependencies": {
+    "@effitor/core": "workspace:*"
+  }
+}

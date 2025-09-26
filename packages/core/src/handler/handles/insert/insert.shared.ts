@@ -557,7 +557,7 @@ const splitParagraphToInsertParagraphContents = (
  */
 export const insertElementAtCaretTemporarily = (
   ctx: Et.EditorContext,
-  element: Et.Element,
+  element: Element,
   targetCaret: Et.ValidTargetCaret,
   destCaretRange?: Et.CaretRange,
 ) => {

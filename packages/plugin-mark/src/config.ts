@@ -50,6 +50,7 @@ export const nestedMarkMap: Partial<Record<MarkType, `${MarkType}`[]>> = {
  */
 export interface MarkPluginContext {
   readonly markState: ReturnType<typeof createMarkState>
+  enableHinting?: boolean
 }
 
 export const createMarkState = () => ({
@@ -79,8 +80,9 @@ export const createMarkState = () => ({
   },
 })
 
-export const initContext = (meta: Et.EditorContextMeta) => {
+export const initMarkContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
   meta.pctx[MarkEnum.CtxKey] = {
     markState: createMarkState(),
+    enableHinting,
   }
 }

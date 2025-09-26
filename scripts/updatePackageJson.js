@@ -1,7 +1,7 @@
 // @ts-check
 
 import fs from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import baseJson from '../package.json'
 import config from './config.js'
 
@@ -38,9 +38,13 @@ const keyOrdered = {
   peerDependencies: undefined,
 }
 
-const { mainPkgDirPath, packagesDirPath } = config
+const { mainPkgDirPath, packagesDirPath, exampleDirPath } = config
 
-const pkgDirPaths = [mainPkgDirPath, ...(await fs.readdir(packagesDirPath)).map(name => resolve(packagesDirPath, name))]
+const pkgDirPaths = [
+  mainPkgDirPath,
+  ...(await fs.readdir(packagesDirPath)).map(name => resolve(packagesDirPath, name)),
+  ...(await fs.readdir(exampleDirPath)).map(name => resolve(exampleDirPath, name)),
+]
 const pkgJsonPaths = await Promise.all(pkgDirPaths.map(async (dir) => {
   return await fs.stat(resolve(dir, 'package.json')).then(
     stat => stat.isFile() ? resolve(dir, 'package.json') : '',
@@ -55,12 +59,28 @@ const packageJsonList = await Promise.all(pkgJsonPaths.map(async (path) => {
 }))
 
 packageJsonList.forEach(({ path, json }) => {
+  let pkgName = dirname(path).split('/').at(-1)
+  if (!pkgName) {
+    return
+  }
+  if (pkgName === 'main') {
+    pkgName = 'effitor'
+  }
+  else {
+    pkgName = `@effitor/${pkgName}`
+  }
+  const pkgJson = {
+    ...keyOrdered,
+    ...json,
+    ...updateConfigs,
+    name: pkgName,
+  }
+  // 保留原有 description
+  if (json.description) {
+    pkgJson.description = json.description
+  }
   fs.writeFile(
     resolve(path, '../package.json'),
-    JSON.stringify({
-      ...keyOrdered,
-      ...json,
-      ...updateConfigs,
-    }, null, 2),
+    JSON.stringify(pkgJson, null, 2) + '\n',
   )
 })

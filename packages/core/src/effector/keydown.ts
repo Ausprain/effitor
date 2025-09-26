@@ -1,81 +1,5 @@
 import type { Et } from '../@types'
 
-/**
- * 判断用户Backspace期望删除的内容是否为`uneditable`的内容; 是则需手动构造targetRange发送 beforeinput事件（`inputType="deleteContentBackward"`）,
- *  因为chromium会直接找上一个可编辑节点, 然后删除中间所有内容, 而不是只删除上一个
- * * **调用前提`ctx.selection.isCollapsed === true`**
- */
-
-// TODO 该逻辑应放到 handler 里
-// const checkBackspaceInUneditable = (ev: KeyboardEvent, ctx: Et.UpdatedContext) => {
-//   if (ctx.node && ctx.selection.anchorOffset) return
-//   let delTargetRange: StaticRange
-//   let prevNode: Et.NullableNode = ctx.selection.prevNode
-//   if (!prevNode) return
-//   // 文档树上一节点可编辑, 删除内部
-//   // 这么做是因为, 当遇到交叉嵌套contenteditable时, 光标无法自动跳到内层的contenteditable中, 需要手动设置删除的targetRange
-//   if (dom.isEditableNode(prevNode)) {
-//     if (dom.isText(prevNode) && prevNode.length > 0) {
-//       delTargetRange = new StaticRange({
-//         startContainer: prevNode,
-//         startOffset: prevNode.length - 1,
-//         endContainer: prevNode,
-//         endOffset: prevNode.length,
-//       })
-//     }
-//     else {
-//       delTargetRange = dom.caretStaticRangeOutNode(prevNode, 0)
-//     }
-//   }
-//   // 文档树上一节点不可编辑, 找最外层不可编辑节点, 整体删除
-//   else {
-//     prevNode = dom.outermostUneditableAncestor(prevNode)
-//     delTargetRange = dom.caretStaticRangeOutNode(prevNode, 0)
-//   }
-
-//   ctx.body.dispatchInputEvent('beforeinput', {
-//     inputType: 'deleteWordBackward',
-//     targetRanges: [delTargetRange],
-//   })
-//   ev.preventDefault()
-// }
-/**
- * 判断用户Delete期望删除的内容是否为uneditable内容, 是则需手动构造targetRange 发送beforeinput事件（ inputType="deleteContentForward" ）
- * * **调用前提`ctx.selection.isCollapsed === true`**
- */
-// const checkDeleteInUneditable = (ev: KeyboardEvent, ctx: Et.UpdatedContext) => {
-//   // 不是文本节点末尾, 跳过
-//   if (!ctx.node || ctx.selection.anchorOffset !== ctx.node.length) return
-//   let nextNode: Node | null = ctx.selection.nextNode
-//   let delTargetRange: StaticRange
-
-//   if (!nextNode) return
-//   if (dom.isEditableNode(nextNode)) {
-//     if (dom.isText(nextNode) && nextNode.length > 0) {
-//       delTargetRange = new StaticRange({
-//         startContainer: nextNode,
-//         startOffset: 0,
-//         endContainer: nextNode,
-//         endOffset: 1,
-//       })
-//     }
-//     else {
-//       delTargetRange = dom.caretStaticRangeOutNode(nextNode, 0)
-//     }
-//   }
-//   else {
-//     nextNode = dom.outermostUneditableAncestor(nextNode)
-//     delTargetRange = dom.caretStaticRangeOutNode(nextNode, 0)
-//   }
-
-//   ctx.body.dispatchInputEvent('beforeinput', {
-//     inputType: 'deleteContentForward',
-//     targetRanges: [delTargetRange],
-//   })
-//   ev.preventDefault()
-// }
-
-// main solver 的 action 不同于插件, 是不需要返回值的, 这里写一个工具类允许不返回值
 export type MainKeyboardSolver = {
   [K in keyof Et.KeyboardKeySolver]: (ev: KeyboardEvent, ctx: Et.UpdatedContext) => void
 }
@@ -275,7 +199,7 @@ export const getKeydownListener = (
       // 1. 处理普通输入, 并兼顾 MacOS 下输入法输入标点符号的情况
       if (ev.key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
         // 监听热字符串
-        if (ev.key === ' ' && ctx.hotstringManager.listen(' ')) {
+        if (ev.key === ctx.hotstringManager.trigger && ctx.hotstringManager.listen(ev.key)) {
           return
         }
 

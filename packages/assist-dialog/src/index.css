@@ -1,0 +1,29 @@
+.et-dialog__backdrop {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  &.et-dialog--show {
+    display: block;
+    animation: fade-in 0.15s ease-out;
+
+    &>div {
+      animation: dropdown-in 0.2s ease-out;
+    }
+  }
+}
+
+.et-dialog__container {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  translate: -50% -50%;
+  min-height: 160px;
+  min-width: 258px;
+  border-radius: 8px;
+  background-color: var(--et-color-bg);
+  box-shadow: var(--et-shadow-1);
+}

@@ -33,7 +33,9 @@
   },
   "scripts": {
     "check": "tsc --noEmit -p ./tsconfig.build.json",
-    "build:main": "tsc --noEmit -p ./tsconfig.build.json && bun scripts/build.js",
+    "build:main": "bun run prebuild && bun ./scripts/build.js",
+    "prebuild": "tsc --noEmit -p ./tsconfig.build.json && bun run update:packages",
+    "update:packages": "bun ./scripts/updatePackageJson.js",
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"

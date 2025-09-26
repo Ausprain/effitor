@@ -66,7 +66,7 @@ export default tseslint.config(
       'import/no-duplicates': 'error',
       // ignore `*.css?raw`
       'import/no-unresolved': ['error', { ignore: ['\\?raw$'] }],
-      // 禁用此项, 由于函数类型无法对函数签名添加注释, 而使用接口类型则可对函数签名添加注释
+      // 禁用此项, 因为函数类型无法对函数签名及返回值添加注释, 而接口类型中的函数前面可以
       '@typescript-eslint/prefer-function-type': 'off',
       // 有些函数重载类型声明合并在一起影响阅读和理解, 甚至类型推断, 如 `addEventListener`
       '@typescript-eslint/unified-signatures': 'off',

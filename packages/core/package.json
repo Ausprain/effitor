@@ -5,7 +5,8 @@
   "keywords": [
     "effitor",
     "web editor",
-    "markdown"
+    "markdown",
+    "WYSIWYG"
   ],
   "type": "module",
   "main": "dist/index.js",
@@ -44,9 +45,5 @@
     "micromark-extension-frontmatter": "^2.0.0",
     "micromark-extension-gfm": "^3.0.0",
     "unist-util-visit": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.3.1",
-    "esbuild": "^0.25.9"
   }
 }

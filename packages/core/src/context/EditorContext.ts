@@ -5,7 +5,6 @@ import type { Options as TmOptions } from 'mdast-util-to-markdown'
 import type { Et } from '../@types'
 import { platform } from '../config'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
-import { ConfigManager } from '../editor/ConfigManager'
 import { etcode, type EtParagraphElement } from '../element'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandlers } from '../handler/common'
@@ -42,12 +41,13 @@ export interface UpdatedContext extends EditorContext {
   readonly focusTopElement: NodeHasParent<Et.Paragraph>
   readonly selection: UpdatedContextSelection
 }
-
-export interface CreateEditorContextOptions {
-  readonly contextMeta: Readonly<EditorContextMeta>
+export interface CreateEditorContextOptionsFields {
+  readonly contextMeta: Readonly<Et.EditorContextMeta>
+  readonly hotstringOptions?: Et.hotstring.HotstringOptions
+}
+export interface CreateEditorContextOptions extends CreateEditorContextOptionsFields {
   readonly root: Et.EditorRoot
   readonly bodyEl: Et.EtBodyElement
-  readonly configManager: ConfigManager
   readonly locale?: string
   readonly scrollContainer?: HTMLElement
   readonly onEffectElementChanged?: OnEffectElementChanged
@@ -173,7 +173,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     // 只能在命令管理器创建之后创建
     this.commonHandlers = new CommonHandlers(this)
     this.hotkeyManager = new HotkeyManager(this)
-    this.hotstringManager = getHotstringManager(this)
+    this.hotstringManager = getHotstringManager(this, options.hotstringOptions)
 
     this.__onEffectElementChanged = options.onEffectElementChanged
     this.__onParagraphChanged = options.onParagraphChanged
@@ -202,9 +202,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
     // topElement 非空, 则 paragraph 非空, 则 etElement 非空
     if (!this.selection.focusTopElement || !this.selection.commonEffectElement) {
-      if (import.meta.env.DEV) {
-        console.error('effect element or paragraph not found')
-      }
+      this.assists.logger?.error('ctx update failed: effect element or paragraph not found. ', 'EditorContext')
       this.editor.blur()
       return (this._updated = false)
     }
@@ -338,7 +336,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.focusParagraph = null
     this.focusTopElement = null
     this._commonEtElement = null
-
+    this.selection.clear()
     this.commandManager.closeTransaction()
   }
 
@@ -528,6 +526,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     const create = Object.getPrototypeOf(el).constructor.create
     if (count === 1) return create()
     return new Array(count).fill(0).map(create) as N extends 1 ? T : TupleOfLength<T, N>
+  }
+
+  createText(data: string): Et.Text {
+    return document.createTextNode(data) as Et.Text
   }
 
   /**

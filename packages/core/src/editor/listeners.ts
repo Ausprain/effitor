@@ -73,11 +73,14 @@ export const addListenersToEditorBody = (
     }
     // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      // 编辑器聚焦时绑定上下文
-      ctx.editor.focus(false)
+      ctx.editor.markFocused()
       // fixed. HMR热更新时 旧的selection对象可能丢失
       // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
       requestAnimationFrame(() => {
+        if (!ctx.editor.isFocused) {
+          // 编辑器又立马失去焦点, 直接返回
+          return
+        }
         // 手动更新上下文和选区, 再绑定sel监听器
         ctx.update()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
@@ -91,11 +94,19 @@ export const addListenersToEditorBody = (
     // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
     // 即焦点转移到编辑区(et-body)外 时
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      // 编辑器失去焦点时, 结束命令事务
-      listeners.focusout(ev)
-      // 解绑selectionchange
-      document.removeEventListener('selectionchange', listeners.selectionchange)
+      ctx.editor.markBlurred()
       requestAnimationFrame(() => {
+        if (ctx.editor.isFocused) {
+          // fixed. 编辑器又马上重新获得了焦点, 直接返回
+          // 在命令 discard 时经常发生, 即光标在某个命令新插入的节点中, 而执行 discard 时,
+          // 新插入的节点被撤销移除, 其中的光标也随之移出, 还未来得及设置新光标位置, 就触发了 focusout事件
+          return
+        }
+        // 编辑器失去焦点时, 结束命令事务
+        listeners.focusout(ev)
+        // 解绑selectionchange
+        document.removeEventListener('selectionchange', listeners.selectionchange)
+        // 清理上下文
         ctx.blurCallback()
       })
     }

@@ -65,7 +65,7 @@ const formatMarkAtCaret = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
   if (checkUnformatMark(ctx, tc, markType)) {
     return true
   }
-  return !!ctx.getEtHandler(tc.anchorEtElement).checkInsertMarkNode?.(ctx, {
+  return !!ctx.getEtHandler(tc.anchorEtElement).checkInsertMark?.(ctx, {
     markType,
     targetRange: tc,
   })
@@ -75,7 +75,7 @@ const formatMarkAtCaret = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
  * 创建 mark 节点的效应处理器
  */
 export const markHandler: Et.EffectHandler = {
-  checkInsertMarkNode: (ctx, {
+  checkInsertMark: (ctx, {
     markType,
     removeMarkerChars,
     targetRange: tr,

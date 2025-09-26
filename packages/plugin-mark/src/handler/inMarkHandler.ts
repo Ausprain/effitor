@@ -39,7 +39,7 @@ export const inMarkHandler: Et.EffectHandler = {
             const offset = tc.offset
             if (text.data[offset - 1] === payload.data) {
               // 在一个非临时italic 中插入 bold
-              return !!this.checkInsertMarkNode?.(ctx, {
+              return !!this.checkInsertMark?.(ctx, {
                 markType: MarkType.BOLD,
                 targetRange: tc,
                 removeMarkerChars: markerMap[MarkType.BOLD].char,

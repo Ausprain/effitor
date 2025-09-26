@@ -95,14 +95,14 @@ export const checkBackspaceAtCaretDeleteNode = (
 }
 /**
  * 在文本开头 Backspace 删除内容, 上游已经判断了 checkBackspaceAtCaretDeleteParagraph,
- * 此处不再考虑段落开头 Backspace 的情况; 采用选区 modify, 前移一个字符, 再向后扩展一个字符,
+ * 此处不再考虑段落开头 Backspace 的情况; 使用选区 modify, 前移一个字符, 再向后扩展一个字符,
  * 若选区collapsed, 则不处理, 否则根据选区位置, 移除选区内容
  */
 export const checkBackspaceAtCaretInTextStart = (
   ctx: Et.EditorContext, _targetCaret: Et.ValidTargetCaret,
 ) => {
   // FIXME 这里需要优化, 将下面与 Selection强关联的逻辑替换为与 targetCaret 强关联的逻辑
-  // 接触对 Selection 对象的依赖
+  // 解除对 Selection 对象的依赖
   if (ctx.selection.modifyMulti([
     ['move', 'backward', 'character'],
     ['extend', 'forward', 'character'],

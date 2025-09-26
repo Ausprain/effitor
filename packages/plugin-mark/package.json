@@ -1,11 +1,12 @@
 {
-  "name": "@effitor/mark",
+  "name": "@effitor/plugin-mark",
   "version": "0.3.5-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "effitor",
     "web editor",
-    "markdown"
+    "markdown",
+    "WYSIWYG"
   ],
   "type": "module",
   "main": "dist/index.js",
@@ -28,9 +29,7 @@
     "url": "git+https://github.com/Ausprain/effitor.git"
   },
   "scripts": {
-    "dev": "vite",
-    "test-unit": "vitest unit",
-    "test-e2e:chrome": "vitest e2e --browser chromium"
+    "dev": "vite"
   },
   "dependencies": {
     "@effitor/core": "workspace:*"

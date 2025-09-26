@@ -65,7 +65,8 @@ et-editor,
     box-sizing: border-box;
   }
 
-  position: relative;
+  /* 应由 et-editor 父容器定位 */
+  /* position: relative; */
   /* 创建bfc 包含浮动 */
   display: flow-root;
 

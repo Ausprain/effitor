@@ -5,6 +5,22 @@ import { styleText } from 'util'
 
 import config from './config.js'
 
+const TSUP_CONFIG_TS = `
+import { defineConfig } from 'tsup'
+
+import sharedConfig from '../../tsup.shared'
+
+export default defineConfig({
+  ...sharedConfig,
+})
+`.trimStart()
+const TSCONFIG_BUILD_JSON = `
+{
+  "extends": "../../tsconfig.build.json",
+  "include": ["./src", "../shared"]
+}
+`.trimStart()
+
 const { packagesDirPath, mainPkgDirPath, outputDir } = config
 const helperDtsPath = resolve(packagesDirPath, 'shared/helper.d.ts')
 
@@ -64,7 +80,13 @@ const tryToBuildSubPackage = async (pkgName) => {
   const stats = await fs.stat(pkgDir)
   if (stats.isDirectory()) {
     const files = await fs.readdir(pkgDir)
-    if (files.includes('tsup.config.ts') && files.includes('package.json')) {
+    if (files.includes('package.json')) {
+      if (!files.includes('tsup.config.ts')) {
+        await fs.writeFile(resolve(pkgDir, 'tsup.config.ts'), TSUP_CONFIG_TS)
+      }
+      if (!files.includes('tsconfig.build.json')) {
+        await fs.writeFile(resolve(pkgDir, 'tsconfig.build.json'), TSCONFIG_BUILD_JSON)
+      }
       await tsupPkg(pkgDir)
       console.log(styleText('cyan', `build package ${pkgName} success\n`))
     }

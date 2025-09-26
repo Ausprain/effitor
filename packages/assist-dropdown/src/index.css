@@ -1,0 +1,73 @@
+.et-dd__wrapper {
+  display: inline;
+  /* fixme: only chromium now */
+  anchor-name: --et-dd-wrapper;
+
+  z-index: 1;
+
+  &>span {
+    margin: 0 2px;
+    padding: 2px 3px;
+    border-radius: 3px;
+    background-color: var(--et-color-bg--hover);
+    text-decoration: underline;
+  }
+}
+
+.et-dd__container {
+  display: inline-block;
+  position: absolute;
+  position-anchor: --et-dd-wrapper;
+  position-area: bottom span-right;
+  position-try-fallbacks: flip-inline, flip-block;
+
+  margin: 3px 0;
+  border-radius: 4px;
+  background-color: var(--et-color-bg);
+  box-shadow: var(--et-shadow);
+  overflow: hidden;
+  z-index: 99;
+  animation: dropdown-in 0.2s ease-in;
+
+  /* dev */
+  border: 1px solid #ddd;
+}
+
+.et-dd__content {
+  display: flex;
+  flex-direction: column;
+  min-width: 184px;
+  max-height: 256px;
+  max-width: 188px;
+  padding: 0 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* dev */
+  /* background-color: skyblue; */
+  /* height: 200px;
+    width: 100px; */
+}
+
+.et-dd-menu {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: center;
+
+  padding: 8px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--et-color-border-1);
+  }
+}
+
+.et-dd-menu__item {
+  display: inline-block;
+  height: 24px;
+  width: 24px;
+  margin: 2px;
+  padding: 4px;
+  border-radius: 3px;
+}

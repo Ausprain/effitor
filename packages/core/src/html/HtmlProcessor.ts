@@ -239,7 +239,7 @@ export class HtmlProcessor {
       position: 'fixed',
       left: '0px',
       top: '0px',
-      transform: 'translate3d(-110%, -110%, 0)',
+      transform: 'translate(-110%, -110%)',
     } as CSSStyleDeclaration)
     ctx.root.appendChild(orphanBody)
 

@@ -28,9 +28,9 @@ declare module '@effitor/core' {
     /**
      * 切换 mark 元素的标记符提示功能, 开启时光标落入标记节点内, 会展开标记符
      * * 仅 mounted 之后可用
-     * @param hinting 是否开启标记符提示
+     * @param enableHinting 是否开启标记符提示
      */
-    toggleHintingMarker: (hinting: boolean) => void
+    toggleHintingMarker: (enableHinting: boolean) => void
   }
   interface EditorPluginContext {
     [MarkEnum.CtxKey]: MarkPluginContext
@@ -40,7 +40,7 @@ declare module '@effitor/core' {
     /*                              挂到EffectElement上                              */
     /* -------------------------------------------------------------------------- */
     /** 插入标记符节点 */
-    checkInsertMarkNode: (ctx: Et.EditorContext, payload: {
+    checkInsertMark: (ctx: Et.EditorContext, payload: {
       markType: MarkType
       /** 并移除已经插入页面的标记符文本, 若为 undefined 或空串, 则不检查 */
       removeMarkerChars?: string
