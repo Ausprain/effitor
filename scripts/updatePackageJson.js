@@ -1,7 +1,7 @@
 // @ts-check
 
 import fs from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { dirname, resolve, join } from 'node:path'
 import baseJson from '../package.json'
 import config from './config.js'
 
@@ -38,12 +38,12 @@ const keyOrdered = {
   peerDependencies: undefined,
 }
 
-const { mainPkgDirPath, packagesDirPath, exampleDirPath } = config
+const { REPOSITORY_URL, MAIN_PKG_DIR_PATH, PACKAGES_DIR_PATH, EXAMPLES_DIR_PATH } = config
 
 const pkgDirPaths = [
-  mainPkgDirPath,
-  ...(await fs.readdir(packagesDirPath)).map(name => resolve(packagesDirPath, name)),
-  ...(await fs.readdir(exampleDirPath)).map(name => resolve(exampleDirPath, name)),
+  MAIN_PKG_DIR_PATH,
+  ...(await fs.readdir(PACKAGES_DIR_PATH)).map(name => resolve(PACKAGES_DIR_PATH, name)),
+  ...(await fs.readdir(EXAMPLES_DIR_PATH)).map(name => resolve(EXAMPLES_DIR_PATH, name)),
 ]
 const pkgJsonPaths = await Promise.all(pkgDirPaths.map(async (dir) => {
   return await fs.stat(resolve(dir, 'package.json')).then(
@@ -63,10 +63,13 @@ packageJsonList.forEach(({ path, json }) => {
   if (!pkgName) {
     return
   }
+  let repositoryDir = undefined
   if (pkgName === 'main') {
+    repositoryDir = 'main'
     pkgName = 'effitor'
   }
   else {
+    repositoryDir = `packages/${pkgName}`
     pkgName = `@effitor/${pkgName}`
   }
   const pkgJson = {
@@ -74,6 +77,12 @@ packageJsonList.forEach(({ path, json }) => {
     ...json,
     ...updateConfigs,
     name: pkgName,
+  }
+  if (pkgJson.repository) {
+    pkgJson.repository.type = 'git'
+    pkgJson.repository.url = `git+${REPOSITORY_URL}`
+    pkgJson.repository.directory = repositoryDir
+    pkgJson.homepage = `${join(REPOSITORY_URL, repositoryDir)}#readme`
   }
   // 保留原有 description
   if (json.description) {

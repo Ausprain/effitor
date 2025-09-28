@@ -25,7 +25,7 @@ export interface MessageManager {
 }
 
 type MessageType = 'info' | 'success' | 'warn' | 'error'
-export interface MessageOptions {
+export interface MessageAssistOptions {
   /** 消息持续时间, 默认1500ms, 范围[1000, 5000] */
   duration?: number
   /** 消息列表, 对于vue等框架, 可以传入一个响应式对象; 消息时间到期时, 会从中shift */
@@ -35,7 +35,7 @@ export interface MessageOptions {
   onRemove?: undefined | ((msg?: string) => void)
 }
 
-const defaultOptions: MessageOptions = {
+const defaultOptions: MessageAssistOptions = {
   duration: 1500,
   msgList: [],
   render: (msg: string, type: MessageType) => {
@@ -53,11 +53,11 @@ const defaultOptions: MessageOptions = {
     }
   },
 }
-export const getMessageManager = (_options?: MessageOptions): MessageManager => {
+export const getMessageManager = (_options?: MessageAssistOptions): MessageManager => {
   if (_options) {
     _options = Object.fromEntries(Object.entries(_options).filter(([_, v]) => v !== undefined))
   }
-  const options = { ...defaultOptions, ..._options } as Required<MessageOptions>
+  const options = { ...defaultOptions, ..._options } as Required<MessageAssistOptions>
   if (options.duration < 1000 || options.duration > 5000) {
     options.duration = 1500
   }

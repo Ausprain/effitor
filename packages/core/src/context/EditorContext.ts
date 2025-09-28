@@ -21,9 +21,15 @@ import { EditorLogger } from './EditorLogger'
 import { EditorMode } from './EditorMode'
 import { EditorStyler } from './EditorStyler'
 
+type PickKeyOfRange
+  = | keyof AbstractRange
+    | 'cloneRange'
+    | 'commonAncestorContainer'
+    | 'getBoundingClientRect'
+    | 'getClientRects'
 type ContextSelection = Readonly<Omit<EtSelection, 'range'> & {
   // 限制 range 的能力, 剔除如 extractContents 等可能会破坏 DOM 结构的方法
-  range: Pick<Et.Range, keyof AbstractRange | 'commonAncestorContainer'> | null
+  range: Pick<Et.Range, PickKeyOfRange> | null
 }>
 
 type UpdatedContextSelection = ContextSelection & {
@@ -49,7 +55,6 @@ export interface CreateEditorContextOptions extends CreateEditorContextOptionsFi
   readonly root: Et.EditorRoot
   readonly bodyEl: Et.EtBodyElement
   readonly locale?: string
-  readonly scrollContainer?: HTMLElement
   readonly onEffectElementChanged?: OnEffectElementChanged
   readonly onParagraphChanged?: OnParagraphChanged
   readonly onTopElementChanged?: OnParagraphChanged
@@ -162,7 +167,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
 
     this.root = options.root
-    this.body = new EditorBody(options.bodyEl, options.scrollContainer)
+    this.body = new EditorBody(options.bodyEl, this.editor.scrollContainer)
     this.mode = new EditorMode(this)
     this.styler = new EditorStyler(options.bodyEl)
     this.selection = new EtSelection(this.body)
@@ -270,12 +275,12 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     if (old) {
       old.classList.remove(CssClassEnum.CaretIn)
       if (old !== this._focusParagraph) {
-        old.focusoutCallback(this)
+        old.focusoutCallback?.(this)
       }
     }
     if (v) {
       v.classList.add(CssClassEnum.CaretIn)
-      v.focusinCallback(this)
+      v.focusinCallback?.(this)
     }
   }
 
@@ -296,11 +301,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
     // 旧段落不是旧_topElement时, 调用focusoutCallback, 避免重复调用
     if (old && old !== this._focusTopElement) {
-      old.focusoutCallback(this)
+      old.focusoutCallback?.(this)
     }
     // 新段落不是新_focusEtElement时, 调用focusinCallback, 避免重复调用
     if (v && v !== this._focusEtElement) {
-      v.focusinCallback(this)
+      v.focusinCallback?.(this)
     }
   }
 
@@ -324,7 +329,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
     // 顶层节点不是当前段落时调用回调, 避免重复调用
     if (v && v !== this._focusParagraph) {
-      v.focusinCallback(this)
+      v.focusinCallback?.(this)
     }
   }
 
@@ -477,7 +482,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     return node.localName === this.schema.paragraph.elName
   }
 
-  /** 默认创建一个带br的schema段落 */
+  /**
+   * 创建一个schema段落
+   * @package withBr 新是否带一个 br 或零宽字符 (取决于编辑器配置 `INSERT_BR_FOR_LINE_BREAK`), 默认为 true
+   */
   createPlainParagraph(withBr = true): Et.EtParagraphElement {
     const p = this.schema.paragraph.create()
     if (withBr) {

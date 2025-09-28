@@ -21,12 +21,12 @@ const TSCONFIG_BUILD_JSON = `
 }
 `.trimStart()
 
-const { packagesDirPath, mainPkgDirPath, outputDir } = config
-const helperDtsPath = resolve(packagesDirPath, 'shared/helper.d.ts')
+const { PACKAGES_DIR_PATH, MAIN_PKG_DIR_PATH, OUTPUT_DIR } = config
+const HELPER_DTS_PATH = resolve(PACKAGES_DIR_PATH, 'shared/helper.d.ts')
 
 const copyHelperDts = (pkgDir) => {
-  const distPath = resolve(pkgDir, outputDir)
-  fs.copySync(helperDtsPath, resolve(distPath, 'helper.d.ts'))
+  const distPath = resolve(pkgDir, OUTPUT_DIR)
+  fs.copySync(HELPER_DTS_PATH, resolve(distPath, 'helper.d.ts'))
 }
 
 const logTsupResult = (stdout) => {
@@ -56,17 +56,17 @@ const tsupPkg = async (pkgDir, copyHelper = true) => {
 }
 
 const buildCore = async () => {
-  await tsupPkg(resolve(packagesDirPath, 'core'))
+  await tsupPkg(resolve(PACKAGES_DIR_PATH, 'core'))
   console.log(styleText('cyan', `build core success\n`))
 }
 
 const buildMain = async () => {
-  await tsupPkg(mainPkgDirPath, false)
+  await tsupPkg(MAIN_PKG_DIR_PATH, false)
   console.log(styleText('cyan', `build main success\n`))
 }
 
 const buildElsePkgs = async () => {
-  const files = await fs.readdir(packagesDirPath)
+  const files = await fs.readdir(PACKAGES_DIR_PATH)
   return Promise.all(files.map(async (file) => {
     if (file === 'core') {
       return
@@ -76,7 +76,7 @@ const buildElsePkgs = async () => {
 }
 
 const tryToBuildSubPackage = async (pkgName) => {
-  const pkgDir = resolve(packagesDirPath, pkgName)
+  const pkgDir = resolve(PACKAGES_DIR_PATH, pkgName)
   const stats = await fs.stat(pkgDir)
   if (stats.isDirectory()) {
     const files = await fs.readdir(pkgDir)

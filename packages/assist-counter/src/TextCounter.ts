@@ -24,11 +24,11 @@ const defaultOptions = {
   onUpdated: undefined as undefined | TextCountCallback,
 }
 
-export type TextCounterOptions = Partial<typeof defaultOptions>
+export type CounterAssistOptions = Partial<typeof defaultOptions>
 export class TextCounter {
   constructor(
     private _ctx: Et.EditorContext,
-    options?: TextCounterOptions,
+    options?: CounterAssistOptions,
   ) {
     this._interval = options?.interval ?? defaultOptions.interval
     this._idleTimeout = options?.idleTimeout ?? defaultOptions.idleTimeout

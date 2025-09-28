@@ -3,7 +3,6 @@ import type { Et } from '@effitor/core'
 import type { EtMarkElement } from './element'
 
 export const enum MarkEnum {
-  PluginName = '@effitor/mark',
   CtxKey = '_et_$mark_',
   ElName = 'et-mark',
   EtCodeName = 'EtMarkElement',

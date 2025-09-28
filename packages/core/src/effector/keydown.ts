@@ -78,6 +78,7 @@ export const runKeyboardSolver = (
       fn = solver[key as keyof typeof solver] || solver.default
     }
     if (typeof fn === 'function') {
+      // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
       fn(ev, ctx)
     }
   }
@@ -157,7 +158,11 @@ export const getKeydownCaptureListener = (
       const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
       const fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
         || solver[key as keyof typeof solver] || solver.default
-      if (typeof fn === 'function' && fn(ev, ctx)) {
+      if (typeof fn === 'function' && fn(
+        ev,
+        // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
+        ctx,
+      )) {
         ev.preventDefault()
         ev.stopPropagation()
         ev.stopImmediatePropagation()

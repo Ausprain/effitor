@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { DialogManager, type DialogOptions } from './DialogManager'
+import { type DialogAssistOptions, DialogManager } from './DialogManager'
 import cssText from './index.css?raw'
 
 declare module '@effitor/core' {
@@ -23,8 +23,8 @@ declare module '@effitor/core' {
  * </et-editor>
  * ```
  */
-export const useDialogAssist = (options?: DialogOptions): Et.EditorPluginSupportInline => ({
-  name: '@effitor/dialog',
+export const useDialogAssist = (options?: DialogAssistOptions): Et.EditorPluginSupportInline => ({
+  name: '@effitor/assist-dialog',
   cssText,
   effector: {
     inline: true,

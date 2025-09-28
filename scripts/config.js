@@ -1,10 +1,11 @@
 import { resolve } from 'path'
 
-const projectDirPath = resolve(import.meta.dirname, '../')
+const PROJECT_DIR_PATH = resolve(import.meta.dirname, '../')
 export default {
-  projectDirPath,
-  mainPkgDirPath: resolve(projectDirPath, 'main'),
-  packagesDirPath: resolve(projectDirPath, 'packages'),
-  exampleDirPath: resolve(projectDirPath, 'examples'),
-  outputDir: 'dist',
+  REPOSITORY_URL: 'https://github.com/Ausprain/effitor.git',
+  PROJECT_DIR_PATH,
+  MAIN_PKG_DIR_PATH: resolve(PROJECT_DIR_PATH, 'main'),
+  PACKAGES_DIR_PATH: resolve(PROJECT_DIR_PATH, 'packages'),
+  EXAMPLES_DIR_PATH: resolve(PROJECT_DIR_PATH, 'examples'),
+  OUTPUT_DIR: 'dist',
 }

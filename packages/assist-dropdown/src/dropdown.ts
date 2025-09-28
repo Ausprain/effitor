@@ -3,7 +3,6 @@ import { cr } from '@effitor/core'
 import {
   chevronRightIcon,
   CssClassEnum,
-  EtTypeEnum,
   HtmlAttrEnum,
   HtmlCharEnum,
   returnIcon,
@@ -37,7 +36,7 @@ export const defaultOptions = {
   maxWidth: 188,
   maxHeight: 256,
 }
-export type DropdownOptions = Partial<typeof defaultOptions>
+export type DropdownAssistOptions = Partial<typeof defaultOptions>
 
 /**
  * dropdown 菜单, 在光标附近展开; 展开时, 开启命令事务 在光标位置插入一个节点,
@@ -98,14 +97,14 @@ export class Dropdown {
   /** 内联富文本菜单 */
   private inlineRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items'> = { el: this.#createMenuEl(), items: [] }
   /** 块级富文本菜单 */
-  private blockRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items'> = {
+  private blockRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items' | 'filter'> = {
     el: this.#createMenuEl(),
     items: [],
     filter: {
       etType: 0,
-      // 仅在纯段落中展示block的菜单项
-      matchEtType: EtTypeEnum.Paragraph,
-      unmatchEtType: ~EtTypeEnum.Paragraph,
+      // 仅在纯段落中展示block的菜单项, 在构造函数中通过 ctx.schema获取纯段落的 etType
+      // matchEtType: EtTypeEnum.Paragraph,
+      // unmatchEtType: EtTypeEnum.Component | EtTypeEnum.Blockquote,
     },
   }
 
@@ -136,8 +135,11 @@ export class Dropdown {
     return text[0] === HtmlCharEnum.ZERO_WIDTH_SPACE ? text.slice(1) : text
   }
 
-  constructor(ctx: Et.EditorContext, signal: AbortSignal, options: Required<DropdownOptions>) {
+  constructor(ctx: Et.EditorContext, signal: AbortSignal, options: Required<DropdownAssistOptions>) {
     this._ctx = ctx
+    this.blockRichMenu.filter.matchEtType = ctx.schema.paragraph.etType
+    this.blockRichMenu.filter.unmatchEtType = ~ctx.schema.paragraph.etType
+
     const wrapper = document.createElement('div')
     const inputSpan = document.createElement('span')
     const container = document.createElement('div')
@@ -528,7 +530,7 @@ export class Dropdown {
       }
       const { etType, matchEtType, unmatchEtType } = menu.filter
       // 判断当前etel下是否允许该etType
-      if ((etType && (etType & ~inEtCode))
+      if ((etType && !(etType & inEtCode))
         // 判断当前etCode是否匹配
         || (matchEtType && !(matchEtType & etCode))
         || (unmatchEtType && (unmatchEtType & etCode))
@@ -557,7 +559,7 @@ export class Dropdown {
           continue
         }
         const { etType, matchEtType, unmatchEtType } = item.filter
-        if ((etType && (etType & ~inEtCode))
+        if ((etType && !(etType & inEtCode))
           || (matchEtType && !(matchEtType & etCode))
           || (unmatchEtType && (unmatchEtType & etCode))
         ) {

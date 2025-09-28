@@ -160,7 +160,7 @@ export abstract class EffectElement
   /**
    * 当前效应元素下是否允许某效应, 即该元素的子节点是否允许为含有某效应类型的节点 \
    * * 当且仅当 `inEtCode & code && !(notInEtCode & code)` 时返回 true
-   * @param codeOrNode 要校验的子节点效应码
+   * @param codeOrNode 要校验的子节点效应码, 若为 0, 则视为不允许
    */
   checkIn(codeOrNode: number | Node) {
     const code = typeof codeOrNode === 'number' ? codeOrNode : codeOrNode.etCode

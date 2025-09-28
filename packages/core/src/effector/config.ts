@@ -92,21 +92,33 @@ export interface Solvers {
    */
   readonly htmlEventSolver: HTMLEventSolver
   /** 复制或剪切时添加数据到clipboardData */
-  readonly copyCallback: ClipboardAction
+  readonly copyCutCallback: ClipboardAction
   /**
-     * 粘贴回调,
-     */
+   * 粘贴回调,
+   */
   readonly pasteCallback: ClipboardAction
   /**
    * selectionchange回调
    *  `document`的`selectionchange`事件监听器由编辑器focus时创建, blur时移除;
-   *  effector的selchange回调统一在该监听器内执行
+   *  effector的 selChangeCallback 回调统一在该监听器内执行
    */
   readonly selChangeCallback: SelChangeAction
-  /** 编辑器focus后调用, 这不是立即调用的, 它们会在编辑器focus且更新上下文和选区后调用(在第一次selectionchange之前) */
+  /** 编辑器focus后调用, 这不是立即调用的, 它们会在编辑器focus且更新上下文和选区后调用 */
   readonly focusinCallback: FocusEventAction
   /** 编辑器失去焦点时立即调用 (解绑selectionchange事件之前以及相关效应元素 focusoutCallback 前) */
   readonly focusoutCallback: FocusEventAction
+
+  readonly mousedownCallback: MouseEventAction
+  readonly mouseupCallback: MouseEventAction
+  readonly clickCallback: MouseEventAction
+  readonly dblclickCallback: MouseEventAction
+
+  readonly dragstartCallback: DragEventAction
+  readonly dragendCallback: DragEventAction
+  readonly dragenterCallback: DragEventAction
+  readonly dragoverCallback: DragEventAction
+  readonly dragleaveCallback: DragEventAction
+  readonly dropCallback: DragEventAction
 }
 export type Solver = KeyboardKeySolver | InputTypeSolver | HTMLEventSolver
 /** 主效应器 */
@@ -134,10 +146,10 @@ export type InputTypeSolver = Partial<Record<Exclude<Et.InputType, 'undefined'>,
 }
 
 export type KeyboardSolverInEtElement = {
-  [k in keyof DefinedEtElementMap]?: KeyboardAction
+  [k in keyof DefinedEtElementMap]?: KeyboardAction<UpdatedContext & { focusEtElement: DefinedEtElementMap[k] }>
 }
 export type InputTypeSolverInEtElement = {
-  [k in keyof DefinedEtElementMap]?: InputAction
+  [k in keyof DefinedEtElementMap]?: InputAction<UpdatedContext & { focusEtElement: DefinedEtElementMap[k] }>
 }
 
 export type KeyboardSolver = KeyboardKeySolver & KeyboardSolverInEtElement
@@ -161,10 +173,12 @@ export type HTMLEventSolver = {
 }
 
 // 输入行为的ctx 是更新了的, 即 effectElement, paragraphEl, topElement 非空
-export type KeyboardAction = (ev: Et.KeyboardEvent, ctx: UpdatedContext) => TrueOrVoid
-export type InputAction = (ev: Et.InputEvent, ctx: UpdatedContext) => TrueOrVoid
+export type KeyboardAction<T = UpdatedContext> = (ev: Et.KeyboardEvent, ctx: T) => TrueOrVoid
+export type InputAction<T = UpdatedContext> = (ev: Et.InputEvent, ctx: T) => TrueOrVoid
 export type ClipboardAction = (ev: Et.ClipboardEvent, ctx: UpdatedContext) => TrueOrVoid
 // html其他事件中对应元素可能为空
 export type HtmlEventAction<E = Event> = (ev: E, ctx: EditorContext) => void
 export type SelChangeAction = HtmlEventAction
 export type FocusEventAction = (ev: FocusEvent, ctx: EditorContext) => void
+export type MouseEventAction = (ev: MouseEvent, ctx: EditorContext) => void
+export type DragEventAction = (ev: DragEvent, ctx: EditorContext) => void

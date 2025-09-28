@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { getMessageManager, type MessageManager, type MessageOptions } from './MessageMamager'
+import { getMessageManager, type MessageAssistOptions, type MessageManager } from './MessageMamager'
 
 declare module '@effitor/core' {
   interface EditorAssists {
@@ -11,8 +11,8 @@ declare module '@effitor/core' {
   }
 }
 
-export const useMessageAssist = (options?: MessageOptions): Et.EditorPluginSupportInline => ({
-  name: '@effitor/message',
+export const useMessageAssist = (options?: MessageAssistOptions): Et.EditorPluginSupportInline => ({
+  name: '@effitor/assist-message',
   effector: {
     inline: true,
   },

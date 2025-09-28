@@ -42,7 +42,10 @@ export const insertParagraph = createInputEffectHandle((ctx, pl) => {
     ctx.commandManager.push(cmd.insertNode({
       node: newP,
       execAt: cr.caretOutEnd(tc.anchorParagraph),
-      destCaretRange: cr.caretInStart(newP),
+      // 如果新段落有文本节点(通常是 zws), 则光标定位到文本节点结尾, 否则定位到新段落开头
+      destCaretRange: newP.firstChild && dom.isText(newP.firstChild)
+        ? cr.caretInEndNow(newP.firstChild)
+        : cr.caretInStart(newP),
     }))
     return true
   }

@@ -13,6 +13,7 @@ import { markBeforeKeydownSolver } from './keydown'
 
 export const markEffector: Et.EffectorSupportInline = {
   inline: true,
+  enforce: 'pre',
   beforeKeydownSolver: markBeforeKeydownSolver,
   htmlEventSolver: {
     mousedown: (_ev, ctx) => {

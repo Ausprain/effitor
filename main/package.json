@@ -53,10 +53,11 @@
   },
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "homepage": "https:/github.com/Ausprain/effitor.git/main#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ausprain/effitor.git"
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "main"
   },
   "dependencies": {
     "@effitor/core": "workspace:*",
@@ -64,6 +65,9 @@
     "@effitor/assist-dialog": "workspace:*",
     "@effitor/assist-dropdown": "workspace:*",
     "@effitor/assist-message": "workspace:*",
+    "@effitor/assist-popup": "workspace:*",
+    "@effitor/plugin-heading": "workspace:*",
+    "@effitor/plugin-list": "workspace:*",
     "@effitor/plugin-mark": "workspace:*"
   },
   "devDependencies": {

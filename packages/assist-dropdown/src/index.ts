@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { defaultOptions, Dropdown, type DropdownOptions } from './dropdown'
+import { defaultOptions, Dropdown, type DropdownAssistOptions } from './dropdown'
 import { getDropdownEffector } from './effector'
 import cssText from './index.css?raw'
 
@@ -10,14 +10,14 @@ declare module '@effitor/core' {
   }
 }
 
-export const useDropdownAssist = (options?: DropdownOptions): Et.EditorPluginSupportInline => {
+export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPluginSupportInline => {
   options = {
     ...defaultOptions,
     ...options,
   }
   return {
-    name: '@effitor/dropdown',
+    name: '@effitor/assist-dropdown',
     cssText,
-    effector: getDropdownEffector(options as Required<DropdownOptions>),
+    effector: getDropdownEffector(options as Required<DropdownAssistOptions>),
   }
 }

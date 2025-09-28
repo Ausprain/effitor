@@ -240,6 +240,23 @@ export class CommonHandlers {
   }
 
   /**
+   * 替换节点
+   * @param oldNode 旧节点
+   * @param newNode 新节点
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   * @returns 命令执行成功返回 true, 否则返回 false
+   */
+  replaceNode(oldNode: Et.Node, newNode: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
+    this.commander.push(cmd.replaceNode({ oldNode, newNode, setCaret: destCaretRange === true }))
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
+    }
+    return this.commander.handle()
+  }
+
+  /**
    * 删除节点, 节点不在页面上, 返回 false
    * * 该方法只删除目标节点, 不会连带删除空祖先
    * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;

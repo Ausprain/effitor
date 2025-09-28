@@ -4,7 +4,7 @@ import type { Et } from '../../@types'
 import { dom } from '../dom'
 
 type TreeWalkNode<T> = T extends 1 ? Et.Element : T extends 4 ? Et.Text : T extends 5 ? Et.Node : never
-type TraversalWalk<T> = (node: TreeWalkNode<T>) => boolean
+type TraversalWalk<T> = (node: TreeWalkNode<T>) => TrueOrVoid
 interface TraversalOptions<T> {
   whatToShow?: T
   filter?: ((node: TreeWalkNode<T>) => 1 | 2 | 3) | null
@@ -46,7 +46,8 @@ const partialSelectedNodeOfRange = (range: Range): [Node | null, Node | null] =>
 /**
  * 遍历Range 选中的节点 (包含被部分选择的节点)
  * * 该遍历不是严格按照文档树顺序的, 有些子节点可能比父节点先遍历 (如startContainer和其父节点)
- * @param walk 遍历回调, 返回 true 时停止遍历
+ * * Range遍历无法提前结束
+ * @param walk 遍历回调
  * @param options 遍历选项\
  *      options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者\
  *      options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;\

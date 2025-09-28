@@ -132,7 +132,6 @@ export const removeSpanningParagraphs = (
   if (targetRange.isTextCommonAncestor() || !targetRange.isRangeCommonAncestorHasChildNodes()) {
     return false
   }
-  // TODO 处理 startAncestor, endAncestor 可能为空的情况
   const { startAncestor, endAncestor } = targetRange
   if (!startAncestor || !endAncestor) {
     if (import.meta.env.DEV) {
@@ -169,15 +168,15 @@ const removeSpanningSimpleParagraph = (
   addCmdsToRemoveStartPartiallyContained(cmds, startPartial, startP, startP)
   // 移除 endP 开头 至 endPartial 节点
   // 若 endP 无剩余节点, 且无插回内容, 移除 enP
-  const isEndPRemoved = !addCmdsToRemoveEndPartiallyContained(
+  const isEndParagraphRemoved = !addCmdsToRemoveEndPartiallyContained(
     cmds, endPartial, endP, endP, isEndUnselectedContentsEmpty,
   )
   // 移除中间节点
   tryToRemoveNodesBetween(cmds, startP, endP)
 
-  // endP被移除, 插回前半内容即可
   let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
-  if (isEndPRemoved) {
+  // endP被移除, 插回前半内容即可
+  if (isEndParagraphRemoved) {
     if (startUnselected.hasChildNodes()) {
       cmds.push(cmd.insertContent({
         content: startUnselected,
@@ -207,14 +206,14 @@ const removeSpanningSimpleParagraph = (
   }
 
   // 不合并, 插回各自内容
-  if (startUnselected) {
+  if (startUnselected && startUnselected.hasChildNodes()) {
     cmds.push(cmd.insertContent({
       content: startUnselected,
       execAt: destCaretRange,
     }))
     destCaretRange = cr.caretEndAuto(startUnselected.lastChild as Et.Node)
   }
-  if (endUnselected) {
+  if (endUnselected && endUnselected.hasChildNodes()) {
     cmds.push(cmd.insertContent({
       content: endUnselected,
       execAt: cr.caretInStart(endP),

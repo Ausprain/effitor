@@ -76,6 +76,7 @@ export class Effitor {
   private __body: Et.EtBodyElement | undefined
   private __context: Et.EditorContext | null = null
   private __ac: AbortController | undefined
+  private __scrollContainer: HTMLElement = document.documentElement
 
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
@@ -132,6 +133,23 @@ export class Effitor {
       throw new EffitorNotMountedError()
     }
     return this.__body
+  }
+
+  /**
+   * 编辑器所在滚动容器`document.documentElement`
+   * * [NB]: 该值不是`document.documentElement`时, 监听 scroll 事件的 scrollTarget 等于该值
+   *         否则, scrollTarget 为 document 或 window 对象
+   */
+  get scrollContainer() {
+    return this.__scrollContainer
+  }
+
+  /**
+   * 用于监听scroll事件的滚动目标, 当 scrollContainer 为 `document.documentElement` (默认值) 时,
+   * 等于 document; 否则, 等于 scrollContainer 本身
+   */
+  get scrollTarget() {
+    return this.__scrollContainer === document.documentElement ? document : this.__scrollContainer
   }
 
   constructor({
@@ -247,7 +265,8 @@ export class Effitor {
   /**
    * 在一个div下加载一个编辑器  若已挂载 则抛出一个异常; 除非配置了 `ALLOW_MOUNT_WHILE_MOUNTED: true`
    * @param host 编辑器宿主, 一个 div 元素
-   * @param scrollContainer 滚动容器, 默认是 html 根元素, 若host 在另一个滚动容器里, 则必须配置此项
+   * @param scrollContainer 滚动容器, 默认是 html 根元素, 若编辑器 mount 在另一个滚动容器内部,
+   *                        则必须配置此项, 否则一些插件无法正确工作
    */
   mount(host: HTMLDivElement, {
     scrollContainer,
@@ -262,6 +281,9 @@ export class Effitor {
         throw Error('Editor already mounted')
       }
     }
+    if (scrollContainer) {
+      this.__scrollContainer = scrollContainer
+    }
     const { contextMeta, mainEffector, cssText, pluginConfigs, hotstringOptions } = this.__meta
     const ac = new AbortController()
     const [root, bodyEl] = formatEffitorStructure(host, this, cssText, customStyleLinks, ac.signal)
@@ -270,7 +292,6 @@ export class Effitor {
       root,
       bodyEl,
       locale,
-      scrollContainer,
       hotstringOptions,
       onEffectElementChanged: this.callbacks.onEffectElementChanged,
       onParagraphChanged: this.callbacks.onParagraphChanged,

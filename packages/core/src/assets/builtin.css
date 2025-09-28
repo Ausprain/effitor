@@ -4,6 +4,8 @@
   display: block !important;
   padding-block: 0.2em;
   line-height: 1.5;
+  /* 段落最小高度, 防止段落空内容时高度坍缩 */
+  min-height: 1.9em;
   /* 分栏在需要时, 设置在段落上 */
   /* column-count: 2; */
 }

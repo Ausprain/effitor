@@ -23,10 +23,11 @@
   },
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/plugin-mark#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ausprain/effitor.git"
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/plugin-mark"
   },
   "scripts": {
     "dev": "vite"

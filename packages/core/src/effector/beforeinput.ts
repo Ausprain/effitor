@@ -50,7 +50,7 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
       return
     }
     if (import.meta.env.DEV) {
-      console.error(`handle beforeinput type=="${ev.inputType}"  ======`)
+      ctx.assists.logger?.warn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
     }
   },
 }
@@ -77,6 +77,7 @@ export const runInputSolver = (
       fn = solver[ev.inputType] || solver.default
     }
     if (typeof fn === 'function') {
+      // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
       fn(ev, ctx)
     }
   }
@@ -114,11 +115,10 @@ export const getBeforeinputListener = (
       // todo remove
       if (import.meta.env.DEV) {
         if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
-          console.error(`There's unhandled input:`, ev.inputType, ev.getTargetRanges()[0], ev)
+          ctx.assists.logger?.error(`There's unhandled input:`, `beforeinput.${ev.inputType}`)
         }
       }
       // 阻止所有beforeinput默认行为
-      // FIXME 拖拽插入(deleteByDrag) 若不在 drag/drop 事件中阻止默认行为, 此处阻止无效
       ev.preventDefault()
       return
     }

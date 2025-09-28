@@ -1,0 +1,43 @@
+{
+  "name": "@effitor/plugin-excalidraw",
+  "version": "0.3.5-alpha",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "effitor",
+    "web editor",
+    "markdown",
+    "WYSIWYG"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/plugin-excalidraw#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/plugin-excalidraw"
+  },
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@effitor/core": "workspace:*",
+    "@excalidraw/excalidraw": "^0.18.0",
+    "preact": "^10.27.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.2"
+  }
+}

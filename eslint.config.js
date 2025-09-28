@@ -1,3 +1,4 @@
+import { defineConfig } from 'eslint/config'
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import stylistic from '@stylistic/eslint-plugin'
@@ -6,7 +7,7 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import vitest from 'eslint-plugin-vitest'
 import globals from 'globals'
 
-export default tseslint.config(
+export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,

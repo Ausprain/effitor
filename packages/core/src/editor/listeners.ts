@@ -9,6 +9,19 @@ import {
 import { getInputListener } from '../effector/input'
 import { getKeydownCaptureListener, getKeydownListener } from '../effector/keydown'
 import { getKeyupListener } from '../effector/keyup'
+import {
+  getClickListener,
+  getDblClickListener,
+  getDragEndListener,
+  getDragEnterListener,
+  getDragLeaveListener,
+  // getDragListener,
+  getDragOverListener,
+  getDragStartListener,
+  getDropListener,
+  getMouseDownListener,
+  getMouseUpListener,
+} from '../effector/mouse'
 import { getSelectionChangeListener } from '../effector/selchange'
 import type { PluginConfigs } from './Effitor'
 
@@ -26,22 +39,21 @@ export const initListeners = (
   compositionupdate: getCompositionUpdate(ctx),
   compositionend: getCompositionEnd(ctx),
 
-  copy: getCopyListener(ctx, pluginEffector.copyCallback),
-  cut: getCutListener(ctx, pluginEffector.copyCallback),
+  copy: getCopyListener(ctx, pluginEffector.copyCutCallback),
+  cut: getCutListener(ctx, pluginEffector.copyCutCallback),
   paste: getPasteListener(ctx, pluginEffector.pasteCallback),
 
-  // mousedown: getMouseDownListener(ctx),
-  // mouseup: getMouseUpListener(ctx),
-  // click: getClickListener(ctx),
-  // dblclick: getDblClickListener(ctx),
-
-  // dragstart: getDragStartListener(ctx),
+  mousedown: getMouseDownListener(ctx, pluginEffector.mousedownCallback),
+  mouseup: getMouseUpListener(ctx, pluginEffector.mouseupCallback),
+  click: getClickListener(ctx, pluginEffector.clickCallback),
+  dblclick: getDblClickListener(ctx, pluginEffector.dblclickCallback),
+  dragstart: getDragStartListener(ctx, pluginEffector.dragstartCallback),
   // drag: getDragListener(ctx),
-  // dragend: getDragEndListener(ctx),
-  // dragenter: getDragEnterListener(ctx),
-  // dragover: getDragOverListener(ctx),
-  // dragleave: getDragLeaveListener(ctx),
-  // drop: getDropListener(ctx),
+  dragend: getDragEndListener(ctx, pluginEffector.dragendCallback),
+  dragenter: getDragEnterListener(ctx, pluginEffector.dragenterCallback),
+  dragover: getDragOverListener(ctx, pluginEffector.dragoverCallback),
+  dragleave: getDragLeaveListener(ctx, pluginEffector.dragleaveCallback),
+  drop: getDropListener(ctx, pluginEffector.dropCallback),
 
   selectionchange: getSelectionChangeListener(ctx, pluginEffector.selChangeCallback),
 
@@ -82,7 +94,7 @@ export const addListenersToEditorBody = (
           return
         }
         // 手动更新上下文和选区, 再绑定sel监听器
-        ctx.update()
+        ctx.forceUpdate()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
         listeners.focusin(ev)
       })
@@ -127,16 +139,16 @@ export const addListenersToEditorBody = (
   body.addEventListener('cut', listeners.cut, { signal: ac.signal })
   body.addEventListener('paste', listeners.paste, { signal: ac.signal })
 
-  // body.addEventListener('mousedown', listeners.mousedown, { signal: ac.signal })
-  // body.addEventListener('mouseup', listeners.mouseup, { signal: ac.signal })
-  // body.addEventListener('click', listeners.click, { signal: ac.signal })
-  // body.addEventListener('dblclick', listeners.dblclick, { signal: ac.signal })
+  body.addEventListener('mousedown', listeners.mousedown, { signal: ac.signal })
+  body.addEventListener('mouseup', listeners.mouseup, { signal: ac.signal })
+  body.addEventListener('click', listeners.click, { signal: ac.signal })
+  body.addEventListener('dblclick', listeners.dblclick, { signal: ac.signal })
 
-  // body.addEventListener('dragstart', listeners.dragstart, { signal: ac.signal })
+  body.addEventListener('dragstart', listeners.dragstart, { signal: ac.signal })
   // body.addEventListener('drag', listeners.drag, { signal: ac.signal })
-  // body.addEventListener('dragend', listeners.dragend, { signal: ac.signal })
-  // body.addEventListener('dragenter', listeners.dragenter, { signal: ac.signal })
-  // body.addEventListener('dragover', listeners.dragover, { signal: ac.signal })
-  // body.addEventListener('dragleave', listeners.dragleave, { signal: ac.signal })
-  // body.addEventListener('drop', listeners.drop, { signal: ac.signal })
+  body.addEventListener('dragend', listeners.dragend, { signal: ac.signal })
+  body.addEventListener('dragenter', listeners.dragenter, { signal: ac.signal })
+  body.addEventListener('dragover', listeners.dragover, { signal: ac.signal })
+  body.addEventListener('dragleave', listeners.dragleave, { signal: ac.signal })
+  body.addEventListener('drop', listeners.drop, { signal: ac.signal })
 }

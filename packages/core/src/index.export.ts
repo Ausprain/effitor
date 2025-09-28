@@ -10,4 +10,4 @@ export * from './markdown'
 export * from './selection'
 export * from './utils'
 // FIXME 这里导出类型为const enum, 在消费端开启 isolatedModule 时无法使用
-export { CssClassEnum, HtmlAttrEnum } from '@effitor/shared'
+// export { CssClassEnum, HtmlAttrEnum } from '@effitor/shared'

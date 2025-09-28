@@ -65,20 +65,16 @@ export interface EditorSettings {
  */
 export interface EditorConfig {
   /** 缩进margin-left像素值; 默认 22 */
-  INDENT_PIXEL: number
+  // INDENT_PIXEL: number
   /** 页面最大缩进数; 默认 6 */
-  MAX_INDENT: number
-  /** 编辑区字体大小; 默认 16 */
-  FONT_SIZE: number
+  // MAX_INDENT: number
   /** 撤回栈长度; 默认 1000 */
   UNDO_LENGTH: number
-  /** 链接url最大有效长度; 默认 2048 */
-  ALLOW_LINK_URL_MAX_LENGTH: number
   /** 允许挂载后不unmount而直接mount其他host; 默认 false */
   ALLOW_MOUNT_WHILE_MOUNTED?: boolean
   /** 自动创建第一个段落, 默认 true */
   AUTO_CREATE_FIRST_PARAGRAPH?: boolean
-  /** 使用编辑器外框默认样式; 默认 true */
+  /** 使用编辑器默认样式; 默认 true */
   WITH_EDITOR_DEFAULT_STYLE: boolean
   /** 是否开启编辑器默认log记录; 默认 false */
   WITH_EDITOR_DEFAULT_LOGGER: boolean

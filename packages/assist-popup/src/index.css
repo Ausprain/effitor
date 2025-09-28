@@ -1,0 +1,50 @@
+.et-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: block;
+  /* hide状态时依旧显示 而不是none, 便于下一次popup时计算其宽高; 但pointer-events需要设置为none, 避免覆盖编辑器影响正常点击 */
+  /* margin: 0; */
+  /* padding: 4px; */
+  transform: translateZ(0);
+  opacity: 0;
+  z-index: 99;
+
+  pointer-events: none;
+
+  &.et-popup--show {
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+    pointer-events: auto;
+  }
+}
+
+.et-popup__item-container {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid var(--et-color-border-2);
+  border-radius: 4px;
+  background-color: var(--et-color-bg);
+  color: var(--et-color-text);
+  box-shadow: var(--et-shadow);
+}
+
+.et-popup__item {
+  position: relative;
+  height: 28px;
+  width: 28px;
+  padding: 4px;
+  margin: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &>svg {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+  }
+}

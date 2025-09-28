@@ -42,7 +42,7 @@ export class EditorBody {
     /** 编辑器所在滚动容器, 默认为根 html 元素 */
     public readonly scrollContainer: HTMLElement = document.documentElement,
   ) {
-    // TODO 插件化
+    // TODO 移植到 heading 插件
     this.addEventListener('headingchainupdated', (ev) => {
       console.log('heading chain updated', ev.headingChain)
       return false

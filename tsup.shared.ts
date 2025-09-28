@@ -20,6 +20,7 @@ export default defineConfig({
   outDir: './dist',
   format: ['esm'],
   dts: {
+    // 引入全局 dts 工具类到产物 dts 中
     banner: 'import "./helper"',
   },
   clean: true,

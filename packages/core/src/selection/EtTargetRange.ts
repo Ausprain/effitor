@@ -161,6 +161,8 @@ class TargetCaret implements _SelectionTarget {
 
   /**
    * 光标所在的段落, 此项非空, 则`anchorEtElement`必定非空
+   * * 当光标落入段落间隙时, 此项会为null; 用户编辑操作不会导致这种情况发生, 但脚本
+   *   操作可能使光标最终没有落入段落内, 因此对于 valid 的, 此项依旧是 nullable 的
    */
   get anchorParagraph(): Et.Paragraph | null {
     if (this._anchorParagraph !== void 0) {

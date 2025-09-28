@@ -15,18 +15,22 @@ export interface DropdownContent {
 
 interface DropdownFilter {
   /**
-   * 对应操作可能产生的效应类型, 判断该etType是否是ctx.effectElement.inEtCode的子集, 即当前效应元素下是否允许此效应, 以筛选过滤menu/item \
+   * * `tldr:`此次 dropdown 可能往当前效应元素插入的元素的效应类型,
+   *          若不插入元素到当前效应元素内, 即对当前效应元素无效应副作用, 可设置为 0 或 -1
+   *
+   * 对应操作可能产生的效应类型, 判断该etType是否是ctx.focusEtElement.inEtCode的子集,
+   * 即当前效应元素下是否允许此效应, 以筛选过滤menu/item \
    * 如插入链接, 则该值为链接的etType 或链接节点实例的etCode值 \
    * etType是验证当前效应元素的子集, 而matchEtType和unmatchEtType是验证效应元素 \
    * 该值必须传入, 以让dropdown自动判断当前位置的是否显示该菜单项; 若无限制, 可手动设置 0
    */
   etType: number
   /**
-   * ctx.effectElement.etCode 是否匹配该值(交集), 匹配才显示
+   * ctx.focusEtElement.etCode 是否匹配该值(交集), 匹配才显示
    */
   matchEtType?: number
   /**
-   * ctx.effectElement.etCode 是否匹配该值(交集), 不匹配才显示, 优先级比matchEtType高
+   * ctx.focusEtElement.etCode 是否匹配该值(交集), 不匹配才显示, 优先级比matchEtType高
    */
   unmatchEtType?: number
 }
@@ -38,7 +42,7 @@ interface DropdownItemOptions {
    */
   prefixes?: string[]
   /**
-   * 仅当ctx.effectElement匹配matchEtType但不匹配unmatchEtType时显示该menu或item \
+   * 仅当ctx.focusEtElement匹配matchEtType但不匹配unmatchEtType时显示该menu或item \
    * 若缺省该值, 则应在onchosen回调中自行校验该menu/item的行为预期给编辑器带来的副作用是否合法 (如inlineCode里插入bold为不合法)
    */
   filter?: DropdownFilter

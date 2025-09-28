@@ -1,0 +1,23 @@
+
+et-heading {
+  font-weight: bold;
+  margin: 0.3em 0 0;
+}
+et-heading.ET_cls_h1 {
+  font-size: 2em;
+}
+et-heading.ET_cls_h2 {
+  font-size: 1.8em;
+}
+et-heading.ET_cls_h3 {
+  font-size: 1.6em;
+}
+et-heading.ET_cls_h4 {
+  font-size: 1.4em;
+}
+et-heading.ET_cls_h5 {
+  font-size: 1.2em;
+}
+et-heading.ET_cls_h6 {
+  font-size: 1em;
+}

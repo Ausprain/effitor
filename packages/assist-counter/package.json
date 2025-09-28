@@ -23,10 +23,11 @@
   },
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https://github.com/Ausprain/effitor#readme",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/assist-counter#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ausprain/effitor.git"
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/assist-counter"
   },
   "scripts": {},
   "dependencies": {

@@ -35,16 +35,16 @@ const defaultOptions = {
   /** 容器初始样式 */
   containerStyle: {} as Partial<CSSStyleDeclaration>,
 }
-export type DialogOptions = Partial<typeof defaultOptions>
+export type DialogAssistOptions = Partial<typeof defaultOptions>
 
 export class DialogManager {
-  private _options: Required<DialogOptions>
+  private _options: Required<DialogAssistOptions>
   private _dialog!: {
     readonly backdrop: HTMLDivElement
     readonly container: HTMLDivElement
   }
 
-  constructor(private _ctx: Et.EditorContext, options?: DialogOptions) {
+  constructor(private _ctx: Et.EditorContext, options?: DialogAssistOptions) {
     if (options) {
       options = Object.fromEntries(Object.entries(options).filter(([_, v]) => v !== undefined))
     }

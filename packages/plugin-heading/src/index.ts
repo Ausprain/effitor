@@ -1,0 +1,17 @@
+import type { Et } from '@effitor/core'
+
+import { headingEffector } from './effector'
+import { EtHeadingElement } from './element'
+import cssText from './index.css?raw'
+
+export const useHeadingPlugin = (): Et.EditorPluginSupportInline => {
+  return {
+    name: '@effitor/plugin-heading',
+    cssText,
+    effector: headingEffector,
+    elements: [EtHeadingElement],
+    registry(_, setSchema) {
+      setSchema({ heading: EtHeadingElement })
+    },
+  }
+}

@@ -14,6 +14,9 @@
     "lib": ["esnext", "DOM", "dom.iterable"],
     "paths": {
       "@effitor/*": ["./packages/*/src/index.ts"]
-    }
+    },
+
+    "jsx": "react-jsx"
+    // "jsxImportSource": "preact"
   }
 }

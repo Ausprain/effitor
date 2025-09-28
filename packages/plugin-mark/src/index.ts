@@ -2,7 +2,7 @@ import './augment'
 
 import type { Et } from '@effitor/core'
 
-import { initMarkContext, MarkEnum } from './config'
+import { initMarkContext } from './config'
 import { markEffector } from './effector'
 import { EtMarkElement } from './element'
 import { inMarkHandler } from './handler/inMarkHandler'
@@ -20,7 +20,7 @@ interface MarkPluginOptions {
  */
 export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSupportInline => {
   return {
-    name: MarkEnum.PluginName,
+    name: '@effitor/plugin-mark',
     effector: markEffector,
     elements: [EtMarkElement],
     registry(ctxMeta, setSchema, extentEtElement) {

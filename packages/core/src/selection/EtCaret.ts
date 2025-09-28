@@ -3,6 +3,8 @@
  * 这里使用 EtCaret 来代指编辑器内的选区collapsed 时的光标位置
  */
 
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
@@ -177,9 +179,9 @@ export class EtCaret extends CaretRange {
    * 判断与另一个光标位置是否位于同一亲和位置;\
    * 亲和位置: 若 range 从一个光标位置开始到另一个光标位置结束,
    * 该 range 选择的文本内容为空, 或完全选择的节点数量为 0, 则称这两个光标位置"亲和(Affinity)"(位于同一亲和位置);
-   * * 该 Affinity 与 Blink 的概念不全相同; 在 blink中, 当前块节点内开头和前一块节点内末尾不会被视为同一位置;
+   * * 该 Affinity 与 Blink 中的概念不全相同; 在 blink 中, 当前块节点内开头和前一块节点内末尾不会被视为同一位置;
    *    并且会考虑 css dispaly table 等其他布局问题, 非常复杂; 此处只在文档树层面上,
-   *    依据两位置之间是否有文本或完全包含的节点来判断是否属于同一位置
+   *    依据两位置之间是否有文本或节点来判断是否属于同一位置
    * @example
    * <div>AA^<b>|<i>I</i>BB</b>CC</div>
    * ^ 和 | 被视为同一亲和位置; | 和 I 不是亲和位置
@@ -189,12 +191,15 @@ export class EtCaret extends CaretRange {
     if (this.isEqualTo(other)) {
       return true
     }
-    // 不是同一文本节点, 却在文本节点中间, 返回 false
+    if (this.anchor === other.anchor && this.anchor.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      return true
+    }
+    // 不在同一节点位置, 却在文本节点中间, 返回 false
     if (this.isSurroundText || other.isSurroundText) {
       return false
     }
     /**
-     * 算法:
+     * 亲和位置判断算法:
      * @example
      * <div>
      *  <p1>AA</p1>
@@ -205,21 +210,21 @@ export class EtCaret extends CaretRange {
      * `->`代表`traversal.innermostPosition`的过程
      * `=>`代表`traversal.treeNextSibling`的过程
      *
-     * 亲和组1:
+     * 亲和组1: (BB, 0)
      *    (div, 1) -> (p2, 0) -> (BB, 0)
      *    (p2, 0) -> (BB, 0)
      *    (BB, 0)
      *    (p1, 1) -> (AA, 2) => (p2, 0) -> (BB, 0)
      *    (AA, 2) => (BB, 0)
      *
-     * 亲和组2:
+     * 亲和组2: (EE, 0)
      *    (div, 2) -> (p3, 0) -> (i, 0) -> (EE, 0)
      *    (p2, 3) -> (DD, 2) => (p3, 0) -> (i, 0) -> (EE, 0)
      *    (p3, 0) -> (i, 0) -> (EE, 0)
      *    (i, 0) -> (EE, 0)
      *    (EE, 0)
      *
-     * 亲和组3:
+     * 亲和组3: (br, 0)
      *    (FF, 2) => (br, 0)
      *    (br, 0)
      *    (p3, 2) -> (br, 0)
@@ -244,6 +249,9 @@ export class EtCaret extends CaretRange {
     )
     // 2. 比较两个光标位置是否位于同一亲和位置
     if (thisNode === otherNode) {
+      if (thisNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+        return true
+      }
       return thisOffset === otherOffset
     }
     // 3. 同时在各自锚点开头或结尾, 返回 false
@@ -382,7 +390,7 @@ export class EtCaret extends CaretRange {
 
   /**
    * 在光标位置插入节点或片段 返回 true;  若光标位置非法 或在文本节点中间, 则不执行, 返回 false;
-   * * 该方法应只在命令内部执行
+   * * 该方法不具备撤销能力, 应只在命令内部执行, 依赖命令进行撤销
    */
   insertNode(node: Et.Node | Et.Fragment) {
     if (!this.__connected) {

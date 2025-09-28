@@ -1,4 +1,7 @@
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../../../@types'
+import { cr } from '../../../selection'
 import { cmd } from '../../command'
 import {
   removeNodesAndChildlessAncestorAndMergeSiblings,
@@ -15,6 +18,15 @@ export const checkBackspaceAtCaretDeleteText = (
     return false
   }
   const textNode = targetCaret.container
+  // fixed. 段落开头是零宽字符, 且光标在零宽字符后, 移动光标, 而不是删除该零宽字符
+  // 因为如果段落只有零宽字符, 则删除后段落高度会坍缩 (这也是为什么浏览器要给可编辑 div 一个默认<br>)
+  if (textNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE
+    && targetCaret.offset === 1
+    && targetCaret.anchorParagraph?.firstChild === textNode
+  ) {
+    ctx.setSelection(cr.caret(textNode, 0))
+    return true
+  }
   const removeData = deleteWord
     ? ctx.segmenter.precedingWord(textNode.data, targetCaret.offset)
     : ctx.segmenter.precedingChar(textNode.data, targetCaret.offset)
@@ -125,6 +137,14 @@ export const checkDeleteAtCaretDeleteText = (
     return false
   }
   const textNode = targetCaret.container
+  // 同 backspace, 如果只是一个零宽字符, 则移动光标, 而不是将其删除
+  if (textNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE
+    && targetCaret.offset === 0
+    && targetCaret.anchorParagraph?.lastChild === textNode
+  ) {
+    ctx.setSelection(cr.caret(textNode, 1))
+    return true
+  }
   const removeData = deleteWord
     ? ctx.segmenter.followingWord(textNode.data, targetCaret.offset)
     : ctx.segmenter.followingChar(textNode.data, targetCaret.offset)
