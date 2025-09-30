@@ -45,24 +45,44 @@ const insertTextAtCaretByTyping = (
   if (data !== ' ' || offset === 0
     || !ctx.editor.config.AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE
   ) {
-    // 若前一个字符是零宽空格, 则替换为当前字符
+    // 若前面(左边)是零宽空格, 则替换为当前字符
     if (offset > 0 && anchorText.data[offset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      let i = offset - 1
+      while (i > 0 && anchorText.data[i - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+        i--
+      }
       ctx.commandManager.push(cmd.replaceText({
         text: anchorText,
         data,
-        delLen: 1,
-        offset: offset - 1,
+        delLen: offset - i,
+        offset: i,
         setCaret: true,
       }))
+      return true
     }
-    else {
-      ctx.commandManager.push(cmd.insertText({
+    // 光标右边是零宽字符, 全部替换
+    // 避免出现某个段落内容为: `xxx&ZeroWidthSpace;&ZeroWidthSpace;&ZeroWidthSpace;`的情况
+    if (offset === 0 && anchorText.data[offset] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      let r = offset + 1
+      while (r < anchorText.length && anchorText.data[r] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+        r++
+      }
+      ctx.commandManager.push(cmd.replaceText({
         text: anchorText,
         data,
+        delLen: r,
         offset,
         setCaret: true,
       }))
+      return true
     }
+    // 左右都不是零宽字符, 正常插入
+    ctx.commandManager.push(cmd.insertText({
+      text: anchorText,
+      data,
+      offset,
+      setCaret: true,
+    }))
     return true
   }
   // 尝试将前一个全角字符替换为半角

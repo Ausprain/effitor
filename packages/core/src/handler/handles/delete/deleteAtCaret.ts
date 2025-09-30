@@ -12,7 +12,7 @@ import { removeByTargetRange } from './deleteAtRange'
  * 是否光标在文本节点非开头位置 Backspace, 若删除后文本节点为空, 则连带删除父节点
  */
 export const checkBackspaceAtCaretDeleteText = (
-  ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
+  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
 ) => {
   if (!targetCaret.isAtText()) {
     return false
@@ -54,7 +54,7 @@ export const checkBackspaceAtCaretDeleteText = (
  * 判断光标是否在段落开头 Backspace, 然后智能处理段落删除和合并情况
  */
 export const checkBackspaceAtCaretDeleteParagraph = function (
-  this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) {
   if (!targetCaret.isCaretAtParagraphStart()) {
     return false
@@ -87,7 +87,7 @@ export const checkBackspaceAtCaretDeleteParagraph = function (
  * 若前后节点可合并, 则继续连带删除前后节点, 并克隆前后节点合并插入删除位置
  */
 export const checkBackspaceAtCaretDeleteNode = (
-  ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) => {
   if (targetCaret.isAtText()) {
     return false
@@ -111,7 +111,7 @@ export const checkBackspaceAtCaretDeleteNode = (
  * 若选区collapsed, 则不处理, 否则根据选区位置, 移除选区内容
  */
 export const checkBackspaceAtCaretInTextStart = (
-  ctx: Et.EditorContext, _targetCaret: Et.ValidTargetCaret,
+  ctx: Et.UpdatedContext, _targetCaret: Et.ValidTargetCaret,
 ) => {
   // FIXME 这里需要优化, 将下面与 Selection强关联的逻辑替换为与 targetCaret 强关联的逻辑
   // 解除对 Selection 对象的依赖
@@ -131,7 +131,7 @@ export const checkBackspaceAtCaretInTextStart = (
 }
 
 export const checkDeleteAtCaretDeleteText = (
-  ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
+  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
 ) => {
   if (!targetCaret.isAtText()) {
     return false
@@ -167,7 +167,7 @@ export const checkDeleteAtCaretDeleteText = (
   return true
 }
 export const checkDeleteAtCaretDeleteParagraph = function (
-  this: Et.EffectHandleThis, ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) {
   if (!targetCaret.isCaretAtParagraphEnd()) {
     return false
@@ -180,7 +180,7 @@ export const checkDeleteAtCaretDeleteParagraph = function (
   return !!res
 }
 export const checkDeleteAtCaretDeleteNode = (
-  ctx: Et.EditorContext, targetCaret: Et.ValidTargetCaret,
+  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) => {
   if (targetCaret.isAtText()) {
     return false
@@ -197,7 +197,7 @@ export const checkDeleteAtCaretDeleteNode = (
   )
 }
 export const checkDeleteAtCaretInTextEnd = (
-  ctx: Et.EditorContext, _targetCaret: Et.ValidTargetCaret,
+  ctx: Et.UpdatedContext, _targetCaret: Et.ValidTargetCaret,
 ) => {
   /**
    * // FIXME 同 {@link checkBackspaceAtCaretInTextStart}

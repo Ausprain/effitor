@@ -349,7 +349,7 @@ export class Effitor {
    * 让编辑区获取焦点, 若没有记录的光标位置, 则光标聚焦到编辑器末尾
    */
   focus() {
-    this.markFocused()
+    this._markFocused()
     const ctx = this.context
     this.bodyEl.focus()
     if (!ctx.selection.restore()) {
@@ -365,7 +365,7 @@ export class Effitor {
    * @internal
    * 标记编辑器获得焦点, 仅内部使用
    */
-  markFocused() {
+  _markFocused() {
     this._isFocused = true
   }
 
@@ -373,7 +373,7 @@ export class Effitor {
    * @internal
    * 标记编辑器失去焦点, 仅内部使用
    */
-  markBlurred() {
+  _markBlurred() {
     this._isFocused = false
   }
 
@@ -382,7 +382,7 @@ export class Effitor {
    */
   blur() {
     // 先标记编辑器失去焦点 再调用blur方法, 因为 `.blur() -> focusout事件监听器执行` 是同步的
-    this.markBlurred()
+    this._markBlurred()
     this.__body?.blur()
   }
 

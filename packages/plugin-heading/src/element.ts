@@ -21,11 +21,15 @@ const levelClass = (hl: Et.HeadingLevel) => `h${hl}`
 export class EtHeadingElement extends EtHeading {
   static readonly elName = E.n
 
-  static create(level: Et.HeadingLevel = 1, data: string = HtmlCharEnum.ZERO_WIDTH_SPACE) {
+  static create(level: Et.HeadingLevel = 1, content: string | HTMLBRElement | Text = HtmlCharEnum.ZERO_WIDTH_SPACE) {
     const el = document.createElement(HeadingEnum.ElName)
     el.changeLevel(level)
-    el.textContent = data
-    // el.appendChild(document.createElement('br'))
+    if (typeof content === 'string') {
+      el.textContent = content
+    }
+    else {
+      el.appendChild(content)
+    }
     return el
   }
 

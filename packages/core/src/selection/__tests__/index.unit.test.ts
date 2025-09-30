@@ -61,9 +61,9 @@ describe('EtCaret Affinity', () => {
   const FF = i.nextSibling
   const br = FF.nextSibling
 
-  const c1 = cr.caretInEndNow(CC)
+  const c1 = cr.caretInEnd(CC)
   const c2 = cr.caretInStart(DD)
-  const c3 = cr.caretInEndNow(FF)
+  const c3 = cr.caretInEnd(FF)
   expect(c1.isAffinityTo(c2)).toBe(true)
   expect(c2.isAffinityTo(c3)).toBe(false)
   /**
@@ -153,7 +153,7 @@ test('EtCaret to affinity', () => {
   expect(cr.caret(div, 1).toTextAffinity().isEqualTo(cr.caretInStart(BB))).toBe(true)
   expect(cr.caretOutStart(p2).toTextAffinity().isEqualTo(cr.caretInStart(BB))).toBe(true)
   // <p>FF<br></p>| => <p>FF|<br></p>
-  expect(cr.caret(div, 3).toTextAffinity().isEqualTo(cr.caretInEndNow(FF))).toBe(true)
+  expect(cr.caret(div, 3).toTextAffinity().isEqualTo(cr.caretInEnd(FF))).toBe(true)
 })
 
 /**
@@ -186,7 +186,7 @@ test('cr caret', () => {
   expect(div.outerHTML).toBe('<div>|AAA|<b>BBB</b>CCC</div>')
 
   const b = div.firstElementChild!
-  caret = cr.caretInEndNow(b)
+  caret = cr.caretInEnd(b)
   caret.insertNode(new Text('|') as Et.Text)
   div.normalize()
   expect(div.outerHTML).toBe('<div>|AAA|<b>BBB|</b>CCC</div>')

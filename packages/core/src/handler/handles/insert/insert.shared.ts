@@ -113,7 +113,7 @@ export const insertElementAtCaret = (
         // 普通段落末尾无 br, 则补充一个
         ctx.commandManager.push(cmd.insertNode({
           node: dom.createElement('br'),
-          execAt: cr.caretInEnd(targetCaret.anchorParagraph),
+          execAt: cr.caretInEndFuture(targetCaret.anchorParagraph),
         }))
       }
       return true

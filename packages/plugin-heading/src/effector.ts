@@ -1,16 +1,15 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, useEffectorContext } from '@effitor/core'
+import { useEffectorContext } from '@effitor/core'
 import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
 
 import { HeadingEnum } from './config'
-import { EtHeadingElement } from './element'
-import { headingHandler, inHeadingHandler } from './handler'
+import { headingHandler, inHeadingHandler, replaceParagraphWithHeading } from './handler'
 
 const ectx = useEffectorContext('_et_$heading', {
   // 标题 handler 比较少, 直接挂到 ectx 上调用, 不注册到效应元素
   headingHandler,
   inHeadingHandler,
-  checkCharsToHeading(ctx: Et.UpdatedContext) {
+  checkAtxToHeading(ctx: Et.UpdatedContext) {
     // import.meta.env.DEV && console.error('check heading start')
     if (!ctx.selection.isCollapsed || !ctx.focusEtElement || !ctx.selection.anchorText) return false
     // 只在纯段落内生效
@@ -25,7 +24,7 @@ const ectx = useEffectorContext('_et_$heading', {
       level = parseInt(data[1])
     }
     if (level === -1) return false
-    return this.headingHandler.checkAtxToHeading(ctx, {
+    return this.headingHandler.replaceParagraphWithHeading(ctx, {
       level: level as Et.HeadingLevel,
       paragraph: ctx.focusParagraph,
     })
@@ -34,8 +33,8 @@ const ectx = useEffectorContext('_et_$heading', {
 })
 
 const beforeKeydownSolver: Et.KeyboardKeySolver = {
-  ' ': (_ev, ctx) => ectx._et_$heading.checkCharsToHeading(ctx),
-  'Enter': (_ev, ctx) => ectx._et_$heading.checkCharsToHeading(ctx),
+  ' ': (_ev, ctx) => ectx._et_$heading.checkAtxToHeading(ctx),
+  'Enter': (_ev, ctx) => ectx._et_$heading.checkAtxToHeading(ctx),
   'Tab': (_ev, ctx) => {
     if (ctx.focusEtElement.localName === HeadingEnum.ElName) {
       return true
@@ -51,7 +50,7 @@ const keydownSolver: Et.KeyboardSolver = {
       && ctx.selection.anchorOffset === 0
     ) {
       ectx._et_$heading.inHeadingHandler.regressHeadingToParagraph(ctx, {
-        heading: ctx.focusEtElement,
+        heading: ctx.commonEtElement,
       })
       return ctx.skipDefault()
     }
@@ -107,31 +106,18 @@ const headingMenuForDropdown = (ctx: Et.EditorContext, dropdown: Required<Et.Edi
  */
 const toHeadingAtCaret = (ctx: Et.EditorContext, level: Et.HeadingLevel) => {
   // 不是纯段落, 无法转为标题; 不过不是段落应该会被filter过滤掉
-  if (!ctx.focusParagraph || !ctx.isPlainParagraph(ctx.focusParagraph)) {
+  if (!ctx.isUpdated() || !ctx.isPlainParagraph(ctx.focusParagraph)) {
     return
   }
-  // 当前段落内容太长, 无法转为标题
+  // 校验段落长度, 避免将长段落转为标题
   const title = ctx.focusParagraph.textContent
   if (title.length > 50) {
-    ctx.assists.msg?.warn('当前段落内容太长, 无法转为标题.')
+    ctx.assists.msg?.info('当前段落内容太长, 无法转为标题.')
     return
   }
-  const heading = EtHeadingElement.create(level, '')
-  let dest
-  if (title) {
-    const text = new Text(title) as Et.Text
-    heading.appendChild(text)
-    dest = cr.caret(text, text.length)
-  }
-  // 没有内容, 即空段落转标题, 在标题中插入一个br, 不然光标无法聚焦其中
-  else {
-    heading.appendChild(document.createElement('br'))
-    dest = cr.caret(heading, 0)
-  }
-
-  ctx.commandManager.commitNextHandle(true)
-  ctx.commandManager.push(cmd.replaceNode({
-    oldNode: ctx.focusParagraph,
-    newNode: heading,
-  })).handleAndUpdate(dest)
+  return replaceParagraphWithHeading(ctx, {
+    level,
+    title,
+    paragraph: ctx.focusParagraph,
+  })
 }

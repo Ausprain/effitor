@@ -18,9 +18,15 @@ export const inMarkHandler: Et.EffectHandler = {
         if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(false)
           && ctx.commandManager.discard()
         ) {
-          if (markType === MarkType.BOLD) {
-          // bold 要插回一个 mark char
-            ctx.commonHandlers.insertText(markerMap[MarkType.BOLD].char, null)
+          // 插回marker, bold是从italic 转化来的, 要插回**
+          // 而 highlight 和 delete 是通过双击~~,==来判断的, 第一个字符已经插入, discard 不会撤回第一个字符
+          // 因此只需要插回一个字符即可
+          if (markType) {
+            let marker = markerMap[markType].marker as string
+            if (markType !== MarkType.BOLD && marker.length === 2) {
+              marker = marker.slice(-1)
+            }
+            ctx.commonHandlers.insertText(marker, null)
           }
           return true
         }

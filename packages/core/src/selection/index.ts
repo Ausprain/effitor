@@ -9,6 +9,9 @@ export type {
   EtTargetRange as TargetRange,
   TargetSelection,
   ValidTargetCaret,
+  ValidTargetCaretWith,
+  ValidTargetCaretWithParagraph,
+  ValidTargetCaretWithTopElement,
   ValidTargetRange,
   ValidTargetSelection,
 } from './EtTargetRange'

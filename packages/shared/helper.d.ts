@@ -19,8 +19,10 @@ type PickUndefined<T> = {
 }
 /** 长度为N的元组 */
 type TupleOfLength<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : TupleOfLength<T, N, [...R, T]>
-/** 去掉元组头 */
+/** 去掉元组第一项 */
 type TupleTail<T extends any[]> = T extends [any, ...infer Rest] ? Rest : never
+/** 获取元组第一项 */
+type TupleFirst<T extends any[]> = T extends [infer First, ...any[]] ? First : never
 
 /** 获取构造函数的.prototype属性类型 */
 interface Prototype<C extends { new(): any }> { constructor: C }

@@ -22,7 +22,7 @@ suite('delete backward at caret', async () => {
     })
     expect(p.innerHTML).toBe(`ABC<b>bold</b>`)
 
-    ctx.setSelection(cr.caretInEndNow(p.children[0].firstChild as any))
+    ctx.setSelection(cr.caretInEnd(p.children[0].firstChild as any))
     ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'deleteWordBackward',
     })
@@ -32,7 +32,7 @@ suite('delete backward at caret', async () => {
   test('in samp paragraph (removeNode)', () => {
     body.innerHTML = `<et-p class="etp et">Hello ABC<b>bold</b></et-p>`
     let p = body.children[0] as Et.EtParagraphElement
-    ctx.setSelection(cr.caretInEndNow(p.children[0] as any))
+    ctx.setSelection(cr.caretInEnd(p.children[0] as any))
     ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'deleteWordBackward',
     })

@@ -33,6 +33,8 @@ import { insertText } from './handles/insert/insertText'
 import { dblSpace, tabout } from './handles/others/caretout'
 import {
   initEditorContents,
+  insertParagraphAtParagraphEnd,
+  insertParagraphAtParagraphStart,
   transformInsertContents,
   updateEditorContentsFromMarkdown,
 } from './handles/others/default'
@@ -62,6 +64,8 @@ export const buintinHandler: Et.EffectHandler = {
   EdeleteSoftLineForward: deleteSoftLineForward,
 
   // 非标准; 需通过 将 inputType 写在 InputEvent.data 里或直接通过 effectInvoker 来触发
+  InsertParagraphAtParagraphStart: insertParagraphAtParagraphStart,
+  InsertParagraphAtParagraphEnd: insertParagraphAtParagraphEnd,
   BackspaceAtParagraphStart: backspaceAtParagraphStart,
   DeleteAtParagraphEnd: deleteAtParagraphEnd,
 

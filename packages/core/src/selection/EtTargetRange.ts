@@ -26,6 +26,21 @@ interface _SelectionTarget {
 }
 export type TargetSelection = TargetRange | TargetCaret | ValidTargetCaret | ValidTargetRange
 export type ValidTargetSelection = ValidTargetCaret | ValidTargetRange
+export type ValidTargetCaretWith<
+  E extends Et.EffectElement = Et.EffectElement,
+  P extends Et.EtParagraph | null = Et.EtParagraph | null,
+  T extends Et.EtParagraph | null = Et.EtParagraph | null,
+> = ValidTargetCaret & {
+  anchorEtElement: E
+  anchorParagraph: P
+  anchorTopElement: T
+}
+export type ValidTargetCaretWithParagraph<
+  T extends Et.EtParagraph = Et.EtParagraph,
+> = ValidTargetCaret & { anchorParagraph: T }
+export type ValidTargetCaretWithTopElement<
+  T extends Et.EtParagraph = Et.EtParagraph,
+> = ValidTargetCaretWithParagraph & { anchorTopElement: T }
 
 class TargetCaret implements _SelectionTarget {
   declare private readonly body: Readonly<Et.EditorBody>
@@ -149,6 +164,13 @@ class TargetCaret implements _SelectionTarget {
   }
 
   /**
+   * 光标所在的效应元素, 等价于`anchorEtElement`, 只是为了对齐 TargetRange
+   */
+  get commonEtElement() {
+    return this.anchorEtElement
+  }
+
+  /**
    * 光标所在的效应元素
    */
   get anchorEtElement(): Et.EtElement | null {
@@ -184,7 +206,7 @@ class TargetCaret implements _SelectionTarget {
   }
 
   /** 光标是否在段落内开头 */
-  isCaretAtParagraphStart(): this is this & { anchorParagraph: Et.Paragraph } {
+  isCaretAtParagraphStart(): this is ValidTargetCaretWithParagraph {
     if (this._isCaretAtParagraphStart !== void 0) {
       return this._isCaretAtParagraphStart
     }
@@ -212,7 +234,7 @@ class TargetCaret implements _SelectionTarget {
   }
 
   /** 光标是否在段落内结尾 */
-  isCaretAtParagraphEnd(): this is this & { anchorParagraph: Et.Paragraph } {
+  isCaretAtParagraphEnd(): this is ValidTargetCaretWithParagraph {
     if (this._isCaretAtParagraphEnd !== void 0) {
       return this._isCaretAtParagraphEnd
     }
@@ -273,7 +295,7 @@ class TargetCaret implements _SelectionTarget {
   }
 
   /** 光标是否在编辑区开头 */
-  isCaretAtBodyStart(): boolean {
+  isCaretAtBodyStart(): this is ValidTargetCaretWithTopElement {
     // 获取顶层段落的 innerStartEditingBoundary 再判断一次 affinity
     // 如光标在组件节点中,
     // 组件节点的可编辑区开头到 body 开头, 可能有其他用于修饰的(不可编辑)节点
@@ -296,7 +318,7 @@ class TargetCaret implements _SelectionTarget {
   }
 
   /** 光标是否在编辑区结尾 */
-  isCaretAtBodyEnd(): boolean {
+  isCaretAtBodyEnd(): this is ValidTargetCaretWithTopElement {
     if (this._isCaretAtBodyEnd !== void 0) {
       return this._isCaretAtBodyEnd
     }
@@ -600,6 +622,27 @@ class TargetRange implements _SelectionTarget {
   }
 
   /**
+   * 等价于 `startEtElement`, 为了对齐 TargetCaret
+   */
+  get anchorEtElement() {
+    return this.startEtElement
+  }
+
+  /**
+   * 等价于 `startParagraph`, 为了对齐 TargetCaret
+   */
+  get anchorParagraph() {
+    return this.startParagraph
+  }
+
+  /**
+   * 等价于 `startTopElement`, 为了对齐 TargetCaret
+   */
+  get anchorTopElement() {
+    return this.startTopElement
+  }
+
+  /**
    * 公共效应元素祖先
    */
   get commonEtElement(): Et.EtElement | null {
@@ -736,7 +779,7 @@ export const getTargetRangeCtor = (etBody: Et.EditorBody) => {
   })
 
   // fixed.Error TS(4094): 直接导出匿名内部类不允许private/protected 成员,
-  // 于是将两个类的基本实现放外部, 内部派生新的匿名类与上下文编辑区绑定
+  // 于是将两个类的基本实现放外部, 内部派生新的匿名类与上下文编辑区(ctx.body)绑定
   // 导出时再转为外部类(父类)类型
   // TODO 可用 interface 替代, 性能会稍好些, 但需要编写完整的接口类型, 否则
   // 消费端无法获取良好的类型提示

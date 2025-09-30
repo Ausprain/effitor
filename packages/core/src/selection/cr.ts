@@ -15,9 +15,9 @@ import { SpanRange } from './SpanRange'
 export const cr = {
   /** 定位于锚点节点外开头 */
   BEFORE_ANCHOR: -Infinity,
-  /** 定位于锚点节点外结尾 */
+  /** 定位于锚点节点外末尾 */
   AFTER_ANCHOR: Infinity,
-  /** 定位于锚点节点内结尾 */
+  /** 定位于锚点节点内末尾 */
   ANCHOR_IN_END: 999999999,
 
   /**
@@ -34,7 +34,7 @@ export const cr = {
       )
     }
     if (range instanceof Range) {
-      _cr.markValid()
+      _cr.markConnected()
     }
     return _cr
   },
@@ -77,17 +77,18 @@ export const cr = {
     }
     return new EtCaret(node, offset)
   },
-  /** 获取定位到当前节点内结尾的光标位置 */
-  caretInEndNow: (node: Et.Node) => {
+  /** 获取定位到当前节点内结尾的光标位置 (基于 node 定位) */
+  caretInEnd: (node: Et.Node) => {
     return new EtCaret(node, dom.nodeLength(node))
   },
 
   /**
-   * 获取定位到节点内结尾的光标位置;
-   * 该位置在访问 EtCaret 的 isValid 属性前, 始终指向节点内末尾\
-   * 对于不确定当前节点未来是否会在末尾插入新子节点时, 确定一个节点内末尾的位置
+   * 获取未来定位到节点内结尾的光标位置 (基于 node 定位, 但恒定内末尾位置)\
+   * 使用一个虚拟偏移量, 确定一个永久指示节点内末尾的位置;
+   * 用于不确定当前节点未来是否会在末尾插入新子节点的情况,
+   * 该位置在被用于 ctx.setSelection 时, 会获取一个具体的偏移量, 并失效
    */
-  caretInEnd(node: Et.Node) {
+  caretInEndFuture(node: Et.Node) {
     return new EtCaret(node, this.ANCHOR_IN_END)
   },
 
@@ -116,11 +117,15 @@ export const cr = {
     // 在添加命令的 execAt 参数时, 基于自身的 AnchorOutOffset 定位会在命令执行获取错误真实位置
     // 如删除段落 currP, 并在删除位置插入片段则 execAt = cr.caretOutStart(currP), 而命令执行时
     // 前面添加的删除命令将 currP 删除了, 该 execAt.isValid 将为 false, 无法获取要插入的位置
-    const index = dom.connectedNodeIndex(node)
+    const index = dom.nodeIndex(node)
     if (index === -1) {
       return new EtCaret(node, Infinity)
     }
     return new EtCaret(node.parentNode as Et.Node, index + 1)
+  },
+  /** 获取未来定位到节点外结尾的光标位置 (基于 node 定位, 但恒定外末尾位置) */
+  caretOutEndFuture: (node: Et.Node) => {
+    return new EtCaret(node, Infinity)
   },
   /**
    * 获取定位到节点外开头的光标位置;
@@ -128,11 +133,15 @@ export const cr = {
    * 否则以node作为 anchor
    */
   caretOutStart: (node: Et.Node) => {
-    const index = dom.connectedNodeIndex(node)
+    const index = dom.nodeIndex(node)
     if (index === -1) {
       return new EtCaret(node, -Infinity)
     }
     return new EtCaret(node.parentNode as Et.Node, index)
+  },
+  /** 获取未来定位到节点外开头的光标位置 (基于 node 定位, 但恒定外开头位置) */
+  caretOutStartFuture: (node: Et.Node) => {
+    return new EtCaret(node, -Infinity)
   },
   /**
    * 定位到一个节点末尾, 并自适应其位置

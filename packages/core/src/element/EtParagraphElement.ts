@@ -43,7 +43,7 @@ export class EtParagraphElement extends EtParagraph {
       }
       return cr.caretEndAuto(last)
     }
-    return cr.caretInEndNow(this)
+    return cr.caretInEnd(this)
   }
 
   static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

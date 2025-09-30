@@ -248,7 +248,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
   /**
    * 公共效应元素祖先; 当选区 collapsed 时, 等于 focusEtElement;
-   * 否则等于 Range.commonAncestorContainer 的第一个效应元素祖先, 可能为 null
+   * 否则等于 Range.commonAncestorContainer 的第一个效应元素祖先
    */
   get commonEtElement() {
     return this._commonEtElement
@@ -423,6 +423,14 @@ export class EditorContext implements Readonly<EditorContextMeta> {
         this.selection.selectRange(range)
       }
     }
+    if (this.editor.isShadow) {
+      // fixed. shadowDOM 内使用`forceUpdate`更新选区会无法定位到空节点内部
+      // 如 <et-p>aaa<et-p> 后边插入一个列表 `<et-list><et-li>|</et-li></et-list>`
+      // 期望光标落于 li 内即`|`处, 但使用`forceUpdate`时, 光标会落在`<et-p>aaa|<et-p>`
+      // 手动触发selectionchange事件, 以更新通过 selchange 回调来更新上下文和选区
+      this.selection.dispatchChange()
+      return true
+    }
     return this.forceUpdate()
   }
 
@@ -552,7 +560,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
-   * 获取一个效应元素的效应处理器, 这是一个便利方法, 返回值为 `effectInvoker.getEtElCtor(el).thisHandler`
+   * 获取一个效应元素的效应处理器, 这是一个便利方法, 返回值为 `effectInvoker.getEtElCtor(el)`
+   * * 使用此方法调用的效应无视`effectBlocker`
    * @param el 效应元素
    * @returns 效应元素的处理器
    */

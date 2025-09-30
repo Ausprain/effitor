@@ -240,6 +240,23 @@ export class CommonHandlers {
   }
 
   /**
+   * 移动节点
+   * @param node 要移动的节点
+   * @param moveTo 移动到的位置
+   * @param destCaretRange 命令执行后光标位置; 若缺省, 则不设置光标位置也不更新上下文和选区
+   */
+  moveNode(node: Et.Node, moveTo: Et.EtCaret, destCaretRange?: Et.CaretRange) {
+    this.commander.push(
+      cmd.removeNode({ node }),
+      cmd.insertNode({ node, execAt: moveTo, destCaretRange }),
+    )
+    if (destCaretRange) {
+      return this.commander.handleAndUpdate()
+    }
+    return this.commander.handle()
+  }
+
+  /**
    * 替换节点
    * @param oldNode 旧节点
    * @param newNode 新节点

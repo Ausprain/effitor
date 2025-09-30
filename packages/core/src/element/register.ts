@@ -1,5 +1,5 @@
 import type { Et } from '../@types'
-import { EffectElementCtor } from './EffectElement'
+import type { EffectElement, EffectElementCtor } from './EffectElement'
 
 /**
  * 注册一个EtElement为CustomElement
@@ -29,9 +29,13 @@ export const registerEtElement = (
  * @param extension 扩展执行器handler对象
  * @param extensionElements 扩展哪些新元素到该被扩展元素上（将来哪些元素允许成为该被扩展元素的后代）;若仅扩展handler功能，则传入空数组
  */
-export const extentEtElement = (
+export const extentEtElement = <
+  E extends EffectElement,
+  P extends Et.EtParagraph | null,
+  T extends Et.EtParagraph | null,
+>(
   ctor: EffectElementCtor,
-  extension: Et.EffectHandler,
+  extension: Et.EffectHandler | Et.EffectHandlerWith<E, P, T>,
   extensionElements: EffectElementCtor[],
 ) => {
   // 将新的EffectHandle绑到构造函数上

@@ -5,20 +5,21 @@ import './assets/main.css'
 import { Effitor } from '@effitor/core'
 import { useMarkPlugin } from '@effitor/plugin-mark'
 import { useHeadingPlugin } from '@effitor/plugin-heading'
+import { useListPlugin } from '@effitor/plugin-list'
 import { useCounterAssist } from '@effitor/assist-counter'
 import { useDialogAssist } from '@effitor/assist-dialog'
 import { useDropdownAssist } from '@effitor/assist-dropdown'
 import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
-import { renderExcalidraw } from '@effitor/plugin-excalidraw'
-import css from '@excalidraw/excalidraw/index.css?raw'
+// import { renderExcalidraw } from '@effitor/plugin-excalidraw'
+// import css from '@excalidraw/excalidraw/index.css?raw'
 
 // console.log(css.length)  // 186452
 
 const editor = new Effitor({
   // effectorInline: true,
   // shadow: false,
-  customStyleText: css,
+  // customStyleText: css,
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,
   },
@@ -30,17 +31,18 @@ const editor = new Effitor({
     usePopupAssist(),
     useMarkPlugin(),
     useHeadingPlugin(),
+    useListPlugin(),
 
-    {
-      name: 'excalidraw',
-      effector: {
-        onMounted: (ctx) => {
-          const div = document.createElement('div')
-          ctx.bodyEl.appendChild(div)
-          renderExcalidraw(div)
-        },
-      },
-    },
+    // {
+    //   name: 'excalidraw',
+    //   effector: {
+    //     onMounted: (ctx) => {
+    //       const div = document.createElement('div')
+    //       ctx.bodyEl.appendChild(div)
+    //       renderExcalidraw(div)
+    //     },
+    //   },
+    // },
   ],
 })
 
@@ -49,3 +51,6 @@ editor.mount(host)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 window.ctx = editor.context
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.sel = editor.context.selection.selection

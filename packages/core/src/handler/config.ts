@@ -6,7 +6,7 @@ import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Et } from '../@types'
 import type { InputType } from '../@types/declare'
 import type { EditorContext, UpdatedContext } from '../context'
-import type { EffectElement, EtParagraphElement } from '../element'
+import type { EffectElement, EtParagraph, EtParagraphElement } from '../element'
 
 export type EffectHandleReturnType = boolean | number | object | string
 /**
@@ -17,7 +17,7 @@ export interface EffectHandle<Payload = any> {
   /**
    * 效应处理函数
    * @param this 激活此效应的那个效应元素类对象(构造器)
-   * @param ctx 更新后的上下文
+   * @param ctx 上下文
    * @param payload 效应负载
    * @returns 是否成功处理该效应
    */
@@ -35,7 +35,7 @@ export interface InputEffectHandle {
    * @param ev 输入事件
    * @returns 是否成功处理该效应
    */
-  (this: EffectHandleThis, ctx: UpdatedContext, payload: InputEffectPayload): boolean
+  (this: EffectHandleThis, ctx: UpdatedContext, payload: InputEffectPayload): TrueOrVoid
 }
 export interface InputEffectPayload {
   readonly data?: string | null
@@ -50,15 +50,29 @@ export type InputTypeEffect = `${BuiltinConfig.BUILTIN_EFFECT_PREFFIX}${InputTyp
 export type InputTypeEffectHandleMap = Record<InputTypeEffect, InputEffectHandle>
 export type DefaultEffectHandleMap = InputTypeEffectHandleMap & {
   /**
-   * 在段落开头 Backspace; 处理成功, 返回 true; 未处理, 返回topElement 的前兄弟, 处理失败, 返回false
-   * @param targetCaret 目标光标, 必须是段落开头位置
+   * 在段落末尾插入一个段落 (这是一个回调, 当在段落末尾位置按下 Enter 时, effitor 核心会激活当前段落元素的此效应)
+   * * 核心先判断是否在开头, 再判断末尾, 因此当段落为空时, 总是会调用`InsertParagraphAtParagraphStart`
    */
-  BackspaceAtParagraphStart: (this: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  InsertParagraphAtParagraphEnd: (
+    this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph
+  ) => boolean
+  /**
+   * 在段落开头插入一个段落 (这是一个回调, 当在段落开头位置按下 Enter 时, effitor 核心会激活当前段落元素的此效应)
+   * * 核心先判断是否在开头, 再判断末尾, 因此当段落为空时, 总是会调用`InsertParagraphAtParagraphStart`
+   */
+  InsertParagraphAtParagraphStart: (
+    this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph
+  ) => boolean
+  /**
+   * 在段落开头 Backspace; 处理成功, 返回 true; 未处理, 返回topElement 的前兄弟, 处理失败, 返回false
+   * @param targetCaret 目标光标, 由当前段落元素认可的段落开头位置
+   */
+  BackspaceAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
    * 在段落结尾 Delete; 处理成功, 返回 true; 未处理, 返回topElement 的后兄弟, 处理失败, 返回false
-   * @param targetCaret 目标光标, 必须是段落结尾位置
+   * @param targetCaret 目标光标, 由当前段落元素认可的段落结尾位置
    */
-  DeleteAtParagraphEnd: (this: EffectHandleThis, ctx: EditorContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  DeleteAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
    * 这是一个回调, 当 compositionend 事件中 event.data 非空时调用ctx.focusEtElement 的该效应处理函数
    * @param data 输入法输入的文本
@@ -110,13 +124,46 @@ export interface EffectHandleDeclaration extends Record<string, EffectHandle> {
   dblSpace: EffectHandle<Et.ValidTargetCaret>
 }
 /**
- * Effect处理器\
+ * 效应处理器, 需通过`extentEtElement`将其挂载到效应元素类对象(构造器)上才能被 effectInvoker 激活\
  * 可用于创建 handler 时提供类型提示
  */
 export type EffectHandler = Partial<
   // 去掉索引签名, 用于在 invoke 方法中获得参数提示
   OmitStringIndexSignature<EffectHandleDeclaration> & DefaultEffectHandleMap
 >
+
+/**
+ * EffectHandler的工具类, 从 EffectHandler 中提取指定键的类型, 并将其转换为必填项\
+ * 可用于通过非 invoker 方式激活效应时断言pick 的效应处理函数非空
+ */
+export type EffectHandlerPick<K extends keyof EffectHandler> = Pick<Required<EffectHandler>, K>
+
+/**
+ * 一个 EffectHandler 的工具类, 通过泛型断言`ctx.focusEtElement/focusParagraph/focusTopElement`的类型\
+ * 当确定将某个 effectHandler 绑定到某个特定的 `E extends EffectElement` 效应元素类上,
+ * 或者确定某个效应是经过已确定类型的上下文效应元素(focusEtElement/focusParagraph/focusTopElement)激活的
+ * 则可以使用此工具类, 将对应的上下文效应元素分别断言为 `E/P/T`
+ * * 此工具类旨在减少 effector -> effectHandler 过程中重复的效应元素类型判断;
+ *   因为激活效应需要获取效应元素的构造函数, 这不是一个高效的过程, 因此一些简单的
+ *   是否激活此效应的判断, 可以在 effector 中进行, 其中就包括判定当前上下文效应
+ *   元素的类型; 那既然在 effector 中判定了, 那么不必在 handler 中再次判断,
+ *   就需要借助此工具类对 handler 中的上下文效应元素类型进行断言
+ */
+export type EffectHandlerWith<
+  E extends EffectElement = EffectElement,
+  P extends EtParagraph | null = EtParagraph | null,
+  T extends EtParagraph | null = EtParagraph | null,
+> = {
+  [K in keyof EffectHandler]: (
+    this: EffectHandleThis,
+    ctx: TupleFirst<Parameters<Required<EffectHandler>[K]>> & {
+      focusEtElement: E
+      focusParagraph: P
+      focusTopElement: T
+    },
+    ...args: TupleTail<Parameters<Required<EffectHandler>[K]>>
+  ) => ReturnType<Required<EffectHandler>[K]>
+}
 
 export type EffectHandleThis = typeof EffectElement & EffectHandler
 

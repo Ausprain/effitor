@@ -265,7 +265,7 @@ export class EditorBody {
 
   /**
    * 向上（包括自身）找第一个`Et.EtElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
-   * 使用"鸭子类型",  Effitor 内拥有`EtCode`Symbol属性的元素被视为效应元素
+   * 使用"鸭子类型",  Effitor 内拥有`ETCODE`Symbol属性的元素被视为效应元素
    */
   findInclusiveEtParent(node: Et.NodeOrNull): Et.EtElement | null {
     while (node) {

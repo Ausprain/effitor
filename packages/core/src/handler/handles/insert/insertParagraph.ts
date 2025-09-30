@@ -21,33 +21,16 @@ import {
   tryToRemoveNodesBetween,
 } from '../shared'
 
-export const insertParagraph = createInputEffectHandle((ctx, pl) => {
+export const insertParagraph = createInputEffectHandle(function (ctx, pl) {
   if (!pl.targetRange.collapsed) {
     return insertParagraphAtRange(ctx, pl.targetRange)
   }
   const tc = pl.targetRange.toTargetCaret()
   if (tc.isCaretAtParagraphStart()) {
-    // 段落开头插入段落, 直接向上插入新段落, 光标不动
-    const newP = ctx.cloneParagraph(tc.anchorParagraph, true)
-    ctx.commandManager.push(cmd.insertNode({
-      node: newP,
-      execAt: cr.caretOutStart(tc.anchorParagraph),
-      destCaretRange: null,
-    }))
-    return true
+    return this.InsertParagraphAtParagraphStart?.(ctx, tc)
   }
   if (tc.isCaretAtParagraphEnd()) {
-    // 段落结尾插入段落, 直接向下插入新段落
-    const newP = ctx.cloneParagraph(tc.anchorParagraph, true)
-    ctx.commandManager.push(cmd.insertNode({
-      node: newP,
-      execAt: cr.caretOutEnd(tc.anchorParagraph),
-      // 如果新段落有文本节点(通常是 zws), 则光标定位到文本节点结尾, 否则定位到新段落开头
-      destCaretRange: newP.firstChild && dom.isText(newP.firstChild)
-        ? cr.caretInEndNow(newP.firstChild)
-        : cr.caretInStart(newP),
-    }))
-    return true
+    return this.InsertParagraphAtParagraphEnd?.(ctx, tc)
   }
   return insertParagraphAtCaret(ctx, tc)
 })
@@ -201,7 +184,10 @@ export const insertParagraphAtCaret = (
   let moveNodeStart
   if (!partialNode || dom.isBrElement(partialNode)) {
     // 段落末尾, 直接插入新段落
-    const newP = ctx.cloneParagraph(currP, true)
+    const newP = currP.createForInsertParagraph(ctx, 1)
+    if (!newP) {
+      return true
+    }
     ctx.commandManager.push(cmd.insertNode({
       node: newP,
       execAt: cr.caretOutEnd(currP),
@@ -209,8 +195,11 @@ export const insertParagraphAtCaret = (
     }))
     return true
   }
-
-  const newP = ctx.cloneParagraph(currP, true)
+  // 段落中间, 处理节点拆分和转移
+  const newP = currP.createForInsertParagraph(ctx, 0)
+  if (!newP) {
+    return true
+  }
   let destCaretRange = cr.caretInStart(newP)
   let needSplitPartial = false
   if (tc.container === currP) {

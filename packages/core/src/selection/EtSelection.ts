@@ -147,7 +147,7 @@ export class EtSelection {
     this.range = sel.getRangeAt(0) as Et.Range
     // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
     this.isCollapsed = this.range.collapsed
-    this._caretRange = cr.fromRange(this.range).markValid()
+    this._caretRange = cr.fromRange(this.range).markConnected()
     this._targetRange = this.TargetRange.fromRange(this.range)
     this._validTargetRange = void 0
 
@@ -182,7 +182,11 @@ export class EtSelection {
       return
     }
     const r = this._caretRange.toRange()
-    return r && this.selectRange(r)
+    // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
+    if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
+      return false
+    }
+    return this.selectRange(r)
   }
 
   /**
@@ -279,18 +283,18 @@ export class EtSelection {
       startOffset: 0,
       endContainer: this._body.el,
       endOffset: 0,
-    }).markValid()
+    }).markConnected()
   }
 
   /**
    * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, 返回 null
    */
   getTargetCaret() {
-    const range = this.getTargetRange()
-    if (!range || !range.collapsed) {
+    const tr = this.getTargetRange()
+    if (!tr || !tr.collapsed) {
       return null
     }
-    return range.toTargetCaret()
+    return tr.toTargetCaret()
   }
 
   /**

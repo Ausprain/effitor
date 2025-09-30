@@ -1,7 +1,7 @@
 .etp {
   /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
   /* position: relative; */
-  display: block !important;
+  display: block;
   padding-block: 0.2em;
   line-height: 1.5;
   /* 段落最小高度, 防止段落空内容时高度坍缩 */

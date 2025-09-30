@@ -115,9 +115,9 @@ declare const enum InputTypeEffectDeclaration {
 /** 替换字符, 一般用于拼写检查自动替换 */
 - [ ] insertReplacementText
 /** 插入段落: Enter换行 */
-- [ ] insertParagraph
+- [x] insertParagraph
 /** 插入换行(硬换行): Shift+Enter换行 */
-- [ ] insertLineBreak
+- [x] insertLineBreak
 /** 插入有序列表 */
 - [ ] insertOrderedList
 /** 插入无序列表 */
@@ -130,7 +130,7 @@ declare const enum InputTypeEffectDeclaration {
 - [ ] insertFromDrop
 /** 插入粘贴 */
 - [x] insertFromPaste
-/** 仅 Firefox 实现 */
+/** 仅 Firefox 支持 */
 - [ ] insertFromPasteAsQuotation
 /** 从编辑器内部复制剪贴板(yank)粘贴 */
 - [ ] insertFromYank

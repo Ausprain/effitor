@@ -108,7 +108,7 @@ export class CommandManager implements CommandQueue {
     this._afterHandleCallbacks.push(() => callback(arg))
   }
 
-  private handleCallbacks() {
+  private _runHandleCallbacks() {
     if (this._afterHandleCallbacks.length) {
       for (const fn of this._afterHandleCallbacks) {
         fn()
@@ -117,20 +117,14 @@ export class CommandManager implements CommandQueue {
     }
   }
 
-  private clearHandleCallbacks() {
+  private _clearHandleCallbacks() {
     this._afterHandleCallbacks.length = 0
   }
 
-  /**
-   * 则先按顺序先执行之前push的命令
-   * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
-   *    即会覆盖最后一个命令中的destCaretRange属性
-   * @returns 是否执行了至少一个命令
-   */
-  handle(destCaretRange?: Et.CaretRange): boolean {
+  private _handle(destCaretRange?: Et.CaretRange) {
     if (!this.hasQueuedCmds) {
       this._lastCaretRange = null
-      this.clearHandleCallbacks()
+      this._clearHandleCallbacks()
       return false
     }
     const successCmds = [] as ExecutedCmd[]
@@ -141,8 +135,21 @@ export class CommandManager implements CommandQueue {
       this._commitNext = false
       this.commit()
     }
-    this.handleCallbacks()
     return true
+  }
+
+  /**
+   * 则先按顺序先执行之前push的命令
+   * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
+   *    即会覆盖最后一个命令中的destCaretRange属性
+   * @returns 是否执行了至少一个命令
+   */
+  handle(destCaretRange?: Et.CaretRange): boolean {
+    if (this._handle(destCaretRange)) {
+      this._runHandleCallbacks()
+      return true
+    }
+    return false
   }
 
   /**
@@ -152,10 +159,11 @@ export class CommandManager implements CommandQueue {
    * @returns 是否执行了至少一个命令
    */
   handleAndUpdate(destCaretRange?: Et.CaretRange): boolean {
-    if (this.handle(destCaretRange)) {
+    if (this._handle(destCaretRange)) {
       if (this._lastCaretRange) {
         this._ctx.setSelection(this._lastCaretRange.toTextAffinity())
       }
+      this._runHandleCallbacks()
       return true
     }
     return false
@@ -294,7 +302,7 @@ export class CommandManager implements CommandQueue {
   /**
    * 为撤销重做做准备
    */
-  private prepareUndoRedo() {
+  private _prepareUndoRedo() {
     // 清除未执行命令, 防止撤销重做改变文档内容后, 下次 handle 时执行已过时的命令
     this.clearQueue()
     // 执行undo前先判断是否有未入栈命令
@@ -308,7 +316,7 @@ export class CommandManager implements CommandQueue {
    * 撤回事务
    */
   undoTransaction(): void {
-    this.prepareUndoRedo()
+    this._prepareUndoRedo()
     this._undoStack.undo(this._ctx)
   }
 
@@ -316,7 +324,7 @@ export class CommandManager implements CommandQueue {
    * 重做事务
    */
   redoTransaction(): void {
-    this.prepareUndoRedo()
+    this._prepareUndoRedo()
     this._undoStack.redo(this._ctx)
   }
 }

@@ -352,21 +352,10 @@ const execReplaceText = function (this: CmdReplaceText) {
 const execInsertNode = function (this: CmdInsertNode | CmdRemoveNode) {
   const execAt = (this as CmdInsertNode).execAt.toCaret()
   // 插入点不是节点边缘, 禁止插入
-  if (execAt.isSurroundText || !execAt.isConnected) {
+  if (execAt.isSurroundText) {
     return false
   }
-  // 此处插入节点不使用 execAt.toRange()?.insertNode 方式插入
-  // 使用手动插入, 性能更优; 同时避免 Range.insertNode 方法(可能意外的)破坏 DOM 结构
-  if (execAt.isAnchorIn) {
-    execAt.anchor.insertBefore(this.node, execAt.anchor.childNodes.item(execAt.offset))
-  }
-  else if (execAt.isAnchorBefore) {
-    // valid 时, 必定有 parentNode
-    (execAt.anchor.parentNode as Et.HTMLElement).insertBefore(this.node, execAt.anchor)
-  }
-  else {
-    (execAt.anchor.parentNode as Et.HTMLElement).appendChild(this.node)
-  }
+  execAt.insertNode(this.node)
   // 自动设置结束光标位置
   if (this.setCaret) {
     this.setCaret = false
@@ -751,6 +740,8 @@ const cmd = (() => {
 
   /**
    * 创建一个批量移动节点命令, 该命令是一个 Functional 命令
+   * * [NB]: 在同一个父节点内移动节点时, 需要提供未来的 moveTo 位置, 因为移动节点后基于父节点的子节点偏移量会发生变化;
+   *         需使用`cr.caretOutEndFuture`或`cr.caretOutStartFuture`等未来定位, 在移动节点后确定插入位置
    * @param moveRange 被移动的节点范围
    * @param moveTo 被移动到的位置
    * @param destCaretRange 结束光标位置

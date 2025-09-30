@@ -1,5 +1,5 @@
 import type { Et } from '@effitor/core'
-import { HtmlAttrEnum } from '@effitor/shared'
+import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
 import { initPopup, type PopupAssistOptions } from './popup'
 
@@ -63,6 +63,12 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
       mouseup: (_, ctx) => {
         setTimeout(() => {
           if (ctx.selection.isCollapsed) {
+            return
+          }
+          const selectedText = ctx.selection.selectedTextContent
+          if (!selectedText || selectedText.length > 5
+            || selectedText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
+          ) {
             return
           }
           ctx.assists.popup.showSelectionRangePopup()

@@ -17,6 +17,17 @@ export abstract class EtParagraph extends EffectElement {
   abstract innerEndEditingBoundary(): Et.EtCaret
 
   /**
+   * 为 [由当前'段落'元素激活的插入段落效应] 提供要插入的新段落元素
+   * * 该方法会在 `EinsertParagraph` 效应中被调用, 决定在该段落效应元素中
+   *   按下 enter 时插入怎样的段落, 返回 null 则不插入段落, 即 enter 操作无结果
+   * * 未重写时, 返回使用 `ctx.cloneParagraph(this, true)` 克隆的段落
+   * @param pos 光标位置, -1: 段落开头, 0: 段落中间, 1: 段落结尾
+   */
+  createForInsertParagraph(ctx: Et.EditorContext, _pos: -1 | 0 | 1): EtParagraph | null {
+    return ctx.cloneParagraph(this, true)
+  }
+
+  /**
    * 回退为普通段落 (即 ctx.schema.paragraph 配置的元素类实例)\
    * 未重写时，会将当前节点的内容提取为纯文本插入到一个新的普通段落节点中
    * 用于自动处理顶层节点的边缘情况，如删除时，自动回退为段落节点, 再次执行删除操作时，就可使用内部的段落边缘处理逻辑\

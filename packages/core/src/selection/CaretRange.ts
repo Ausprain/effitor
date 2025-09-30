@@ -22,10 +22,10 @@ export abstract class CaretRange {
    */
   abstract isCaret(): this is EtCaret
   /**
-   * 标记该 CaretRange 对象为合法的; 当从 Range 对象构建 CaretRange 时,
-   * 可标记为 valid, 以提高效率
+   * 标记该 CaretRange 对象为已连接的; 当从 Range 对象构建 CaretRange 时,
+   * 可标记为 connected, 以提高效率
    */
-  markValid() {
+  markConnected() {
     this.__connected = true
     return this
   }

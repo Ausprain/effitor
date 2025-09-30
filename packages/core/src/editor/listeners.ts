@@ -78,14 +78,14 @@ export const addListenersToEditorBody = (
 
   // 绑在shadowRoot上
   body.addEventListener('focusin', (ev) => {
-    // import.meta.env.DEV && console.error('body focus')
+    // import.meta.env.DEV && console.error('body focus', ev.relatedTarget)
     // body无段落, 清空并初始化
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
     }
     // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      ctx.editor.markFocused()
+      ctx.editor._markFocused()
       // fixed. HMR热更新时 旧的selection对象可能丢失
       // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
       requestAnimationFrame(() => {
@@ -93,6 +93,7 @@ export const addListenersToEditorBody = (
           // 编辑器又立马失去焦点, 直接返回
           return
         }
+        ctx.editor.focus()
         // 手动更新上下文和选区, 再绑定sel监听器
         ctx.forceUpdate()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
@@ -101,12 +102,12 @@ export const addListenersToEditorBody = (
     }
   }, { signal: ac.signal })
   body.addEventListener('focusout', (ev) => {
-    // import.meta.env.DEV && console.error('body blur')
+    // import.meta.env.DEV && console.error('body blur', ev.relatedTarget)
 
     // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
     // 即焦点转移到编辑区(et-body)外 时
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
-      ctx.editor.markBlurred()
+      ctx.editor._markBlurred()
       requestAnimationFrame(() => {
         if (ctx.editor.isFocused) {
           // fixed. 编辑器又马上重新获得了焦点, 直接返回

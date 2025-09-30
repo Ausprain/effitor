@@ -89,12 +89,13 @@ export class EtCaret extends CaretRange {
       this._offset = Math.max(0, Math.min(this.offset, dom.nodeLength(this._anchor)))
       return
     }
-    this._anchor = this._anchor.parentNode as Et.Node
+    const anchor = this._anchor
+    this._anchor = this._anchor.parentNode as Et.Node // connected 节点必定有 parentNode
     if (this.isAnchorBefore) {
-      this._offset = dom.prevSiblingCount(this._anchor)
+      this._offset = dom.prevSiblingCount(anchor)
     }
     else {
-      this._offset = dom.prevSiblingCount(this._anchor) + 1
+      this._offset = dom.prevSiblingCount(anchor) + 1
     }
   }
 
@@ -390,7 +391,7 @@ export class EtCaret extends CaretRange {
 
   /**
    * 在光标位置插入节点或片段 返回 true;  若光标位置非法 或在文本节点中间, 则不执行, 返回 false;
-   * * 该方法不具备撤销能力, 应只在命令内部执行, 依赖命令进行撤销
+   * * 该方法不具备撤销能力, 只能在命令内部执行, 依赖命令进行撤销
    */
   insertNode(node: Et.Node | Et.Fragment) {
     if (!this.__connected) {

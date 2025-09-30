@@ -349,7 +349,7 @@ const checkEqualParagraphSmartRemoveAndMerge = (
   if (!toRemoved.hasChildNodes()) {
     ctx.commandManager.push(cmd.removeNode({
       node: toRemoved,
-      destCaretRange: cr.caretInEndNow(mergeTo),
+      destCaretRange: cr.caretInEnd(mergeTo),
     }))
     return true
   }
@@ -357,7 +357,7 @@ const checkEqualParagraphSmartRemoveAndMerge = (
   if (!mergeTo.hasChildNodes()) {
     const postLast = toRemoved.lastChild
     const destCaretRange = postLast
-      ? cr.caretInEndNow(postLast)
+      ? cr.caretInEnd(postLast)
       : undefined
     ctx.commandManager.push(cmd.removeNode({
       node: toRemoved,

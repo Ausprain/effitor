@@ -4,7 +4,7 @@ et-editor,
 :host {
   color-scheme: light;
 
-  --et-font-family: 'ubuntu-font';
+  --et-font-family: var(--et-font-ubuntu);
   --et-font-size: 15px;
   --et-font-weight: 449;
   --et-letter-space: 0.02em;

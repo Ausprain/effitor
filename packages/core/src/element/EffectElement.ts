@@ -50,7 +50,8 @@ export abstract class EffectElement
    * 当前效应元素类的效应处理器(本质上是构造器自身), 该属性在 registerEtElement 注册时初始化,
    * 用于快速访问该类对象上的效应处理器;
    * * 该属性只可用于调用效应处理器 ( 替代 `ctx.effectInvoker.invoke` 好让 IDE 追踪到调用处 )
-   * * 性能优先场景应使用 `ctx.effectInvoker.invoke`
+   * * 性能敏感场景应优先使用 `ctx.effectInvoker.invoke(el, 'XXX')` 或 `ctx.getEtHandler(el).XXX`
+   * * 使用此方法调用的效应无视`effectBlocker`
    */
   declare static readonly thisHandler: Et.EffectHandleThis
 
@@ -199,7 +200,7 @@ export abstract class EffectElement
 
   /** 当前效应元素内部可编辑末尾边界 */
   innerEndEditingBoundary() {
-    return cr.caretInEndNow(this)
+    return cr.caretInEnd(this)
   }
 
   /* -------------------------------------------------------------------------- */

@@ -496,7 +496,7 @@ export const mergeHtmlNode = (
       if (affinityToFormer) {
         // 需要优先亲和到前者末尾
         const formerLast = traversal.innermostEditableLastChild(former)
-        return cr.caretInEndNow(formerLast)
+        return cr.caretInEnd(formerLast)
       }
       return cr.caretInStart(latter)
     }
@@ -509,7 +509,7 @@ export const mergeHtmlNode = (
     if (innermost.nodeType === 3) {
       return cr.caret(innermost, (innermost as Text).length)
     }
-    return cr.caretInEndNow(former)
+    return cr.caretInEnd(former)
   }
   else if (latter) {
     const innermost = traversal.innermostEditableFirstChild(latter)
@@ -560,7 +560,7 @@ export const mergeHtmlElement = (
     former.append(...latter.childNodes)
   }
   else {
-    out = cr.caretInEndNow(former)
+    out = cr.caretInEnd(former)
   }
   // 移除后者
   latter.remove()
@@ -594,7 +594,7 @@ const innermostMiddlePosition = (former: Et.HTMLNodeOrNull, latter: Et.HTMLNodeO
 
   if (toFormer) {
     if (inner.nodeType === 3) {
-      caretRange = cr.caretInEndNow(inner as Et.Text)
+      caretRange = cr.caretInEnd(inner as Et.Text)
     }
     else {
       caretRange = cr.caretOutEnd(inner as Et.HTMLElement)

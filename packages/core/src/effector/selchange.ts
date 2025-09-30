@@ -9,7 +9,7 @@ export const getSelectionChangeListener = (
 ) => {
   return (e: Event) => {
     // if (import.meta.env.DEV) {
-    // console.error('sel change, incomp?')
+    //   console.error('sel change')
     // }
     // 在输入法会话中, 跳过
     if (ctx.composition.inSession) {

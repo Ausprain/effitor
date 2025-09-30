@@ -174,7 +174,7 @@ const removeSpanningSimpleParagraph = (
   // 移除中间节点
   tryToRemoveNodesBetween(cmds, startP, endP)
 
-  let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
+  let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
   // endP被移除, 插回前半内容即可
   if (isEndParagraphRemoved) {
     if (startUnselected.hasChildNodes()) {
@@ -234,7 +234,7 @@ const removeSpanningComplexParagraph = (
   const [startUnselected, endUnselected] = cloneUnselectedContentsOfPartial(
     targetRange, startPartial, endPartial,
   )
-  const startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
+  const startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
   const isEndUnselectedContentsEmpty = !endUnselected.hasChildNodes()
   const cmds: Et.Command[] = []
 
@@ -486,7 +486,7 @@ const addCmdsToMergeEqualParagraph = (
 ) => {
   const startPrev = startPartial ? startPartial.previousSibling : startP.lastChild
   const endNext = endPartial ? endPartial.nextSibling : endP.firstChild
-  let startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEndNow(startP)
+  let startInsertAt = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
   let mergedContents: Et.Fragment | null = null, destCaretRange
   const out = fragmentUtils.getMergedEtFragmentAndCaret(
     startUnselected, endUnselected, false, false, affinityPreference ?? true, // 若为定义, 优先亲和到前者

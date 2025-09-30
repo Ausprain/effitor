@@ -27,7 +27,7 @@ const defaultOptions = {
    * absolute定位时, 需要判断当前编辑器所在滚动容器; 而不可仅仅根据编辑器定位, 否则随内容增长,
    * 编辑器高度增加, 遮罩层的高度也会增加, 从而导致 container 的位置下移, 最终可能在视口外显示;
    * 若根据滚动容器来计算, 则增加开销, 且滚动容器带margin 的话, 遮罩层外围会有一圈白, 很丑.
-   * 因此现阶段, dialog 是全屏(视口)遮罩的
+   * 因此现阶段, dialog 是全屏(视口)遮罩的, 即当前的 dialog 就是个 modal
    */
   backdropPosition: 'fixed' as 'fixed' | 'absolute',
   /** 遮罩层背景 */

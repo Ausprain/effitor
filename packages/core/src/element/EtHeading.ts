@@ -34,6 +34,6 @@ export abstract class EtHeading extends EtParagraph { // 标题属于段落
     if (child) {
       return cr.caretEndAuto(child)
     }
-    return cr.caretInEndNow(this)
+    return cr.caretInEnd(this)
   }
 }

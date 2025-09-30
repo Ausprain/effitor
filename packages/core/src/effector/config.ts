@@ -57,33 +57,37 @@ export interface Solvers {
    * keydown中处理按键响应 ev.key -> action;
    * * 若 ev.key长度为1 或为方向键, 则此 solver 捕获不到, 需使用 beforeKeydownSolver
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
-   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
-   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
-   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
+   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   独占该效应元素内的行为
    */
   readonly keydownSolver: KeyboardSolver
   /**
    * keyup中处理按键响应
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
-   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
-   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
-   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
+   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   独占该效应元素内的行为
    */
   readonly keyupSolver: KeyboardSolver
   /**
    * beforeinput中处理inputType
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
-   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
-   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
-   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
+   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   独占该效应元素内的行为
    */
   readonly beforeInputSolver: InputSolver
   /**
    * input中处理inputType
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
-   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标在效应元素内触发相应事件时
-   *   会用该效应元素小写标签从 Solver 里获取处理函数, 一旦获取成功, 便不再访问该 solver,
-   *   可以理解为, 使用效应元素名定义的 sovler 处理函数会独占该效应元素内的行为
+   * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
+   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   独占该效应元素内的行为
    */
   readonly afterInputSolver: InputSolver
   /**
@@ -146,10 +150,10 @@ export type InputTypeSolver = Partial<Record<Exclude<Et.InputType, 'undefined'>,
 }
 
 export type KeyboardSolverInEtElement = {
-  [k in keyof DefinedEtElementMap]?: KeyboardAction<UpdatedContext & { focusEtElement: DefinedEtElementMap[k] }>
+  [k in keyof DefinedEtElementMap]?: KeyboardAction<UpdatedContext & { commonEtElement: DefinedEtElementMap[k] }>
 }
 export type InputTypeSolverInEtElement = {
-  [k in keyof DefinedEtElementMap]?: InputAction<UpdatedContext & { focusEtElement: DefinedEtElementMap[k] }>
+  [k in keyof DefinedEtElementMap]?: InputAction<UpdatedContext & { commonEtElement: DefinedEtElementMap[k] }>
 }
 
 export type KeyboardSolver = KeyboardKeySolver & KeyboardSolverInEtElement
