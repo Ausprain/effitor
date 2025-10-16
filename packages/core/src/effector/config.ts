@@ -88,6 +88,9 @@ export interface Solvers {
    *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
    *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
    *   独占该效应元素内的行为
+   * * [NB] 撤销/重做通过内置插件实现, 注册`效应元素特有效应器处理函数`时, 需手动放行 historyUndo/
+   *   historyRedo (返回 false), 否则在该效应元素内无法通过快捷键撤回/重做
+   *
    */
   readonly afterInputSolver: InputSolver
   /**
@@ -124,7 +127,7 @@ export interface Solvers {
   readonly dragleaveCallback: DragEventAction
   readonly dropCallback: DragEventAction
 }
-export type Solver = KeyboardKeySolver | InputTypeSolver | HTMLEventSolver
+export type Solver = KeyboardSolver | InputSolver | HTMLEventSolver
 /** 主效应器 */
 export interface MainEffector {
   readonly keydownSolver: MainKeydownKeySolver

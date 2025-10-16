@@ -2,6 +2,8 @@ import '@effitor/core/styles/font.css'
 
 import './assets/main.css'
 
+import * as icons from '../../../packages/shared/src/icons'
+
 import { Effitor } from '@effitor/core'
 import { useMarkPlugin } from '@effitor/plugin-mark'
 import { useHeadingPlugin } from '@effitor/plugin-heading'
@@ -11,6 +13,8 @@ import { useDialogAssist } from '@effitor/assist-dialog'
 import { useDropdownAssist } from '@effitor/assist-dropdown'
 import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
+import { useCodePlugin } from '@effitor/plugin-code'
+import { HtmlAttrEnum } from '@effitor/shared'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 
@@ -32,6 +36,20 @@ const editor = new Effitor({
     useMarkPlugin(),
     useHeadingPlugin(),
     useListPlugin(),
+    await useCodePlugin(),
+    {
+      name: 'some',
+      effector: {
+        keydownSolver: {
+          default: (ev, ctx) => {
+            console.log('keydown in main')
+            if (ctx.selection.rawEl) {
+              return ctx.skipDefault()
+            }
+          },
+        },
+      },
+    },
 
     // {
     //   name: 'excalidraw',
@@ -53,4 +71,20 @@ editor.mount(host)
 window.ctx = editor.context
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-window.sel = editor.context.selection.selection
+window.sel = editor.context.selection
+
+const iconsHost = document.createElement('div')
+iconsHost.style.cssText = `
+display: flex;
+flex-wrap: wrap;`
+Object.keys(icons).forEach((key) => {
+  if (key.endsWith('Icon')) {
+    const span = document.createElement('span')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    span.appendChild((icons[key as keyof typeof icons] as any)())
+    span.setAttribute(HtmlAttrEnum.HintTitle, key)
+    span.style.margin = '8px'
+    iconsHost.appendChild(span)
+  }
+})
+editor.root.appendChild(iconsHost)

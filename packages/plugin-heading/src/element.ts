@@ -5,21 +5,10 @@ import type { Nodes } from 'mdast'
 
 import { HeadingEnum } from './config'
 
-const enum E {
-  // eslint-disable-next-line @typescript-eslint/prefer-literal-enum-member
-  n = HeadingEnum.ElName,
-  h1 = 'ET_cls_h1',
-  h2 = 'ET_cls_h2',
-  h3 = 'ET_cls_h3',
-  h4 = 'ET_cls_h4',
-  h5 = 'ET_cls_h5',
-  h6 = 'ET_cls_h6',
-}
-
 const levelClass = (hl: Et.HeadingLevel) => `h${hl}`
 
 export class EtHeadingElement extends EtHeading {
-  static readonly elName = E.n
+  static readonly elName = HeadingEnum.ElName
 
   static create(level: Et.HeadingLevel = 1, content: string | HTMLBRElement | Text = HtmlCharEnum.ZERO_WIDTH_SPACE) {
     const el = document.createElement(HeadingEnum.ElName)

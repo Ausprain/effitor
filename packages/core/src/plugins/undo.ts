@@ -8,7 +8,17 @@
  * 3. 删除行为
  *      Backspace, Delete
  */
-import type { Et } from '../../@types'
+import { BuiltinConfig } from '@effitor/shared'
+
+import type { Et } from '../@types'
+
+const beforeKeydownSolver: Et.KeyboardKeySolver = {
+  ' ': (ev, ctx) => (!ev.repeat && ev.key !== ctx.currDownKey && ctx.commandManager.commit(), false),
+  'Enter': (ev, ctx) => (!ev.repeat && ev.key !== ctx.currDownKey && ctx.commandManager.commit(), false),
+  'Tab': (ev, ctx) => (!ev.repeat && ev.key !== ctx.currDownKey && ctx.commandManager.commit(), false),
+  'Backspace': (ev, ctx) => (!ev.repeat && ev.key !== ctx.currDownKey && ctx.commandManager.commit(), false),
+  'Delete': (ev, ctx) => (!ev.repeat && ev.key !== ctx.currDownKey && ctx.commandManager.commit(), false),
+}
 
 const keyupSolver: Et.KeyboardKeySolver = {
   ArrowDown: (_ev, ctx) => (ctx.commandManager.commit(), false), // 需要返回false, 确保后续插件能执行
@@ -42,19 +52,6 @@ const beforeInputSolver: Et.InputTypeSolver = {
 }
 
 const htmlEventSolver: Et.HTMLEventSolver = {
-  // 编辑器keydown监听器中使用了异步, 这里就不能用 keydownSolver 了,
-  // 需要额外添加一个 keydown 事件来处理分割撤回栈事务
-  keydown: (ev, ctx) => {
-    if (!ev.repeat && ev.key !== ctx.currDownKey && [
-      ' ',
-      'Enter',
-      'Tab',
-      'Backspace',
-      'Delete',
-    ].includes(ev.key)) {
-      ctx.commandManager.commit()
-    }
-  },
   /** 输入法会话开始时, 将先前命令commit */
   compositionstart: (_ev, ctx) => {
     ctx.commandManager.commit()
@@ -79,32 +76,35 @@ const htmlEventSolver: Et.HTMLEventSolver = {
   },
 }
 
-export const useUndoEffector = (): Et.EffectorSupportInline => {
-  return {
-    inline: true,
-    enforce: 'pre',
-    keyupSolver,
-    beforeInputSolver,
-    afterInputSolver,
-    htmlEventSolver,
-    // onMounted: (_ctx, signal) => {
-    //   // 防止编辑器外ctrl+z时对编辑器内容撤销
-    //   document.addEventListener('beforeinput', (ev) => {
-    //     if (ev.inputType === 'historyUndo' || ev.inputType === 'historyRedo') {
-    //       // console.warn('document historyUndo or historyRedo', ev.getTargetRanges())
-    //       // 阻止没有targetRange的undo/redo, 编辑器在shadowRoot内, 外边无法获取到, 即targetRanges为空数组
-    //       if (ev.getTargetRanges().length === 0) {
-    //         ev.preventDefault()
-    //       }
-    //       // fixme Mac下document的撤销无法preventDefault, 但并未见异常
-    //     }
-    //   }, { signal: signal })
-    // },
-    /**
+const undoEffector: Et.EffectorSupportInline = {
+  inline: true,
+  enforce: 'pre',
+  beforeKeydownSolver,
+  keyupSolver,
+  beforeInputSolver,
+  afterInputSolver,
+  htmlEventSolver,
+  // onMounted: (_ctx, signal) => {
+  //   // 防止编辑器外ctrl+z时对编辑器内容撤销
+  //   document.addEventListener('beforeinput', (ev) => {
+  //     if (ev.inputType === 'historyUndo' || ev.inputType === 'historyRedo') {
+  //       // console.warn('document historyUndo or historyRedo', ev.getTargetRanges())
+  //       // 阻止没有targetRange的undo/redo, 编辑器在shadowRoot内, 外边无法获取到, 即targetRanges为空数组
+  //       if (ev.getTargetRanges().length === 0) {
+  //         ev.preventDefault()
+  //       }
+  //       // fixme Mac下document的撤销无法preventDefault, 但并未见异常
+  //     }
+  //   }, { signal: signal })
+  // },
+  /**
      * 卸载时移除对应撤回栈并 确认所有事务
      */
-    onBeforeUnmount(ctx) {
-      ctx.commandManager.commitAll()
-    },
-  }
+  onBeforeUnmount(ctx) {
+    ctx.commandManager.commitAll()
+  },
+}
+
+export const useUndo = (): Et.EditorPluginSupportInline => {
+  return { name: BuiltinConfig.BUILTIN_UNDO_PLUGIN_NAME, effector: undoEffector }
 }

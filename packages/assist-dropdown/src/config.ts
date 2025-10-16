@@ -62,6 +62,7 @@ export interface DropdownMenu extends Omit<DropdownMenuOptions, 'icon'> {
 }
 
 export interface DropdownMenuItemOptions extends DropdownItemOptions {
+  /** 鼠标悬停在item上时, 显示的提示; 使用 HtmlAttrEnum.HintTitle 实现 */
   tip?: string
   /** 给item添加的className, 带有:hover/:active等的样式; 默认使用内置的.bg-item */
   className?: string

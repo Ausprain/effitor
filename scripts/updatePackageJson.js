@@ -82,11 +82,19 @@ packageJsonList.forEach(({ path, json }) => {
     pkgJson.repository.type = 'git'
     pkgJson.repository.url = `git+${REPOSITORY_URL}`
     pkgJson.repository.directory = repositoryDir
+    // FIXME join不能拼接 url
     pkgJson.homepage = `${join(REPOSITORY_URL, repositoryDir)}#readme`
   }
   // 保留原有 description
   if (json.description) {
     pkgJson.description = json.description
+  }
+  // scripts
+  if (!pkgJson.scripts) {
+    pkgJson.scripts = {}
+  }
+  if (!pkgJson.scripts.build) {
+    pkgJson.scripts.build = 'tsup'
   }
   fs.writeFile(
     resolve(path, '../package.json'),

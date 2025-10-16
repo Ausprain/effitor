@@ -13,6 +13,10 @@ const ectx = useEffectorContext('_et_$list', {
 })
 
 const beforeKeydownSolver: Et.KeyboardKeySolver = {
+  // FIXME 首段落mark 方式插入列表报错
+  // 初步判断原因是, 插入列表前将段落移除, 而光标在段落内, 导致光标丢失
+  // 自动移动到被移除元素前, 从而导致上下文无段落报错;
+  // 但问题在于, 为什么移除段落会触发上下文更新?
   ' ': (ev, ctx) => {
     const currP = ctx.focusParagraph
     if (!ctx.isPlainParagraph(currP)) {

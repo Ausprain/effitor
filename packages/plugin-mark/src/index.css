@@ -9,9 +9,7 @@ et-editor,
 }
 
 et-editor.dark,
-:host(.dark),
-:host-context(:root.dark),
-:host-context(body.dark) {
+:host(.dark) {
   --et_mark-color__marker: #9bd;
 }
 
@@ -54,8 +52,8 @@ et-mark.caret-in::after, et-mark:has(.caret-in)::after,
 et-mark.caret-in::before, et-mark:has(.caret-in)::before {
   display: inline;
 }
-.ET_cls_hinting-hidden et-mark::after, 
-.ET_cls_hinting-hidden et-mark::before {
+.ET_cls-hinting_hidden et-mark::after, 
+.ET_cls-hinting_hidden et-mark::before {
   display: none !important;
 }
 et-mark.marking::after {
@@ -68,7 +66,7 @@ et-mark.marking::after {
 }
 
 
-et-mark.ET_cls_code {
+et-mark.ET_cls-code {
   margin: 0px 2px; 
   padding: 3px 3px 2px;
   background-color: var(--et_mark-color__code_bg);
@@ -76,45 +74,45 @@ et-mark.ET_cls_code {
   font-size: 14px;
   font-family: var(--et_mark-color__code_font), monospace ;
 }
-et-mark.ET_cls_code.caret-in {
+et-mark.ET_cls-code.caret-in {
   padding: 3px 0 2px;
 }
-et-mark.ET_cls_code::after, et-mark.ET_cls_code::before {
+et-mark.ET_cls-code::after, et-mark.ET_cls-code::before {
   content: "`";
 }
 
 
-et-mark.ET_cls_bold {
+et-mark.ET_cls-bold {
   font-weight: bold;
 }
-et-mark.ET_cls_bold::after, et-mark.ET_cls_bold::before {
+et-mark.ET_cls-bold::after, et-mark.ET_cls-bold::before {
   content: "**";
 }
 
 
-et-mark.ET_cls_italic {
+et-mark.ET_cls-italic {
   font-style: italic;
   /* 斜体右边增加一点间距 避免字符顶部重叠 */
   margin-inline-end: 0.12em;
 }
-et-mark.ET_cls_italic::after, et-mark.ET_cls_italic::before {
+et-mark.ET_cls-italic::after, et-mark.ET_cls-italic::before {
   content: "*";
 }
 
 
-et-mark.ET_cls_delete {
+et-mark.ET_cls-delete {
   text-decoration: line-through;
 }
-et-mark.ET_cls_delete::after, et-mark.ET_cls_delete::before {
+et-mark.ET_cls-delete::after, et-mark.ET_cls-delete::before {
   content: "~~";
 }
 
 
-et-mark.ET_cls_highlight {
+et-mark.ET_cls-highlight {
   color: var(--et_mark-color__hl_text);
   background-color: var(--et_mark-color__hl_bg);
   padding: 1px 2px;
 }
-et-mark.ET_cls_highlight::after, et-mark.ET_cls_highlight::before {
+et-mark.ET_cls-highlight::after, et-mark.ET_cls-highlight::before {
   content: "==";
 }

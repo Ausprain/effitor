@@ -23,6 +23,7 @@ import {
   getMouseUpListener,
 } from '../effector/mouse'
 import { getSelectionChangeListener } from '../effector/selchange'
+import { dom } from '../utils'
 import type { PluginConfigs } from './Effitor'
 
 export const initListeners = (
@@ -78,10 +79,14 @@ export const addListenersToEditorBody = (
 
   // 绑在shadowRoot上
   body.addEventListener('focusin', (ev) => {
-    // import.meta.env.DEV && console.error('body focus', ev.relatedTarget)
+    // import.meta.env.DEV && console.error('body focus', ev.target, ev.relatedTarget)
     // body无段落, 清空并初始化
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
+    }
+    if (dom.isRawEditElement(ev.target as Node)) {
+      ctx.selection.setInRaw(ev.target as Et.HTMLRawEditElement)
+      ctx.forceUpdate()
     }
     // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
@@ -93,7 +98,7 @@ export const addListenersToEditorBody = (
           // 编辑器又立马失去焦点, 直接返回
           return
         }
-        ctx.editor.focus()
+        ctx.editor._markFocused()
         // 手动更新上下文和选区, 再绑定sel监听器
         ctx.forceUpdate()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
@@ -102,8 +107,11 @@ export const addListenersToEditorBody = (
     }
   }, { signal: ac.signal })
   body.addEventListener('focusout', (ev) => {
-    // import.meta.env.DEV && console.error('body blur', ev.relatedTarget)
+    // import.meta.env.DEV && console.error('body blur', ev.target, ev.relatedTarget)
 
+    if (dom.isRawEditElement(ev.target as Node)) {
+      ctx.selection.setInRaw(null)
+    }
     // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
     // 即焦点转移到编辑区(et-body)外 时
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
@@ -152,4 +160,9 @@ export const addListenersToEditorBody = (
   body.addEventListener('dragover', listeners.dragover, { signal: ac.signal })
   body.addEventListener('dragleave', listeners.dragleave, { signal: ac.signal })
   body.addEventListener('drop', listeners.drop, { signal: ac.signal })
+
+  // 媒体查询
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (ev) => {
+    ctx.editor.setColorScheme(ev.matches)
+  }, { signal: ac.signal })
 }

@@ -40,13 +40,18 @@ export interface EditorCallbacks {
    * @param changedTopElements 改变了的顶层元素
    */
   onEditorContentChanged?: (ctx: EditorContext, changedTopElements: EtParagraph[]) => void
+  /**
+   * 编辑器深色模式改变时调用
+   * @param isDark 是否为深色模式
+   */
+  onDarkModeChanged?: (ctx: EditorContext, isDark: boolean) => void
 }
 export interface ParagraphCreator {
   /**
    * 自定义段落创建函数
    * @returns 单元组or二元组 [段落, 光标要定位到段落内的位置]; 返回单元组时, 则默认使用段落内开头位置
    */
-  (): [EtParagraph] | [EtParagraph, CaretRange]
+  (ctx: EditorContext): [EtParagraph] | [EtParagraph, CaretRange]
 }
 
 /**
@@ -58,6 +63,11 @@ export interface ParagraphCreator {
 export interface EditorSettings {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: (...args: any[]) => any
+}
+
+export interface EditorStatus {
+  /** 是否为深色模式 */
+  isDark: boolean
 }
 
 /**

@@ -210,12 +210,29 @@ interface CmdRemoveContent<MetaType = any> extends Cmd<CmdTypeEm.Remove_Content,
 }
 /** 功能命令 */
 interface CmdFunctional<MetaType = any> extends Cmd<CmdTypeEm.Functional, MetaType>, CmdExecCallback<CmdTypeEm.Functional, MetaType> {
-  execCallback: CmdCallback<CmdTypeEm.Functional, MetaType>
-  undoCallback: CmdCallback<CmdTypeEm.Functional, MetaType>
   readonly type: CmdTypeEm.Functional
+  /**
+   * 构建命令事务写入撤回栈时, 尝试合并下一个Functional命令, 缺省或返回false, 则不合并
+   * * 该方法在命令执行后记录撤回栈事务时才会调用, 在命令执行时无任何作用
+   */
+  readonly merge?: MergeFunctional<MetaType>
+  readonly execCallback: CmdCallback<CmdTypeEm.Functional, MetaType>
+  readonly undoCallback: CmdCallback<CmdTypeEm.Functional, MetaType>
 }
 
-type CmdInit<C extends Cmd, MetaType, OmitType extends string = ''> = Omit<C, | 'type' | OmitType> & { meta?: MetaType }
+interface MergeFunctional<MetaType = any> {
+  /**
+   * 合并当前和下一个 Functional 命令
+   * @returns `false`: 不合并\
+   *          `true`: 使用当前命令(写入撤回栈), 丢弃 nextCmd, 并沿用当前命令的 merge 方法尝试下一次合并\
+   *          `CmdFunctional`: 使用指定命令(写入撤回栈), 丢弃当前命令和 nextCmd(除非返回了他们之一);
+   *                           若返回的命令没有 merge 方法, 则不再尝试后续合并
+   */
+  (this: CmdFunctional<MetaType> & { merge: MergeFunctional<MetaType> }& (MetaType extends undefined ? CmdMeta<MetaType> : Required<CmdMeta<MetaType>>),
+    nextCmd: CmdFunctional<MetaType>): CmdFunctionalInit<any> | boolean
+}
+
+type CmdInit<C extends Cmd, MetaType, OmitType extends string = never> = Omit<C, | 'type' | OmitType> & { meta?: MetaType }
 type CmdInsertCompositionTextInit = Pick<CmdInsertCompositionText, 'data'>
 type CmdInsertTextInit<MetaType> = CmdInit<CmdInsertText<MetaType>, MetaType, CmdInitOmits[CmdTypeEm.Insert_Text]>
 type CmdDeleteTextInit<MetaType> = CmdInit<CmdDeleteText<MetaType>, MetaType>
@@ -227,16 +244,16 @@ type CmdInsertContentInit<MetaType> = CmdInit<CmdInsertContent<MetaType>, MetaTy
 type CmdRemoveContentInit<MetaType> = CmdInit<CmdRemoveContent<MetaType>, MetaType, CmdInitOmits[CmdTypeEm.Remove_Content]>
 type CmdFunctionalInit<MetaType> = CmdInit<CmdFunctional<MetaType>, MetaType>
 interface CmdInitOmits {
-  [CmdTypeEm.Insert_Composition_Text]: ''
+  [CmdTypeEm.Insert_Composition_Text]: never
   [CmdTypeEm.Insert_Text]: 'isBackward'
-  [CmdTypeEm.Delete_Text]: ''
-  [CmdTypeEm.Replace_Text]: ''
-  [CmdTypeEm.Insert_Node]: ''
-  [CmdTypeEm.Remove_Node]: ''
-  [CmdTypeEm.Replace_Node]: ''
+  [CmdTypeEm.Delete_Text]: never
+  [CmdTypeEm.Replace_Text]: never
+  [CmdTypeEm.Insert_Node]: never
+  [CmdTypeEm.Remove_Node]: never
+  [CmdTypeEm.Replace_Node]: never
   [CmdTypeEm.Insert_Content]: 'removeRange'
   [CmdTypeEm.Remove_Content]: 'content'
-  [CmdTypeEm.Functional]: ''
+  [CmdTypeEm.Functional]: never
 }
 
 /**
@@ -251,31 +268,42 @@ type CmdWithExec<C extends Cmd = Cmd, A extends Cmd = C> = C & {
   undo: CmdExec<A>
 }
 
+type CommandInsertCompositionText = CmdWithExec<CmdInsertCompositionText>
+type CommandInsertText = CmdWithExec<CmdInsertText>
+type CommandDeleteText = CmdWithExec<CmdDeleteText>
+type CommandReplaceText = CmdWithExec<CmdReplaceText>
+type CommandInsertNode = CmdWithExec<CmdInsertNode>
+type CommandRemoveNode = CmdWithExec<CmdRemoveNode>
+type CommandReplaceNode = CmdWithExec<CmdReplaceNode>
+type CommandInsertContent = CmdWithExec<CmdInsertContent>
+type CommandRemoveContent = CmdWithExec<CmdRemoveContent>
+type CommandFunctional = CmdWithExec<CmdFunctional>
+
 type Command
-  = | CmdWithExec<CmdInsertCompositionText>
-    | CmdWithExec<CmdInsertText>
-    | CmdWithExec<CmdDeleteText>
-    | CmdWithExec<CmdReplaceText>
-    | CmdWithExec<CmdInsertNode>
-    | CmdWithExec<CmdRemoveNode>
-    | CmdWithExec<CmdReplaceNode>
-    | CmdWithExec<CmdInsertContent>
-    | CmdWithExec<CmdRemoveContent>
-    | CmdWithExec<CmdFunctional>
+  = | CommandInsertCompositionText
+    | CommandInsertText
+    | CommandDeleteText
+    | CommandReplaceText
+    | CommandInsertNode
+    | CommandRemoveNode
+    | CommandReplaceNode
+    | CommandInsertContent
+    | CommandRemoveContent
+    | CommandFunctional
 
 /** 首次执行之后的命令, 其一些可选属性将变为必选且只读 */
 type ExecutedCmd<C extends Cmd = Cmd> = C & Readonly<Required<Pick<C, ExecutedRequiresMap[C['type']]>>>
 interface ExecutedRequiresMap {
   [CmdTypeEm.Insert_Composition_Text]: 'text' | 'newInserted' | 'srcCaretRange'
-  [CmdTypeEm.Insert_Text]: ''
-  [CmdTypeEm.Delete_Text]: ''
+  [CmdTypeEm.Insert_Text]: never
+  [CmdTypeEm.Delete_Text]: never
   [CmdTypeEm.Replace_Text]: 'data' | 'delLen'
   [CmdTypeEm.Insert_Node]: 'execAt'
   [CmdTypeEm.Remove_Node]: 'execAt'
   [CmdTypeEm.Replace_Node]: 'newNode' | 'oldNode'
   [CmdTypeEm.Insert_Content]: 'execAt' | 'content' | 'removeStart' | 'removeEnd'
   [CmdTypeEm.Remove_Content]: 'execAt' | 'content' | 'removeStart' | 'removeEnd'
-  [CmdTypeEm.Functional]: ''
+  [CmdTypeEm.Functional]: never
 }
 
 /* -------------------------------------------------------------------------- */
@@ -810,8 +838,8 @@ const cmdHandler = {
         return null
       }
     }
-    // 为首个命令设置初始光标位置
-    // 仅当第一个命令未设置srcCaretRange(为undefined)时, 才设置
+    // 为首个命令设置初始光标位置; 仅当第一个命令未设置srcCaretRange(为undefined)时, 才设置;
+    // 若为 null, 说明命令本身不要设置初始光标位置, 即撤回时不要改变光标
     if (recordCmds.length && recordCmds[0].srcCaretRange === void 0) {
       recordCmds[0].srcCaretRange = ctx.selection.getCaretRange()
     }
@@ -867,5 +895,5 @@ const cmdHandler = {
 } as const
 
 export { cmd, cmdHandler, CmdType }
-export type { Cmd, CmdDeleteText, CmdFactory, CmdInsertText, Command, ExecutedCmd }
+export type { Cmd, CmdDeleteText, CmdFactory, CmdFunctional, CmdInsertText, Command, CommandFunctional, ExecutedCmd }
 export type ExecutedInsertCompositionText = ExecutedCmd<CmdInsertCompositionText>

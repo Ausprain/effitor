@@ -9,7 +9,7 @@ import { etcode, type EtParagraphElement } from '../element'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandlers } from '../handler/common'
 import { effectInvoker } from '../handler/invoker'
-import { defaultKeepDefaultModkeyMap } from '../hotkey/builtin'
+import { KeepDefaultModkeyMap } from '../hotkey/builtin'
 import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { getHotstringManager } from '../hotstring/manager'
 import { Segmenter } from '../intl/Segmenter'
@@ -163,7 +163,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.settings = contextMeta.settings
     this.keepDefaultModkeyMap = {
       ...contextMeta.keepDefaultModkeyMap,
-      ...defaultKeepDefaultModkeyMap,
+      ...KeepDefaultModkeyMap,
     }
 
     this.root = options.root
@@ -198,9 +198,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.editor.blur()
       return (this._updated = false)
     }
-
     // 文本节点没有变更新, 说明效应元素/段落都没变, 可结束更新
-    if (this._oldNode !== null && this._oldNode === this.selection.anchorText) {
+    if (this._oldNode && this._oldNode === this.selection.anchorText) {
       return (this._updated = true)
     }
     this._oldNode = this.selection.anchorText
@@ -423,6 +422,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
         this.selection.selectRange(range)
       }
     }
+    // TODO 尝试使用 selection.collapse 来定位到空节点内部看是否有效
     if (this.editor.isShadow) {
       // fixed. shadowDOM 内使用`forceUpdate`更新选区会无法定位到空节点内部
       // 如 <et-p>aaa<et-p> 后边插入一个列表 `<et-list><et-li>|</et-li></et-list>`

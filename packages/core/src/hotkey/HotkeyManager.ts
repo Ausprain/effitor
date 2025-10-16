@@ -1,14 +1,14 @@
 import type { Et } from '../@types'
 import { ConfigManager } from '../editor/ConfigManager'
 import {
-  builtinHotkeyActionMap,
-  keyboardCodeKeyDownBuiltinMap,
-  keyboardCodeKeyDownDefaultMap,
-  KeyboardCodeKeyDownEffectMap,
+  BuiltinHotkeyActionMap,
+  ModKeyDownBuiltinMap,
+  ModKeyDownDefaultMap,
+  ModKeyDownEffectMap,
 } from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
 import { keyChars } from './Key'
-import { Mod, modChar } from './Mod'
+import { CtrlCmd, Mod, modChar } from './Mod'
 import { create, createAction, modKey, withMod } from './util'
 
 declare module '../editor/ConfigManager' {
@@ -31,8 +31,8 @@ interface HotkeyData {
  * 快捷键管理器
  */
 export class HotkeyManager {
-  private readonly _builtinKeydownEffect: KeyboardCodeKeyDownEffectMap
-  private readonly _defaultKeydownEffect: KeyboardCodeKeyDownEffectMap
+  private readonly _builtinModKeyEffect: ModKeyDownEffectMap
+  private readonly _defaultModKeyEffect: ModKeyDownEffectMap
 
   /** 快捷键配置, 快捷键-> 动作名; 用于自定义绑定动作的快捷键, 以及持久化配置 */
   private readonly _hotkeyActionKeyMap: HotkeyActionKeyMapping
@@ -57,6 +57,19 @@ export class HotkeyManager {
    */
   setModkey(ev: KeyboardEvent) {
     this._modkey = modKey(ev)
+  }
+
+  /**
+   * 检查当前 keydown 按下的按键组合含 modifier 修饰键
+   * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键, 缺省时自动适配 CtrlCmd
+   */
+  checkWithMod(modifier?: Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift) {
+    const [_, mod] = this._modkey.split(HotkeyEnum.Connector)
+    const num = parseInt(mod)
+    if (modifier) {
+      return num === modifier
+    }
+    return num === CtrlCmd
   }
 
   private readonly _configManager: ConfigManager
@@ -84,7 +97,7 @@ export class HotkeyManager {
     })
 
     // 加载默认快捷键配置
-    this.addActions(builtinHotkeyActionMap)
+    this.addActions(BuiltinHotkeyActionMap)
     // 恢复存储的快捷键配置
     const hotkeyData = this._configManager.getConfig('hotkeyData')
     let needUpdateConfig = false
@@ -113,17 +126,18 @@ export class HotkeyManager {
     }
 
     // 加载内置系统级按键行为
-    this._builtinKeydownEffect = keyboardCodeKeyDownBuiltinMap
+    this._builtinModKeyEffect = ModKeyDownBuiltinMap
     // 加载默认按键行为
-    this._defaultKeydownEffect = keyboardCodeKeyDownDefaultMap
+    this._defaultModKeyEffect = ModKeyDownDefaultMap
   }
 
   /**
    * 在 keydown 中监听内置系统级按键行为; 如 MacOS 下 `opt+ArrowLeft` 光标向左移动一个单词等;
    * 监听成功返回 true, 结束 keydown 事件周期
+   * * 具体行为在 {@link ModKeyDownBuiltinMap} 中定义;
    */
   listenBuiltin() {
-    const effect = this._builtinKeydownEffect[this._modkey]
+    const effect = this._builtinModKeyEffect[this._modkey]
     if (!effect) {
       return false
     }
@@ -149,7 +163,7 @@ export class HotkeyManager {
    * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
    */
   listenDefault() {
-    const effect = this._defaultKeydownEffect[this._modkey]
+    const effect = this._defaultModKeyEffect[this._modkey]
     if (!effect) {
       return false
     }
@@ -215,7 +229,7 @@ export class HotkeyManager {
   }
 
   /** 为内置操作绑定执行函数 */
-  bindActionRun(runMap: { [k in keyof typeof builtinHotkeyActionMap]?: HotkeyAction['run'] }) {
+  bindActionRun(runMap: { [k in keyof typeof BuiltinHotkeyActionMap]?: HotkeyAction['run'] }) {
     for (const [actionKey, run] of Object.entries(runMap)) {
       const action = this._actionMap[actionKey]
       if (action) {

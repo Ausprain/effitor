@@ -35,7 +35,9 @@ export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAct
     if (ctx.selection.isCollapsed) {
       // 选区 collapsed状态下，复制当前行并删除
       ctx.selection.selectSoftLine()
-      ctx.forceUpdate()
+      if (!ctx.selection.rawEl) {
+        ctx.forceUpdate()
+      }
     }
     callback?.(ev, ctx)
     if (ctx.defaultSkipped) return false
@@ -49,10 +51,13 @@ export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAct
 export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
     if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
+    // for (const type of ev.clipboardData.types) {
+    //   console.log(type, ev.clipboardData.getData(type))
+    // }
     ev.preventDefault()
     // 判断是否粘贴编辑器复制内容
     const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_TEXT_HTML)
-    if (etHtml) {
+    if (etHtml && !ctx.selection.rawEl) {
       // 使用内置隐藏粘贴行为
       ctx.effectInvoker.invoke(
         ctx.commonEtElement,
@@ -77,6 +82,13 @@ export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardA
  * 复制`or`剪切时添加数据到clipboardData
  */
 const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.DataTransfer) => {
+  if (ctx.selection.isCollapsed) {
+    return
+  }
+  clipboardData.setData('text/plain', ctx.selection.selectedTextContent.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
+  if (ctx.selection.rawEl) {
+    return
+  }
   const fragment = ctx.selection.cloneContents()
   const etElList: EffectElement[] = []
   traversal.traverseNode(fragment, void 0, {
@@ -90,7 +102,6 @@ const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.Data
     },
   })
 
-  clipboardData.setData('text/plain', ctx.selection.selectedTextContent.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
   clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentToHTML(fragment))
   etElList.forEach(el => el.toNativeElement?.())
   clipboardData.setData('text/html', dom.fragmentToHTML(fragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))

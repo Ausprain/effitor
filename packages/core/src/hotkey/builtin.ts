@@ -11,16 +11,20 @@ import { create, createAction, withMod } from './util'
 
 type InputTypeOrActionRun = Et.InputType | ActionRun['run']
 
-export type KeyboardCodeKeyDownEffectMap = Record<string, InputTypeOrActionRun>
+/**
+ * keydown中按下组合键对应行为
+ */
+export type ModKeyDownEffectMap = Record<string, InputTypeOrActionRun>
 
 /**
  * 内置快捷键操作列表
  */
-export const builtinHotkeyActionMap = {
+export const BuiltinHotkeyActionMap = {
   // /** 撤销 */
   // editorUndo: createAction('editor', '撤销', { hotkey: withMod(Key.Z) }),
   // /** 重做 */
   // editorRedo: createAction('editor', '重做', { hotkey: withMod(Key.Z, Mod.Shift) }),
+  // editorRedoOnWindows: createAction('editor', '重做', { hotkey: withMod(Key.Y) }),
   /** 搜索 */
   editorSearch: createAction('editor', '编辑器内搜索', { hotkey: withMod(Key.F) }),
   // /** 复制 */
@@ -48,122 +52,11 @@ export const builtinHotkeyActionMap = {
 
 }
 
-let moveToDocumentStart, moveToDocumentEnd, extendToDocumentStart, extendToDocumentEnd
-if (platform.isFirefox) {
-  moveToDocumentEnd = (ctx: Et.EditorContext) => {
-    const lastParagraph = ctx.bodyEl.lastChild
-    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    ctx.setCaretToAParagraph(lastParagraph, false, true)
-    ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(false)
-    return true
-  }
-  moveToDocumentStart = (ctx: Et.EditorContext) => {
-    const firstParagraph = ctx.bodyEl.firstChild
-    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    ctx.setCaretToAParagraph(firstParagraph, true, true)
-    ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(true)
-    return true
-  }
-  extendToDocumentEnd = (ctx: Et.EditorContext) => {
-    const lastParagraph = ctx.bodyEl.lastChild
-    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    const newRange = lastParagraph.innerEndEditingBoundary().toRange()
-    if (!newRange || !ctx.selection.range) {
-      ctx.editor.blur()
-      return true
-    }
-    newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
-    ctx.selection.selectRange(newRange)
-    ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(false)
-    return true
-  }
-  extendToDocumentStart = (ctx: Et.EditorContext) => {
-    const firstParagraph = ctx.bodyEl.firstChild
-    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    const newRange = firstParagraph.innerStartEditingBoundary().toRange()
-    if (!newRange || !ctx.selection.range) {
-      ctx.editor.blur()
-      return true
-    }
-    newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
-    ctx.selection.selectRange(newRange)
-    ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(true)
-    return true
-  }
-}
-else {
-  moveToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'forward', 'documentboundary')
-  moveToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'backward', 'documentboundary')
-  extendToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'forward', 'documentboundary')
-  extendToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'backward', 'documentboundary')
-}
-
 /**
  * 系统层面的编辑行为, 在 (插件)KeydownSovler 之前执行, 执行成功则结束keydown事件周期
  */
-export const keyboardCodeKeyDownBuiltinMap: KeyboardCodeKeyDownEffectMap = {
-  /* -------------------------------------------------------------------------- */
-  /*                                 光标移动/选择                                */
-  /* -------------------------------------------------------------------------- */
+export const ModKeyDownBuiltinMap: ModKeyDownEffectMap = {
 
-  // 1. firefox 不支持 documentboundary 粒度, 需要手动移动或选择
-  // 2. chromium 和 safari 在 cmd+shfit+left 之后再 cmd+shift+right 之后会全选当前行
-  //    而不是从当前位置要么全选左边, 要么全选右边, 这反直觉, 因此要先 collapsed
-
-  [create(Key.Home, Mod.None)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
-  [create(Key.End, Mod.None)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
-  // 光标移动到行首, MacOS: cmd + left, Windows: alt + left
-  [create(Key.ArrowLeft, LineModifier)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
-  [create(Key.ArrowRight, LineModifier)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
-
-  [create(Key.ArrowUp, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'backward', 'line')
-    : ctx.selection.collapse(true, true)),
-  [create(Key.ArrowDown, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'forward', 'line')
-    : ctx.selection.collapse(false, true)),
-  [create(Key.ArrowLeft, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'backward', 'character')
-    : ctx.selection.collapse(true, true)),
-  [create(Key.ArrowRight, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'forward', 'character')
-    : ctx.selection.collapse(false, true)),
-  [create(Key.ArrowUp, CtrlCmd)]: moveToDocumentStart,
-  [create(Key.ArrowDown, CtrlCmd)]: moveToDocumentEnd,
-  [create(Key.ArrowLeft, WordModifier)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'backward', 'word')
-    : ctx.selection.collapse(true, true)),
-  [create(Key.ArrowRight, WordModifier)]: ctx => (ctx.selection.isCollapsed
-    ? ctx.selection.modify('move', 'forward', 'word')
-    : ctx.selection.collapse(false, true)),
-
-  // 选择
-  [create(Key.ArrowUp, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'line'),
-  [create(Key.ArrowDown, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'line'),
-  [create(Key.ArrowUp, CtrlCmd | Mod.Shift)]: extendToDocumentStart,
-  [create(Key.ArrowDown, CtrlCmd | Mod.Shift)]: extendToDocumentEnd,
-  [create(Key.ArrowLeft, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'character'),
-  [create(Key.ArrowRight, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'character'),
-  [create(Key.ArrowLeft, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'word'),
-  [create(Key.ArrowRight, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'word'),
-  [create(Key.ArrowLeft, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary'),
-  [create(Key.ArrowRight, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary'),
   // ctrl+a 逐级全选
   [create(Key.A, CtrlCmd)]: ctx => ctx.selection.selectAllGradually(),
 
@@ -196,7 +89,7 @@ export const keyboardCodeKeyDownBuiltinMap: KeyboardCodeKeyDownEffectMap = {
 /**
  * 默认的编辑行为按键映射, 在 MainKeydownSolver 之后执行
  */
-export const keyboardCodeKeyDownDefaultMap: KeyboardCodeKeyDownEffectMap = {
+export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
 
   /* -------------------------------------------------------------------------- */
   /*                                   编辑行为                                  */
@@ -204,21 +97,31 @@ export const keyboardCodeKeyDownDefaultMap: KeyboardCodeKeyDownEffectMap = {
 
   // 删除相关
   [create(Key.Backspace, Mod.None)]: 'deleteContentBackward',
+  [create(Key.Backspace, Mod.Shift)]: 'deleteContentBackward',
   [create(Key.Backspace, WordModifier)]: 'deleteWordBackward',
   [create(Key.Delete, Mod.None)]: 'deleteContentForward',
+  [create(Key.Delete, Mod.Shift)]: 'deleteContentForward',
   [create(Key.Delete, WordModifier)]: 'deleteWordForward',
   [create(Key.Backspace, LineModifier)]: 'deleteSoftLineBackward',
   [create(Key.Delete, LineModifier)]: 'deleteSoftLineForward',
   // 插入相关
   [create(Key.Enter, Mod.None)]: 'insertParagraph',
   [create(Key.Enter, Mod.Shift)]: 'insertLineBreak',
+  // cmd+opt+enter / ctrl+alt+enter 无视光标位置, 在当前顶层段落后边追加一个普通段落
+  [create(Key.Enter, CtrlCmd | Mod.AltOpt)]: (ctx) => {
+    const tc = ctx.selection.getTargetCaret()
+    if (!tc) {
+      return false
+    }
+    return ctx.effectInvoker.invoke(tc.anchorEtElement, 'appendParagraph', ctx, tc)
+  },
   // TODO ...
 }
 
 /**
  * keydown 事件中放行默认行为的按键组合, 默认放行 复制/剪切/粘贴
  */
-export const defaultKeepDefaultModkeyMap: Et.EditorContextMeta['keepDefaultModkeyMap'] = {
+export const KeepDefaultModkeyMap: Et.EditorContextMeta['keepDefaultModkeyMap'] = {
   [create(Key.X, CtrlCmd)]: true,
   [create(Key.C, CtrlCmd)]: true,
   [create(Key.V, CtrlCmd)]: true,

@@ -2,6 +2,7 @@ import type { Et } from '../../@types'
 import { cr } from '../../selection'
 import type {
   CmdDeleteText,
+  CmdFunctional,
   CmdInsertText,
   ExecutedCmd,
   ExecutedInsertCompositionText,
@@ -165,7 +166,7 @@ export class UndoStack {
 }
 
 const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTransaction | null => {
-  cmds = checkMergeCmdInsertTextOrDeleteText(checkMergeCmdInsertCompositionText(cmds, ctx))
+  cmds = checkMergeCmds(checkMergeCmdInsertCompositionText(cmds, ctx))
 
   // 合并命令长度为0, 只有一种情况, 就是输入法输入时, 用户主动删除了输入法会话内的构造串, 此时返回null
   return cmds.length === 0
@@ -184,13 +185,13 @@ const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTrans
 }
 
 /**
- * 合并连续的Insert_Text或Delete_Text命令
+ * 合并连续的 Insert_Text, 或连续的同方向 Delete_Text, 或连续的可合并 Functional 命令
  */
-const checkMergeCmdInsertTextOrDeleteText = (cmds: ExecutedCmd[]) => {
+const checkMergeCmds = (cmds: ExecutedCmd[]) => {
   const out: ExecutedCmd[] = []
 
   for (let i = 0; i < cmds.length; i++) {
-    const _cmd = cmds[i] as CmdInsertText | CmdDeleteText
+    const _cmd = cmds[i] as ExecutedCmd<CmdInsertText | CmdDeleteText | CmdFunctional>
     if (_cmd.type === CmdType.Insert_Text) { // Insert_Text
       let j = i + 1
       let insertedData = _cmd.data
@@ -255,6 +256,24 @@ const checkMergeCmdInsertTextOrDeleteText = (cmds: ExecutedCmd[]) => {
         continue
       }
       // 否则直接添加
+    }
+    else if (_cmd.type === CmdType.Functional && _cmd.merge) { // Functional
+      let currCmd = _cmd
+      let nextCmd = cmds[i + 1]
+      while (nextCmd && nextCmd.type === CmdType.Functional) {
+        // @ts-expect-error currCmd.merge 的 this 类型是正确的
+        const ret = currCmd.merge(nextCmd)
+        if (!ret) {
+          break
+        }
+        if (ret !== true) {
+          currCmd = cmd.functional(ret)
+        }
+        i++
+        nextCmd = cmds[i + 1]
+      }
+      out.push(currCmd)
+      continue
     }
     out.push(_cmd)
   } // for end

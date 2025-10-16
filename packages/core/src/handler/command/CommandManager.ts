@@ -110,10 +110,12 @@ export class CommandManager implements CommandQueue {
 
   private _runHandleCallbacks() {
     if (this._afterHandleCallbacks.length) {
-      for (const fn of this._afterHandleCallbacks) {
+      // 先清空再执行, 避免在执行回调时添加新的回调 或调用 closeTransaction 方法, 造成死循环
+      const cbs = [...this._afterHandleCallbacks]
+      this._afterHandleCallbacks.length = 0
+      for (const fn of cbs) {
         fn()
       }
-      this._afterHandleCallbacks.length = 0
     }
   }
 
@@ -131,15 +133,12 @@ export class CommandManager implements CommandQueue {
     this._lastCaretRange = cmdHandler.handle(this._cmds, successCmds, this._ctx, destCaretRange)
     this._undoStack.record(successCmds)
     this.clearQueue()
-    if (this._commitNext) {
-      this._commitNext = false
-      this.commit()
-    }
     return true
   }
 
   /**
-   * 则先按顺序先执行之前push的命令
+   * 按顺序执行之前push的命令
+   * * 该方法不会更新上下文和选区信息, 但会记录lastCaretRange(如果有)
    * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
    *    即会覆盖最后一个命令中的destCaretRange属性
    * @returns 是否执行了至少一个命令
@@ -147,13 +146,14 @@ export class CommandManager implements CommandQueue {
   handle(destCaretRange?: Et.CaretRange): boolean {
     if (this._handle(destCaretRange)) {
       this._runHandleCallbacks()
+      this._checkCommitNext()
       return true
     }
     return false
   }
 
   /**
-   * 则先按顺序先执行之前push的命令并更新上下文和选区信息
+   * 按顺序执行之前push的命令并当lastCaretRange非空时更新上下文和选区信息
    * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
    *    即会覆盖最后一个命令中的destCaretRange属性
    * @returns 是否执行了至少一个命令
@@ -164,6 +164,7 @@ export class CommandManager implements CommandQueue {
         this._ctx.setSelection(this._lastCaretRange.toTextAffinity())
       }
       this._runHandleCallbacks()
+      this._checkCommitNext()
       return true
     }
     return false
@@ -218,6 +219,13 @@ export class CommandManager implements CommandQueue {
       this.commit()
     }
     this._commitNext = true
+  }
+
+  private _checkCommitNext() {
+    if (this._commitNext) {
+      this._commitNext = false
+      this.commit()
+    }
   }
 
   /**

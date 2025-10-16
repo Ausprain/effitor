@@ -6,6 +6,8 @@
 //  *
 //  */
 
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { cmd } from './command'
 import { removeNodesAndChildlessAncestorAndMergeSiblings } from './handles'
@@ -311,6 +313,14 @@ export class CommonHandlers {
    * @param destCaretRange 最终光标位置
    */
   removeRangingContents(destCaretRange?: Et.CaretRange) {
+    if (this._ctx.selection.rawEl) {
+      return this._ctx.commonEtElement && this._ctx.getEtHandler(this._ctx.commonEtElement)
+        .DeleteInRawEl(this._ctx, {
+          rawEl: this._ctx.selection.rawEl,
+          isBackward: true,
+          focus: true,
+        })
+    }
     const tr = this._ctx.selection.getTargetRange()
     if (!this._ctx.isUpdated() || !tr) {
       return false
@@ -348,5 +358,19 @@ export class CommonHandlers {
         return fn(this._ctx, caret)
       })
     })
+  }
+
+  /**
+   * 移动光标到文本节点开头, 由于除了段落开头, 我们无法让光标定位到一个文本节点的 0 位置;
+   * 于是我们在开头插入一个零宽字符, 这个零宽字符会在下一次输入文本时自动移除; 此方法就是
+   * 在我们需要将光标定位到 textNode 开头时, 判断是否以零宽字符开头, 若不是, 则插入一个,
+   * 然后将光标定位到 1 位置.
+   */
+  caretToTextStartWithZWS(textNode: Et.Text) {
+    if (textNode.data[0] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      this._ctx.selection.collapseTo(textNode, 1)
+      return true
+    }
+    return this.insertInTextNode(textNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
   }
 }

@@ -1,18 +1,33 @@
 import type { Et } from '@effitor/core'
 import { cr, handlerUtils } from '@effitor/core'
+import { HtmlCharEnum } from '@effitor/shared'
 
 import { MarkEnum, MarkType } from '../config'
 import { createMarkNode } from '../element'
 import { checkAllowMarkEffect, checkAllowNested } from './utils'
 
-const checkRemoveMarkChars = (ctx: Et.EditorContext, tr: Et.ValidTargetCaret, marker?: string) => {
-  if (!marker || !tr.isAtText()) {
+/**
+ * 检查并移除插入节点位置的零宽字符和已经插入的标记字符
+ */
+const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, marker?: string) => {
+  if (!tc.isAtText()) {
     return null
   }
-  const text = tr.container
-  let offset = tr.offset
+  if (tc.container.data === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+    const ret = cr.caretOutStart(tc.container)
+    ctx.commonHandlers.removeNode(tc.container)
+    return ret
+  }
+  if (!marker) {
+    return null
+  }
+  const text = tc.container
+  let offset = tc.offset
   if (text.data.slice(offset - marker.length, offset) === marker) {
-    if (text.length === marker.length) {
+    if (text.length === marker.length
+      // 若仅剩零宽字符, 也删除
+      || text.data.slice(0, offset - marker.length) === HtmlCharEnum.ZERO_WIDTH_SPACE
+    ) {
       // 先记录位置, 再移除节点
       const ret = cr.caretOutStart(text)
       ctx.commonHandlers.removeNode(text, true)
@@ -21,7 +36,7 @@ const checkRemoveMarkChars = (ctx: Et.EditorContext, tr: Et.ValidTargetCaret, ma
     else {
       offset = offset - marker.length
       ctx.commonHandlers.deleteInTextNode(text, offset, marker, true)
-      if (tr.isAtEnd()) {
+      if (tc.isAtEnd()) {
         return cr.caretOutEnd(text)
       }
       return cr.caretIn(text, offset)
@@ -94,7 +109,7 @@ export const markHandler: Et.EffectHandler = {
     }
     ctx.commandManager.commit()
     ctx.commandManager.startTransaction()
-    let insertAt = checkRemoveMarkChars(ctx, tc, removeMarkerChars)
+    let insertAt = checkRemoveZWSAndMarkChars(ctx, tc, removeMarkerChars)
     if (!insertAt) {
       insertAt = tc.etCaret
     }

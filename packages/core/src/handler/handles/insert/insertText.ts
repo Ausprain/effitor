@@ -7,14 +7,14 @@ import { cmd } from '../../command'
 import { createInputEffectHandle } from '../../utils'
 import { insertTextAtRange } from './insert.shared'
 
-export const insertText = createInputEffectHandle((ctx, pl) => {
-  if (!pl.data) {
+export const insertText = createInputEffectHandle((ctx, { data, targetRange }) => {
+  if (!data) {
     return true
   }
-  if (pl.targetRange.collapsed) {
-    return insertTextAtCaretByTyping(ctx, pl.data, pl.targetRange.toTargetCaret())
+  if (targetRange.collapsed) {
+    return insertTextAtCaretByTyping(ctx, data, targetRange.toTargetCaret())
   }
-  return insertTextAtRange(ctx, pl.data, pl.targetRange)
+  return insertTextAtRange(ctx, data, targetRange)
 })
 
 /**

@@ -12,6 +12,7 @@ export const enum ListEnum {
 export const enum ListAttr {
   Ordered = 'ordered',
   Style_Type = 'style-type',
+  Check = 'et-check',
 }
 
 export interface ListType {

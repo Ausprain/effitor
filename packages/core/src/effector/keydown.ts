@@ -1,26 +1,19 @@
 import type { Et } from '../@types'
+import { solveKeydownArrow } from './keydownArrow'
 
 export type MainKeyboardSolver = {
   [K in keyof Et.KeyboardKeySolver]: (ev: KeyboardEvent, ctx: Et.UpdatedContext) => void
 }
 
 const keydownKeySolver: MainKeyboardSolver = {
-  default: (ev) => {
-    // 编辑器内禁用ctrl+r,ctrl+p等浏览器快捷键
-    // 凡事伴随按下ctrl或meta的按键，若非额外定义，则过滤;
-    if (ev.ctrlKey || ev.metaKey) {
-      ev.preventDefault()
-      ev.stopPropagation()
-    }
-  },
-
-  C: () => { /** 放行默认复制 */ },
-  V: () => { /** 放行默认粘贴 */ },
-  X: () => { /** 放行默认剪切 */ },
-
   // 在样式节点内按下 tab, 跳出样式节点, 否则插入制表符
   Tab: (ev, ctx) => {
     if (ev.ctrlKey || ev.altKey) return
+    if (ctx.selection.rawEl) {
+      return ctx.body.dispatchInputEvent('beforeinput', {
+        inputType: ev.shiftKey ? 'formatOutdent' : 'formatIndent',
+      })
+    }
     if (!ctx.selection.isCollapsed) {
       ctx.selection.collapse(false)
       return
@@ -34,29 +27,6 @@ const keydownKeySolver: MainKeyboardSolver = {
     }
     ctx.selection.collapse(false, true)
   },
-
-  // TODO 放 handler 中处理
-  //   if (!ctx.selection.isCollapsed || !ctx.selection.anchorText) return
-  //   // 毗邻零宽字符, 移动光标
-  //   // fixme 这项操作是为了提高编辑体验的; 当光标位于样式节点内末尾, 继续输入文本时会产生「样式连带」现象
-  //   // 虽然effitor可以通过按下tab键跳出样式节点; 但此行为不符合用户心理预期,
-  //   // 如文档末尾是一个样式节点, 然后鼠标点击文档末尾, 光标聚焦到文档末尾;
-  //   // 此时用户希望在文档末尾输入无样式文本, 可是由于光标聚焦在样式节点内末尾, 输入的内容会连带该样式
-  //   // 当用户发现时, 又需要删除刚刚输入的内容然后按tab跳出该样式节点; 总而言之, 这不是好的编辑体验
-  //   if (dom.checkAbutZeroWidthSpace(ctx.selection.anchorText, ctx.selection.anchorOffset, true)) {
-  //     // import.meta.env.DEV && console.warn('backspace move caret')
-  //     ctx.selection.modify(['move', 'backward', 'character'])
-  //   }
-  //   checkBackspaceInUneditable(ev, ctx)
-  // },
-  // 'Delete': (ev, ctx) => {
-  //   if (!ctx.selection.isCollapsed || !ctx.selection.anchorText) return
-  //   if (dom.checkAbutZeroWidthSpace(ctx.selection.anchorText, ctx.selection.anchorOffset, false)) {
-  //     // import.meta.env.DEV && console.warn('delete move caret')
-  //     ctx.selection.modify(['move', 'forward', 'character'])
-  //   }
-  //   checkDeleteInUneditable(ev, ctx)
-  // },
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -74,11 +44,9 @@ export const runKeyboardSolver = (
   let fn
   if (solver) {
     fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
-    if (!fn) {
-      fn = solver[key as keyof typeof solver] || solver.default
-    }
+      || solver[key as keyof typeof solver] || solver.default
     if (typeof fn === 'function') {
-      // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
+      // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
       fn(ev, ctx)
     }
   }
@@ -154,13 +122,14 @@ export const getKeydownCaptureListener = (
       return
     }
 
+    // 效应元素独占效应器
     if (solver) {
       const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
       const fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
         || solver[key as keyof typeof solver] || solver.default
       if (typeof fn === 'function' && fn(
         ev,
-        // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
+        // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
         ctx,
       )) {
         ev.preventDefault()
@@ -177,25 +146,17 @@ export const getKeydownListener = (
   ctx: Et.UpdatedContext, main: MainKeydownKeySolver, solver?: Et.KeyboardSolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
-    // console.warn('keydown', {
-    //   comp: ev.isComposing,
-    //   skip: ctx.nextKeydownSkipped && ctx.skipNextKeydown(),
-    //   key: ev.key,
-    //   prevUp: ctx.prevUpKey,
-    // })
-
-    // 光标在原生编辑节点内, 直接调用插件solver, 使用同步逻辑, 插件需自行判断是否为输入法输入;
-    // 在 mainSolver 中对 ctrl+r 刷新 等浏览器行为做禁用兜底
-    if (ctx.selection.rawEl) {
-      if (ctx.composition.inSession) {
+    // 判断方向键
+    if (ev.code[0] === 'A' && ev.code[4] === 'w') {
+      if (solveKeydownArrow(ev, ctx)) {
         return
       }
-      runKeyboardSolver(ev, ctx, main, solver)
-      return
     }
+
+    // 当剪贴板事件完全接管后, 该行可放到 2. 处, 因为 1. 处不需要
     ctx.hotkeyManager.setModkey(ev)
 
-    // MacOS 下, 延迟1帧, 等待 compositionstart 激活以判断是否输入法输入
+    // MacOS 下非 Safari, 通过延迟1帧, 等待 compositionstart 激活来判断是否输入法输入
     requestAnimationFrame(() => {
       if (ctx.composition.inSession) {
         return
@@ -220,7 +181,6 @@ export const getKeydownListener = (
         else {
           data = ev.key
         }
-        // console.log('keydown dispatch beforeinput')
         ctx.body.dispatchInputEvent('beforeinput', {
           data,
           inputType: 'insertText',
@@ -229,6 +189,7 @@ export const getKeydownListener = (
       }
 
       // 2. 监听内置系统级按键行为
+      // ctx.hotkeyManager.setModkey(ev)
       if (ctx.hotkeyManager.listenBuiltin()) {
         return
       }
@@ -247,11 +208,12 @@ export const getKeydownListener = (
       }
     })
 
+    ev.stopPropagation()
     // 禁用(除复制/剪切/粘贴外)所有原生默认行为 (必须同步执行才有效)
     if (!ctx.keepDefaultModkeyMap[ctx.hotkeyManager.modkey]) {
       ev.preventDefault()
     }
-    ev.stopPropagation()
+
     // 设置当前按下的按键, 用于在下一个 keydown 中判断是否连续按下相同的按键
     ctx.currDownKey = ev.key
     // 若光标为Range, 设为null, 并在keyup中跳过

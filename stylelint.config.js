@@ -10,7 +10,7 @@ export default {
   rules: {
     // syntax rules from stylelint:
     'color-function-notation': 'modern',
-    'selector-max-compound-selectors': 2,
+    'selector-max-compound-selectors': 3,
 
     // stylistic rules from @stylistic/stylelint-plugin:
     '@stylistic/color-hex-case': 'lower',

@@ -18,9 +18,9 @@ import {
   EtParagraphElement,
 } from '../element'
 import { extentEtElement, registerEtElement } from '../element/register'
-import { useUndoEffector } from '../handler/command/undoEffector'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, MdProcessor } from '../markdown/processor'
+import { useUndo } from '../plugins'
 import { cssStyle2cssText } from '../utils'
 import type { EditorMountOptions } from './config'
 import { ConfigManager } from './ConfigManager'
@@ -80,6 +80,10 @@ export class Effitor {
 
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
+
+  public readonly status: Readonly<Et.EditorStatus> = {
+    isDark: false,
+  }
 
   public readonly config: Readonly<Et.EditorConfig>
   public readonly platform = platform
@@ -178,7 +182,7 @@ export class Effitor {
     }
     // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
     // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
-    plugins = [{ name: BuiltinConfig.BUILTIN_UNDO_PLUGIN_NAME, effector: useUndoEffector() }, ...plugins]
+    plugins = [useUndo(), ...plugins]
     const schema = {
       editor: EtEditorElement,
       body: EtBodyElement,
@@ -339,6 +343,23 @@ export class Effitor {
     this.__host = undefined
     this.__context = null
     this.cancelObserve()
+  }
+
+  /**
+   * 设置编辑器的颜色方案
+   * @param isDark 是否为深色模式
+   */
+  setColorScheme(isDark: boolean) {
+    if (this.status.isDark === isDark) return
+    const root = this.isShadow ? (this.__root as ShadowRoot).host : (this.__root as HTMLElement)
+    if (isDark) {
+      root?.classList.add('dark')
+    }
+    else {
+      root?.classList.remove('dark')
+    }
+    Object.assign(this.status, { isDark })
+    this.callbacks.onDarkModeChanged?.(this.context, isDark)
   }
 
   changeLocale(locale: string) {

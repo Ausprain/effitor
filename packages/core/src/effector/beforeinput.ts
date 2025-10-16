@@ -1,57 +1,39 @@
 import { BuiltinConfig } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { solveInputInRawEl } from './beforeinputInRaw'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
-  'default': (ev, ctx) => {
+  default: (ev, ctx) => {
+    let effect
+    if (ev.inputType) {
+      effect = BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType
+    }
+    else {
+      // chrome 会将未声明或不合法的inputType转为"", 判断是否设置在了 data 里
+      if (!ev.data) {
+        if (import.meta.env.DEV) {
+          ctx.assists.logger?.warn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
+        }
+        return
+      }
+      effect = ev.data[0].toUpperCase() === ev.data[0]
+        ? ev.data
+        : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
+    }
     const targetRange = ctx.selection.getTargetRange()
-    if (!targetRange) {
+    // 理论上通过用户编辑行为触发的事件, ctx 上下文与targetRange 上下文应该是一致的
+    if (!targetRange || ctx.commonEtElement !== targetRange.commonEtElement) {
       return false
     }
-    if (ctx.effectInvoker.invoke(
-      ctx.commonEtElement,
-      BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType as Et.InputTypeEffect,
-      ctx,
-      {
-        data: ev.data,
-        dataTransfer: ev.dataTransfer,
-        targetRange,
-      },
-    )) {
+    if (ctx.effectInvoker.invoke(ctx.commonEtElement, effect as Et.InputTypeEffect, ctx, {
+      data: ev.data,
+      dataTransfer: ev.dataTransfer,
+      targetRange,
+    })) {
       ev.preventDefault()
     }
     ctx.commandManager.handleAndUpdate()
-  },
-  /** 未声明或不合法的inputType, 执行此回调 */
-  '': (ev, ctx) => {
-    if (ev.data) {
-      const targetRange = ctx.selection.getTargetRange()
-      if (!targetRange) {
-        return false
-      }
-      // 将 InputEvent 不接受的 inputType写入 data 中来读取
-      const effect = ev.data[0].toUpperCase() === ev.data[0]
-        ? ev.data
-        : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
-
-      ctx.effectInvoker.invoke(
-        ctx.commonEtElement,
-        effect as Et.InputTypeEffect,
-        ctx,
-        {
-          data: ev.data,
-          dataTransfer: ev.dataTransfer,
-          targetRange,
-        },
-      )
-      if (ctx.commandManager.handleAndUpdate()) {
-        ev.preventDefault()
-      }
-      return
-    }
-    if (import.meta.env.DEV) {
-      ctx.assists.logger?.warn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
-    }
   },
 }
 
@@ -73,11 +55,9 @@ export const runInputSolver = (
   let fn
   if (solver) {
     fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
-    if (!fn) {
-      fn = solver[ev.inputType] || solver.default
-    }
+      || solver[ev.inputType] || solver.default
     if (typeof fn === 'function') {
-      // @ts-expect-error 效应元素独占 solver 的 ctx 的 focusEtElement就是该效应元素类型
+      // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
       fn(ev, ctx)
     }
   }
@@ -93,8 +73,14 @@ export const getBeforeinputListener = (
   ctx: Et.EditorContext, main: MainBeforeInputTypeSolver, solver?: Et.InputSolver,
 ) => {
   return (ev: Et.InputEvent) => {
+    if (!ctx.isUpdated()) {
+      return
+    }
     // console.log('beforeinput', ev.inputType, ev.data)
-    // 输入法会话内 跳过delete 处理, 因为其不可 preventDefault
+    ev.stopPropagation()
+    // 输入法会话内 跳过显式的 delete 处理; 正常情况下, 输入法会话内的 inputType 不会是以下值, 只可能是
+    // [insertCompositionText, deleteCompositionText, insertFromComposition], 后两项是Safari 独有
+    // TODO, 测试以下判断是否已经过时 (不必要的)
     if (ctx.composition.inSession) {
       if ([
         'deleteContentBackward', // Windows
@@ -102,20 +88,33 @@ export const getBeforeinputListener = (
         'deleteContentForward',
         'deleteWordForward',
       ].includes(ev.inputType)) {
+        if (import.meta.env.DEV) {
+          throw new Error('delete 相关 inputType 不应该在输入法会话内触发')
+        }
         return
       }
-      // 输入法相关 inputType 不走插件, 直接进入 MainSolver
-      runInputSolver(ev, ctx, main, void 0)
+      if (ctx.selection.rawEl) {
+        solveInputInRawEl(ev, ctx, ctx.selection.rawEl)
+      }
+      else {
+        // 输入法相关 inputType 不走插件, 直接进入 MainSolver
+        runInputSolver(ev, ctx, main, void 0)
+      }
       return
     }
 
-    runInputSolver(ev, ctx, main, solver)
+    if (ctx.selection.rawEl) {
+      solveInputInRawEl(ev, ctx, ctx.selection.rawEl, solver)
+    }
+    else {
+      runInputSolver(ev, ctx, main, solver)
+    }
 
     if (!ev.defaultPrevented) {
       // todo remove
       if (import.meta.env.DEV) {
         if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
-          ctx.assists.logger?.error(`There's unhandled input:`, `beforeinput.${ev.inputType}`)
+          ctx.assists.logger?.warn(`There's unhandled inputType:${ev.inputType}`, `core[beforeinput]`)
         }
       }
       // 阻止所有beforeinput默认行为

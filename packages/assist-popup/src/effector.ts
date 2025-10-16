@@ -66,9 +66,7 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
             return
           }
           const selectedText = ctx.selection.selectedTextContent
-          if (!selectedText || selectedText.length > 5
-            || selectedText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
-          ) {
+          if (!selectedText || selectedText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === '') {
             return
           }
           ctx.assists.popup.showSelectionRangePopup()

@@ -3,7 +3,7 @@ import { EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 import { Et } from '../../../@types'
 import { etcode } from '../../../element'
 import { cr } from '../../../selection'
-import { dom } from '../../../utils'
+import { dom, traversal } from '../../../utils'
 import { cmd } from '../../command'
 import { createEffectHandle } from '../../utils'
 
@@ -27,6 +27,7 @@ const caretToNextText = (node: Et.Node, ctx: Et.EditorContext) => {
 }
 
 export const tabout = createEffectHandle('tabout', (ctx, tc) => {
+  // TODO 判断 ctx.selection.rawEl
   // 有光标跳出效应, 跳出光标
   if (etcode.check(tc.anchorEtElement, EtTypeEnum.CaretOut)) {
     return caretToNextText(tc.anchorEtElement, ctx)
@@ -40,6 +41,31 @@ export const tabout = createEffectHandle('tabout', (ctx, tc) => {
 })
 
 export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
+  if (ctx.selection.rawEl) {
+    const currP = tc.anchorParagraph
+    if (currP && etcode.check(currP, EtTypeEnum.Component)) {
+      const nextP = currP.nextSibling
+      if (nextP) {
+        return ctx.setCaretToAParagraph(nextP, true, true)
+      }
+      else {
+        const newP = ctx.createPlainParagraph()
+        const destCaretRange = dom.isText(newP.firstChild) ? cr.caretInEnd(newP.firstChild) : cr.caretInStart(currP)
+        return ctx.commandManager.push(cmd.insertNode({
+          node: newP,
+          execAt: cr.caretOutEnd(currP),
+          destCaretRange,
+        })).handleAndUpdate()
+      }
+    }
+    else {
+      const nextNode = traversal.treeNextSibling(ctx.selection.rawEl)
+      if (dom.isText(nextNode) && nextNode.parentElement?.isContentEditable) {
+        return ctx.commonHandlers.caretToTextStartWithZWS(nextNode)
+      }
+    }
+    return false
+  }
   if (!etcode.check(tc.anchorEtElement, EtTypeEnum.CaretOut)) {
     return false
   }
@@ -61,4 +87,19 @@ export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
     }
   }
   return caretToNextText(outer, ctx)
+})
+
+export const appendParagraph = createEffectHandle('appendParagraph', (ctx, tc) => {
+  if (!tc.anchorTopElement) {
+    return false
+  }
+  const newP = ctx.createPlainParagraph()
+  const destCaretRange = dom.isText(newP.firstChild)
+    ? cr.caretInEnd(newP.firstChild)
+    : cr.caretInStart(newP)
+  return ctx.commandManager.push(cmd.insertNode({
+    node: newP,
+    execAt: cr.caretOutEnd(tc.anchorTopElement),
+    destCaretRange,
+  })).handleAndUpdate()
 })

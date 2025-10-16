@@ -56,7 +56,7 @@ export class Composition {
   private readonly _configManager: ConfigManager
   constructor(
     private readonly _ctx: Et.EditorContext,
-    private readonly _isSupportInsertFromComposition: boolean,
+    public readonly isSupportInsertFromComposition: boolean,
   ) {
     // TODO 设置 imeCharsMapping 配置更新检查器
     // this._configManager.setConfigChecker('imeCharsMapping', (config) => {})
@@ -190,7 +190,9 @@ export class Composition {
     this._inSession = true
     this._isUsingIME = true
     this._updateCount = 0
-    this._paragraphLastNode = this._ctx.focusParagraph?.lastChild
+    if (!this._ctx.selection.rawEl) {
+      this._paragraphLastNode = this._ctx.focusParagraph?.lastChild
+    }
   }
 
   onUpdate() {
@@ -207,6 +209,34 @@ export class Composition {
       this._ctx.commandManager.commit()
     }, 0)
 
+    if (this._ctx.selection.rawEl) {
+      this.onEndInRawEl(this._ctx.selection.rawEl, data)
+    }
+    else {
+      this.onEndInEditable(data)
+    }
+
+    // fixed. 解决 MacOS 下 Safari 的 composition 事件先于 keydown 执行, 导致输入法结束后
+    // 多执行一个 keydown 引起的 beforeinput 事件的问题
+    // FIXME 使用isSupportInsertFromComposition判断是暂时的, 目前仅 macOS 的 Safari 和 webview 该属性为 true
+    //       未来其他浏览器也将 composition 提前于 keydown, 或支持 `insertFromComposition` 则需要修改
+    if (this.isSupportInsertFromComposition) {
+      this._ctx.skipNextKeydown()
+    }
+    else {
+      // Safari 的输入法插入文本可拦截, 使用 insertText 命令插入 并设置设置光标位置, 更新ctx
+      // 非 Safari 下, 输入法插入无法拦截, 需手动更新上下文
+      this._ctx.forceUpdate()
+      // 消耗掉上一次 compositionupdate 的 skipNextKeydown
+      return this._ctx.nextKeydownSkipped
+    }
+  }
+
+  onEndInRawEl(_el: Et.HTMLRawEditElement, _data: string) {
+    // empty
+  }
+
+  onEndInEditable(data: string) {
     // fixed. 若data 为空, 即用户删除输入法组合串或使用 Esc 取消输入法输入
     // 此时若段落只有唯一一个子节点(就是输入法组合串所在的文本节点, 其内容会被替换为 data)
     // 此时插入一个尾 br; 这是各浏览器的"共识", 大概目的是防止输入法组合串被删除后, 段落为空,
@@ -247,21 +277,6 @@ export class Composition {
       if (this._ctx.focusEtElement) {
         this._ctx.getEtHandler(this._ctx.focusEtElement).InsertCompositionTextSuccess?.(this._ctx, data)
       }
-    }
-
-    // fixed. 解决 MacOS 下 Safari 的 composition 事件先于 keydown 执行, 导致输入法结束后
-    // 多执行一个 keydown 引起的 beforeinput 事件的问题
-    // FIXME 使用isSupportInsertFromComposition判断是暂时的, 目前仅 macOS 的 Safari 和 webview 该属性为 true
-    //       未来其他浏览器也将 composition 提前于 keydown, 或支持 `insertFromComposition` 则需要修改
-    if (this._isSupportInsertFromComposition) {
-      this._ctx.skipNextKeydown()
-    }
-    else {
-      // Safari 的输入法插入文本可拦截, 使用 insertText 命令插入 并设置设置光标位置, 更新ctx
-      // 非 Safari 下, 输入法插入无法拦截, 需手动更新上下文
-      this._ctx.forceUpdate()
-      // 消耗掉上一次 compositionupdate 的 skipNextKeydown
-      return this._ctx.nextKeydownSkipped
     }
   }
 }

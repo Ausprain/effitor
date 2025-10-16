@@ -8,7 +8,7 @@ export const enum BuiltinConfig {
    * 编辑器内部元素 css 类名前缀\
    * 效应元素使用 add/removeCssClass 方法添加/删除类名自动添加此前缀
    */
-  EDITOR_CSS_CLASS_PREFIX = 'ET_cls_',
+  EDITOR_CSS_CLASS_PREFIX = 'ET_cls-',
   /** 一个粘贴效应名, 定义在这里, 而不是效应列表中, 目的是隐藏内部粘贴行为入口 */
   INSERT_FROM_ET_HTML = 'InsertFromEtHtml',
   /** 编辑器主题属性名 */

@@ -8,6 +8,8 @@ import { EtMarkElement } from './element'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler } from './handler/markHandles'
 
+export { EtMarkElement }
+
 interface MarkPluginOptions {
   /** 是否开启标记符hinting */
   enableHinting?: boolean

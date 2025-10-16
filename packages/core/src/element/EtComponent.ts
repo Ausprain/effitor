@@ -27,7 +27,7 @@ export abstract class EtComponent extends EtParagraph {
    * 光标聚焦到组件内部可编辑节点
    * @param ctx 编辑器上下文
    * @param toStart 是否聚焦到开始位置
-   * @returns 聚焦到的元素
+   * @returns 聚焦到的元素, 若不暴露可返回null
    */
-  abstract focusToInnerEditable(ctx: Et.EditorContext, toStart: boolean): Et.HTMLElement
+  abstract focusToInnerEditable(ctx: Et.EditorContext, toStart: boolean): HTMLElement | null
 }

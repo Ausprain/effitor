@@ -1,6 +1,6 @@
 {
   "name": "@effitor/core",
-  "version": "0.3.5-alpha",
+  "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "effitor",
@@ -35,7 +35,8 @@
   "scripts": {
     "dev": "vite",
     "test-unit": "vitest unit",
-    "test-e2e:chrome": "vitest e2e --browser chromium"
+    "test-e2e:chrome": "vitest e2e --browser chromium",
+    "build": "tsup"
   },
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.2",

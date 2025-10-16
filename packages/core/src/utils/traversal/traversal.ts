@@ -289,6 +289,24 @@ export const treeNextSibling = (node: Et.Node): Et.Node | null => {
   }
   return null
 }
+/**
+ * 获取节点在文档树顺序的上一个兄弟节点 (有亲兄弟返回亲兄弟, 没有亲兄弟返回第一个有前兄弟的祖先的前兄弟)
+ */
+export const treePrevSibling = (node: Et.Node): Et.Node | null => {
+  let prev = node.previousSibling
+  if (prev) {
+    return prev
+  }
+  let p = node.parentNode
+  while (p) {
+    prev = p.previousSibling
+    if (prev) {
+      return prev
+    }
+    p = p.parentNode
+  }
+  return null
+}
 
 /* ------------------------------ outer utils ------------------------------ */
 

@@ -32,6 +32,7 @@
     box-shadow: var(--et-shadow);
   }
 
+  &.selected::before,
   &:hover::before {
     display: block;
     animation: fade-in 0.3s ease-out;

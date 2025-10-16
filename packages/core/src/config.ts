@@ -6,18 +6,24 @@ import type { Et } from './@types'
 // Safari: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
 // Firefox: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0"
 // macOS WKWebView: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)"
+const isMac = navigator.userAgentData ? navigator.userAgentData.platform === 'macOS' : /Mac/.test(navigator.userAgent)
+const isChrome = /Chrome/.test(navigator.userAgent)
+const isFirefox = /Firefox/.test(navigator.userAgent)
+const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
 export const platform = {
   locale: navigator.language,
-  isMac: navigator.userAgentData ? navigator.userAgentData.platform === 'macOS' : /Mac/.test(navigator.userAgent),
-  isFirefox: /Firefox/.test(navigator.userAgent),
-  isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
+  isMac,
+  isChrome,
+  isFirefox,
+  isSafari,
   /**
    * 当前平台是否支持 inputType="insertFromComposition" 的 InputEvent\
    * 目前已知 Safari 和 macOS WKWebView 支持; Chromium 和 Firefox 均不支持
    */
-  isSupportInsertFromComposition: new InputEvent('beforeinput', {
-    inputType: 'insertFromComposition',
-  }).inputType === 'insertFromComposition',
+  // FIXME. 这个判断是否正确? 由于 Firefox 和 Safari 中 InputEvent.inputType 允许任意值,
+  // 无法通过 new InputEvent('beforeinput', { inputType: 'insertFromComposition' })
+  // 的 inputType 属性是否 === 'insertFromComposition' 来判断 (chrome 中会把该值转为空字符串)
+  isSupportInsertFromComposition: !isChrome && !isFirefox,
 } as const
 
 export const defaultConfig: Readonly<Et.EditorConfig> = {

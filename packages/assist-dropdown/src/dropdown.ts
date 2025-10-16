@@ -293,6 +293,12 @@ export class Dropdown {
     onchosen: (ctx: Et.EditorContext) => void,
     options?: DropdownMenuItemOptions,
   ): DropdownMenuItem {
+    if (icon.localName === 'svg') {
+      // svg 不支持::before/::after, 要启用 tip, 要包裹在一个 html 元素内
+      const span = document.createElement('span')
+      span.appendChild(icon)
+      icon = span
+    }
     icon.classList.add(DropdownEnum.Class_Menu_Item, options?.className ?? CssClassEnum.BgItem)
     icon.onmousedown = (e) => {
       e.stopPropagation()

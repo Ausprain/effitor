@@ -1,6 +1,6 @@
 {
   "name": "@effitor/plugin-heading",
-  "version": "0.3.5-alpha",
+  "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "effitor",
@@ -29,7 +29,9 @@
     "url": "git+https://github.com/Ausprain/effitor.git",
     "directory": "packages/plugin-heading"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "tsup"
+  },
   "dependencies": {
     "@effitor/core": "workspace:*"
   }

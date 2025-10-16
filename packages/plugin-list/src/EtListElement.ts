@@ -191,14 +191,14 @@ export class EtListItemElement extends EtParagraphElement {
 
   set checked(checked: boolean | null | undefined) {
     if (typeof checked === 'boolean') {
-      this.setAttribute('et-check', checked ? 'true' : 'false')
+      this.setAttribute(ListAttr.Check, checked ? 'true' : 'false')
       return
     }
-    this.removeAttribute('et-check')
+    this.removeAttribute(ListAttr.Check)
   }
 
   get checked() {
-    const checked = this.getAttribute('et-check')
+    const checked = this.getAttribute(ListAttr.Check)
     if (!checked) {
       return null
     }

@@ -22,6 +22,9 @@ export class EtBodyElement extends EffectElement {
 
   connectedCallback(): void {
     this.setAttribute('contenteditable', '')
+    this.setAttribute('autocorrect', 'off')
+    this.autocapitalize = 'off'
+    this.spellcheck = false
   }
 
   toNativeElement() {

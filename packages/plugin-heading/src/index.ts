@@ -4,6 +4,8 @@ import { headingEffector } from './effector'
 import { EtHeadingElement } from './element'
 import cssText from './index.css?raw'
 
+export { EtHeadingElement }
+
 export const useHeadingPlugin = (): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-heading',

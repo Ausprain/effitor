@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { cmd, cr, type Et } from '@effitor/core'
 
 import { MarkEnum, markerMap, MarkType } from '../config'
 import { checkAllowNested } from './utils'
@@ -52,6 +52,24 @@ export const inMarkHandler: Et.EffectHandler = {
               })
             }
           }
+          return true
+        }
+      }
+      // 还原连续的```
+      if (payload.data === markerMap[MarkType.CODE].char) {
+        const tc = payload.targetRange.toTargetCaret()
+        if (ctx.schema.mark.is(tc.anchorEtElement)
+          && tc.anchorEtElement.markType === MarkType.CODE
+          && tc.anchorEtElement.textContent === '`'
+          && tc.anchorParagraph?.firstChild === tc.anchorEtElement
+          && (!tc.anchorParagraph.childNodes.item(1) || tc.anchorParagraph.lastChild?.localName === 'br')
+        ) {
+          const textNode = document.createTextNode('```') as Et.Text
+          ctx.commandManager.push(cmd.replaceNode({
+            oldNode: tc.anchorEtElement,
+            newNode: textNode,
+            destCaretRange: cr.caret(textNode, 3),
+          }))
           return true
         }
       }

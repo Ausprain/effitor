@@ -7,6 +7,8 @@ import { EtListElement, EtListItemElement } from './EtListElement'
 import { inListHandler } from './handler/inListHandler'
 import listCss from './index.css?raw'
 
+export { EtListElement, EtListItemElement }
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ListPluginOptions {}
 

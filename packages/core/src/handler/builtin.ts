@@ -30,7 +30,7 @@ import {
 import { insertLineBreak } from './handles/insert/insertLineBreak'
 import { insertParagraph } from './handles/insert/insertParagraph'
 import { insertText } from './handles/insert/insertText'
-import { dblSpace, tabout } from './handles/others/caretout'
+import { appendParagraph, dblSpace, tabout } from './handles/others/caretout'
 import {
   initEditorContents,
   insertParagraphAtParagraphEnd,
@@ -38,6 +38,13 @@ import {
   transformInsertContents,
   updateEditorContentsFromMarkdown,
 } from './handles/others/default'
+import {
+  deleteInRawEl,
+  deleteTextInRawEl,
+  insertCompositionTextInRawEl,
+  insertTextInRawEl,
+  replaceTextInRawEl,
+} from './handles/others/inRawEl'
 
 export const buintinHandler: Et.EffectHandler = {
   // 输入法相关
@@ -63,7 +70,11 @@ export const buintinHandler: Et.EffectHandler = {
   EdeleteSoftLineBackward: deleteSoftLineBackward,
   EdeleteSoftLineForward: deleteSoftLineForward,
 
+  /* -------------------------------------------------------------------------- */
+  /*                                   others                                   */
+  /* -------------------------------------------------------------------------- */
   // 非标准; 需通过 将 inputType 写在 InputEvent.data 里或直接通过 effectInvoker 来触发
+
   InsertParagraphAtParagraphStart: insertParagraphAtParagraphStart,
   InsertParagraphAtParagraphEnd: insertParagraphAtParagraphEnd,
   BackspaceAtParagraphStart: backspaceAtParagraphStart,
@@ -79,4 +90,14 @@ export const buintinHandler: Et.EffectHandler = {
 
   tabout: tabout,
   dblSpace: dblSpace,
+  appendParagraph: appendParagraph,
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   rawEl                                    */
+  /* -------------------------------------------------------------------------- */
+  InsertCompositionTextInRawEl: insertCompositionTextInRawEl,
+  InsertTextInRawEl: insertTextInRawEl,
+  DeleteInRawEl: deleteInRawEl,
+  DeleteTextInRawEl: deleteTextInRawEl,
+  ReplaceTextInRawEl: replaceTextInRawEl,
 }

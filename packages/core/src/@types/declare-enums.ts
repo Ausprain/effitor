@@ -310,25 +310,25 @@ export const enum InputTypeEnum {
   /** 插入换行(硬换行): Shift+Enter换行 */
   'insertLineBreak' = 'insertLineBreak',
 
-  // /** 插入有序列表 */
-  // 'insertOrderedList' = 'insertOrderedList',
-  // /** 插入无序列表 */
-  // 'insertUnorderedList' = 'insertUnorderedList',
-  // /** 插入水平分割线 */
-  // 'insertHorizontalRule' = 'insertHorizontalRule',
-  // /** 插入链接 */
-  // 'insertLink' = 'insertLink',
+  /** 插入有序列表 */
+  'insertOrderedList' = 'insertOrderedList',
+  /** 插入无序列表 */
+  'insertUnorderedList' = 'insertUnorderedList',
+  /** 插入水平分割线 */
+  'insertHorizontalRule' = 'insertHorizontalRule',
+  /** 插入链接 */
+  'insertLink' = 'insertLink',
 
-  // /** 从拖拽中插入; issue: ShadowDOM 内无法识别插入位置 (Chromium 120) */
-  // 'insertFromDrop' = 'insertFromDrop',
+  /** 从拖拽中插入; issue: ShadowDOM 内无法识别插入位置 (Chromium 120) */
+  'insertFromDrop' = 'insertFromDrop',
   /** 插入粘贴 */
   'insertFromPaste' = 'insertFromPaste',
-  // /** 仅 Firefox 实现 */
-  // 'insertFromPasteAsQuotation' = 'insertFromPasteAsQuotation',
-  // /** 从编辑器内部复制剪贴板(yank)粘贴 */
-  // 'insertFromYank' = 'insertFromYank',
-  // /** 未知 */
-  // 'insertTranspose' = 'insertTranspose',
+  /** 仅 Firefox 实现 */
+  'insertFromPasteAsQuotation' = 'insertFromPasteAsQuotation',
+  /** 从编辑器内部复制剪贴板(yank)粘贴 */
+  'insertFromYank' = 'insertFromYank',
+  /** 未知 */
+  'insertTranspose' = 'insertTranspose',
 
   /* -------------------------------------------------------------------------- */
   /*                                    删除类                                   */
@@ -373,42 +373,42 @@ export const enum InputTypeEnum {
   /** Ctrl+y重做 */
   'historyRedo' = 'historyRedo',
 
-  // /** 加粗 */
-  // 'formatBold' = 'formatBold',
-  // /** 斜体 */
-  // 'formatItalic' = 'formatItalic',
-  // /** 下划线 */
-  // 'formatUnderline' = 'formatUnderline',
-  // /** 删除线 */
-  // 'formatStrikeThrough' = 'formatStrikeThrough',
-  // /** 上标 */
-  // 'formatSuperscript' = 'formatSuperscript',
-  // /** 下标 */
-  // 'formatSubscript' = 'formatSubscript',
+  /** 加粗 */
+  'formatBold' = 'formatBold',
+  /** 斜体 */
+  'formatItalic' = 'formatItalic',
+  /** 下划线 */
+  'formatUnderline' = 'formatUnderline',
+  /** 删除线 */
+  'formatStrikeThrough' = 'formatStrikeThrough',
+  /** 上标 */
+  'formatSuperscript' = 'formatSuperscript',
+  /** 下标 */
+  'formatSubscript' = 'formatSubscript',
 
-  // /** 缩进 */
-  // 'formatIndent' = 'formatIndent',
-  // /** 取消缩进 */
-  // 'formatOutdent' = 'formatOutdent',
-  // /** 全对齐 */
-  // 'formatJustifyFull' = 'formatJustifyFull',
-  // /** 居中对齐 */
-  // 'formatJustifyCenter' = 'formatJustifyCenter',
-  // /** 右对齐 */
-  // 'formatJustifyRight' = 'formatJustifyRight',
-  // /** 左对齐 */
-  // 'formatJustifyLeft' = 'formatJustifyLeft',
-  // /** 设置块级文本方向 */
-  // 'formatSetBlockTextDirection' = 'formatSetBlockTextDirection',
-  // /** 设置行内文本方向 */
-  // 'formatSetInlineTextDirection' = 'formatSetInlineTextDirection',
+  /** 缩进 */
+  'formatIndent' = 'formatIndent',
+  /** 取消缩进 */
+  'formatOutdent' = 'formatOutdent',
+  /** 全对齐 */
+  'formatJustifyFull' = 'formatJustifyFull',
+  /** 居中对齐 */
+  'formatJustifyCenter' = 'formatJustifyCenter',
+  /** 右对齐 */
+  'formatJustifyRight' = 'formatJustifyRight',
+  /** 左对齐 */
+  'formatJustifyLeft' = 'formatJustifyLeft',
+  /** 设置块级文本方向 */
+  'formatSetBlockTextDirection' = 'formatSetBlockTextDirection',
+  /** 设置行内文本方向 */
+  'formatSetInlineTextDirection' = 'formatSetInlineTextDirection',
 
-  // /** 背景颜色 */
-  // 'formatBackColor' = 'formatBackColor',
-  // /** 字体颜色 */
-  // 'formatFontColor' = 'formatFontColor',
-  // /** 字体名称 */
-  // 'formatFontName' = 'formatFontName',
-  // /** 移除格式 */
-  // 'formatRemove' = 'formatRemove',
+  /** 背景颜色 */
+  'formatBackColor' = 'formatBackColor',
+  /** 字体颜色 */
+  'formatFontColor' = 'formatFontColor',
+  /** 字体名称 */
+  'formatFontName' = 'formatFontName',
+  /** 移除格式 */
+  'formatRemove' = 'formatRemove',
 }

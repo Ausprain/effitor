@@ -15,6 +15,15 @@ export const getInputListener = (
       ev.preventDefault()
       return false
     }
+    runInputSolver(ev, ctx, main, sovler)
+
+    // 若光标不在视口内, 将其移动到视口中央
+    ctx.selection.revealSelection(false, ev.inputType.startsWith('insert') ? 'smooth' : 'instant')
+
+    if (ctx.selection.rawEl) {
+      return
+    }
+
     // TODO 热字符串功能仅在段落下有效?
     if (ev.data && ev.inputType === 'insertText' && ctx.isPlainParagraph(ctx.focusEtElement)) {
       ctx.hotstringManager.listen(ev.data)
@@ -22,10 +31,6 @@ export const getInputListener = (
     else {
       ctx.hotstringManager.needResetBeforeJudge()
     }
-    runInputSolver(ev, ctx, main, sovler)
-
-    // 若光标不在视口内, 将其移动到视口中央
-    ctx.selection.revealSelection(false, ev.inputType.startsWith('insert') ? 'smooth' : 'instant')
 
     // TODO drag/drop 引起的dom改变未触发此回调
     // 思考该回调的用意, 有了 Effitor.observeEditing 是否还必要此回调

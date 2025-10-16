@@ -87,6 +87,9 @@ const tryToBuildSubPackage = async (pkgName) => {
       if (!files.includes('tsconfig.build.json')) {
         await fs.writeFile(resolve(pkgDir, 'tsconfig.build.json'), TSCONFIG_BUILD_JSON)
       }
+      if (!files.includes('README.md')) {
+        await fs.writeFile(resolve(pkgDir, 'README.md'), `# @effitor/${pkgName}`)
+      }
       await tsupPkg(pkgDir)
       console.log(styleText('cyan', `build package ${pkgName} success\n`))
     }

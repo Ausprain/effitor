@@ -37,7 +37,7 @@ export class EtSelection {
   private _focusParagraph: Et.Paragraph | null | undefined
   private _focusTopElement: Et.Paragraph | null | undefined
   /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
-  private _rawEl: HTMLInputElement | HTMLTextAreaElement | null = null
+  private _rawEl: Et.HTMLRawEditElement | null = null
   private _revealIdleCallbackId = 0
 
   /**
@@ -53,7 +53,7 @@ export class EtSelection {
   public ranges: Et.TargetRange[] = []
   /** 当前选区对应的 Range */
   public range: Et.Range | null = null
-  public isCollapsed = true
+  private _collapsed = true
 
   /**
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
@@ -83,7 +83,7 @@ export class EtSelection {
    * 2. 选区非 collapsed, 且 range起止节点是同一文本节点
    */
   get anchorText() {
-    if (this._targetRange && this._targetRange.isTextCommonAncestor()) {
+    if (!this._rawEl && this._targetRange && this._targetRange.isTextCommonAncestor()) {
       return this._targetRange.commonAncestor
     }
     return null
@@ -98,6 +98,23 @@ export class EtSelection {
       return this.range.startOffset
     }
     return 0
+  }
+
+  /**
+   * 当前选区聚焦的节点; 当 anchorText 非空时, 等于 anchorText; 否则等于
+   * selection.focusNode在 focusOffset 位置的子节点
+   */
+  get focusNode() {
+    return this.anchorText || this.selection?.focusNode?.childNodes.item(
+      this.selection.focusOffset) as Et.NodeOrNull | undefined
+  }
+
+  /** 选区是否 collapsed */
+  get isCollapsed() {
+    if (this._rawEl) {
+      return this._rawEl.selectionStart === this._rawEl.selectionEnd
+    }
+    return this._collapsed
   }
 
   /** 选区是否是向前选择的, collapsed时始终返回true; 其他情况, 只要不是明确 backward 的, 都是 forward 的 */
@@ -138,15 +155,22 @@ export class EtSelection {
    * 更新选区信息, 除输入法会话内, 除处理输入法行为需要时, 该方法不可单独调用, 只能通过 ctx.updateUpdate() 间接调用
    */
   update() {
-    // console.warn('et sel update')
     const sel = this.selection
     if (!sel || sel.rangeCount === 0) {
       return false
     }
     const oldText = this.anchorText
-    this.range = sel.getRangeAt(0) as Et.Range
-    // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
-    this.isCollapsed = this.range.collapsed
+    if (this._rawEl) {
+      const r = document.createRange()
+      r.setStart(this._rawEl, 0)
+      r.setEnd(this._rawEl, 0)
+      this.range = r as Et.Range
+    }
+    else {
+      this.range = sel.getRangeAt(0) as Et.Range
+      // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
+      this._collapsed = this.range.collapsed
+    }
     this._caretRange = cr.fromRange(this.range).markConnected()
     this._targetRange = this.TargetRange.fromRange(this.range)
     this._validTargetRange = void 0
@@ -181,18 +205,26 @@ export class EtSelection {
     if (!this._caretRange) {
       return
     }
-    const r = this._caretRange.toRange()
-    // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
-    if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
+    try {
+      const r = this._caretRange.toRange()
+      // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
+      if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
+        return false
+      }
+      return this.selectRange(r)
+    }
+    catch (_) {
       return false
     }
-    return this.selectRange(r)
   }
 
   /**
    * 获取当前选区范围内的文本内容
    */
   get selectedTextContent() {
+    if (this._rawEl) {
+      return this._rawEl.value.slice(this._rawEl.selectionStart, this._rawEl.selectionEnd)
+    }
     if (this.isCollapsed || !this.range) {
       return ''
     }
@@ -287,9 +319,12 @@ export class EtSelection {
   }
 
   /**
-   * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, 返回 null
+   * 获取当前选区目标光标对象; 若选区非collapsed 或光标位置不存在或不合法, ~~或光标在原生编辑节点内~~, 返回 null
    */
   getTargetCaret() {
+    // if (this._rawEl) {
+    //   return null
+    // }
     const tr = this.getTargetRange()
     if (!tr || !tr.collapsed) {
       return null
@@ -298,10 +333,13 @@ export class EtSelection {
   }
 
   /**
-   * 获取当前选区目标范围对象; 若选区范围不存在或不合法, 返回 null
-   * * 该选区可能是 collapsed 的; 可通过其.toTargetCaret()方法获取对应合法光标位置
+   * 获取当前选区目标范围对象; 若选区范围不存在或不合法, ~~或选区范围在原生编辑节点内~~, 返回 null
+   * * 该TargetRange可能是 collapsed 的; 可通过其.toTargetCaret()方法获取对应合法光标位置
    */
   getTargetRange() {
+    // if (this._rawEl) {
+    //   return null
+    // }
     if (this._validTargetRange !== void 0) {
       return this._validTargetRange
     }
@@ -476,12 +514,15 @@ export class EtSelection {
    * 当光标落入input/textarea 内部, selection更新时, selection 不会包含
    * input/textarea 的内部信息; 通常情况下, selection.anchor/focus 节点
    * 是该 input/textarea节点; 但有时会是其 contenteditable=false 的祖先;
+   * 或者光标落于 input/textarea 节点的外开头位置;
    * 因此, 当光标落入此类原生编辑节点时, 须通过该方法手动标记选区为 raw; 并通过
    * this.rawEl 是否为空来判断选区是否在原生编辑节点内
    *
-   * 该方法在 selectionchange 内调用, 通过 event.target 来判断光标是否落入原生编辑节点内
+   * * [deprecated] 该方法在 selectionchange 内调用, 通过 event.target 来判断光标是否落入原生编辑节点内
+   * * 该方法在 focusin/focusout 事件内调用, 通过 focusin/out 事件的 target 来判断光标是否落入原生编辑节点内
+   *   或从原生节点内移出
    */
-  setInRaw(el: HTMLInputElement | HTMLTextAreaElement | null = null) {
+  setInRaw(el: Et.HTMLRawEditElement | null = null) {
     this._rawEl = el
   }
 
@@ -509,6 +550,15 @@ export class EtSelection {
    * @param [reveal=true] 是否保证光标显示在视口内
    */
   collapse(toStart = true, reveal = true) {
+    if (this._rawEl) {
+      if (toStart) {
+        this._rawEl.selectionEnd = this._rawEl.selectionStart
+      }
+      else {
+        this._rawEl.selectionStart = this._rawEl.selectionEnd
+      }
+      return true
+    }
     if (this.isCollapsed) {
       return true
     }
@@ -525,6 +575,14 @@ export class EtSelection {
       this.revealSelection()
     }
     return true
+  }
+
+  /**
+   * 折叠选区, 使光标位置位于 node 节点的相对索引处
+   * * 该方法直接调用 Selection.collapse 方法, 不校验位置合法性
+   */
+  collapseTo(node: Et.Node, offset: number) {
+    this.selection?.collapse(node, offset)
   }
 
   /**
@@ -577,7 +635,7 @@ export class EtSelection {
     }
     destR.setEnd(node, offset)
     if (destR.collapsed) {
-      // 范围坍缩，说明文档树中node在this.focusNode前面
+      // 范围坍缩，说明文档树中node在 focusNode 前面
       destR.setEnd(originR.endContainer, originR.endOffset)
     }
     sel.removeAllRanges()
@@ -650,16 +708,20 @@ export class EtSelection {
       cancelIdleCallbackPolyByEffitor(this._revealIdleCallbackId)
     }
     requestIdleCallbackPolyByEffitor(() => this.revealSelectionSync(toStart, scrollBehavior))
-    return true
   }
 
   /**
    * 同 {@link revealSelection}, 但是同步执行
    */
   revealSelectionSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
+    if (this._rawEl) {
+      // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
+      // 无法通过 Selection/Range API 来获取光标位置, 只能通过原生编辑节点的 scrollTop 来实现
+      this._revealSelectionInRawEl(this._rawEl, toStart, scrollBehavior)
+      return
+    }
     this._revealIdleCallbackId = 0
-    // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
-    if (!this.range || this._rawEl) {
+    if (!this.range) {
       return
     }
     const rects = this.range.getClientRects()
@@ -718,13 +780,122 @@ export class EtSelection {
       top,
       behavior: scrollBehavior,
     })
-    return true
+  }
+
+  private _revealSelectionInRawEl(
+    rawEl: Et.HTMLRawEditElement, toStart = true, scrollBehavior: ScrollBehavior = 'auto',
+  ) {
+    let top: number | undefined = 0,
+      left: number | undefined = 0,
+      el: HTMLInputElement | HTMLTextAreaElement,
+      dummy: HTMLInputElement | HTMLTextAreaElement
+    const leadingText = rawEl.value.slice(0, toStart ? rawEl.selectionStart : rawEl.selectionEnd)
+    const renderDummy = (el: HTMLElement, model: HTMLElement, isWrap: boolean) => {
+      // 清空cssText以去掉索引属性, style 不允许 assign 索引属性
+      const cssText = model.style.cssText
+      model.style.cssText = ''
+      Object.assign(el.style, {
+        ...model.style,
+        // 这里直接设置 textWrapMode 无效, 而设置 whiteSpace 得到的结果是 text-wrap-mode
+        whiteSpace: isWrap ? 'pre-wrap' : 'pre',
+        position: 'fixed',
+        top: '0px',
+        left: '0px',
+        visibility: 'hidden',
+      })
+      model.style.cssText = cssText
+      document.body.appendChild(el)
+    }
+    if (rawEl.localName === 'input') {
+      el = rawEl as unknown as HTMLInputElement
+      dummy = document.createElement('input')
+      dummy.value = leadingText
+      renderDummy(dummy, el, false)
+      dummy.scrollLeft = 99999 // 滚动到最右
+      left = dummy.scrollLeft
+    }
+    else {
+      el = rawEl as unknown as HTMLTextAreaElement
+      dummy = document.createElement('textarea')
+      dummy.value = leadingText
+      const textWrapMode = getComputedStyle(el).textWrapMode as 'wrap' | 'nowrap'
+      dummy.wrap = el.wrap
+      renderDummy(dummy, el, textWrapMode === 'wrap')
+      dummy.scrollTop = 99999 // 滚到最后
+      top = dummy.scrollTop
+      if (textWrapMode === 'nowrap') {
+        // 非 wrap 时, 还要计算左右滚动
+        let lineStart = leadingText.lastIndexOf('\n')
+        if (lineStart === -1) {
+          lineStart = 0
+        }
+        dummy.value = leadingText.slice(lineStart)
+        dummy.scrollLeft = 99999
+        left = dummy.scrollLeft
+      }
+    }
+
+    // const { clientHeight: height, clientWidth: width, scrollTop, scrollLeft } = rawEl
+    // const { scrollHeight, scrollWidth } = dummy
+    // const { fontSize, lineHeight } = window.getComputedStyle(el)
+    // let fs = 13, lh = 16
+    // if (lineHeight.endsWith('px')) {
+    //   lh = Number(lineHeight.slice(0, -2))
+    // }
+    // else {
+    //   if (fontSize.endsWith('px')) {
+    //     fs = Number(fontSize.slice(0, -2))
+    //     lh = fs * 1.2
+    //   }
+    // }
+
+    // 向上滚 top < scrollTop, 仅当当前光标在第个完全可见行时需要, 即未来光标所在行上边缘高于可见区域上边缘时
+    //  <=> dummy.scrollHeight - lineHeight <= rawEl.scrollTop
+    // 向下滚 top > scrollTop, 仅当当前光标在最后一个完全可见行时需要, 即未来光标所在行下边缘低于可见区域下边缘时
+    //  <=> dummy.scrollHeight >= rawEl.scrollTop + height
+    // 当文本两不足height 或 width, 时, scrollHeight 或 scrollWidth 等于 height 或 width
+
+    // if (scrollHeight > height && scrollTop < scrollHeight - lh && scrollTop + height > scrollHeight) {
+    //   top = void 0
+    // }
+    // if (scrollWidth > width && scrollLeft < scrollWidth - fs && scrollLeft + width > scrollWidth) {
+    //   left = void 0
+    // }
+    // if (top === void 0 && left === void 0) {
+    //   return
+    // }
+    rawEl.scrollTo({
+      left,
+      top,
+      behavior: scrollBehavior,
+    })
+    dummy.remove()
   }
 
   /**
    * 扩展选区至选中当前行, 若调用时选区非 collapsed, 可能选中多行
    */
   selectSoftLine() {
+    if (this._rawEl) {
+      const { selectionStart: start, selectionEnd: end, value } = this._rawEl
+      const len = value.length
+      let i = start, j = end
+      for (; i > 0; i--) {
+        if (value[i - 1] === '\n') {
+          break
+        }
+      }
+      for (; j < len; j++) {
+        if (value[j] === '\n') {
+          break
+        }
+      }
+      if (value[j] === '\n') {
+        j++
+      }
+      this._rawEl.setSelectionRange(i, j, 'forward')
+      return true
+    }
     return this.modifyMulti([
       ['extend', 'backward', 'lineboundary'],
       ['extend', 'forward', 'lineboundary'],
@@ -764,6 +935,9 @@ export class EtSelection {
    * 渐进式全选: 光标 -> 当前行 -> 当前段落 -> 当前顶层节点 -> 文档
    */
   selectAllGradually() {
+    if (this._rawEl) {
+      return this._selectAllInRawEl(this._rawEl)
+    }
     const tr = this.getTargetRange()
     if (!tr) {
       return false
@@ -804,6 +978,42 @@ export class EtSelection {
       return this.selectDocument()
     }
     return false
+  }
+
+  private _selectAllInRawEl(el: Et.HTMLRawEditElement) {
+    const { selectionStart: start, selectionEnd: end, value } = el
+    const len = value.length
+    if (start === 0 && end === len) {
+      const r = document.createRange()
+      // rawEl在可编辑节点内部, 则选择 rawEl, 否则选择第一个可编辑效应父节点
+      if (el.isContentEditable) {
+        r.selectNode(el)
+        this.selectRange(r)
+        this.dispatchChange()
+        return true
+      }
+      else {
+        let etEl = this._body.findInclusiveEtParent(el)
+        while (etEl && !etEl.isContentEditable) {
+          etEl = this._body.findInclusiveEtParent(etEl)
+        }
+        if (etEl) {
+          r.selectNode(etEl)
+          this.selectRange(r)
+          this.dispatchChange()
+          return true
+        }
+        return false
+      }
+    }
+    const selectedText = value.slice(start, end)
+    if (selectedText.includes('\n')
+      || value[start - 1] === '\n' || value[end] === '\n'
+    ) {
+      el.setSelectionRange(0, len, 'forward')
+      return true
+    }
+    return this.selectSoftLine()
   }
 
   /**

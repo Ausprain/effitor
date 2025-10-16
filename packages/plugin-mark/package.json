@@ -1,6 +1,6 @@
 {
   "name": "@effitor/plugin-mark",
-  "version": "0.3.5-alpha",
+  "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "effitor",
@@ -30,7 +30,8 @@
     "directory": "packages/plugin-mark"
   },
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "tsup"
   },
   "dependencies": {
     "@effitor/core": "workspace:*"

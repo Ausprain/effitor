@@ -108,8 +108,8 @@ export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null
 /*                                  check utils                               */
 /* -------------------------------------------------------------------------- */
 
-export const isText = (node: Node): node is Et.Text => node.nodeType === 3 /** Node.TEXT_NODE */
-export const isElement = (node: Node): node is Et.Element => node.nodeType === 1 /** Node.ELEMENT_NODE */
+export const isText = (node: Node | null): node is Et.Text => node?.nodeType === 3 /** Node.TEXT_NODE */
+export const isElement = (node: Node | null): node is Et.Element => node?.nodeType === 1 /** Node.ELEMENT_NODE */
 export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instanceof HTMLElement
 export const isElementOrText = (node: Node): node is Element | Text => node.nodeType === 1 || node.nodeType === 3
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
@@ -137,6 +137,14 @@ export const isNotEditable = (node: Node): boolean => {
     return node.contentEditable === 'false'
   }
   return true
+}
+
+export const isRawEditElement = (node: Node | null | undefined): node is Et.HTMLRawEditElement => {
+  if (!node) {
+    return false
+  }
+  return (node.nodeName === 'INPUT' && (node as HTMLInputElement).type === 'text')
+    || (node.nodeName === 'TEXTAREA')
 }
 
 export const isNodeBeforeTheOther = (node: Et.Node, other: Et.Node) => node.compareDocumentPosition(other) & 4 /** Node.DOCUMENT_POSITION_FOLLOWING */

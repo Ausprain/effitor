@@ -27,6 +27,22 @@ export type TextOrNull = Text | null
 export type NodeOrNull = Node | null
 export type HTMLNodeOrNull = HTMLNode | null
 export type HTMLElementOrNull = HTMLElement | null
+/** 原生编辑节点, 只提取我们需要的 */
+export type HTMLRawEditElement = HTMLElement & (HTMLInputElementWithTypeText | HTMLTextAreaElement)
+// export type HTMLRawEditElement = HTMLElement & Pick<HTMLInputElementWithTypeText | HTMLTextAreaElement,
+//   | 'value'
+//   | 'selectionStart'
+//   | 'selectionEnd'
+//   | 'setSelectionRange'
+//   | 'setRangeText'
+//   | 'focus'
+//   | 'blur'
+// >
+export interface HTMLInputElementWithTypeText extends HTMLInputElement {
+  type: 'text'
+  selectionStart: number
+  selectionEnd: number
+}
 
 /**
  * 自定义EtElement设置属性

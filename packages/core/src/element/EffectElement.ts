@@ -141,14 +141,14 @@ export abstract class EffectElement
 
   /**
    * // FIXME 待完善
-   * 为当前效应元素添加css类名, 为防止类名冲突, 会添加前缀: `ET_cls_` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
+   * 为当前效应元素添加css类名, 并自动会添加前缀: `ET_cls-` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
    */
   addCssClass(cls: string) {
     this.classList.add(BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls)
   }
 
   /**
-   * 为当前效应元素移除css类名, 为防止类名冲突, 会添加前缀: `ET_cls_` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
+   * 为当前效应元素移除css类名, 并自动会添加前缀: `ET_cls-` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
    */
   removeCssClass(cls: string) {
     this.classList.remove(BuiltinConfig.EDITOR_CSS_CLASS_PREFIX + cls)

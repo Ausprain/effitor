@@ -1,25 +1,23 @@
 import type { Et } from '../@types'
 import { type MainKeyboardSolver, runKeyboardSolver } from './keydown'
 
-const keyupSolver: MainKeyboardSolver = {
-  // 样式节点内双击空格, 跳出最外层样式节点
+const mainKeyupSolver: MainKeyboardSolver = {
   ' ': (_ev, ctx) => {
     if (ctx.prevUpKey === ' ') {
-      const tr = ctx.selection.getTargetRange()
-      if (!tr || !tr.collapsed) {
+      const tc = ctx.selection.getTargetCaret()
+      if (!tc) {
         return
       }
-      return ctx.getEtHandler(tr.startEtElement).dblSpace?.(ctx, tr.toTargetCaret())
+      ctx.getEtHandler(tc.anchorEtElement).dblSpace?.(ctx, tc)
     }
   },
-
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class MainKeyupKeySolver implements Et.KeyboardKeySolver {
   [k: string]: Et.KeyboardAction
 }
-Object.assign(MainKeyupKeySolver.prototype, keyupSolver)
+Object.assign(MainKeyupKeySolver.prototype, mainKeyupSolver)
 
 let doubleKeyTimer: number | undefined = undefined
 export const getKeyupListener = (

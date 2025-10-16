@@ -18,7 +18,7 @@ export const enum MarkStatus {
   HINTING = 'hinting',
   MARKING = 'marking',
   /** 添加到et-body上以禁用mark节点的标记符提示 */
-  HINTING_HIDDEN = 'hinting-hidden',
+  HINTING_HIDDEN = 'hinting_hidden',
 }
 export const markerMap = {
   [MarkType.CODE]: { type: MarkType.CODE, char: '`', marker: '`' },

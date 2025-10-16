@@ -50,7 +50,7 @@ et-list[style-type="upper-roman"] {
   list-style-type: upper-roman;
 }
 
-et-list {
+et-list.et {
   display: block;
   list-style-type: disc;
   padding-inline-start: var(--et-list-indent);
@@ -81,7 +81,7 @@ et-li.etp {
     content: '';
   }
 
-  &[check] {
+  &[et-check] {
     &::marker {
       content: '';
     }
@@ -99,7 +99,7 @@ et-li.etp {
     }
   }
 
-  &[check="true"] {
+  &[et-check="true"] {
     &::before {
       background: var(--et-list-checkMark) no-repeat center/contain;
       animation: bounce-in 0.2s ease-out;

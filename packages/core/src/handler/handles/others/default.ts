@@ -9,8 +9,8 @@ export const initEditorContents = createEffectHandle('InitEditorContents', (
   let newP, dest
   const bodyEl = ctx.bodyEl
   const out = create
-    ? create()
-    : ctx.editor.callbacks.firstInsertedParagraph?.() ?? ctx.createPlainParagraph()
+    ? create(ctx)
+    : ctx.editor.callbacks.firstInsertedParagraph?.(ctx) ?? ctx.createPlainParagraph()
   if (Array.isArray(out)) {
     newP = out[0]
     dest = out[1]
