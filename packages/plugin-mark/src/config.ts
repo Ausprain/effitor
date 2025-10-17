@@ -79,7 +79,7 @@ export const createMarkState = () => ({
   },
 })
 
-export const initMarkContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
+export const initMarkPluginContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
   meta.pctx[MarkEnum.CtxKey] = {
     markState: createMarkState(),
     enableHinting,

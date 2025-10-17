@@ -4,11 +4,6 @@ et-editor,
 :host {
   color-scheme: light;
 
-  --et-font-family: var(--et-font-ubuntu);
-  --et-font-size: 15px;
-  --et-font-weight: 449;
-  --et-letter-space: 0.02em;
-
   --et-color-bg: #fafbfc;
   --et-color-bg--hover: #ecedee;
   --et-color-bg--active: #e1e2e3;
@@ -22,11 +17,22 @@ et-editor,
   --et-color-border-2: #ddd;
   --et-color-border-3: #ccc;
 
-  --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
+  --et-color-hinting: #79d;
+
+  --et-shadow: 
+    2px 2px 6px rgb(0 0 0 / 0.24), 
+    2px 4px 10px rgb(0 0 0 / 0.12),
     0 8px 16px rgb(0 0 0 / 0.12);
 
-  --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
-    6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
+  --et-shadow-1: 
+    3px 3px 6px rgb(0 0 0 / 0.24),
+    6px 8px 12px rgb(0 0 0 / 0.24), 
+    0 12px 16px rgb(0 0 0 / 0.12);
+
+  --et-font-family: var(--et-font-ubuntu);
+  --et-font-size: 15px;
+  --et-font-weight: 449;
+  --et-letter-space: 0.02em;
 
   --et-transition-color-scheme: background-color 0.2s ease-in, color 0.2s ease-in;
 }
@@ -50,25 +56,21 @@ et-editor.dark,
   --et-color-border-2: #333;
   --et-color-border-3: #444;
 
-  --et-shadow: 2px 2px 6px rgb(0 0 0 / 0.24), 2px 4px 10px rgb(0 0 0 / 0.12),
-    0 8px 16px rgb(0 0 0 / 0.12);
-
-  --et-shadow-1: 3px 3px 6px rgb(0 0 0 / 0.24),
-    6px 8px 12px rgb(0 0 0 / 0.24), 0 12px 16px rgb(0 0 0 / 0.12);
+  --et-color-hinting: #9bd;
 }
 
 
+*,
+::before,
+::after {
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-sizing: border-box;
+}
+
 et-editor,
 :host {
-  *,
-  ::before,
-  ::after {
-    padding: 0;
-    margin: 0;
-    outline: none;
-    box-sizing: border-box;
-  }
-
   /* 应由 et-editor 父容器定位 */
   /* position: relative; */
   /* 创建bfc 包含浮动 */
@@ -105,5 +107,12 @@ et-body {
   border: none;
   hyphens: auto;  /* 末尾单词自动连接符 */
   white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
-  
+}
+
+et-p {
+  /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
+  /* position: relative; */
+  padding-block: 0.2em;
+  /* 分栏在需要时, 设置在段落上 */
+  /* column-count: 2; */
 }

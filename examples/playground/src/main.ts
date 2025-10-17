@@ -14,6 +14,7 @@ import { useDropdownAssist } from '@effitor/assist-dropdown'
 import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
 import { useCodePlugin } from '@effitor/plugin-code'
+import { useLinkPlugin } from '@effitor/plugin-link'
 import { HtmlAttrEnum } from '@effitor/shared'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
@@ -37,6 +38,7 @@ const editor = new Effitor({
     useHeadingPlugin(),
     useListPlugin(),
     await useCodePlugin(),
+    useLinkPlugin(),
     {
       name: 'some',
       effector: {

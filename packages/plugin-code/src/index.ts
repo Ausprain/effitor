@@ -3,8 +3,6 @@
  * 现行方案: CodeMirror: (textarea + pre)
  * 未来方案: 直接编辑 DOM, highlighter 即时渲染, 并使用 TreeWalker 记录和恢复光标位置
  */
-import './augment'
-
 import type { Et } from '@effitor/core'
 
 import { initCodePluginContext } from './config'

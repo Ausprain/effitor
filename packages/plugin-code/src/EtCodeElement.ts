@@ -1,3 +1,5 @@
+import './augment'
+
 import type { Et } from '@effitor/core'
 import { cr, CreateMdastNode, EtComponent, ToMdastResult } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'

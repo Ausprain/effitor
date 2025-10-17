@@ -2,7 +2,7 @@ import './augment'
 
 import type { Et } from '@effitor/core'
 
-import { initMarkContext } from './config'
+import { initMarkPluginContext } from './config'
 import { markEffector } from './effector'
 import { EtMarkElement } from './element'
 import { inMarkHandler } from './handler/inMarkHandler'
@@ -26,7 +26,7 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSuppo
     effector: markEffector,
     elements: [EtMarkElement],
     registry(ctxMeta, setSchema, extentEtElement) {
-      initMarkContext(ctxMeta, options?.enableHinting)
+      initMarkPluginContext(ctxMeta, options?.enableHinting)
       setSchema({ mark: EtMarkElement })
       extentEtElement(EtMarkElement, inMarkHandler, [])
       extentEtElement(EtMarkElement, markHandler, [])

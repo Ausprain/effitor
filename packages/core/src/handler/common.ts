@@ -207,7 +207,7 @@ export class CommonHandlers {
    * @param el 要插入的元素, 仅允许<br>和效应元素
    * @param insertAt 插入位置 可以是一个光标位置(EtCaret) 或目标光标(TargetCaret);
    *                 若为 null, 则使用当前选区位置, 当前选区非 collapsed, 返回 false
-   * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入元素末尾
+   * @param destCaretRange 命令结束后光标位置, 若未提供, 则添加的命令不指定结束后光标位置
    */
   insertElement(
     el: Et.Element, insertAt: Et.EtCaret | Et.ValidTargetCaret | null, destCaretRange?: Et.CaretRange,

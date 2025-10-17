@@ -57,6 +57,7 @@ et-code.et {
 
   & > pre,
   & > textarea {
+    margin: 0;
     padding: 16px 16px 16px 40px;
     background: none;
     font-family: monospace;

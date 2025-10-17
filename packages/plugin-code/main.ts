@@ -1,10 +1,12 @@
 import { Effitor } from '@effitor/core'
 
+import { useCodeAreaPlugin } from './src/ca'
 import { useCodePlugin } from './src/index'
 
 const editor = new Effitor({
   plugins: [
     await useCodePlugin(),
+    useCodeAreaPlugin(),
   ],
   callbacks: {
     firstInsertedParagraph: (ctx) => {

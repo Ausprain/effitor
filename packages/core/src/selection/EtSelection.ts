@@ -205,17 +205,12 @@ export class EtSelection {
     if (!this._caretRange) {
       return
     }
-    try {
-      const r = this._caretRange.toRange()
-      // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
-      if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
-        return false
-      }
-      return this.selectRange(r)
-    }
-    catch (_) {
+    const r = this._caretRange.toRange()
+    // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
+    if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
       return false
     }
+    return this.selectRange(r)
   }
 
   /**
@@ -1031,7 +1026,8 @@ export class EtSelection {
   }
 
   /**
-   * 派发 selectionchange 事件
+   * 派发 selectionchange 事件;
+   * * selectionchange事件不是同步触发的, 若需要立即更新上下文, 应使用 ctx.forceUpdate方法
    */
   dispatchChange() {
     document.dispatchEvent(new Event('selectionchange'))

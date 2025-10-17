@@ -1,5 +1,14 @@
 # Effitor
 
+## Assists
+
+### assist-dropdown
+
+Todos
+
+- [ ] bugs
+  - [ ] dropdown 打开后若失去焦点, 就再也无法关闭
+
 ## Plugins
 
 ### plugin-mark

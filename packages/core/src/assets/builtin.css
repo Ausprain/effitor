@@ -1,13 +1,8 @@
 .etp {
-  /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
-  /* position: relative; */
   display: block;
-  padding-block: 0.2em;
-  line-height: 1.5;
   /* 段落最小高度, 防止段落空内容时高度坍缩 */
-  min-height: 1.9em;
-  /* 分栏在需要时, 设置在段落上 */
-  /* column-count: 2; */
+  min-height: 1.5em;
+  line-height: 1.5;
 }
 
 /* 鼠标悬浮提示元素的 hint-title属性值 */
@@ -69,6 +64,17 @@
 
 .hidden {
   display: none !important;
+}
+
+.et-card {
+
+  background-color: var(--et-color-bg);
+  box-shadow: var(--et-shadow);
+
+  et-editor.dark &,
+  :host(.dark) & {
+    background-color: var(--et-color-bg--hover);
+  }
 }
 
 /* 动画 */

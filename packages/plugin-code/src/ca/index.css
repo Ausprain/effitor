@@ -1,0 +1,36 @@
+
+et-ca.et {
+  display: block;
+  border: 1px solid var(--et-color-border-1);
+  border-radius: 8px;
+  
+  white-space: pre;
+  font-family: monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  word-spacing: 0;
+
+  counter-reset: et-cl;
+
+  & > div {
+    padding: 16px 16px 16px 40px;
+  }
+}
+
+et-cl.et {
+  display: block;
+  height: 1.5em;
+  
+  position: relative;
+  counter-increment: et-cl;
+  &::before {
+    content: counter(et-cl);
+    position: absolute;
+    top: 0;
+    left: 0;
+    translate: -100%;
+    padding-right: 8px;
+    opacity: 0.6;
+  }
+}

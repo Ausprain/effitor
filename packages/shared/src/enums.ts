@@ -76,6 +76,8 @@ export const enum CssClassEnum {
   /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
   CaretIn = 'caret-in',
 
+  /** 卡片样式 */
+  Card = 'et-card',
   /** 灰度背景按钮, 具有hover/active/selected状态灰度背景色交互 */
   BgItem = 'bg-item',
   /** 主题背景按钮, 具有hover/active/selected状态主题背景色交互 */

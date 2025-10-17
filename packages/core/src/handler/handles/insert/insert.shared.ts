@@ -85,7 +85,7 @@ export const insertTextAtRange = (
  * @param ctx 编辑器上下文
  * @param element 元素
  * @param targetCaret 目标光标
- * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入元素末尾
+ * @param destCaretRange 命令结束后光标位置, 若未提供, 则添加的命令不指定结束后光标位置
  */
 export const insertElementAtCaret = (
   ctx: Et.EditorContext,
@@ -135,7 +135,7 @@ export const insertElementAtCaret = (
  * @param el 元素
  * @param insertIn 要插入元素的效应元素节点
  * @param targetCaret 目标光标
- * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入元素末尾
+ * @param destCaretRange 命令结束后光标位置, 若未提供, 则添加的命令不指定结束后光标位置
  */
 const splitPartialToInsertElementInEtElement = (
   ctx: Et.EditorContext,

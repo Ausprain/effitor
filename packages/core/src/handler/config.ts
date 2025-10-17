@@ -232,7 +232,7 @@ export type EffectHandler = Partial<
  * EffectHandler的工具类, 从 EffectHandler 中提取指定键的类型, 并将其转换为必填项\
  * 可用于通过非 invoker 方式激活效应时断言pick 的效应处理函数非空
  */
-export type EffectHandlerPick<K extends keyof EffectHandler> = Pick<Required<EffectHandler>, K>
+export type EffectHandlerPick<K extends keyof T, T extends EffectHandler = EffectHandler> = Pick<Required<T>, K>
 
 /**
  * 一个 EffectHandler 的工具类, 通过泛型断言`ctx.commonEtElement/focusParagraph/focusTopElement`的类型\

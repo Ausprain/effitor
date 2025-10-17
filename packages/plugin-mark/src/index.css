@@ -1,6 +1,6 @@
 et-editor,
 :host {
-  --et_mark-color__marker: #79d;
+  --et_mark-color__marker: var(--et-color-hinting);
   --et_mark-color__code_text: #ec3639;
   --et_mark-color__code_bg: #f7f7ff;
   --et_mark-color__code_font: 'Cascadia Code';
@@ -8,17 +8,9 @@ et-editor,
   --et_mark-color__hl_bg: #fcd13c;
 }
 
-et-editor.dark,
+/* et-editor.dark,
 :host(.dark) {
   --et_mark-color__marker: #9bd;
-}
-
-/* TODO */
-/* et-editor[et-theme="vue"],
-:host([et-theme="vue"]) {
-}
-et-editor.dark[et-theme="vue"],
-:host(.dark[et-theme="vue"]) {
 } */
 
 et-mark {

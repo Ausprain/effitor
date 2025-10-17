@@ -429,6 +429,9 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       // 期望光标落于 li 内即`|`处, 但使用`forceUpdate`时, 光标会落在`<et-p>aaa|<et-p>`
       // 手动触发selectionchange事件, 以更新通过 selchange 回调来更新上下文和选区
       this.selection.dispatchChange()
+      // fixed. selectionchange事件是异步的, 即时手动触发也不会立即执行, 这里需要保底更新选区
+      // 因为 setSelection() 方法的语义上同步更新选区
+      this.selection.update()
       return true
     }
     return this.forceUpdate()

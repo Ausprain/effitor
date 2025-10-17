@@ -1,4 +1,5 @@
 import type { Et } from '@effitor/core'
+import { CssClassEnum } from '@effitor/shared'
 
 const enum DialogEnum {
   Class_Backdrop = 'et-dialog__backdrop',
@@ -59,7 +60,7 @@ export class DialogManager {
     // backdrop.style.position = this._options.backdropPosition
     backdrop.style.background = this._options.backdropBackground
     Object.assign(container.style, this._options.containerStyle)
-    container.classList.add(DialogEnum.Class_Container)
+    container.classList.add(DialogEnum.Class_Container, CssClassEnum.Card)
     backdrop.appendChild(container)
     backdrop.onclick = () => this.close()
     container.addEventListener('click', e => e.stopPropagation())
@@ -87,7 +88,9 @@ export class DialogManager {
       if (ev.key === 'Escape') {
         this.close()
       }
-      ev.preventDefault()
+      if ((ev.ctrlKey || ev.altKey || ev.metaKey) && !['x', 'c', 'v'].includes(ev.key)) {
+        ev.preventDefault()
+      }
     }
     document.addEventListener('keydown', this.globalKeydownListener, true)
   }

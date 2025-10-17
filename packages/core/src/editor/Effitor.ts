@@ -373,7 +373,10 @@ export class Effitor {
     this._markFocused()
     const ctx = this.context
     this.bodyEl.focus()
-    if (!ctx.selection.restore()) {
+    if (ctx.selection.restore()) {
+      ctx.forceUpdate()
+    }
+    else {
       // 恢复选区失败, 定位到末尾
       const lastParagraph = ctx.body.lastParagraph
       if (lastParagraph) {

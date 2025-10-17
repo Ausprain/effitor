@@ -1,0 +1,107 @@
+et-link {
+  /* 设置position的同时设置background-color, 光标会被其吞掉(看不见) */
+  /* position: relative; */
+  /* cursor: pointer; */
+  margin: 0 2px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background-color: hsl(240 100% 98%);
+
+  color: hsl(240 61% 57%);
+  text-decoration: underline;
+
+  &:hover {
+    background-color: hsl(240 100% 96%);
+
+    /* &::after {
+      content: "[" attr(link-title)"]:\00a0\00a0\00a0" attr(link-url);
+      position: absolute;
+      left: 0;
+      top: 100%;
+      display: flex;
+      padding: 1px 3px;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      background-color: hsl(240, 100%, 96%);
+      font-size: 0.8em;
+      text-decoration: underline;
+      line-break: anywhere;
+      z-index: 1;
+    } */
+  }
+
+  &:active {
+    background-color: hsl(240 100% 95%);
+    color: hsl(240 61% 51%);
+    user-select: none;
+  }
+}
+
+.et-link-popup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: 256px;
+  margin: 0 4px;
+  border: 1px solid var(--et-color-border-1);
+  border-radius: 6px;
+  background-color: var(--et-color-bg);
+  box-shadow: var(--et-shadow);
+}
+
+.et-link-popup_input {
+  min-height: 24px;
+  max-height: 128px;
+  width: 244px;
+  margin: 6px;
+  margin-top: 40px;
+  padding: 4px;
+  border: 1px solid var(--et-color-border-1);
+  border-radius: 3px;
+  font-size: 14px;
+
+  &:focus {
+    outline: none;
+    border: 1px solid var(--et-color-hinting);
+  }
+}
+
+.et-link-dialog_input {
+  max-height: 256px;
+  min-height: 1em;
+  line-height: 1.5em;
+  padding: 6px;
+  margin: 16px;
+  border: 1px solid var(--et-color-border-1);
+  border-radius: 3px;
+  background-color: rgb(255 255 255 / 0.1);
+  font-size: 14px;
+  outline: none;
+  resize: none;
+
+  &:focus {
+    border: 1px solid var(--et-color-hinting);
+  }
+
+  &:is(:last-of-type) {
+    margin-top: 0;
+    margin-bottom: 32px;
+  }
+}
+
+.et-link-dialog_btn {
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 4em;
+  margin: 8px 16px;
+  border: none;
+  padding: 3px;
+  border-radius: 3px;
+  font-size: 14px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
