@@ -260,7 +260,7 @@ export class Popup {
   /** 延迟隐藏, 用于鼠标移入时停止隐藏 */
   delayHide() {
     const anim = this.popupEl.animate([{ opacity: 1 }, { opacity: 0 }], 500)
-    anim.finished.then(() => this.hide()).catch()
+    anim.finished.then(() => this.hide()).catch(() => { /** do not throw error while cancel */ })
     this._stopDelayHiding = () => (anim.cancel())
   }
 

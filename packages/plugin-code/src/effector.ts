@@ -49,7 +49,7 @@ export const codeEffector: Et.EffectorSupportInline = {
         return
       }
       const [lang, metaStr] = data.slice(3).split(' ')
-      if (ctx.pctx[CodeEnum.CtxKey].highlighter.langs.includes(lang)) {
+      if (ctx.pctx.$code_ctx.highlighter.langs.includes(lang)) {
         const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
         codeEl.meta = metaStr
         ctx.commandManager.push(cmd.replaceNode({

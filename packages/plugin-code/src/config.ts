@@ -5,7 +5,6 @@ import type { EtCodeHighlighter } from './highlighter'
 
 export const enum CodeEnum {
   ElName = 'et-code',
-  CtxKey = '_et_$code',
   Class_Wrapper = 'et-code__wrapper',
   Class_CodeLine = 'et-code__line',
   Class_Header = 'et-code__header',
@@ -29,7 +28,8 @@ export const initCodePluginContext = (
   highlighter: EtCodeHighlighter<string>,
   defaultTabSize: number,
 ) => {
-  ctxMeta.pctx[CodeEnum.CtxKey] = {
+  // @ts-expect-error first assign
+  ctxMeta.pctx.$code_ctx = {
     highlighter,
     config: {
       defaultTabSize,

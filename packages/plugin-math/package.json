@@ -1,0 +1,41 @@
+{
+  "name": "@effitor/plugin-math",
+  "version": "0.2.0-alpha",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "effitor",
+    "web editor",
+    "markdown",
+    "WYSIWYG"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/plugin-math#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/plugin-math"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@effitor/core": "workspace:*",
+    "@types/katex": "^0.16.7",
+    "katex": "^0.16.25"
+  }
+}

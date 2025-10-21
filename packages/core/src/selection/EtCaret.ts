@@ -76,7 +76,6 @@ export class EtCaret extends CaretRange {
     if (this.__connected) {
       return true
     }
-    // connected 的节点必定有 parentNode
     if (this._anchor.isConnected) {
       this.toReality()
       return this.__connected = true
@@ -89,8 +88,11 @@ export class EtCaret extends CaretRange {
       this._offset = Math.max(0, Math.min(this.offset, dom.nodeLength(this._anchor)))
       return
     }
+    if (!this._anchor.parentNode) {
+      return
+    }
     const anchor = this._anchor
-    this._anchor = this._anchor.parentNode as Et.Node // connected 节点必定有 parentNode
+    this._anchor = this._anchor.parentNode
     if (this.isAnchorBefore) {
       this._offset = dom.prevSiblingCount(anchor)
     }

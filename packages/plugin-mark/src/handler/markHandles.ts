@@ -2,7 +2,7 @@ import type { Et } from '@effitor/core'
 import { cr, handlerUtils } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
-import { MarkEnum, MarkType } from '../config'
+import { MarkType } from '../config'
 import { createMarkNode } from '../element'
 import { checkAllowMarkEffect, checkAllowNested } from './utils'
 
@@ -51,7 +51,7 @@ const insertMarkNodeAtCaret = (ctx: Et.EditorContext, insertAt: Et.EtCaret, mark
     return false
   }
   const [markEl, zws] = createMarkNode(markType, data)
-  ctx.pctx[MarkEnum.CtxKey].markState.startMarking(markEl)
+  ctx.pctx.$mark_ctx.markState.startMarking(markEl)
   return handlerUtils.insertElementAtCaret(ctx, markEl, tc, cr.caretInEndFuture(zws))
 }
 
@@ -117,7 +117,7 @@ export const markHandler: Et.EffectHandler = {
       return ctx.commandManager.handleAndUpdate()
     }
     else {
-      ctx.pctx[MarkEnum.CtxKey].markState.endMarking()
+      ctx.pctx.$mark_ctx.markState.endMarking()
       ctx.commandManager.closeTransaction()
       return false
     }

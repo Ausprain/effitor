@@ -245,8 +245,8 @@ const insertElseEtElementAtCaret = (
  * 插入内容片段
  * @param ctx 编辑器上下文
  * @param contents 内容片段, 普通段落需先使用 fragmentUtils.normalizeToEtFragment 标准化为适合编辑器文档规范的片段
+ *                 并使用 etcode 校验效应规则, 不符合效应规则的子节点会被替换为纯文本
  * @param targetCaret 目标光标
- * @param destCaretRange 目标光标范围
  */
 export const insertContentsAtCaret = (
   ctx: Et.EditorContext,
@@ -259,7 +259,7 @@ export const insertContentsAtCaret = (
   if (contents.children.length === 0) {
     return insertTextAtCaret(ctx, contents.textContent, targetCaret)
   }
-  if (contents.childNodes.length === 1 && contents.children.length === 1) {
+  if (contents.childNodes.length === 1 && contents.childElementCount === 1) {
     return insertElementAtCaret(ctx, contents.firstChild as Et.Element, targetCaret)
   }
 

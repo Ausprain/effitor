@@ -50,7 +50,7 @@ et-list[style-type="upper-roman"] {
   list-style-type: upper-roman;
 }
 
-et-list.et {
+et-list {
   display: block;
   list-style-type: disc;
   padding-inline-start: var(--et-list-indent);
@@ -77,10 +77,6 @@ et-li.etp {
   display: list-item;
   position: relative;
 
-  &::before {
-    content: '';
-  }
-
   &[et-check] {
     &::marker {
       content: '';
@@ -90,7 +86,7 @@ et-li.etp {
       content: '';
       position: absolute;
       top: 50%;
-      left: -0.3em;
+      left: -0.2em;
       translate: -100% -50%;
       width: 1em;
       height: 1em;
@@ -101,6 +97,7 @@ et-li.etp {
 
   &[et-check="true"] {
     &::before {
+      content: '';
       background: var(--et-list-checkMark) no-repeat center/contain;
       animation: bounce-in 0.2s ease-out;
     }

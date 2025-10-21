@@ -57,16 +57,8 @@ const htmlEventSolver: Et.HTMLEventSolver = {
     ctx.commandManager.commit()
   },
   focusout: (_ev, ctx) => {
-    // fixed. 编辑器blur后触发focusout事件, 并执行相应监听器, 到此处, 整个事件都是同步执行的;
-    // 这也意味着先开启事务, 后插入 `<div>aaaI</div>` I代表光标位置, 然后执行 discard,
-    // 丢弃该插入, 即删除该`<div>aaa</div>` 则会导致编辑器blur, 然后执行此处的commit,
-    // 而discard是需要丢弃该命令的, 就产生了冲突, 即本该丢弃的命令, 却因编辑器失去焦点而先将该命令commit了,
-    // 这也是出现 [一些discard了的插入节点命令却在撤销重做时再次插入了这些节点] 的原因\
-    // 因此此处应异步执行
-    Promise.resolve().then(() => {
-      // console.log('focusout ---------------------------- 记录事务')
-      ctx.commandManager.commit()
-    })
+    // console.log('focusout ---------------------------- 记录事务')
+    ctx.commandManager.commit()
   },
   mousedown: (_ev, ctx) => {
     // console.log('mouse down ---------------------------- 记录事务')
@@ -98,8 +90,8 @@ const undoEffector: Et.EffectorSupportInline = {
   //   }, { signal: signal })
   // },
   /**
-     * 卸载时移除对应撤回栈并 确认所有事务
-     */
+   * 卸载确认所有事务并清空撤回栈
+   */
   onBeforeUnmount(ctx) {
     ctx.commandManager.commitAll()
   },

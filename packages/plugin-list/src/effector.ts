@@ -63,7 +63,7 @@ const keydownSolver: Et.KeyboardKeySolver = {
   },
   Enter: (ev, ctx) => {
     // alt+enter更改check状态
-    if (!ev.altKey || !ctx.schema.listItem.is(ctx.focusParagraph)) {
+    if (!ev.altKey || ev.metaKey || ev.shiftKey || ev.ctrlKey || !ctx.schema.listItem.is(ctx.focusParagraph)) {
       return
     }
     const li = ctx.focusParagraph

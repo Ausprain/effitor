@@ -54,7 +54,7 @@
     },
     "examples/playground": {
       "name": "@effitor/playground",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@excalidraw/excalidraw": "^0.18.0",
         "effitor": "workspace:*",
@@ -65,7 +65,7 @@
     },
     "main": {
       "name": "effitor",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/assist-counter": "workspace:*",
         "@effitor/assist-dialog": "workspace:*",
@@ -85,42 +85,42 @@
     },
     "packages/assist-counter": {
       "name": "@effitor/assist-counter",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-dialog": {
       "name": "@effitor/assist-dialog",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-dropdown": {
       "name": "@effitor/assist-dropdown",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-message": {
       "name": "@effitor/assist-message",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-popup": {
       "name": "@effitor/assist-popup",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/core": {
       "name": "@effitor/core",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "mdast-util-from-markdown": "^2.0.2",
         "mdast-util-frontmatter": "^2.0.1",
@@ -134,18 +134,15 @@
     },
     "packages/plugin-code": {
       "name": "@effitor/plugin-code",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
         "shiki": "^3.13.0",
       },
-      "devDependencies": {
-        "vite": "^7.1.9",
-      },
     },
     "packages/plugin-excalidraw": {
       "name": "@effitor/plugin-excalidraw",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
         "@excalidraw/excalidraw": "^0.18.0",
@@ -157,21 +154,44 @@
     },
     "packages/plugin-heading": {
       "name": "@effitor/plugin-heading",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/plugin-link": {
+      "name": "@effitor/plugin-link",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-list": {
       "name": "@effitor/plugin-list",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-mark": {
       "name": "@effitor/plugin-mark",
-      "version": "0.3.5-alpha",
+      "version": "0.2.0-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/plugin-math": {
+      "name": "@effitor/plugin-math",
+      "version": "0.2.0-alpha",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+        "@types/katex": "^0.16.7",
+        "katex": "^0.16.25",
+      },
+    },
+    "packages/plugin-media": {
+      "name": "@effitor/plugin-media",
+      "version": "0.2.0-alpha",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
@@ -256,9 +276,15 @@
 
     "@effitor/plugin-heading": ["@effitor/plugin-heading@workspace:packages/plugin-heading"],
 
+    "@effitor/plugin-link": ["@effitor/plugin-link@workspace:packages/plugin-link"],
+
     "@effitor/plugin-list": ["@effitor/plugin-list@workspace:packages/plugin-list"],
 
     "@effitor/plugin-mark": ["@effitor/plugin-mark@workspace:packages/plugin-mark"],
+
+    "@effitor/plugin-math": ["@effitor/plugin-math@workspace:packages/plugin-math"],
+
+    "@effitor/plugin-media": ["@effitor/plugin-media@workspace:packages/plugin-media"],
 
     "@emnapi/core": ["@emnapi/core@1.5.0", "", { "dependencies": { "@emnapi/wasi-threads": "1.1.0", "tslib": "^2.4.0" } }, "sha512-sbP8GzB1WDzacS8fgNPpHlp6C9VZe+SJP3F90W9rLemaQj2PzIuTEl1qDOYQf58YIpyjViI24y9aPWCjEzY2cg=="],
 
@@ -545,6 +571,8 @@
     "@types/json5": ["@types/json5@0.0.29", "", {}, "sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ=="],
 
     "@types/jsonfile": ["@types/jsonfile@6.1.4", "", { "dependencies": { "@types/node": "*" } }, "sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ=="],
+
+    "@types/katex": ["@types/katex@0.16.7", "", {}, "sha512-HMwFiRujE5PjrgwHQ25+bsLJgowjGjm5Z8FVSf0N6PwgJrwxH0QxzHYDcKsTfV3wva0vzrpqMTJS2jXPr5BMEQ=="],
 
     "@types/mdast": ["@types/mdast@4.0.4", "", { "dependencies": { "@types/unist": "*" } }, "sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA=="],
 
@@ -1208,7 +1236,7 @@
 
     "jsonfile": ["jsonfile@6.2.0", "", { "dependencies": { "universalify": "^2.0.0" }, "optionalDependencies": { "graceful-fs": "^4.1.6" } }, "sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg=="],
 
-    "katex": ["katex@0.16.22", "", { "dependencies": { "commander": "^8.3.0" }, "bin": { "katex": "cli.js" } }, "sha512-XCHRdUw4lf3SKBaJe4EvgqIuWwkPSo9XoeO8GjQW94Bp7TWv9hNhzZjZ+OH9yf1UmLygb7DIT5GSFQiyt16zYg=="],
+    "katex": ["katex@0.16.25", "", { "dependencies": { "commander": "^8.3.0" }, "bin": { "katex": "cli.js" } }, "sha512-woHRUZ/iF23GBP1dkDQMh1QBad9dmr8/PAwNA54VrSOVYgI12MAcE14TqnDdQOdzyEonGzMepYnqBMYdsoAr8Q=="],
 
     "keyv": ["keyv@4.5.4", "", { "dependencies": { "json-buffer": "3.0.1" } }, "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw=="],
 
@@ -1820,8 +1848,6 @@
 
     "@babel/core/json5": ["json5@2.2.3", "", { "bin": { "json5": "lib/cli.js" } }, "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg=="],
 
-    "@effitor/plugin-code/vite": ["vite@7.1.9", "", { "dependencies": { "esbuild": "^0.25.0", "fdir": "^6.5.0", "picomatch": "^4.0.3", "postcss": "^8.5.6", "rollup": "^4.43.0", "tinyglobby": "^0.2.15" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^20.19.0 || >=22.12.0", "jiti": ">=1.21.0", "less": "^4.0.0", "lightningcss": "^1.21.0", "sass": "^1.70.0", "sass-embedded": "^1.70.0", "stylus": ">=0.54.8", "sugarss": "^5.0.0", "terser": "^5.16.0", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["@types/node", "jiti", "less", "lightningcss", "sass", "sass-embedded", "stylus", "sugarss", "terser", "tsx", "yaml"], "bin": { "vite": "bin/vite.js" } }, "sha512-4nVGliEpxmhCL8DslSAUdxlB6+SMrhB0a1v5ijlh1xB1nEPuy1mxaHxysVucLHuWryAxLWg6a5ei+U4TLn/rFg=="],
-
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
     "@eslint/eslintrc/globals": ["globals@14.0.0", "", {}, "sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ=="],
@@ -1940,6 +1966,8 @@
 
     "mdast-util-frontmatter/escape-string-regexp": ["escape-string-regexp@5.0.0", "", {}, "sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw=="],
 
+    "mermaid/katex": ["katex@0.16.22", "", { "dependencies": { "commander": "^8.3.0" }, "bin": { "katex": "cli.js" } }, "sha512-XCHRdUw4lf3SKBaJe4EvgqIuWwkPSo9XoeO8GjQW94Bp7TWv9hNhzZjZ+OH9yf1UmLygb7DIT5GSFQiyt16zYg=="],
+
     "mermaid/mdast-util-from-markdown": ["mdast-util-from-markdown@1.3.1", "", { "dependencies": { "@types/mdast": "^3.0.0", "@types/unist": "^2.0.0", "decode-named-character-reference": "^1.0.0", "mdast-util-to-string": "^3.1.0", "micromark": "^3.0.0", "micromark-util-decode-numeric-character-reference": "^1.0.0", "micromark-util-decode-string": "^1.0.0", "micromark-util-normalize-identifier": "^1.0.0", "micromark-util-symbol": "^1.0.0", "micromark-util-types": "^1.0.0", "unist-util-stringify-position": "^3.0.0", "uvu": "^0.5.0" } }, "sha512-4xTO/M8c82qBcnQc1tgpNtubGUW/Y1tBQ1B0i5CtSoelOLKFYlElIr3bvgREYYO5iRqbMY1YuqZng0GVOI8Qww=="],
 
     "micromatch/picomatch": ["picomatch@2.3.1", "", {}, "sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA=="],
@@ -1979,8 +2007,6 @@
     "wrap-ansi/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
 
     "wrap-ansi/strip-ansi": ["strip-ansi@7.1.2", "", { "dependencies": { "ansi-regex": "^6.0.1" } }, "sha512-gmBGslpoQJtgnMAvOVqGZpEz9dyoKTCzy2nfz/n8aIFhN/jCE/rCmcxabB6jOOHV+0WNnylOxaxBQPSvcWklhA=="],
-
-    "@effitor/plugin-code/vite/fsevents": ["fsevents@2.3.3", "", { "os": "darwin" }, "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw=="],
 
     "@isaacs/cliui/string-width/emoji-regex": ["emoji-regex@9.2.2", "", {}, "sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg=="],
 
@@ -2035,6 +2061,8 @@
     "log-update/slice-ansi/is-fullwidth-code-point": ["is-fullwidth-code-point@5.1.0", "", { "dependencies": { "get-east-asian-width": "^1.3.1" } }, "sha512-5XHYaSyiqADb4RnZ1Bdad6cPp8Toise4TzEjcOYDHZkTCbKgiUl7WTUCpNWHuxmDt91wnsZBc9xinNzopv3JMQ=="],
 
     "log-update/strip-ansi/ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
+
+    "mermaid/katex/commander": ["commander@8.3.0", "", {}, "sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww=="],
 
     "mermaid/mdast-util-from-markdown/@types/mdast": ["@types/mdast@3.0.15", "", { "dependencies": { "@types/unist": "^2" } }, "sha512-LnwD+mUEfxWMa1QpDraczIn6k0Ee3SMicuYSSzS6ZYl2gKS09EClnJYGd8Du6rfc5r/GZEk5o1mRb8TaTj03sQ=="],
 

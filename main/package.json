@@ -69,9 +69,12 @@
     "@effitor/assist-dropdown": "workspace:*",
     "@effitor/assist-message": "workspace:*",
     "@effitor/assist-popup": "workspace:*",
+    "@effitor/plugin-code": "workspace:*",
     "@effitor/plugin-heading": "workspace:*",
+    "@effitor/plugin-link": "workspace:*",
     "@effitor/plugin-list": "workspace:*",
-    "@effitor/plugin-mark": "workspace:*"
+    "@effitor/plugin-mark": "workspace:*",
+    "@effitor/plugin-media": "workspace:*"
   },
   "devDependencies": {
     "fs-extra": "^11.3.1",

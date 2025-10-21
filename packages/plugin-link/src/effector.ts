@@ -10,15 +10,17 @@ export const linkEffector: Et.EffectorSupportInline = {
   afterInputSolver: {
     insertText: (ev, ctx) => {
       if (!ev.data || ev.data.length > 1) return
+      if (!ev.data || ev.data.length > 1
+        || (ev.data.charCodeAt(0) !== 41 /** ) */ && ev.data.charCodeAt(0) !== 65289 /** ） */)) {
+        return
+      }
       const tc = ctx.selection.getTargetCaret()
       if (!tc || !tc.isAtText()) {
         return
       }
-      const firstCode = ev.data.charCodeAt(0)
-      if (firstCode !== 41 /** ) */ && firstCode !== 65289 /** ） */) {
-        return
+      if (ctx.effectInvoker.invoke(ctx.focusEtElement, 'markLink', ctx, tc)) {
+        return ctx.preventAndSkipDefault(ev)
       }
-      return ctx.effectInvoker.invoke(ctx.focusEtElement, 'markLink', ctx, tc)
     },
   },
   pasteCallback: (ev, ctx) => {
@@ -104,7 +106,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
       const inputDiv = content.firstElementChild as HTMLInputElement
       // 关闭popup时, 若链接不同, 则更新
       const newUrl = inputDiv.value.replaceAll(/\s/g, '')
-      const linkCtx = _ctx.pctx[LinkEnum.CtxKey]
+      const linkCtx = _ctx.pctx.$link_ctx
       if (linkEl.linkUrl !== newUrl) {
         if (!linkCtx.urlReg.test(newUrl)) {
           _ctx.assists.msg?.error('链接格式错误')
@@ -179,7 +181,7 @@ const initLinkDialog = (
       close(...args)
     }, 0)
   }
-  const linkCtx = ctx.pctx[LinkEnum.CtxKey]
+  const linkCtx = ctx.pctx.$link_ctx
   if (linkDialog) {
     el.appendChild(linkDialog)
     // 延迟 focus, 否则无法获取到焦点

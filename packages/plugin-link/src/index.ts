@@ -24,7 +24,7 @@ interface LinkPluginOptions extends LinkPluginContextOptions {
 }
 export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPluginSupportInline => {
   return {
-    name: 'et-plugin_link',
+    name: '@effitor/plugin-link',
     cssText,
     effector: linkEffector,
     elements: [EtLinkElement],

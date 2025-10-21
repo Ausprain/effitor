@@ -9,6 +9,7 @@ export type {
   EtTargetRange as TargetRange,
   TargetSelection,
   ValidTargetCaret,
+  ValidTargetCaretAtText,
   ValidTargetCaretWith,
   ValidTargetCaretWithParagraph,
   ValidTargetCaretWithTopElement,

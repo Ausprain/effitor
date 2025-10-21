@@ -70,13 +70,12 @@ export const normalizeAndCleanEtFragment = (
   }
 }
 /**
- * 规范化片段, 删除不符合效应规则的子节点, 替换为纯文本; 合并相邻#text, 并可选删除非开头零宽字符
+ * 规范化Et片段, 删除不符合效应规则的子节点, 替换为纯文本; 合并相邻#text, 并可选删除非开头零宽字符
  * @param df 待规范片段
- * @param inEtCode 规范最外层效应码, 默认-1; 传入0, 则不进行效应类型校验;
- *  传入-1, 则最外层允许所有效应, 内层及其他值的校验规则符合etcode.checkIn;\
- *  若要clean的片段将要插入到编辑器中, 则应提供插入位置的effectElement的inEtCode值;
- *  以判断df中的某些节点是否符合该效应规则, 若不符合, 则替换为纯文本节点
+ * @param etElement 规范目标效应元素(可视为规范内容的未来父节点), 将使用其配置的效应规则(inEtCode, notInEtCode)对内容进行规范化;
+ *                  若缺省, 则默认所有效应都符合规范
  * @param cleanZWS 是否清除非开头零宽字符, 默认true
+ * @returns 规范化后的片段, 返回 df 本身
  */
 export const normalizeEtFragment = (
   df: Et.Fragment, etElement?: Et.EtElement | null, cleanZWS = true,
@@ -95,6 +94,7 @@ export const normalizeEtFragment = (
   // 清除空文本节点并合并相邻文本节点
   // TODO 将该操作并入上述遍历过程
   df.normalize()
+  return df
 }
 const filterToNormalize = (
   node: Et.Node, regressEls: Et.EtElement[],
@@ -122,8 +122,7 @@ const filterToNormalize = (
 /**
  * 将片段标准化为一个符合 Effitor 内容规范的片段;
  * 目前的标准是:
- * 1. 效应元素嵌套符合各自的效应码配置
- * 2. 若片段内含有段落, 则片段的所有直接子节点只能是段落; 若不是段落, 将会转为纯文本并替换为一个新的普通段落
+ * 1. 若片段内含有段落, 则片段的所有直接子节点只能是段落, 若子节点不是段落, 将会转为纯文本并替换为一个新的普通段落
  * @param df 待规范片段
  * @param ctx 编辑器上下文
  * @returns 标准化后的 df 本身
@@ -208,7 +207,10 @@ const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
   // 移除元素 id 属性;
   // 空元素移除 (不含 br, br 在上述逻辑中处理)
   if (node.nodeType === 1) {
-    if (!node.textContent) {
+    if (!node.textContent && (
+      !node.firstElementChild
+      || !['svg', 'img', 'audio', 'video'].includes(node.firstElementChild.localName)
+    )) {
       // 不可边遍历边移除, node从父节点移除后其nextSibling为 null, 会终止遍历
       removeArray.push(node)
       // 节点被移除, 不应再遍历其后代
@@ -250,15 +252,13 @@ export const checkEtFragmentHasParagraphAndNormalize = (
         allPlainParagraph = false
         break
       }
-      if (!needToNorm) {
+      if (!needToNorm && !ctx.isEtParagraph(node)) {
         // 有不是段落直接子节点, 需要规范化
-        if (!ctx.isEtParagraph(node)) {
-          needToNorm = true
-        }
+        needToNorm = true
       }
     }
     if (needToNorm) {
-      normalizeToEtFragment(df, ctx)
+      normalizeEtFragment(normalizeToEtFragment(df, ctx))
     }
   }
   if (clean) {

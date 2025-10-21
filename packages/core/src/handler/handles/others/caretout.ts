@@ -88,18 +88,3 @@ export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
   }
   return caretToNextText(outer, ctx)
 })
-
-export const appendParagraph = createEffectHandle('appendParagraph', (ctx, tc) => {
-  if (!tc.anchorTopElement) {
-    return false
-  }
-  const newP = ctx.createPlainParagraph()
-  const destCaretRange = dom.isText(newP.firstChild)
-    ? cr.caretInEnd(newP.firstChild)
-    : cr.caretInStart(newP)
-  return ctx.commandManager.push(cmd.insertNode({
-    node: newP,
-    execAt: cr.caretOutEnd(tc.anchorTopElement),
-    destCaretRange,
-  })).handleAndUpdate()
-})

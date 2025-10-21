@@ -30,7 +30,7 @@ import {
 import { insertLineBreak } from './handles/insert/insertLineBreak'
 import { insertParagraph } from './handles/insert/insertParagraph'
 import { insertText } from './handles/insert/insertText'
-import { appendParagraph, dblSpace, tabout } from './handles/others/caretout'
+import { dblSpace, tabout } from './handles/others/caretout'
 import {
   initEditorContents,
   insertParagraphAtParagraphEnd,
@@ -90,7 +90,6 @@ export const buintinHandler: Et.EffectHandler = {
 
   tabout: tabout,
   dblSpace: dblSpace,
-  appendParagraph: appendParagraph,
 
   /* -------------------------------------------------------------------------- */
   /*                                   rawEl                                    */

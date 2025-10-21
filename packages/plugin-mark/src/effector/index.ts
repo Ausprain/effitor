@@ -7,7 +7,7 @@ import {
   strikeThroughIcon,
 } from '@effitor/shared'
 
-import { MarkEnum, MarkStatus, MarkType } from '../config'
+import { MarkStatus, MarkType } from '../config'
 import { checkFormatMark, checkInsertMark } from './ectx'
 import { markBeforeKeydownSolver } from './keydown'
 
@@ -17,15 +17,15 @@ export const markEffector: Et.EffectorSupportInline = {
   beforeKeydownSolver: markBeforeKeydownSolver,
   htmlEventSolver: {
     mousedown: (_ev, ctx) => {
-      if (ctx.pctx[MarkEnum.CtxKey].enableHinting) {
+      if (ctx.pctx.$mark_ctx.enableHinting) {
         ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
       }
-      if (ctx.pctx[MarkEnum.CtxKey].markState.checkAndEndMarking(false)) {
+      if (ctx.pctx.$mark_ctx.markState.checkAndEndMarking(false)) {
         ctx.commandManager.discard()
       }
     },
     mouseup: (_ev, ctx) => {
-      if (ctx.pctx[MarkEnum.CtxKey].enableHinting) {
+      if (ctx.pctx.$mark_ctx.enableHinting) {
         ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
       }
     },
@@ -35,7 +35,7 @@ export const markEffector: Et.EffectorSupportInline = {
       if (hinting === void 0) {
         hinting = !ctx.bodyEl.hasCssClass(MarkStatus.HINTING_HIDDEN)
       }
-      ctx.pctx[MarkEnum.CtxKey].enableHinting = hinting
+      ctx.pctx.$mark_ctx.enableHinting = hinting
       if (hinting) {
         ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
       }

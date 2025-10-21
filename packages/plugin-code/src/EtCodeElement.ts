@@ -47,8 +47,8 @@ export class EtCodeElement extends EtComponent {
     el.decorate({
       value,
       lang: el.lang,
-      tabSize: ctx.pctx[CodeEnum.CtxKey].config.defaultTabSize,
-      highlighter: ctx.pctx[CodeEnum.CtxKey].highlighter,
+      tabSize: ctx.pctx.$code_ctx.config.defaultTabSize,
+      highlighter: ctx.pctx.$code_ctx.highlighter,
     }, (el, cbs) => {
       el.prepend(codeHeader(ctx, cbs))
     })

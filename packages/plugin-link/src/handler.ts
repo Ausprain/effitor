@@ -1,9 +1,6 @@
 import type { Et } from '@effitor/core'
 import { cmd, cr, dom } from '@effitor/core'
 
-import { LinkEnum } from './config'
-import { EtLinkElement } from './EtLinkElement'
-
 export const checkInsertLink = (
   ctx: Et.EditorContext, tc: Et.ValidTargetCaret,
   link: { text: string, url: string, title: string },
@@ -12,7 +9,7 @@ export const checkInsertLink = (
   if (!url) {
     return
   }
-  const linkCtx = ctx.pctx[LinkEnum.CtxKey]
+  const linkCtx = ctx.pctx.$link_ctx
   if (url && url.length > linkCtx.maxUrlLength) {
     ctx.assists.msg?.warn('链接超出最大允许长度.')
     return
@@ -55,15 +52,12 @@ export const markLinkHandler: Et.EffectHandler = {
     return checkInsertLink(ctx, targetRange.toTargetCaret(), link)
   },
   markLink(ctx, tc) {
-    if (!tc.isAtText()) {
-      return false
-    }
     const out = dom.checkParseMarkdownReference('link', tc.container.data, tc.offset)
     if (!out) {
       return false
     }
     const { text, url, title, leftRemainText, rightRemainText } = out
-    const linkEl = EtLinkElement.create(url, title, text)
+    const linkEl = ctx.schema.link.create(url, title, text)
 
     const df = document.createDocumentFragment() as Et.Fragment
     if (leftRemainText) df.appendChild(new Text(leftRemainText))

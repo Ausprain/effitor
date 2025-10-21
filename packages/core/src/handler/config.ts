@@ -96,7 +96,7 @@ export interface DefaultEffectHandleMap {
     mdOptions?: FmOptions
   }) => void
   /**
-   * 对即将插入文档的内容进行转换; 如`insertFromPaste`时从剪切板`text/html`获取的内容;
+   * 对即将插入文档的外来内容进行转换; 如`insertFromPaste`时从剪切板`text/html`获取的内容;
    * 默认不转换, 原样使用 htmlProcessor 处理的到的片段
    * @param payload
    * * `payload.fragment`, 要转换的内容(原地转换)
@@ -106,6 +106,50 @@ export interface DefaultEffectHandleMap {
     fragment: Et.Fragment
     insertToEtElement: Et.EtElement
   }) => void
+  /**
+   * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
+   * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
+   * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的开端
+   * * 此效应与 DeleteContentsSpanningEnd 互斥, 即同一次删除操作不会同时激活同一个效应元素的这两个效应
+   * * 在一次删除选区操作中, 可能激活多次此效应; 由 targetCaret 目标光标位置逐级向上的效应元素链依次激活, 形成删除链
+   * @param payload
+   * * `cmds` 此效应内部产生的命令添加到 cmds 中, 后续统一执行;
+   * * `targetCaret` 要删除的选区结束目标光标位置, 即要删除的选区范围从起始位置跨越当前效应元素开头至此光标位置
+   * @returns
+   *      ***若要删除此效应元素, 必须返回 true***, 同时若cmds 非空, 后续也会执行添加到其中的命令
+   * @example
+   *  <et-p>aa^a<et-r>AA|BB</et-r>bbb</et-p>
+   *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningStart 效应
+   */
+  DeleteContentsSpanningStart: (this: EffectHandleThis, ctx: EditorContext, payload: {
+    targetCaret: Et.ValidTargetCaretWithTopElement
+    /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
+    previousEtElement?: Et.EtElement
+    /** 前一个效应元素在此次删除行为中是否会被删除 */
+    isPreviousToBeRemoved?: boolean
+  }) => boolean | Et.Command[]
+  /**
+   * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
+   * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
+   * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的末端
+   * * 此效应与 DeleteContentsSpanningStart 互斥, 即同一次删除操作不会同时激活同一个效应元素的这两个效应
+   * * 在一次删除选区操作中, 可能激活多次此效应; 由 targetCaret 目标光标位置逐级向上的效应元素链依次激活, 形成删除链
+   * @param payload
+   * * `cmds` 此效应内部产生的命令添加到 cmds 中, 后续统一执行;
+   * * `targetCaret` 要删除的选区起始目标光标位置, 即要删除的选区范围从此光标位置跨越当前效应元素结尾到选区结束位置
+   * @returns
+   *      ***若要删除此效应元素, 必须返回 true***, 同时若cmds 非空, 后续也会执行添加到其中的命令
+   * @example
+   *  <et-p>aaa<et-r>AA^BB</et-r>b|bb</et-p>
+   *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningEnd 效应
+   */
+  DeleteContentsSpanningEnd: (this: EffectHandleThis, ctx: EditorContext, payload: {
+    targetCaret: Et.ValidTargetCaretWithTopElement
+    /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
+    previousEtElement?: Et.EtElement
+    /** 前一个效应元素在此次删除行为中是否会被删除 */
+    isPreviousToBeRemoved?: boolean
+  }) => boolean | Et.Command[]
 
   /* -------------------------------------------------------------------------- */
   /*                               原生编辑节点内                                 */
@@ -216,8 +260,6 @@ export interface EffectHandleDeclaration extends Record<string, EffectHandle> {
   tabout: EffectHandle<Et.ValidTargetCaret>
   /** 双击空格效应, 具有`CaretOut`效应的元素, 默认行为是跳出最外层同类节点 */
   dblSpace: EffectHandle<Et.ValidTargetCaret>
-  /** 无视光标位置, 在当前顶层段落后边追加一个普通段落 */
-  appendParagraph: EffectHandle<Et.ValidTargetCaret>
 }
 /**
  * 效应处理器, 需通过`extentEtElement`将其挂载到效应元素类对象(构造器)上才能被 effectInvoker 激活\

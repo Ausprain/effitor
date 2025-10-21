@@ -10,7 +10,7 @@ declare module '@effitor/core' {
     code: typeof EtCodeElement
   }
   interface EditorPluginContext {
-    [CodeEnum.CtxKey]: CodePluginContext
+    readonly $code_ctx: CodePluginContext
   }
   interface DefinedEtElementMap {
     [CodeEnum.ElName]: EtCodeElement

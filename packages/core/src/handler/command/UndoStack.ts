@@ -76,14 +76,15 @@ export class UndoStack {
     }
     if (hasInsertCompositionText) {
       // 有输入法命令, 先合并成事务 再撤销; 否则输入法插入内容无法discard
-
       this.pushTransaction(ctx)
       this.undo(ctx)
       return true
     }
 
-    cmdHandler.handleUndo(this.cmdList, ctx)
+    // fixed. 应先清空暂存区, 再执行撤销; 避免撤销时意外触发pushTransaction将本该撤销的命令 commit 了
+    const cmds = [...this.cmdList]
     this.cmdList.length = 0
+    cmdHandler.handleUndo(cmds, ctx)
 
     return true
   }

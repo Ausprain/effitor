@@ -49,7 +49,7 @@ export const effectorContext = {
   ): Et.EffectorSupportInline => Object.assign(effector, { inline: true as const }),
 }
 
-type EffectorContext<K extends string, V extends object> = Record<K, V> & typeof effectorContext
+type EffectorContext<K extends string, V extends object> = Readonly<Record<K, V>> & typeof effectorContext
 
 /**
  * 获取携带相关信息的effector上下文对象, 该对象可在effector的solver和callback

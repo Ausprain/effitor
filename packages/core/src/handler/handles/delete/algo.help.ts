@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /**
+ * 删除相关算法
+ */
+
+/**
 
 range remove algorithm
 
@@ -232,8 +236,8 @@ impl:
 
 3.1 if use the algo above to solve 1. or 2. or 4. ?
   1. same paragraph, not adaptable.
-      this algo is use to solve the cases that don't want to remove paragraph,
-      in same paragraph, it would never remove the paragraph.
+      the algo 1. is use to solve the cases that don't want to remove paragraph,
+      in same paragraph, it must never remove the paragraph.
   2. different paragraph in same parent, adaptable in all cases.
     <et-body>  // commonAncestor
       <p1>aa b^b cc</p1>  // startTop, startP, startAncestor

@@ -26,6 +26,7 @@ interface _SelectionTarget {
 }
 export type TargetSelection = TargetRange | TargetCaret | ValidTargetCaret | ValidTargetRange
 export type ValidTargetSelection = ValidTargetCaret | ValidTargetRange
+export type ValidTargetCaretAtText = ValidTargetCaret & { container: Et.Text }
 export type ValidTargetCaretWith<
   E extends Et.EffectElement = Et.EffectElement,
   P extends Et.EtParagraph | null = Et.EtParagraph | null,
@@ -582,7 +583,7 @@ class TargetRange implements _SelectionTarget {
   /**
    * startNode 在 commonAncestor 下最外层祖先 (即 commonAncestor 的子节点) ;
    * * 当且仅当 collapsed 为 true 时, 该值为 null
-   * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
+   * * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
    */
   get startAncestor(): Et.HTMLNodeOrNull {
     if (this._startAncestor !== void 0) {
@@ -603,7 +604,7 @@ class TargetRange implements _SelectionTarget {
   /**
    * 类似 startAncestor, 但表示 endNode 在 commonAncestor 下的最外层祖先;
    * * 当且仅当 collapsed 为 true 时, 该值为 null
-   * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
+   * * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
    */
   get endAncestor(): Et.HTMLNodeOrNull {
     if (this._endAncestor !== void 0) {

@@ -1,80 +1,95 @@
+<p align="center">
+  <a href="./README.md">English</a> |
+  <a href="./README_zh.md">中文</a>
+</p>
+<p align="center" style="font-style:italic"><span style="color:red;">effi</span>cient edi<span style="color:red;">tor</span></p>
+
 # Effitor
 
-## Assists
+> **Language Options: [English](#readme) | [中文](https://github.com/username/repo/blob/main/README_zh.md)**
 
-### assist-dropdown
+Effitor is a high-performance, plugin-based web rich text editor framework, named for "efficient editor", aiming to provide the most elegant editing experience.
 
-Todos
+> effitor does not support collaborative editing, at least not at present.
 
-- [ ] bugs
-  - [ ] dropdown 打开后若失去焦点, 就再也无法关闭
+## Installation
 
-## Plugins
+Install effitor with npm
 
-### plugin-mark
+```bash
+npm install effitor
+```
 
-> 标记插件
+## Usage
 
-Todos
+Only supports esm
 
-- [ ] 基础
-  - [x] 加粗
-  - [x] 斜体
-  - [x] 高亮
-  - [x] 删除线
-  - [x] 内联代码
-  - [x] 临时节点判断
-  - [x] 嵌套判断
-  - [x] 光标跳出能力
-  - [x] 可选隐藏标记符提示 (hinting)
-- [x] markdown互转
-- [x] Dropdown item
+```ts
+import { Effitor } from "effitor";
 
-### plugin-heading
+const host = document.getElementById("host");
+const editor = new Effitor({
+  plugins: [],
+});
+if (host) {
+  editor.mount(host);
+}
+```
 
-> 标题插件
+## Features
 
-Todos
+### Functionality
 
-- [ ] 基础
-  - [x] atx标题, 可通过 `### ` 或 `#3 ` 方式插入标题
-- [x] markdown互转
-- [x] Dropdown item
-- [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
+- Out-of-the-box usability
+- Framework-agnostic and highly customizable
+- Built-in undo/redo stack
+- [ ] Built-in cursor history (In Progress)
+- Built-in shortcuts and hotstrings
+- Editor light/dark mode toggle
+- Markdown conversion (to/from)
+- Built-in Assistants
+  - Word Count (`assist-counter`)
+  - Dialog (`assist-dialog`)
+  - Dropdown (`assist-dropdown`)
+  - Message (`assist-message`)
+  - Popup and Floating Tools (`assist-popup`)
+- Built-in Plugins
+  - Headings (`plugin-heading`)
+  - Highlight (`plugin-mark`)
+  - Link (`plugin-link`)
+  - List (`plugin-list`)
+  - Media (Image/Audio/Video) (`plugin-media`)
+  - Code Block (`plugin-code`)
+  - [ ] Table (//TODO)
+  - [ ] Math Formula (//TODO)
+  - [ ] Excalidraw (//In Progress)
 
-### plugin-list
+### Characteristics
 
-> 列表插件
+- **No Abstract Data Model**: Editing operates by directly manipulating the DOM.
+- **`contenteditable`-based, but Fully Managed**: While built on `contenteditable`, the framework takes full control over all browser behaviors (except for IME input and clipboard actions).
+- **Aligned with Latest W3C Standards**: Adheres to and implements the latest web standards, including but not limited to: [`Input Events Level 2`](https://www.w3.org/TR/input-events-2/), [`Selection API`](https://www.w3.org/TR/selection-api/), [`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)
 
-Todos
+### Limitations
 
-- [ ] 基础
-  - [x] 有序列表
-  - [x] 无序列表
-  - [x] 可完成(checked)列表
-  - [x] 缩进处理
-  - [x] alt+上/下 移动列表
-- [x] markdown互转
-- [x] Dropdown item
-- [ ] 首段落插入列表报错(无效应元素) [FIXME](./packages/plugin-list/src/effector.ts#L16)
+The absence of an abstract data model and its underlying implementation of direct DOM manipulation make it nearly impossible, or at least very difficult, to implement collaborative editing in Effitor. However, collaborative editing was never part of Effitor's original intention. It is primarily a rich text editor framework that, in the pursuit of an elegant editing experience, incidentally achieved high performance.
 
-### plugin-code
+Furthermore, Effitor is implemented directly using standard web APIs. Due to variations in how different browsers implement these standards, and despite Effitor addressing the vast majority of edge cases, there remains a possibility of subtle, unaccounted-for differences. These differences might potentially lead to instabilities in the editor's behavior.
 
-> 代码块插件
+## Performance
 
-Todos
+## Demo
 
-- [ ] 基础
-  - [x] 高亮+撤回重做
-  - [x] 输入法处理
-  - [x] 复制粘贴
-  - [x] 快速剪切行
-  - [x] 缩进自适应
-  - [x] 括号自适应
-  - [x] 深色模式自适应
-  - [x] alt+上/下 移动代码行
-  - [x] 逐级全选
-- [x] markdown互转
-- [x] Dropdown item
-- [ ] Popup item (hover 工具栏)
-  - [ ] 设置语言, tabSize 等
+_Insert GIF or link to demo_
+
+## Documentation
+
+[Documentation](./docs/index.md)
+
+## Acknowledgments
+
+## License
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+[MIT](https://choosealicense.com/licenses/mit/)

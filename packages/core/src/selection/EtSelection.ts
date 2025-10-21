@@ -456,7 +456,7 @@ export class EtSelection {
    */
   checkInsertAt(
     insertAt: Et.EtCaret | Et.TargetSelection | null,
-    fn: (tc: Et.ValidTargetSelection) => boolean,
+    fn: (ts: Et.ValidTargetSelection) => boolean,
   ) {
     if (!insertAt) {
       insertAt = this.getTargetCaret()

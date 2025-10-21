@@ -560,8 +560,8 @@ const replaceText = <MetaType>(init: CmdReplaceTextInit<MetaType>) => {
  * @param init 命令初始化对象
  * @example
  * init: {
- *  execAt
  *  node
+ *  execAt
  *  meta?
  *  destCaretRange?
  *  finalCallback?
@@ -578,7 +578,6 @@ const insertNode = <MetaType>(init: CmdInsertNodeInit<MetaType>) => {
  * @param init 命令初始化对象
  * @example
  * init: {
- *  execAt
  *  node
  *  meta?
  *  destCaretRange?

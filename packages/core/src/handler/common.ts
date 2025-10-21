@@ -9,53 +9,13 @@
 import { HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { cr } from '../selection'
+import { dom } from '../utils'
 import { cmd } from './command'
 import { removeNodesAndChildlessAncestorAndMergeSiblings } from './handles'
 import { checkRemoveTargetRange, removeByTargetRange } from './handles/delete/deleteAtRange'
-import { insertElementAtCaret, insertElementAtCaretTemporarily, insertTextAtCaret, insertTextAtRange } from './handles/insert'
+import { insertContentsAtCaret, insertElementAtCaret, insertElementAtCaretTemporarily, insertTextAtCaret, insertTextAtRange } from './handles/insert'
 
-//   /**
-//    * 无视当前光标位置, 在当前段落后边插入一个新段落 \
-//    * * 该effect成功后会发送一个`inputType = insertParagraph` 的input事件
-//    * @param newP 要插入的新段落; 若缺省, 则当前段落是普通段落或标题时, 插入一个普通段落; 否则, 插入一个与当前段落相同类的段落 (如et-li)
-//    * @returns 是否成功插入;
-//    */
-//   appendParagraph(
-//     ctx: Et.UpdatedContext, newP?: Et.EtParagraphElement, destCaretRange?: Et.CaretRange,
-//   ): boolean {
-//     if (!newP) {
-//       newP = ctx.cloneParagraph()
-//     }
-//     if (!destCaretRange) {
-//       destCaretRange = cr.caret(newP, 0)
-//     }
-//     ctx.commandManager.withTransaction([
-//       cmd.insertNode({
-//         node: newP,
-//         execAt: cr.caretOutEnd(ctx.paragraphEl),
-//       }),
-//     ], destCaretRange)
-
-//     ctx.body.dispatchInputEvent('input', {
-//       inputType: 'insertParagraph',
-//     })
-//     return true
-//   },
-
-//   /**
-//    * 在当前光标位置插入一个fragment, 若当前光标为range, 则会先collapse到末尾; 若希望删除选区内容, 可先调用 removeRangingContents
-//    * * 该方法会校验片段内容是否符合etcode规则
-//    * @param df 要插入的片段, 若没有节点, 则直接返回
-//    * @param merge 插入片段时, 是否尝试合并前后可合并内容, 默认合并, 但若明确知道不需要合并, 应传入false
-//    * @param destCaretRange 命令执行后光标位置; 若缺省, 则使用fragment最后子节点的外末尾
-//    * @returns
-//    */
-//   insertContentAtCaret(
-//     ctx: Et.UpdatedContext, df: DocumentFragment, destCaretRange?: Et.CaretRange,
-//   ) {
-//     insertContentAtCaret(ctx, df, !destCaretRange)
-//     return ctx.commandManager.handle(destCaretRange)
-//   },
 //   /**
 //    * 使用片段替换当前节点, 并自动合并前后内容; 若希望使用节点替换, 则可先把节点插入片段中
 //    * @param node 当前节点(将要被替换的节点)
@@ -361,7 +321,7 @@ export class CommonHandlers {
   }
 
   /**
-   * 移动光标到文本节点开头, 由于除了段落开头, 我们无法让光标定位到一个文本节点的 0 位置;
+   * 移动光标到文本节点开头, 由于除了在段落开头, 我们无法让光标定位到一个文本节点的 0 位置;
    * 于是我们在开头插入一个零宽字符, 这个零宽字符会在下一次输入文本时自动移除; 此方法就是
    * 在我们需要将光标定位到 textNode 开头时, 判断是否以零宽字符开头, 若不是, 则插入一个,
    * 然后将光标定位到 1 位置.
@@ -372,5 +332,94 @@ export class CommonHandlers {
       return true
     }
     return this.insertInTextNode(textNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
+  }
+
+  /**
+   * 在指定光标位置所在段落后边插入一个段落
+   * * 该effect成功后默认会发送一个`inputType = insertParagraph` 的input事件
+   * @param caretAt 光标位置, 若为 null, 则使用当前光标位置; 若位置无效, 则直接返回false
+   * @param newP 要插入的新段落; 若缺省, 则依据光标所在段落创建新段落:
+   *             当前段落是普通段落或标题或组件时, 插入一个普通段落;
+   *             否则, 插入一个与当前段落相同类的段落 (如et-li)
+   * @param topLevel 是否插入为顶层段落; 若为 true, 则在当前顶层节点(topElement)插入一个普通段落(除非指定 newP);
+   *                 否则, 在当前段落后边插入新段落; 默认为 false
+   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用新段落内末尾位置;
+   *                       若为 false, 命令执行后不更新选区和上下文; 默认为 true
+   * @param dispatch 是否发送 `inputType = insertParagraph` 的input事件; 默认为 true
+   * @returns 是否成功插入;
+   */
+  appendParagraph(
+    caretAt: Et.EtCaret | Et.TargetSelection | null,
+    {
+      newP = void 0,
+      topLevel = false,
+      destCaretRange = true,
+      dispatch = true,
+    }: {
+      newP?: Et.EtParagraph
+      topLevel?: boolean
+      destCaretRange?: Et.CaretRange | boolean
+      dispatch?: boolean
+    } = {},
+  ): boolean {
+    const ctx = this._ctx
+    return ctx.selection.checkInsertAt(caretAt, (tc) => {
+      if (!tc.anchorParagraph || !tc.anchorTopElement) {
+        return false
+      }
+      if (!newP) {
+        newP = topLevel ? ctx.createPlainParagraph() : ctx.cloneParagraph(tc.anchorParagraph)
+      }
+      let dest: Et.CaretRange | undefined
+      if (destCaretRange === true) {
+        dest = dom.isText(newP.firstChild)
+          ? cr.caretInEnd(newP.firstChild)
+          : cr.caretInStart(newP)
+      }
+      else if (destCaretRange === false) {
+        dest = void 0
+      }
+      else {
+        dest = destCaretRange
+      }
+      if (ctx.commandManager.push(cmd.insertNode({
+        node: newP,
+        execAt: cr.caretOutEnd(topLevel ? tc.anchorTopElement : tc.anchorParagraph),
+      })).handleAndUpdate(dest)) {
+        if (dispatch) {
+          ctx.body.dispatchInputEvent('input', {
+            inputType: 'insertParagraph',
+          })
+        }
+        return true
+      }
+      return false
+    })
+  }
+
+  /**
+   * 在指定光标位置插入一个片段
+   * * 该方法会校验片段内容是否符合etcode规则
+   * @param df 要插入的片段, 若没有节点, 则直接返回
+   * @param insertAt 光标位置, 若为 null, 则使用当前光标位置; 若位置无效, 则直接返回false
+   * @param destCaretRange 命令执行后光标位置; 若缺省, 则使用fragment最后子节点的外末尾
+   * @returns
+   */
+  insertContentsAtCaret(
+    df: DocumentFragment | Et.Fragment,
+    insertAt: Et.EtCaret | Et.TargetSelection | null,
+    destCaretRange?: Et.CaretRange,
+  ) {
+    const ctx = this._ctx
+    return ctx.selection.checkInsertAt(insertAt, (tc) => {
+      if (!tc || !tc.isCaret()) {
+        return false
+      }
+      insertContentsAtCaret(ctx, df as Et.Fragment, tc)
+      if (destCaretRange) {
+        return ctx.commandManager.handleAndUpdate(destCaretRange)
+      }
+      return ctx.commandManager.handle()
+    })
   }
 }

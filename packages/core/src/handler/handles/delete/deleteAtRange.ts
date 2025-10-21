@@ -3,7 +3,7 @@ import { cr } from '../../../selection'
 import { dom } from '../../../utils'
 import { cmd } from '../../command'
 import { fragmentUtils } from '../../utils'
-import { checkTargetRangePosition, tryToMoveNodes, tryToRemoveNodesBetween } from '../shared'
+import { checkTargetRangePosition, tryToMoveNodes, tryToRemoveNodesBetween as addCmdsToRemoveNodesBetween } from '../shared'
 import { expandRemoveInsert, removeNodesAndChildlessAncestorAndMergeSiblings } from './delete.shared'
 
 /**
@@ -105,7 +105,7 @@ export const removeInSameParagraph = (
   // 扩大删除范围, 让range边缘的节点整体删除, 否则破坏 DOM 结构, 无法撤回
   let startExpandNode = targetRange.startAncestor
   let endExpandNode = targetRange.endAncestor
-  // 选区公共祖先不是段落, 且选区无前后兄弟, 删除公共祖先
+  // 选区公共祖先不是段落, 且公共祖先没有与选区零相交的子节点
   if (currP !== targetRange.commonAncestor
     && !startExpandNode.previousSibling && !endExpandNode.nextSibling
   ) {
@@ -172,7 +172,7 @@ const removeSpanningSimpleParagraph = (
     cmds, endPartial, endP, endP, isEndUnselectedContentsEmpty,
   )
   // 移除中间节点
-  tryToRemoveNodesBetween(cmds, startP, endP)
+  addCmdsToRemoveNodesBetween(cmds, startP, endP)
 
   let destCaretRange = startPartial ? cr.caretOutStart(startPartial) : cr.caretInEnd(startP)
   // endP被移除, 插回前半内容即可
@@ -248,7 +248,7 @@ const removeSpanningComplexParagraph = (
     cmds, endPartial, endP, endAncestor, isEndUnselectedContentsEmpty,
   )
   // 移除中间节点
-  tryToRemoveNodesBetween(cmds, startAncestor, endAncestor)
+  addCmdsToRemoveNodesBetween(cmds, startAncestor, endAncestor)
 
   // endAncestor 被移除, 插回开始内容
   // const isEndAncestorWouldBeRemoved = !endPartialOuter

@@ -3,7 +3,6 @@ import type { Et } from '@effitor/core'
 import type { EtMarkElement } from './element'
 
 export const enum MarkEnum {
-  CtxKey = '_et_$mark_',
   ElName = 'et-mark',
   EtCodeName = 'EtMarkElement',
 }
@@ -80,7 +79,8 @@ export const createMarkState = () => ({
 })
 
 export const initMarkPluginContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
-  meta.pctx[MarkEnum.CtxKey] = {
+  // @ts-expect-error first assign
+  meta.pctx.$mark_ctx = {
     markState: createMarkState(),
     enableHinting,
   }

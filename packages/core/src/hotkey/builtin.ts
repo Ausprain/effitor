@@ -113,7 +113,7 @@ export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
     if (!tc) {
       return false
     }
-    return ctx.effectInvoker.invoke(tc.anchorEtElement, 'appendParagraph', ctx, tc)
+    return ctx.commonHandlers.appendParagraph(tc, { topLevel: true })
   },
   // TODO ...
 }

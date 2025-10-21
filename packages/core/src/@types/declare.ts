@@ -115,8 +115,8 @@ export interface Fragment extends globalThis.DocumentFragment {
   readonly lastElementChild: Element | null
   readonly nextSibling: null
   readonly previousSibling: null
-  readonly nextElementSibling: null
-  readonly previousElementSibling: null
+  readonly nextElementSibling?: null
+  readonly previousElementSibling?: null
   readonly cloneNode: (deep?: boolean) => Fragment
 }
 export interface AbstractRange {

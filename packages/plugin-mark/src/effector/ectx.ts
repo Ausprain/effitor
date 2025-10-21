@@ -1,6 +1,7 @@
-import { Et, useEffectorContext } from '@effitor/core'
+import type { Et } from '@effitor/core'
+import { useEffectorContext } from '@effitor/core'
 
-import { MarkEnum, markerMap, MarkType } from '../config'
+import { markerMap, MarkType } from '../config'
 
 export const checkInsertMark = (ctx: Et.EditorContext, markType: MarkType, checkRemoveMarkChar = true) => {
   return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
@@ -19,7 +20,7 @@ export const checkFormatMark = (ctx: Et.EditorContext, markType: MarkType) => {
   )
 }
 
-export const ectx = useEffectorContext(MarkEnum.CtxKey, {
+export const ectx = useEffectorContext('$mark_ctx', {
   checkInsertMark,
   checkFormatMark,
 
