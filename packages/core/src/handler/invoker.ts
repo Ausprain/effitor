@@ -24,6 +24,7 @@ export const effectInvoker = {
    * @param effect 要激发的效应名
    * @param ctx 更新后的上下文对象, 即 effector 回调里的 ctx
    * @param payload 效应负载, InputType 效应的负载为对应的 beforeinput 事件的 InputEvent 对象
+   * @returns 效应被阻止或处理函数不存在, 返回 false; 否则返回效应处理函数的返回值
    */
   invoke<E extends keyof EffectHandler,
     Args extends (Required<EffectHandler>[E] extends (...args: infer P) => unknown ? P : never),

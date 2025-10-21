@@ -304,7 +304,8 @@ export type EffectHandlerWith<
   ) => ReturnType<Required<EffectHandler>[K]>
 }
 
-export type EffectHandleThis = typeof EffectElement & EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
+export type EtHandler = EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
+export type EffectHandleThis = EtHandler & typeof EffectElement
 
 /**
  * InputEvent 初始化参数, 包含效应码; 这是一个扩展, 用于在那些浏览器自身不支持的

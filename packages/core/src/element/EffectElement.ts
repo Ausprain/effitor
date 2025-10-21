@@ -44,16 +44,17 @@ export abstract class EffectElement
   /**
    * 当前效应元素类的父类效应处理器(本质上是该构造器的原型), 基类EffectElement指向 HTMLElement\
    * 该属性在 registerEtElement 注册时初始化, 用于快速访问父类的效应处理器
+   * * 使用此属性直接调用效应处理函数会无视`effectBlocker`
    */
-  declare static readonly superHandler: Et.EffectHandleThis
+  declare static readonly superHandler: Et.EtHandler
   /**
    * 当前效应元素类的效应处理器(本质上是构造器自身), 该属性在 registerEtElement 注册时初始化,
    * 用于快速访问该类对象上的效应处理器;
    * * 该属性只可用于调用效应处理器 ( 替代 `ctx.effectInvoker.invoke` 好让 IDE 追踪到调用处 )
    * * 性能敏感场景应优先使用 `ctx.effectInvoker.invoke(el, 'XXX')` 或 `ctx.getEtHandler(el).XXX`
-   * * 使用此方法调用的效应无视`effectBlocker`
+   * * 使用此属性直接调用效应处理函数会无视`effectBlocker`
    */
-  declare static readonly thisHandler: Et.EffectHandleThis
+  declare static readonly thisHandler: Et.EtHandler
 
   /** 效应类型，即该类元素的效应码；用于初始化元素对象的etCode属性 */
   static etType = 0
@@ -75,7 +76,7 @@ export abstract class EffectElement
 
   /**
    * 效应拦截器, 当非空 且执行返回true时, 阻止对应效应;
-   * 同时, 也可以作为一个通用效应处理器, 因为激活任何效应前, 都会先调用该拦截器
+   * 同时, 也可以作为一个通用效应处理器, 但只在使用 effectInvoker.invoke 调用时生效
    */
   static effectBlocker?: EffectBlocker
 
