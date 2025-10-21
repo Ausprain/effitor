@@ -125,14 +125,15 @@ type EffectAPayload = { data: string };
 declare module "@effitor/core" {
   interface EffectHandleDeclaration {
     // 注意：效应处理函数的参数列表是固定的，
-    // 额外声明的效应处理函数，可通过重载`payload`的类型来指定接收的参数类型。
+    // 额外声明的效应处理函数，可通过重载`payload`的类型来指定接收的参数类型,
+    // 如果该效应不需要 payload, 可省略或声明为`void`类型.
     effectA: (
       this: Et.EffectHandleThis,
       ctx: Et.EditorContext,
       payload: EffectAPayload,
     ) => boolean;
     // 或直接通过工具函数来声明
-    effectB: Et.EffectHandle<EffectAPayload>;
+    effectB: Et.EffectHandle<void>;
   }
 }
 export {};
@@ -146,9 +147,16 @@ export const handler: Et.EffectHandler = {
   effectA(ctx, { data }) => {
     // 处理效应A
     // 也可通过this调用其他效应
-    this.effectB?.(ctx, { data: 'hello' })
+    this.effectB?.(ctx)
   }
 }
+```
+
+激活效应
+
+```ts
+// 激活当前光标所在效应元素的效应A
+ctx.effectInvoker.invoke(ctx.focusEtElement, "effectA", ctx, { data: "hello" });
 ```
 
 效应处理器想要生效，必须挂载到指定效应元素上。若挂载到效应元素基类`EffectElement`上，则对应的效应及效应处理函数对所有效应元素都有效（除非被覆盖）。

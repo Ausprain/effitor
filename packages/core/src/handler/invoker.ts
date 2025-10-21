@@ -41,7 +41,7 @@ export const effectInvoker = {
         ]
   ): Ret | false {
     const Cls = this.getEtElCtor(el)
-    if (Cls.effectBlocker && Cls.effectBlocker(effect)) {
+    if (Cls.effectBlocker && Cls.effectBlocker(effect, ctx, el)) {
       // 阻止该效应
       return false
     }

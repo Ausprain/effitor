@@ -27,7 +27,7 @@ interface EffectElementCallbacks {
 }
 
 /** 效应拦截器, 作为EffectElement的一个属性, 仅当返回true时, 阻止该效应 */
-export type EffectBlocker = (effect: string) => boolean
+export type EffectBlocker = (effect: string, ctx: Et.EditorContext, el: EffectElement) => boolean
 
 /**
  * 效应元素, 通过绑在类名上的 EffectHandle 处理编辑器效应(编辑行为)
@@ -73,7 +73,10 @@ export abstract class EffectElement
   /** 观察的属性列表，列表内属性改变时触发 attributeChangedCallback */
   static readonly observedAttributes: string[] = []
 
-  /** 效应拦截器, 当非空 且执行返回true时, 阻止对应效应 */
+  /**
+   * 效应拦截器, 当非空 且执行返回true时, 阻止对应效应;
+   * 同时, 也可以作为一个通用效应处理器, 因为激活任何效应前, 都会先调用该拦截器
+   */
   static effectBlocker?: EffectBlocker
 
   /** 节点创建函数, 所有参数必须可选, 因为effitor上下文ctx可能会调用该方法来创造类似的节点(ctx.createEtElementAs) */
