@@ -9,7 +9,7 @@ import type {
   EtParagraph,
   EtParagraphCtor,
 } from '../element'
-import type { ExtentEtElement } from '../element/register'
+import type { MountEtHandler } from '../element/register'
 import { HotstringOptions } from '../hotstring/manager'
 import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
@@ -138,26 +138,28 @@ export interface EditorPlugin {
   /** 额外的样式css文本 */
   readonly cssText?: string
   /**
-   * 插件注册时执行, 一般用于extentEtElement()给效应元素添加handler
-   * 也可让插件给EffectElement覆盖或增强绑定的 builtinHandler的内置beforeinput效应
-   * * 注意, 插件注册时编辑器尚未mount, 即此时ctx.root, ctx.body都是null
-   * ```
-   *  registry(ctx, extentEtElement) {
-   *      extentEtElement(EffectElement, {
-   *          /// 覆盖(增强) 原有的粘贴效应handler
-   *          EinsertFromPaste: (ctx, ev) => {
-   *              /// before
-   *              /// 调用原有handler
-   *              const res = builtinHandler.EinsertFromPaste(ctx, ev)
-   *              /// after
-   *              return res
-   *          }
-   *      })
+   * 插件注册时执行, 用于初始化上下文 meta, 效应元素 schema, 以及挂载效应处理器\
+   * * 此函数执行时, 编辑器仅初始化, 尚未 mount
+   * @example
+   *  register(ctxMeta, setSchema, mountEtHandler) {
+   *    // 设置 schema link 为 EtLinkElement
+   *    setSchema({ link: EtLinkElement })
+   *    // 挂载 link 效应处理器到段落上, 让 link 元素能插入到段落中
+   *    mountEtHandler(ctx.schema.paragraph, markLinkHandler, [EtLinkElement])
+   *    // 覆盖(增强) 原有的粘贴效应处理函数
+   *    mountEtHandler(EffectElement, {
+   *      EinsertFromPaste(ctx, payload) => {
+   *        // before
+   *        // 调用原有handler
+   *        const res = this.superHandler.EinsertFromPaste(ctx, payload)
+   *        // after
+   *        return res
+   *      }
+   *    })
    *  }
-   * ```
    */
-  readonly registry?: (
-    ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, extentEtElement: ExtentEtElement
+  readonly register?: (
+    ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, mountEtHandler: MountEtHandler
   ) => void
 };
 

@@ -18,9 +18,9 @@ export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPluginSupp
     cssText: listCss,
     effector: listEffector,
     elements: [EtListElement, EtListItemElement],
-    registry(_ctxMeta, setSchema, extentEtElement) {
+    register(_ctxMeta, setSchema, mountEtHandler) {
       setSchema({ list: EtListElement, listItem: EtListItemElement })
-      extentEtElement(EtListItemElement, inListHandler, [])
+      mountEtHandler(EtListItemElement, inListHandler, [])
     },
   }
 }

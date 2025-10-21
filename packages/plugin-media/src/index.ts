@@ -43,7 +43,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
     cssText,
     effector: mediaEffector,
 
-    registry(ctxMeta, setSchema, extentEtElement) {
+    register(ctxMeta, setSchema, mountEtHandler) {
       const media: Mutable<MediaPluginContext> = { MEDIA_ET_CODE: MEDIA_ET_CODE } as Mutable<MediaPluginContext>
       const els = [], schemaInit = {} as Et.EditorSchema
       if (!options) {
@@ -97,7 +97,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
       // @ts-expect-error first assign
       ctxMeta.pctx.$media_ctx = media
       setSchema(schemaInit)
-      extentEtElement(ctxMeta.schema.paragraph, markMediaHandler, els)
+      mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, els)
     },
   }
 }

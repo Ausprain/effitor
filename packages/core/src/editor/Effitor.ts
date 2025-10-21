@@ -17,7 +17,7 @@ import {
   EtEditorElement,
   EtParagraphElement,
 } from '../element'
-import { extentEtElement, registerEtElement } from '../element/register'
+import { mountEtHandler, registerEtElement } from '../element/register'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, MdProcessor } from '../markdown/processor'
 import { useUndo } from '../plugins'
@@ -640,7 +640,7 @@ const reducePlugins = (
         postEffectors.push(solvers)
       }
     }
-    cur.registry?.(ctx, setSchema, extentEtElement)
+    cur.register?.(ctx, setSchema, mountEtHandler)
   }
   const pluginEffector = inline
     ? solveEffectors(

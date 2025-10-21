@@ -22,29 +22,33 @@ export const registerEtElement = (
       writable: false,
     })
   }
+  else if (import.meta.env.DEV) {
+    throw new Error(`Element ${ctor.elName} has been registered`)
+  }
 }
 /**
- * 扩展一个内置效应元素, 为其添加或重写handler
- * @param ctor 被扩展的元素
- * @param extension 扩展执行器handler对象
- * @param extensionElements 扩展哪些新元素到该被扩展元素上（将来哪些元素允许成为该被扩展元素的后代）;若仅扩展handler功能，则传入空数组
+ * 挂载一个效应处理器到指定效应元素构造器上
+ * @param ctor 被挂载的效应元素类对象
+ * @param handler 挂载的效应处理器对象
+ * @param subEtElements 子效应元素类对象列表, 用于扩展 ctor 的效应码（即将来哪些元素允许成为 ctor 对应效应元素的子节点）;
+ *                      若仅挂载handler功能，则传入空数组
  */
-export const extentEtElement = <
+export const mountEtHandler = <
   E extends EffectElement,
   P extends Et.EtParagraph | null,
   T extends Et.EtParagraph | null,
 >(
   ctor: EffectElementCtor,
-  extension: Et.EffectHandler | Et.EffectHandlerWith<E, P, T>,
-  extensionElements: EffectElementCtor[],
+  handler: Et.EffectHandler | Et.EffectHandlerWith<E, P, T>,
+  subEtElements: EffectElementCtor[],
 ) => {
   // 将新的EffectHandle绑到构造函数上
-  Object.assign(ctor, extension)
-  extensionElements?.forEach((ext) => {
+  Object.assign(ctor, handler)
+  subEtElements?.forEach((ext) => {
     // 扩充允许列表
     ctor.inEtType |= ext.etType
     // 从禁止列表中剔除
     ctor.notInEtType -= ctor.notInEtType & ext.etType
   })
 }
-export type ExtentEtElement = typeof extentEtElement
+export type MountEtHandler = typeof mountEtHandler

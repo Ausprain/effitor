@@ -28,12 +28,12 @@ export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPluginSuppo
     cssText,
     effector: linkEffector,
     elements: [EtLinkElement],
-    registry(ctx, setSchema, extentEtElement) {
+    register(ctx, setSchema, mountEtHandler) {
       setSchema({ link: EtLinkElement })
       // 注册link效应到段落上
       new Set(options?.needLinkEffectElementCtors ?? [])
         .add(ctx.schema.paragraph)
-        .forEach(ctor => extentEtElement(ctor, markLinkHandler, [EtLinkElement]))
+        .forEach(ctor => mountEtHandler(ctor, markLinkHandler, [EtLinkElement]))
       initLinkPluginContext(ctx, options)
     },
   }

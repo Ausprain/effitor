@@ -12,7 +12,7 @@ export const useHeadingPlugin = (): Et.EditorPluginSupportInline => {
     cssText,
     effector: headingEffector,
     elements: [EtHeadingElement],
-    registry(_, setSchema) {
+    register(_, setSchema) {
       setSchema({ heading: EtHeadingElement })
     },
   }

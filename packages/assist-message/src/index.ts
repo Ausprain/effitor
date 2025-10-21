@@ -16,7 +16,7 @@ export const useMessageAssist = (options?: MessageAssistOptions): Et.EditorPlugi
   effector: {
     inline: true,
   },
-  registry(ctxMeta) {
+  register(ctxMeta) {
     ctxMeta.assists.msg = getMessageManager(options)
   },
 })

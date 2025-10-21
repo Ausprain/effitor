@@ -25,14 +25,14 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSuppo
     name: '@effitor/plugin-mark',
     effector: markEffector,
     elements: [EtMarkElement],
-    registry(ctxMeta, setSchema, extentEtElement) {
+    register(ctxMeta, setSchema, mountEtHandler) {
       initMarkPluginContext(ctxMeta, options?.enableHinting)
       setSchema({ mark: EtMarkElement })
-      extentEtElement(EtMarkElement, inMarkHandler, [])
-      extentEtElement(EtMarkElement, markHandler, [])
+      mountEtHandler(EtMarkElement, inMarkHandler, [])
+      mountEtHandler(EtMarkElement, markHandler, [])
       // 注册接收markEffect的元素
       ;(options?.needMarkEffectElementCtors ?? [ctxMeta.schema.paragraph]).forEach((Ctor) => {
-        extentEtElement(Ctor, markHandler, [EtMarkElement])
+        mountEtHandler(Ctor, markHandler, [EtMarkElement])
       })
     },
   }

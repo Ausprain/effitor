@@ -37,12 +37,12 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
     cssText: cssText,
     effector: [codeEffector],
     elements: [EtCodeElement],
-    registry(ctxMeta, setSchema, extentEtElement) {
+    register(ctxMeta, setSchema, mountEtHandler) {
       initCodePluginContext(ctxMeta, highlighter, options?.defaultTabSize ?? 2)
       setSchema({
         code: EtCodeElement,
       })
-      extentEtElement(EtCodeElement, codeHandler, [])
+      mountEtHandler(EtCodeElement, codeHandler, [])
     },
   }
 }

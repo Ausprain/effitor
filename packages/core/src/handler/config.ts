@@ -262,7 +262,7 @@ export interface EffectHandleDeclaration extends Record<string, EffectHandle> {
   dblSpace: EffectHandle<Et.ValidTargetCaret>
 }
 /**
- * 效应处理器, 需通过`extentEtElement`将其挂载到效应元素类对象(构造器)上才能被 effectInvoker 激活\
+ * 效应处理器, 需通过`mountEtHandler`将其挂载到效应元素类对象(构造器)上才能被 effectInvoker 激活\
  * 可用于创建 handler 时提供类型提示
  */
 export type EffectHandler = Partial<

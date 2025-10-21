@@ -5,9 +5,9 @@ import { EtParagraph } from './EtParagraph'
 
 /**
  * 段落组抽象类, 初始化仅支持 (段落, 标题, 组件) 作为其子节点, 若插件需要增加其支持的效应元素类型,
- * 如列表, 应额外通过 extentEtElement 扩展空 handler 来间接扩充其允许的子元素效应类型
+ * 如列表, 应额外通过 mountEtHandler 扩展空 handler 来间接扩充其允许的子元素效应类型
  * @example
- * extentEtElement(EtBlockquote, {}, [ EtListElement ])
+ * mountEtHandler(EtBlockquote, {}, [ EtListElement ])
  */
 export abstract class EtBlockquote extends EtParagraph {
   static readonly elName: string = BuiltinElName.ET_BLOCKQUOTE

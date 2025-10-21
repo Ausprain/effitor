@@ -1,5 +1,5 @@
 import { EffectElement } from '../element'
-import { extentEtElement } from '../element/register'
+import { mountEtHandler } from '../element/register'
 import { buintinHandler } from './builtin'
 
 export * from './command'
@@ -16,4 +16,4 @@ export {
 export type { MergeHtmlNode } from './utils/fragment'
 
 // 将内置效应处理挂载到效应元素基类构造器上
-extentEtElement(EffectElement, buintinHandler, [])
+mountEtHandler(EffectElement, buintinHandler, [])

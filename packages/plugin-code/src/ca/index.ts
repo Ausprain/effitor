@@ -11,9 +11,9 @@ export const useCodeAreaPlugin = (): Et.EditorPluginSupportInline => {
     cssText,
     effector: codeAreaEffector,
     elements: [EtCodeAreaElement, EtCodeLineElement],
-    registry(_ctxMeta, _setSchema, extentEtElement) {
-      extentEtElement(EtCodeAreaElement, codeAreaHandler, [EtCodeLineElement])
-      extentEtElement(EtCodeLineElement, codeLineHandler, [])
+    register(_ctxMeta, _setSchema, mountEtHandler) {
+      mountEtHandler(EtCodeAreaElement, codeAreaHandler, [EtCodeLineElement])
+      mountEtHandler(EtCodeLineElement, codeLineHandler, [])
     },
   }
 }

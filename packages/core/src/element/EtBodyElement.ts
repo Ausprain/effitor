@@ -6,9 +6,9 @@ import { EffectElement } from './EffectElement'
 /**
  * 编辑区, 编辑器主体
  * 默认支持的子元素效应类型有: 段落, 段落组, 标题, 组件; 若插件需扩展类型, 如需要允许编辑区下出现列表,
- * 应额外通过 extentEtElement 扩展空 handler 来间接扩充其允许的子元素效应类型
+ * 应额外通过 mountEtHandler 扩展空 handler 来间接扩充其允许的子元素效应类型
  * @example
- * extentEtElement(EtBodyElement, {}, [ EtListElement ])
+ * mountEtHandler(EtBodyElement, {}, [ EtListElement ])
  */
 export class EtBodyElement extends EffectElement {
   static readonly elName: string = BuiltinElName.ET_BODY
