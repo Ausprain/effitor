@@ -177,6 +177,43 @@ const usePlugin = () => {
 
 本质上，效应处理器最终会挂载到效应元素类对象（构造器）上，通过编辑器上下文上的效应激活器`effectInvoker`，从指定效应元素上激活特定效应并执行相应的效应处理函数。
 
+### 深入效应
+
+effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来声明，通过效应处理函数来实现。效应元素和效应处理器使用了面向对象的思想，得益于 js 原型链的设计，子类效应元素自动继承父类的效应处理器。而子类重新绑定的效应处理器（准确的说，是效应处理函数），会覆盖父类对相应效应的处理方式，相当于重写（override）了父类指定效应的处理函数。
+
+其原理很简单，挂载一个效应处理器到效应元素上时，我们将效应处理器这个对象直接 assign 到效应元素类对象（构造器）上。激活某个效应时，我们先获取指定效应元素（即自定义的 html 节点）的类对象（构造器），然后从类对象上获取对应效应的处理函数。根据 js 原型链的设计，从子类构造器上访问属性时，如果查找失败，会沿着原型链向上查找，即从父类构造器中查找，由此实现效应的继承和重写。
+
+目前 effitor 还有很多功能是直接实现的，我们正考虑逐步将这些功能都以效应的形式实现，以提高编辑器的可扩展性和可维护性，逐步形成“effitor 内，一切皆效应”的思想。
+
+### 现有内置效应列表：
+
+| 效应                               | 描述    | 回调效应^1 | 备注                       |
+| ---------------------------------- | ------- | ---------- | -------------------------- |
+| `InsertParagraphAtParagraphEnd`    | // todo | ✅         |                            |
+| `InsertParagraphAtParagraphStart`  | // todo | ✅         |                            |
+| `BackspaceAtParagraphStart`        | // todo | ✅         |                            |
+| `DeleteAtParagraphEnd`             | // todo | ✅         |                            |
+| `InsertCompositionTextSuccess`     | // todo | ✅         |                            |
+| `InitEditorContents`               | // todo | ✅         |                            |
+| `UpdateEditorContentsFromMarkdown` | // todo | ✅         |                            |
+| `TransformInsertContents`          | // todo | ✅         |                            |
+| ~~`DeleteContentsSpanningStart`~~  | // todo | ✅         |                            |
+| ~~`DeleteContentsSpanningEnd`~~    | // todo | ✅         |                            |
+| `InsertCompositionTextInRawEl`     | // todo | ✅         | 选区在原生编辑节点^2内生效 |
+| `InsertTextInRawEl`                | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `DeleteInRawEl`                    | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `DeleteTextInRawEl`                | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `ReplaceTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `FormatIndentInRawEl`              | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `FormatOutdentInRawEl`             | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `tabout`                           | // todo | ✅         |                            |
+| `dblSpace`                         | // todo | ✅         |                            |
+
+备注：
+
+1. 回调效应指编辑器核心会在特定时机主动调用的效应，如`BackspaceAtParagraphStart`会在光标在段落开头按下退格键（`Backspace`）时被调用。
+2. 原生编辑节点指的是`textarea`和`input[type="text"]`。
+
 ## 上下文
 
 上下文包括`编辑器上下文（EditorContext）`、`效应器上下文（EffectorContext）`和`插件上下文（PluginContext）`。
@@ -264,6 +301,49 @@ const editor = new Effitor({
 });
 ```
 
-# 命令模块
+# 命令系统
 
-# 选区模块
+命令系统是 effitor 的底层，它赋予了编辑器直接操作 DOM 和撤回已执行的操作的能力。由于 effitor 没有抽象的数据模型，一切文档数据和操作都基于 DOM 进行，直接的 DOM 操作很容易破坏文档结构。为此，effitor 的命令基于严格的配置，只有正确配置的命令，才具备安全的撤回能力。
+
+effitor 的命令系统有 10 个基础命令，它们的类型分别是：
+
+- `Insert_Composition_Text`：插入输入法文本
+- `Insert_Text`：插入文本
+- `Delete_Text`：删除文本
+- `Replace_Text`：替换文本
+- `Insert_Node`：插入节点
+- `Remove_Node`：删除节点
+- `Replace_Node`：替换节点
+- `Insert_Content`：插入内容（DocumentFragment）
+- `Remove_Content`：删除内容（连续的同层节点）
+- `Functional`：功能命令（函数式命令）
+
+effitor 提供了一个工具：`cmd`命令工厂，用于创建命令。
+
+```ts
+import { cmd } from "@effitor/core";
+```
+
+# 选区系统
+
+选区基于原生`Selection API`，`Range API`封装。只要理解这两个标准API，就很容易理解 effitor 的选区系统。
+
+effitor 的选区系统由三部分组成：选区、目标光标/范围、光标范围。
+
+## 选区（EtSelection）
+
+选区主要用于交互，理解用户当前行为所处的文档位置，以及更新上下文相关信息。
+
+## 目标光标/范围（TargetCaret/TargetRange）
+
+目标光标/范围主要用于初始化命令，效应器或效应处理函数，根据目标光标/范围来确定激活什么效应，添加什么命令。
+
+## 光标范围（CaretRange、SpanRange）
+
+光标范围主要用于命令，在命令执行时确定要作用的光标位置，SpanRange用于删除；CaretRange 用于插入，以及在命令执行后确定新的选区（光标/范围）位置。
+
+effitor 提供了一个工具`cr`，用于快速创建光标范围。
+
+```ts
+import { cr } from "@effitor/core";
+```
