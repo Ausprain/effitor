@@ -107,6 +107,9 @@ export interface DefaultEffectHandleMap {
     insertToEtElement: Et.EtElement
   }) => void
   /**
+   * // TODO 待实现
+   * @deprecated 尚未实现
+   *
    * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
    * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
    * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的开端
@@ -121,7 +124,7 @@ export interface DefaultEffectHandleMap {
    *  <et-p>aa^a<et-r>AA|BB</et-r>bbb</et-p>
    *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningStart 效应
    */
-  DeleteContentsSpanningStart: (this: EffectHandleThis, ctx: EditorContext, payload: {
+  DeleteContentsSpanningStart?: (this: EffectHandleThis, ctx: EditorContext, payload: {
     targetCaret: Et.ValidTargetCaretWithTopElement
     /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
     previousEtElement?: Et.EtElement
@@ -129,6 +132,9 @@ export interface DefaultEffectHandleMap {
     isPreviousToBeRemoved?: boolean
   }) => boolean | Et.Command[]
   /**
+   * // TODO 待实现
+   * @deprecated 尚未实现
+   *
    * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
    * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
    * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的末端
@@ -143,7 +149,7 @@ export interface DefaultEffectHandleMap {
    *  <et-p>aaa<et-r>AA^BB</et-r>b|bb</et-p>
    *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningEnd 效应
    */
-  DeleteContentsSpanningEnd: (this: EffectHandleThis, ctx: EditorContext, payload: {
+  DeleteContentsSpanningEnd?: (this: EffectHandleThis, ctx: EditorContext, payload: {
     targetCaret: Et.ValidTargetCaretWithTopElement
     /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
     previousEtElement?: Et.EtElement
@@ -304,8 +310,7 @@ export type EffectHandlerWith<
   ) => ReturnType<Required<EffectHandler>[K]>
 }
 
-export type EtHandler = EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
-export type EffectHandleThis = EtHandler & typeof EffectElement
+export type EffectHandleThis = Pick<typeof EffectElement, 'effectBlocker'> & EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
 
 /**
  * InputEvent 初始化参数, 包含效应码; 这是一个扩展, 用于在那些浏览器自身不支持的
