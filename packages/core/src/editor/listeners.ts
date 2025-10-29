@@ -128,6 +128,9 @@ export const addListenersToEditorBody = (
         // 解绑selectionchange
         document.removeEventListener('selectionchange', listeners.selectionchange)
         // 清理上下文
+        if (import.meta.env.DEV) {
+          return
+        }
         ctx.blurCallback()
       })
     }

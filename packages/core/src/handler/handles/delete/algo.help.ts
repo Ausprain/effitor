@@ -5,7 +5,7 @@
 
 /**
 
-range remove algorithm
+# range remove algorithm v1.0
 
 1. remove in same paragraph
 case: <p>aa bb cc dd</p>
@@ -126,9 +126,9 @@ case:
   <bq>  // topEl, commonAncestor
     <p>dd ee ff</p>
     <p>DD E^E FF</p>  // startP, startAncestor
-    <ul>
+    <ul> // endAncestor
       <li>aa bb cc</li>
-      <li>AA B|B CC</li>  // endP, endAncestor
+      <li>AA B|B CC</li>  // endP
       <li>XX YY ZZ</li>
     </ul>
   </bq>
@@ -274,3 +274,45 @@ import {
   removeNodesAndChildlessAncestorAndMergeSiblings,
 } from './delete.shared'
 import { removeInSameParagraph, removeSpanningParagraphs } from './deleteAtRange'
+
+/**
+
+# range remove algorithm v2.0
+
+prer.
+  startEtElement and endEtElement may contain commonAncestor only when it is commonEtElement
+
+checkTargetRange
+  1. startEtElement === endEtElement === commonEtElement
+    1.1. invoke effect "DeleteContentsAtRange" of commonEtElement
+  2. else
+    2.1. if startEtElement is not commonEtElement, let node = startEtElement, while node
+      2.1.1 if node === commonAncestor, break
+      2.1.2 if node is EffectElement, invoke effect "DeleteContentsAtRangeStart" of node, let startEtElement = node
+      2.1.3 let node = node's parent
+    2.2. if endEtElement is not commonEtElement, let node = endEtElement, while node
+      2.2.1 if node === commonAncestor, break
+      2.2.2 if node is EffectElement, invoke effect "DeleteContentsAtRangeEnd" of node, let endEtElement = node
+      2.2.3 let node = node's parent
+    2.3. invoke effect "DeleteContentsAtRange" of commonEtElement with startEtElement and endEtElement,
+      startEtElement must be or inner by startAncestor
+      endEtElement must be or inner by endAncestor
+
+effect:
+  DeleteContentsAtRange:
+    args:
+      targetRange: original targetRange
+      startEtElement: startEtElement or null if never invoke DeleteContentsAtRangeStart
+      endEtElement: endEtElement or null if never invoke DeleteContentsAtRangeEnd
+  DeleteContentsAtRangeStart:
+    args:
+      targetRange: original targetRange
+      previousEtElement?: Et.EtElement
+      isPreviousToBeRemoved?: boolean
+  DeleteContentsAtRangeEnd:
+    args:
+      targetRange: original targetRange
+      previousEtElement?: Et.EtElement
+      isPreviousToBeRemoved?: boolean
+
+*/

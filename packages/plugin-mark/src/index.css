@@ -8,10 +8,10 @@ et-editor,
   --et_mark-color__hl_bg: #fcd13c;
 }
 
-/* et-editor.dark,
+et-editor.dark,
 :host(.dark) {
-  --et_mark-color__marker: #9bd;
-} */
+  --et_mark-color__code_bg: #212427;
+}
 
 et-mark {
   display: inline;
@@ -65,6 +65,7 @@ et-mark.ET_cls-code {
   color: var(--et_mark-color__code_text);
   font-size: 14px;
   font-family: var(--et_mark-color__code_font), monospace ;
+  transition: var(--et-transition-color-scheme);
 }
 et-mark.ET_cls-code.caret-in {
   padding: 3px 0 2px;

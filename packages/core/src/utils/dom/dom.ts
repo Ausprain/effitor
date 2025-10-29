@@ -4,7 +4,7 @@
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
 
-import { BuiltinElName, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
+import { BuiltinElName, CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
 
@@ -91,18 +91,18 @@ export const findEffectParent = (node: Et.NodeOrNull, stopTag: string = BuiltinE
   }
   return null
 }
-/**
- * ~~查找编辑区顶层元素(段落)~~
- * 向上查找最近一个拥有段落效应的父节点
- */
-export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null => {
-  while (node) {
-    if (node.localName === BuiltinElName.ET_BODY) return null
-    if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.EtParagraphElement
-    node = node.parentNode
-  }
-  return null
-}
+// /**
+//  * ~~查找编辑区顶层元素(段落)~~
+//  * 向上查找最近一个拥有段落效应的父节点
+//  */
+// export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null => {
+//   while (node) {
+//     if (node.localName === BuiltinElName.ET_BODY) return null
+//     if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.EtParagraphElement
+//     node = node.parentNode
+//   }
+//   return null
+// }
 
 /* -------------------------------------------------------------------------- */
 /*                                  check utils                               */
@@ -173,6 +173,36 @@ export const isWithinLast = (node: Et.Node, ancestor: Et.Node) => {
     child = child.lastChild
   }
   return false
+}
+
+/**
+ * 判断字符串指定位置之前是否全为零宽度字符, offset <= 0 时返回 false
+ */
+export const isLeadingZWS = (data: string, offset: number) => {
+  if (offset <= 0) {
+    return false
+  }
+  while (offset--) {
+    if (data[offset] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      return false
+    }
+  }
+  return true
+}
+/**
+ * 判断字符串指定位置之后是否全为零宽度字符, offset >= data.length 时返回 false
+ */
+export const isTrailingZWS = (data: string, offset: number) => {
+  if (offset >= data.length) {
+    return false
+  }
+  while (offset < data.length) {
+    if (data[offset] !== HtmlCharEnum.ZERO_WIDTH_SPACE) {
+      return false
+    }
+    offset++
+  }
+  return true
 }
 
 /* -------------------------------------------------------------------------- */

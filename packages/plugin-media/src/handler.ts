@@ -87,5 +87,5 @@ const insertMediaContents = (ctx: Et.EditorContext, targetCaret: Et.ValidTargetC
   const zws = new Text(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
   df.appendChild(zws)
   ctx.commandManager.commitNextHandle(true)
-  ctx.commonHandlers.insertContentsAtCaret(df, targetCaret, cr.caret(zws, 1))
+  ctx.commonHandler.insertContentsAtCaret(df, targetCaret, cr.caret(zws, 1))
 }

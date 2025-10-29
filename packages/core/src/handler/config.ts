@@ -1,7 +1,6 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BuiltinConfig } from '@effitor/shared'
-import type { Options as FmOptions } from 'mdast-util-from-markdown'
 
 import type { Et } from '../@types'
 import type { InputType } from '../@types/declare'
@@ -54,47 +53,28 @@ export interface DefaultEffectHandleMap {
    * 在段落末尾插入一个段落 (这是一个回调, 当在段落末尾位置按下 Enter 时, effitor 核心会激活当前段落元素的此效应)
    * * 核心先判断是否在开头, 再判断末尾, 因此当段落为空时, 总是会调用`InsertParagraphAtParagraphStart`
    */
-  InsertParagraphAtParagraphEnd: (
-    this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph
-  ) => boolean
+  InsertParagraphAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph) => boolean
   /**
    * 在段落开头插入一个段落 (这是一个回调, 当在段落开头位置按下 Enter 时, effitor 核心会激活当前段落元素的此效应)
    * * 核心先判断是否在开头, 再判断末尾, 因此当段落为空时, 总是会调用`InsertParagraphAtParagraphStart`
    */
-  InsertParagraphAtParagraphStart: (
-    this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph
-  ) => boolean
+  InsertParagraphAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph) => boolean
   /**
    * 在段落开头 Backspace; 处理成功, 返回 true; 未处理, 返回topElement 的前兄弟, 处理失败, 返回false
    * @param targetCaret 目标光标, 由当前段落元素认可的段落开头位置
    */
-  BackspaceAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  DeleteBackwardAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
    * 在段落结尾 Delete; 处理成功, 返回 true; 未处理, 返回topElement 的后兄弟, 处理失败, 返回false
    * @param targetCaret 目标光标, 由当前段落元素认可的段落结尾位置
    */
-  DeleteAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  DeleteForwardAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+
   /**
    * 这是一个回调, 当 compositionend 事件中 event.data 非空时调用ctx.focusEtElement 的该效应处理函数
    * @param data 输入法输入的文本
    */
   InsertCompositionTextSuccess: (this: EffectHandleThis, ctx: EditorContext, data: string) => void
-  /**
-   * 初始化编辑器内容, 一般初始化为一个普通段落, 可通过编辑器 firstInsertedParagraph 回调自定义;
-   * 若编辑器已有内容, 则会先清空再重新初始化
-   * @param payload
-   * * `create?`: 首段落创建函数
-   * * `isFirstInit`: 是否首次初始化, 即编辑器是否为空
-   */
-  InitEditorContents: (this: EffectHandleThis, ctx: EditorContext, payload: {
-    create?: Et.ParagraphCreator
-    isFirstInit: boolean
-  }) => void
-  /** 使用 markdown 文本更新编辑器内容 */
-  UpdateEditorContentsFromMarkdown: (this: EffectHandleThis, ctx: EditorContext, payload: {
-    mdText: string
-    mdOptions?: FmOptions
-  }) => void
   /**
    * 对即将插入文档的外来内容进行转换; 如`insertFromPaste`时从剪切板`text/html`获取的内容;
    * 默认不转换, 原样使用 htmlProcessor 处理的到的片段
@@ -106,56 +86,6 @@ export interface DefaultEffectHandleMap {
     fragment: Et.Fragment
     insertToEtElement: Et.EtElement
   }) => void
-  /**
-   * // TODO 待实现
-   * @deprecated 尚未实现
-   *
-   * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
-   * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
-   * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的开端
-   * * 此效应与 DeleteContentsSpanningEnd 互斥, 即同一次删除操作不会同时激活同一个效应元素的这两个效应
-   * * 在一次删除选区操作中, 可能激活多次此效应; 由 targetCaret 目标光标位置逐级向上的效应元素链依次激活, 形成删除链
-   * @param payload
-   * * `cmds` 此效应内部产生的命令添加到 cmds 中, 后续统一执行;
-   * * `targetCaret` 要删除的选区结束目标光标位置, 即要删除的选区范围从起始位置跨越当前效应元素开头至此光标位置
-   * @returns
-   *      ***若要删除此效应元素, 必须返回 true***, 同时若cmds 非空, 后续也会执行添加到其中的命令
-   * @example
-   *  <et-p>aa^a<et-r>AA|BB</et-r>bbb</et-p>
-   *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningStart 效应
-   */
-  DeleteContentsSpanningStart?: (this: EffectHandleThis, ctx: EditorContext, payload: {
-    targetCaret: Et.ValidTargetCaretWithTopElement
-    /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
-    previousEtElement?: Et.EtElement
-    /** 前一个效应元素在此次删除行为中是否会被删除 */
-    isPreviousToBeRemoved?: boolean
-  }) => boolean | Et.Command[]
-  /**
-   * // TODO 待实现
-   * @deprecated 尚未实现
-   *
-   * 这是一个回调效应, 当编辑器将要删除一个选区范围时, 若范围的起止点不在同一个效应元素内, 则会激活对应效应元素的此效应,
-   * 来决定此效应元素对于该删除选区范围要删除的内容, 若需要删除该效应元素, 则可直接返回 true.
-   * * 激活此效应, 意味着要删除的选区范围, 部分包含此效应元素, 且跨越此效应元素的末端
-   * * 此效应与 DeleteContentsSpanningStart 互斥, 即同一次删除操作不会同时激活同一个效应元素的这两个效应
-   * * 在一次删除选区操作中, 可能激活多次此效应; 由 targetCaret 目标光标位置逐级向上的效应元素链依次激活, 形成删除链
-   * @param payload
-   * * `cmds` 此效应内部产生的命令添加到 cmds 中, 后续统一执行;
-   * * `targetCaret` 要删除的选区起始目标光标位置, 即要删除的选区范围从此光标位置跨越当前效应元素结尾到选区结束位置
-   * @returns
-   *      ***若要删除此效应元素, 必须返回 true***, 同时若cmds 非空, 后续也会执行添加到其中的命令
-   * @example
-   *  <et-p>aaa<et-r>AA^BB</et-r>b|bb</et-p>
-   *  ^,| 分别代表选区起止位置, 编辑器将要删除如上选区范围时, 将激活效应元素 et-r 的 DeleteContentsSpanningEnd 效应
-   */
-  DeleteContentsSpanningEnd?: (this: EffectHandleThis, ctx: EditorContext, payload: {
-    targetCaret: Et.ValidTargetCaretWithTopElement
-    /** 前一个效应元素, 是当前效应元素的后代; 若为 undefined, 说明是删除链的第一个删除  */
-    previousEtElement?: Et.EtElement
-    /** 前一个效应元素在此次删除行为中是否会被删除 */
-    isPreviousToBeRemoved?: boolean
-  }) => boolean | Et.Command[]
 
   /* -------------------------------------------------------------------------- */
   /*                               原生编辑节点内                                 */
@@ -310,7 +240,11 @@ export type EffectHandlerWith<
   ) => ReturnType<Required<EffectHandler>[K]>
 }
 
-export type EffectHandleThis = Pick<typeof EffectElement, 'effectBlocker'> & EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
+export type EffectHandleThis = Pick<typeof EffectElement,
+  | 'superHandler'
+  | 'thisHandler'
+  | 'effectBlocker'
+> & EffectHandler & EffectHandlerPick<keyof DefaultEffectHandleMap>
 
 /**
  * InputEvent 初始化参数, 包含效应码; 这是一个扩展, 用于在那些浏览器自身不支持的

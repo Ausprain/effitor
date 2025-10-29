@@ -161,6 +161,7 @@ export class Effitor {
     schemaInit = {},
     mainEffector = getMainEffector(),
     effectorInline = false,
+    assists = [],
     plugins = [],
     config = {},
     configManager = new ConfigManager(),
@@ -169,7 +170,7 @@ export class Effitor {
     callbacks = {},
     hotstringOptions = undefined,
   }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
-    // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM, 则强制不使用 ShadowDOM
+    // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM以及ShadowDOM内选区, 则强制不使用 ShadowDOM
     if (shadow) {
       shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
     }
@@ -182,7 +183,7 @@ export class Effitor {
     }
     // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
     // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
-    plugins = [useUndo(), ...plugins]
+    plugins = [useUndo(), ...assists, ...plugins]
     const schema = {
       editor: EtEditorElement,
       body: EtBodyElement,
@@ -476,11 +477,7 @@ export class Effitor {
     if (parseOnly) {
       return this.mdProcessor.fromMarkdown(this.context, mdText, options)
     }
-    const ctx = this.context
-    ctx.getEtHandler(ctx.bodyEl).UpdateEditorContentsFromMarkdown?.(ctx, {
-      mdText,
-      mdOptions: options,
-    })
+    this.context.commonHandler.updateEditorContentsFromMarkdown(mdText, options)
   }
 
   /**
@@ -489,11 +486,11 @@ export class Effitor {
    * @param create 首段落创建函数, 若没有则查询 `callbacks?.firstInsertedParagraph` 仍没有则使用ctx默认段落创建函数
    */
   initBody(create?: Et.ParagraphCreator, isFirstInit = true) {
-    const ctx = this.context
-    ctx.getEtHandler(ctx.bodyEl).InitEditorContents?.(ctx, {
-      create,
-      isFirstInit,
-    })
+    return this.context.commonHandler.initEditorContents(isFirstInit, create)
+  }
+
+  clearBody() {
+    return this.context.commonHandler.clearEditorContents()
   }
 
   /**

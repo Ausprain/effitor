@@ -14,6 +14,7 @@ export type {
   ValidTargetCaretWithParagraph,
   ValidTargetCaretWithTopElement,
   ValidTargetRange,
+  ValidTargetRangeWithCommonEtElement,
   ValidTargetSelection,
 } from './EtTargetRange'
 export type { SpanRange } from './SpanRange'

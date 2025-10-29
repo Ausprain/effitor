@@ -15,7 +15,7 @@ const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCar
   }
   if (tc.container.data === HtmlCharEnum.ZERO_WIDTH_SPACE) {
     const ret = cr.caretOutStart(tc.container)
-    ctx.commonHandlers.removeNode(tc.container)
+    ctx.commonHandler.removeNode(tc.container)
     return ret
   }
   if (!marker) {
@@ -30,12 +30,12 @@ const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCar
     ) {
       // 先记录位置, 再移除节点
       const ret = cr.caretOutStart(text)
-      ctx.commonHandlers.removeNode(text, true)
+      ctx.commonHandler.removeNode(text, true)
       return ret
     }
     else {
       offset = offset - marker.length
-      ctx.commonHandlers.deleteInTextNode(text, offset, marker, true)
+      ctx.commonHandler.deleteInTextNode(text, offset, marker, true)
       if (tc.isAtEnd()) {
         return cr.caretOutEnd(text)
       }
@@ -65,14 +65,14 @@ const checkUnformatMark = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
   // 光标在 mark 节点内, 且 mark 节点内只有纯文本, 则删除该节点并插回内容文本
   const data = tc.anchorEtElement.textContent
   return ctx.commandManager.withTransactionFn((cm) => {
-    if (!ctx.commonHandlers.removeNodeAndMerge(tc.anchorEtElement, false)) {
+    if (!ctx.commonHandler.removeNodeAndMerge(tc.anchorEtElement, false)) {
       return false
     }
     const insertAt = ctx.selection.createTargetCaret(cm.lastCaretRange)
     if (!insertAt) {
       return false
     }
-    return ctx.commonHandlers.insertText(data, insertAt)
+    return ctx.commonHandler.insertText(data, insertAt)
   })
 }
 
@@ -148,11 +148,11 @@ export const markHandler: Et.EffectHandler = {
       let insertAt
       if (data.length === tr.commonAncestor.length) {
         insertAt = cr.caretOutStart(tr.commonAncestor)
-        ctx.commonHandlers.removeNode(tr.commonAncestor, false)
+        ctx.commonHandler.removeNode(tr.commonAncestor, false)
       }
       else {
         insertAt = cr.caret(tr.commonAncestor, tr.startOffset)
-        ctx.commonHandlers.deleteInTextNode(tr.commonAncestor, tr.startOffset, data.length, false)
+        ctx.commonHandler.deleteInTextNode(tr.commonAncestor, tr.startOffset, data.length, false)
       }
       return insertMarkNodeAtCaret(ctx, insertAt, markType, data)
     })

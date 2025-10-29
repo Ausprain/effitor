@@ -1,6 +1,10 @@
 /**
  * 数学公式插件
  * 使用[katex](https://www.npmjs.com/package/katex)渲染katex公式
+ *
+ * 优雅的实现依赖于以下两个效应：
+ * DeleteContentsSpanningStart
+ * DeleteContentsSpanningEnd
  */
 
 import type { Et } from '@effitor/core'

@@ -77,6 +77,7 @@ export abstract class EffectElement
   /**
    * 效应拦截器, 当非空 且执行返回true时, 阻止对应效应;
    * 同时, 也可以作为一个通用效应处理器, 但只在使用 effectInvoker.invoke 调用时生效
+   * @deprecated 此属性在使用非 effectInvoker.invoke 激活效应时无效
    */
   static effectBlocker?: EffectBlocker
 
@@ -88,6 +89,7 @@ export abstract class EffectElement
   ): node is InstanceType<T> { return (node as Element)?.localName === this.elName }
 
   /**
+   * // TODO, 与 DeleteContentsSpanningStart 和 DeleteContentsSpanningEnd 效应的取舍
    * 这是一个只在效应处理器中调用的(回调)函数;
    * 当效应处理器执行删除操作时, 若需要部分删除某个效应元素节点, 处理器会将节点整体删除,
    * 然后再克隆未选择的部分插回原来的位置; 但效应处理器不知道将要插回的效应元素是否完整,

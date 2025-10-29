@@ -26,7 +26,7 @@ export const inMarkHandler: Et.EffectHandler = {
             if (markType !== MarkType.BOLD && marker.length === 2) {
               marker = marker.slice(-1)
             }
-            ctx.commonHandlers.insertText(marker, null)
+            ctx.commonHandler.insertText(marker, null)
           }
           return true
         }

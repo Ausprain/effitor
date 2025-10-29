@@ -74,7 +74,7 @@ export const insertTextAtRange = (
     return true
   }
   // 选区跨文本节点, 先删除选区
-  return ctx.commonHandlers.checkRemoveTargetRange(targetRange, (ctx, caret) => {
+  return ctx.commonHandler.checkRemoveTargetRange(targetRange, (ctx, caret) => {
     insertTextAtCaret(ctx, data, caret)
     return true
   })

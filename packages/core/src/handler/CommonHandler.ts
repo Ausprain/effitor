@@ -59,7 +59,7 @@ import { insertContentsAtCaret, insertElementAtCaret, insertElementAtCaretTempor
 /**
  * 通用效应处理器, 不依赖 effectInvoker, 可直接调用处理
  */
-export class CommonHandlers {
+export class CommonHandler {
   private readonly _ctx: Et.EditorContext
   private readonly commander: Et.EditorContext['commandManager']
   /**
@@ -78,6 +78,112 @@ export class CommonHandlers {
       return this.commander.handleAndUpdate(destCaretRange)
     }
     return this.commander.handle()
+  }
+
+  /**
+   * 初始化编辑器内容, 一般初始化为一个普通段落, 可通过编辑器 firstInsertedParagraph 回调自定义;
+   * 若编辑器已有内容, 则会先清空再重新初始化
+   * @param isFirstInit 是否首次初始化, 即编辑器是否为空; 否则会添加一个命令, 用于清空编辑区内容
+   * @param create? 首段落创建函数
+   */
+  initEditorContents(isFirstInit: boolean, create?: Et.ParagraphCreator) {
+    const ctx = this._ctx
+    let newP, dest
+    const bodyEl = ctx.bodyEl
+    const out = create
+      ? create(ctx)
+      : ctx.editor.callbacks.firstInsertedParagraph?.(ctx) ?? ctx.createPlainParagraph()
+    if (Array.isArray(out)) {
+      newP = out[0]
+      dest = out[1]
+    }
+    else {
+      newP = out
+    }
+    if (!dest) {
+      dest = cr.caretInStart(newP)
+    }
+    if (isFirstInit) {
+      bodyEl.appendChild(newP)
+      ctx.setSelection(dest)
+      return true
+    }
+
+    if (bodyEl.hasChildNodes()) {
+      ctx.commandManager.push(cmd.removeContent({
+        removeRange: cr.spanRangeAllIn(bodyEl) as Et.SpanRange,
+      }))
+    }
+
+    ctx.commandManager.push(cmd.insertNode({
+      node: newP,
+      execAt: cr.caretInStart(bodyEl),
+    })).handleAndUpdate(dest)
+
+    return true
+  }
+
+  /**
+   * 清空编辑器内容
+   * * 如果仅是简单的清空编辑器(至初始状态), 应优先使用 `initEditorContents(false)`
+   * @returns 操作是否成功
+   */
+  clearEditorContents() {
+    const ctx = this._ctx
+    const bodyEl = ctx.bodyEl
+    if (bodyEl.childNodes.length === 0) {
+      return true
+    }
+    // 撤回栈为空，不需要支持撤回，直接清空编辑区
+    if (this.commander.stackLength === 0) {
+      bodyEl.textContent = ''
+      return true
+    }
+    const removeRange = cr.spanRangeAllIn(bodyEl)
+    if (!removeRange) {
+      return true
+    }
+    this.commander.push(
+      cmd.removeContent({ removeRange }),
+    ).handleAndUpdate(cr.caretIn(bodyEl, 0))
+    return true
+  }
+
+  /** 使用 markdown 文本更新编辑器内容 */
+  updateEditorContentsFromMarkdown(mdText: string, options?: Et.FmOptions) {
+    const ctx = this._ctx
+    const df = ctx.fromMarkdown(mdText, options)
+    const cm = ctx.commandManager
+    const bodyEl = ctx.bodyEl
+
+    // 刚刚初始化, 直接插入, 无需撤回支持
+    if (cm.stackLength === 0) {
+      bodyEl.textContent = ''
+      bodyEl.appendChild(df)
+      return true
+    }
+    if (bodyEl.hasChildNodes()) {
+      cm.withTransaction([
+        cmd.removeContent({
+        // body 必有子节点
+          removeRange: cr.spanRangeAllIn(bodyEl) as Et.SpanRange,
+        }),
+        cmd.insertContent({
+          content: df,
+          execAt: cr.caretInStart(bodyEl),
+        }),
+      ])
+    }
+    else {
+      cm.withTransaction([
+        cmd.insertContent({
+          content: df,
+          execAt: cr.caretInStart(bodyEl),
+        }),
+      ])
+    }
+
+    return true
   }
 
   /**

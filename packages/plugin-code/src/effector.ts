@@ -8,8 +8,8 @@ export const codeEffector: Et.EffectorSupportInline = {
   inline: true,
   keydownSolver: {
     [CodeEnum.ElName]: (ev, ctx) => {
-      const cm = ctx.commonEtElement.codeMirror
-      if (cm?.area !== ctx.selection.rawEl) {
+      const cc = ctx.commonEtElement.codeCtx
+      if (cc?.area !== ctx.selection.rawEl) {
         return
       }
       const handler = ctx.getEtHandler(ctx.commonEtElement)
@@ -17,7 +17,7 @@ export const codeEffector: Et.EffectorSupportInline = {
         case 'Enter':
           if ((ev.metaKey || ev.ctrlKey) && !ev.altKey && !ev.shiftKey) {
             handler.insertNewLineInCode?.(ctx, {
-              codeMirror: cm,
+              codeCtx: cc,
             })
             return ctx.preventAndSkipDefault(ev)
           }
@@ -25,7 +25,7 @@ export const codeEffector: Et.EffectorSupportInline = {
         case 'ArrowDown':
           if (ev.altKey) {
             handler.codeLinesDown?.(ctx, {
-              codeMirror: cm,
+              codeCtx: cc,
             })
             return ctx.preventAndSkipDefault(ev)
           }
@@ -33,7 +33,7 @@ export const codeEffector: Et.EffectorSupportInline = {
         case 'ArrowUp':
           if (ev.altKey) {
             handler.codeLinesUp?.(ctx, {
-              codeMirror: cm,
+              codeCtx: cc,
             })
             return ctx.preventAndSkipDefault(ev)
           }

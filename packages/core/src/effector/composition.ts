@@ -4,7 +4,7 @@ export const getCompositionStart = (ctx: Et.EditorContext) => {
   return () => {
     // 输入法开始时, 选区非 collapsed, 先删除(自动更新光标位置信息)
     if (!ctx.selection.isCollapsed) {
-      ctx.commonHandlers.removeRangingContents()
+      ctx.commonHandler.removeRangingContents()
     }
     else {
       // 更新光标位置信息, 并滚到可见区域

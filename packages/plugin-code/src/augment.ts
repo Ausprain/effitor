@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import type { CodeMirror } from './CodeMirror'
+import type { CodeContext } from './CodeContext'
 import { CodeEnum } from './config'
 import type { EtCodeElement } from './EtCodeElement'
 import type { EtCodeHighlighter } from './highlighter'
@@ -21,15 +21,15 @@ declare module '@effitor/core' {
      * 无视光标位置, 插入新行; 若为选区, 则根据选区方向, 在第一行后或最后一行后插入新行
      */
     insertNewLineInCode: Et.EffectHandle<{
-      codeMirror: CodeMirror
+      codeCtx: CodeContext
     }>
     /** 向上移动当前行或选区 */
     codeLinesUp: Et.EffectHandle<{
-      codeMirror: CodeMirror
+      codeCtx: CodeContext
     }>
     /** 向下移动当前行或选区 */
     codeLinesDown: Et.EffectHandle<{
-      codeMirror: CodeMirror
+      codeCtx: CodeContext
     }>
   }
 }

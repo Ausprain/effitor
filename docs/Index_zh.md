@@ -187,31 +187,29 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 
 ### 现有内置效应列表：
 
-| 效应                               | 描述    | 回调效应^1 | 备注                       |
-| ---------------------------------- | ------- | ---------- | -------------------------- |
-| `InsertParagraphAtParagraphEnd`    | // todo | ✅         |                            |
-| `InsertParagraphAtParagraphStart`  | // todo | ✅         |                            |
-| `BackspaceAtParagraphStart`        | // todo | ✅         |                            |
-| `DeleteAtParagraphEnd`             | // todo | ✅         |                            |
-| `InsertCompositionTextSuccess`     | // todo | ✅         |                            |
-| `InitEditorContents`               | // todo | ✅         |                            |
-| `UpdateEditorContentsFromMarkdown` | // todo | ✅         |                            |
-| `TransformInsertContents`          | // todo | ✅         |                            |
-| ~~`DeleteContentsSpanningStart`~~  | // todo | ✅         |                            |
-| ~~`DeleteContentsSpanningEnd`~~    | // todo | ✅         |                            |
-| `InsertCompositionTextInRawEl`     | // todo | ✅         | 选区在原生编辑节点^2内生效 |
-| `InsertTextInRawEl`                | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `DeleteInRawEl`                    | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `DeleteTextInRawEl`                | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `ReplaceTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `FormatIndentInRawEl`              | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `FormatOutdentInRawEl`             | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `tabout`                           | // todo | ✅         |                            |
-| `dblSpace`                         | // todo | ✅         |                            |
+| 效应                              | 描述    | 回调效应^1 | 备注                       |
+| --------------------------------- | ------- | ---------- | -------------------------- |
+| `InsertParagraphAtParagraphEnd`   | // todo | ✅         |                            |
+| `InsertParagraphAtParagraphStart` | // todo | ✅         |                            |
+| `DeleteBackwardAtParagraphStart`  | // todo | ✅         |                            |
+| `DeleteForwardAtParagraphEnd`     | // todo | ✅         |                            |
+| `InsertCompositionTextSuccess`    | // todo | ✅         |                            |
+| `TransformInsertContents`         | // todo | ✅         |                            |
+| ~~`DeleteContentsSpanningStart`~~ | // todo | ✅         |                            |
+| ~~`DeleteContentsSpanningEnd`~~   | // todo | ✅         |                            |
+| `InsertCompositionTextInRawEl`    | // todo | ✅         | 选区在原生编辑节点^2内生效 |
+| `InsertTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `DeleteInRawEl`                   | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `DeleteTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `ReplaceTextInRawEl`              | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `FormatIndentInRawEl`             | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `FormatOutdentInRawEl`            | // todo | ✅         | 选区在原生编辑节点内生效   |
+| `tabout`                          | // todo | ✅         |                            |
+| `dblSpace`                        | // todo | ✅         |                            |
 
 备注：
 
-1. 回调效应指编辑器核心会在特定时机主动调用的效应，如`BackspaceAtParagraphStart`会在光标在段落开头按下退格键（`Backspace`）时被调用。
+1. 回调效应指编辑器核心会在特定时机主动调用的效应，如`DeleteBackwardAtParagraphStart`会在光标在段落开头按下退格键（`Backspace`）时被调用。
 2. 原生编辑节点指的是`textarea`和`input[type="text"]`。
 
 ## 上下文

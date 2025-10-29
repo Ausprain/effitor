@@ -27,6 +27,16 @@ export class EtBodyElement extends EffectElement {
     this.spellcheck = false
   }
 
+  focusinCallback(ctx: Et.EditorContext): void {
+    console.log('et-body 获得焦点')
+    // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落
+    if (ctx.bodyEl.childNodes.length > 0 && ctx.isEtParagraph(ctx.bodyEl.firstChild)) {
+      ctx.setCaretToAParagraph(ctx.bodyEl.firstChild as Et.Paragraph, true)
+      return
+    }
+    ctx.commonHandler.initEditorContents(false)
+  }
+
   toNativeElement() {
     return document.createElement('div')
   }

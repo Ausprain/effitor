@@ -16,8 +16,8 @@ import {
   deleteSoftLineForward,
 } from './handles/delete/deleteLine'
 import {
-  backspaceAtParagraphStart,
-  deleteAtParagraphEnd,
+  deleteBackwardAtParagraphStart,
+  deleteForwardAtParagraphEnd,
 } from './handles/delete/deleteParagraph'
 import {
   deleteWordBackward,
@@ -32,11 +32,9 @@ import { insertParagraph } from './handles/insert/insertParagraph'
 import { insertText } from './handles/insert/insertText'
 import { dblSpace, tabout } from './handles/others/caretout'
 import {
-  initEditorContents,
   insertParagraphAtParagraphEnd,
   insertParagraphAtParagraphStart,
   transformInsertContents,
-  updateEditorContentsFromMarkdown,
 } from './handles/others/default'
 import {
   deleteInRawEl,
@@ -75,18 +73,14 @@ export const buintinHandler: Et.EffectHandler = {
   /* -------------------------------------------------------------------------- */
   // 非标准; 需通过 将 inputType 写在 InputEvent.data 里或直接通过 effectInvoker 来触发
 
-  InsertParagraphAtParagraphStart: insertParagraphAtParagraphStart,
-  InsertParagraphAtParagraphEnd: insertParagraphAtParagraphEnd,
-  BackspaceAtParagraphStart: backspaceAtParagraphStart,
-  DeleteAtParagraphEnd: deleteAtParagraphEnd,
-
-  InitEditorContents: initEditorContents,
-  UpdateEditorContentsFromMarkdown: updateEditorContentsFromMarkdown,
-
-  TransformInsertContents: transformInsertContents,
-
   // @ts-expect-error no error, deliberately, do not expose this effect outside package `@effitor/core`.
   InsertFromEtHtml: insertFromEtHtml,
+  TransformInsertContents: transformInsertContents,
+
+  InsertParagraphAtParagraphStart: insertParagraphAtParagraphStart,
+  InsertParagraphAtParagraphEnd: insertParagraphAtParagraphEnd,
+  DeleteBackwardAtParagraphStart: deleteBackwardAtParagraphStart,
+  DeleteForwardAtParagraphEnd: deleteForwardAtParagraphEnd,
 
   tabout: tabout,
   dblSpace: dblSpace,

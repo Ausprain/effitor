@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import '@effitor/core/styles/font.css'
 
 import './assets/main.css'
@@ -19,21 +21,25 @@ import { HtmlAttrEnum } from '@effitor/shared'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 
+import md from '../../../README_zh.md?raw'
+
 // console.log(css.length)  // 186452
 
 const editor = new Effitor({
   // effectorInline: true,
-  // shadow: false,
+  shadow: false,
   // customStyleText: css,
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,
   },
-  plugins: [
+  assists: [
     useCounterAssist(),
     useDialogAssist(),
     useDropdownAssist(),
     useMessageAssist(),
     usePopupAssist(),
+  ],
+  plugins: [
     useMarkPlugin(),
     useHeadingPlugin(),
     useListPlugin(),
@@ -90,3 +96,5 @@ Object.keys(icons).forEach((key) => {
   }
 })
 editor.root.appendChild(iconsHost)
+
+editor.fromMarkdown(md, false)

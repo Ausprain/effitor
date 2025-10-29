@@ -1,9 +1,9 @@
 import { EffectElement } from '../element'
 import { mountEtHandler } from '../element/register'
-import { buintinHandler } from './builtin'
+import { buintinHandler } from './builtinHandler'
 
 export * from './command'
-export type { CommonHandlers } from './common'
+export type { CommonHandler } from './CommonHandler'
 export * from './config'
 // 注意 handlerUtils 的所有方法均只添加命令, 不执行
 export * as handlerUtils from './handles'

@@ -21,7 +21,7 @@ export const insertFromPaste = createInputEffectHandle(function (ctx, pl) {
   if (!clipboardData) {
     return true
   }
-  return ctx.commonHandlers.checkRemoveTargetRange(pl.targetRange, (ctx, caret) => {
+  return ctx.commonHandler.checkRemoveTargetRange(pl.targetRange, (ctx, caret) => {
     const html = clipboardData.getData(MIMETypeEnum.TEXT_HTML)
     if (html) {
       const etFragment = ctx.editor.htmlProcessor.fromHtml(ctx, html)
@@ -52,7 +52,7 @@ export const insertFromEtHtml = createEffectHandle('InsertFromEtHtml' as 'E', fu
   if (!tr || typeof etHtml !== 'string') {
     return false
   }
-  return ctx.commonHandlers.checkRemoveTargetRange(tr, (ctx, caret) => {
+  return ctx.commonHandler.checkRemoveTargetRange(tr, (ctx, caret) => {
     const df = ctx.createFragment(etHtml)
     if (this.TransformInsertContents) {
       this.TransformInsertContents(ctx, {

@@ -35,21 +35,6 @@ export const mediaEffector: Et.EffectorSupportInline = {
   inline: true,
 
   keydownSolver: {
-    // TODO remove, just for test
-    K: (ev, ctx) => {
-      const tc = ctx.selection.getTargetCaret()
-      if (!ev.metaKey || !tc) {
-        return
-      }
-      if (ctx.effectInvoker.invoke(ctx.focusParagraph, 'insertMedia', ctx, {
-        targetCaret: tc,
-        type: MediaType.Video,
-        url: `/tmp/media.mp4`,
-        meta: ctx.pctx.$media_ctx.video ?? {},
-      })) {
-        ctx.preventAndSkipDefault(ev)
-      }
-    },
     // 光标在媒体元素左右时, 按下tab调整媒体元素浮动位置
     Tab: (ev, ctx) => {
       if (ev.repeat) {
@@ -347,7 +332,7 @@ const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
       trashIcon(),
       '删除',
       (ctx, _, target) => {
-        ctx.commonHandlers.removeNodeAndMerge(target)
+        ctx.commonHandler.removeNodeAndMerge(target)
       },
     ),
   ]

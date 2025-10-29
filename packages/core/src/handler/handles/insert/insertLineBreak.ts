@@ -17,7 +17,7 @@ export const insertLineBreak = createInputEffectHandle((ctx, pl) => {
     insertElementAtCaret(ctx, br, pl.targetRange.toTargetCaret(), cr.caretOutEnd(br))
   }
   else {
-    ctx.commonHandlers.insertText(HtmlCharEnum.MOCK_LINE_BREAK, pl.targetRange.toTargetCaret())
+    ctx.commonHandler.insertText(HtmlCharEnum.MOCK_LINE_BREAK, pl.targetRange.toTargetCaret())
   }
   return true
 })

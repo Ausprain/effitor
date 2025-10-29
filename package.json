@@ -2,6 +2,7 @@
   "name": "effitor-monorepo",
   "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
+  "private": true,
   "keywords": [
     "effitor",
     "web editor",

@@ -4,22 +4,22 @@ import { HtmlCharEnum } from '@effitor/shared'
 import { CodeEnum } from './config'
 import type { EtCodeHighlighter } from './highlighter'
 
-export interface CodeMirrorOptions<L extends string = string> {
+export interface CodeContextOptions<L extends string = string> {
   value?: string
   lang: L
   tabSize: number
   highlighter: EtCodeHighlighter<L>
 }
-export class CodeMirror<L extends string = string> {
+export class CodeContext<L extends string = string> {
   public readonly area: HTMLTextAreaElement
-  public readonly mirror: HTMLPreElement
+  public readonly pre: HTMLPreElement
   private readonly _lineWrapper: HTMLElement
   private readonly _wrapper: HTMLDivElement
   private __lang: L
   private __tab = ''
   private readonly _highlighter: EtCodeHighlighter<L>
 
-  constructor({ value = '', lang, tabSize = 4, highlighter }: CodeMirrorOptions<L>) {
+  constructor({ value = '', lang, tabSize = 4, highlighter }: CodeContextOptions<L>) {
     this.__lang = lang
     this.__tab = ' '.repeat(tabSize)
     this._highlighter = highlighter
@@ -28,18 +28,18 @@ export class CodeMirror<L extends string = string> {
     this.area.autocapitalize = 'off'
     this.area.spellcheck = false
     this.area.setAttribute('autocorrect', 'off')
-    this.mirror = document.createElement('pre')
-    this._lineWrapper = this.mirror
+    this.pre = document.createElement('pre')
+    this._lineWrapper = this.pre
     // this._lineWrapper = document.createElement('code')
     this.area.onscroll = () => {
-      this.mirror.scrollTop = this.area.scrollTop
-      this.mirror.scrollLeft = this.area.scrollLeft
+      this.pre.scrollTop = this.area.scrollTop
+      this.pre.scrollLeft = this.area.scrollLeft
     }
     this._wrapper = document.createElement('div')
     this._wrapper.classList.add(CodeEnum.Class_Wrapper)
-    this._wrapper.appendChild(this.mirror)
+    this._wrapper.appendChild(this.pre)
     this._wrapper.appendChild(this.area)
-    // this.mirror.appendChild(this._lineWrapper)
+    // this.pre.appendChild(this._lineWrapper)
     highlighter.onInit?.(this._wrapper, lang)
     // 代码块初始内容为空, 设置初始值为一个换行符, 否则代码块坍缩
     if (!value) {

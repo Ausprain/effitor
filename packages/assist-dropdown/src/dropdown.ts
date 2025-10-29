@@ -771,7 +771,7 @@ export class Dropdown {
     }
 
     this.currentCallbacks.onopen?.()
-    return this._ctx.commonHandlers.insertElementTemporarily(this.wrapper, null, cr.caret(text, text.length))
+    return this._ctx.commonHandler.insertElementTemporarily(this.wrapper, null, cr.caret(text, text.length))
   }
 
   /**
@@ -795,7 +795,7 @@ export class Dropdown {
     if (insertText) {
       const data = this._ctx.assists.dropdown.currentValue
       if (data) {
-        this._ctx.commonHandlers.insertText(data, null)
+        this._ctx.commonHandler.insertText(data, null)
       }
     }
   }

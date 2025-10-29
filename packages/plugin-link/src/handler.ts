@@ -34,7 +34,7 @@ export const checkInsertLink = (
     }
   })
   ctx.commandManager.commitNextHandle(true)
-  return ctx.commonHandlers.insertElement(linkEl, tc, cr.caretInEnd(linkEl))
+  return ctx.commonHandler.insertElement(linkEl, tc, cr.caretInEnd(linkEl))
 }
 
 export const markLinkHandler: Et.EffectHandler = {

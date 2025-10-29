@@ -13,16 +13,16 @@ import type { EtRichText } from './EtRichText'
 const Em: { [K in keyof EtType]: EtType[K] } = {
   PlainText: EtTypeEnum.PlainText,
   RichText: EtTypeEnum.RichText,
-  Heading: EtTypeEnum.Heading,
   Block: EtTypeEnum.Block,
   Paragraph: EtTypeEnum.Paragraph,
   Blockquote: EtTypeEnum.Blockquote,
-  Uneditable: EtTypeEnum.Uneditable,
+  Heading: EtTypeEnum.Heading,
   Component: EtTypeEnum.Component,
   Embedment: EtTypeEnum.Embedment,
+  Uneditable: EtTypeEnum.Uneditable,
 } as const
 /** etcode专属元素表 */
-interface CodeElementMap {
+interface EtCodeElementMap {
   [k: number]: EffectElement
   [Em.RichText]: EtRichText
   [Em.Heading]: EtHeading
@@ -37,7 +37,7 @@ const codeMap = new Map<string, number>()
 export const etcode = {
   /**
    * 根据string(一般用小写元素名)获取一个唯一code，存在提取，不存在创建, 最多能保有30个code \
-   * 为提高效率，获取后应另外保存副本，需要时直接调用副本
+   * 为提高效率，获取后应另外保存副本，需要时直接引用副本
    */
   get: (key: string) => {
     let c = codeMap.get(key)
@@ -46,7 +46,10 @@ export const etcode = {
       count = 0
       throw Error('!! etcode has reached the maximum limit. it would cause some problems.')
     }
-    c = 1 << ++count
+    c = 1 << count++
+    if (import.meta.env.DEV) {
+      console.log(`etcode create No.${count - 1}: ${key} -> ${c}`)
+    }
     return codeMap.set(key, c), c
   },
   /**
@@ -56,8 +59,8 @@ export const etcode = {
    */
   check: <T extends EffectElement, C extends number = number>(
     el: EtCodeTarget, code?: C,
-  ): el is (EffectElement extends T ? CodeElementMap[C] : T) => {
-    if (!code) return el[ETCODE] !== void 0
+  ): el is (EffectElement extends T ? EtCodeElementMap[C] : T) => {
+    if (code === void 0) return el[ETCODE] !== void 0
     return !!(el[ETCODE] && (el[ETCODE] & code))
   },
   /**

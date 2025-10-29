@@ -14,9 +14,9 @@
         ps. 2.1 不使用此方法是因为 modify 方法太耗性能(每次调用都会计算布局)
   2.5 光标在节点边缘, 删除前/后方节点 (光标能落在该节点边缘, 说明该节点不可编辑, 整体删除)
 
-3. 光标在段落开头 Backspace {@link "./deleteParagraph.ts" backspaceAtParagraphStart}
+3. 光标在段落开头 Backspace {@link "./deleteParagraph.ts" deleteBackwardAtParagraphStart}
 
-4. 光标在段落结尾 Delete {@link "./deleteParagraph.ts" deleteAtParagraphEnd}
+4. 光标在段落结尾 Delete {@link "./deleteParagraph.ts" deleteForwardAtParagraphEnd}
 
 */
 

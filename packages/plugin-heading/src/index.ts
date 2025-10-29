@@ -1,7 +1,7 @@
 import type { Et } from '@effitor/core'
 
 import { headingEffector } from './effector'
-import { EtHeadingElement } from './element'
+import { EtHeadingElement } from './EtHeadingElement'
 import cssText from './index.css?raw'
 
 export { EtHeadingElement }

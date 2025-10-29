@@ -43,6 +43,10 @@ export type ValidTargetCaretWithTopElement<
   T extends Et.EtParagraph = Et.EtParagraph,
 > = ValidTargetCaretWithParagraph & { anchorTopElement: T }
 
+export type ValidTargetRangeWithCommonEtElement = ValidTargetRange & {
+  commonEtElement: Et.EtElement
+}
+
 class TargetCaret implements _SelectionTarget {
   declare private readonly body: Readonly<Et.EditorBody>
 
@@ -145,21 +149,23 @@ class TargetCaret implements _SelectionTarget {
    * 光标所在节点(container)在`指定效应节点`下的最外层祖先 (即`指定效应节点`子节点)\
    * 若 container 就是`指定效应节点`, 则 partialNode 为其 anchorOffset 索引的子节点
    *  (仅当`指定效应节点`无子节点或选中`指定效应节点`末尾时为 null)
+   * * 该方法内部无缓存, 不要重复调用
+   * @param [bias=0] 偏移量, 0 表示不偏移, -1 表示偏移到上一个节点 (在 Range 结束节点时)
    */
-  getPartialNode(underWhich: 'paragraph' | 'etelement' | 'topelement') {
+  getPartialNode(underWhich: 'etelement' | 'paragraph' | 'topelement', bias: 0 | -1 = 0) {
     let underNode
     if (underWhich === 'etelement') {
       underNode = this.anchorEtElement
     }
-    else if (underWhich === 'topelement') {
-      underNode = this.anchorTopElement
+    else if (underWhich === 'paragraph') {
+      underNode = this.anchorParagraph
     }
     else {
-      underNode = this.anchorParagraph
+      underNode = this.anchorTopElement
     }
     return underNode
       ? this.container === underNode
-        ? this.container.childNodes.item(this.offset)
+        ? this.container.childNodes.item(this.offset + bias)
         : this.body.outerNodeUnder(this.container, underNode)
       : null
   }
@@ -451,7 +457,7 @@ class TargetRange implements _SelectionTarget {
   }
 
   /**
-   * 判断该 TargetRange 实例是否是编辑区内有效的范围; 有效的范围必定存在段落;
+   * 判断该 TargetRange 实例是否是编辑区内有效的范围; 有效的范围必定在编辑区内;
    * 在 handler 中使用 TargetRange 时, 必须先判定其 isValid 为 true, 才能使用;
    */
   isValid(): this is ValidTargetRange {
@@ -551,8 +557,8 @@ class TargetRange implements _SelectionTarget {
    *  (仅当`指定效应节点`无子节点或范围开端在`指定效应节点`内末尾时为 null)
    * * 该方法内部无缓存, 不要重复调用
    */
-  getStartPartialNode(underWhich: 'paragraph' | 'etelement' | 'topelement') {
-    return this.startCaret.getPartialNode(underWhich)
+  getStartPartialNode(underWhich: 'etelement' | 'paragraph' | 'topelement') {
+    return this.startCaret.getPartialNode(underWhich, 0)
   }
 
   /**
@@ -561,29 +567,15 @@ class TargetRange implements _SelectionTarget {
    *  (仅当`指定效应节点`无子节点或范围末端在`指定效应节点`内开头时为 null)
    * * 该方法内部无缓存, 不要重复调用
    */
-  getEndPartialNode(underWhich: 'paragraph' | 'etelement' | 'topelement') {
-    let underNode
-    if (underWhich === 'etelement') {
-      underNode = this.endEtElement
-    }
-    else if (underWhich === 'topelement') {
-      underNode = this.endTopElement
-    }
-    else {
-      underNode = this.endParagraph
-    }
-    // 结尾处索引值是要-1的, 因此不能直接用 endCaret.anchorPartial
-    return underNode
-      ? this.endNode === underNode
-        ? this.endNode.childNodes.item(this.endOffset - 1)
-        : this.body.outerNodeUnder(this.endNode, underNode)
-      : null
+  getEndPartialNode(underWhich: 'etelement' | 'paragraph' | 'topelement') {
+    // 结尾处索引值要-1
+    return this.endCaret.getPartialNode(underWhich, -1)
   }
 
   /**
    * startNode 在 commonAncestor 下最外层祖先 (即 commonAncestor 的子节点) ;
    * * 当且仅当 collapsed 为 true 时, 该值为 null
-   * * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
+   * * 若 commonAncestor 是#text节点, 则该值等于 commonAncestor
    */
   get startAncestor(): Et.HTMLNodeOrNull {
     if (this._startAncestor !== void 0) {
@@ -604,7 +596,7 @@ class TargetRange implements _SelectionTarget {
   /**
    * 类似 startAncestor, 但表示 endNode 在 commonAncestor 下的最外层祖先;
    * * 当且仅当 collapsed 为 true 时, 该值为 null
-   * * 可通过 `isRangeCommonAncestorHasChildNodes` 来断言该值非 null
+   * * 若 commonAncestor 是#text节点, 则该值等于 commonAncestor
    */
   get endAncestor(): Et.HTMLNodeOrNull {
     if (this._endAncestor !== void 0) {

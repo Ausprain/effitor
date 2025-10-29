@@ -52,8 +52,7 @@ export const removeByTargetRange = (
     removeInSameParagraph,
     removeSpanningParagraphs,
   )) {
-    ctx.commandManager.commit()
-    ctx.commandManager.commitNextHandle()
+    ctx.commandManager.commitNextHandle(true)
     return true
   }
   return false

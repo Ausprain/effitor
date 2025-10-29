@@ -59,12 +59,18 @@ export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardA
     const etHtml = ev.clipboardData.getData(MIMETypeEnum.ET_TEXT_HTML)
     if (etHtml && !ctx.selection.rawEl) {
       // 使用内置隐藏粘贴行为
-      ctx.effectInvoker.invoke(
+      const res = ctx.effectInvoker.invoke(
         ctx.commonEtElement,
         BuiltinConfig.INSERT_FROM_ET_HTML as 'E',
         ctx,
         etHtml,
       )
+      if (res) {
+        // 粘贴成功，发送 input 事件
+        ctx.body.dispatchInputEvent('input', {
+          inputType: 'insertFromPaste',
+        })
+      }
       return
     }
     // 否则尝试调用插件回调

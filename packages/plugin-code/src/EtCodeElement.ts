@@ -4,8 +4,8 @@ import type { Et } from '@effitor/core'
 import { cr, CreateMdastNode, EtComponent, ToMdastResult } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'
 
+import { CodeContext, type CodeContextOptions } from './CodeContext'
 import { codeHeader } from './CodeHeader'
-import { CodeMirror, type CodeMirrorOptions } from './CodeMirror'
 import { CODE_ET_TYPE, CodeAttr, CodeEnum } from './config'
 
 // TODO
@@ -23,7 +23,7 @@ export interface CodeDecorateCallbacks {
   onWrappingChange: (wrapping: boolean) => void
 }
 
-export interface CodeDecorateOptions<L extends string> extends CodeMirrorOptions<L> {
+export interface CodeDecorateOptions<L extends string> extends CodeContextOptions<L> {
   wrapping?: boolean
 }
 
@@ -35,7 +35,7 @@ export class EtCodeElement extends EtComponent {
   static readonly etType = super.etType | CODE_ET_TYPE
   static readonly inEtType = EtTypeEnum.PlainText
 
-  declare codeMirror: CodeMirror
+  declare codeCtx: CodeContext
 
   static create(): EtCodeElement {
     throw Error('EtCodeElement.create is not implemented')
@@ -113,17 +113,17 @@ export class EtCodeElement extends EtComponent {
     fn?: (el: EtCodeElement, cbs: CodeDecorateCallbacks) => void,
   ) {
     this.wrapping = !!options.wrapping
-    this.codeMirror = new CodeMirror(options)
-    this.codeMirror.mount(this)
+    this.codeCtx = new CodeContext(options)
+    this.codeCtx.mount(this)
     fn?.(this, {
       onCopy: async (ctx: Et.EditorContext) => {
-        await this.codeMirror.copy(ctx)
+        await this.codeCtx.copy(ctx)
       },
       onLangChange: (lang) => {
-        this.codeMirror.setLang(lang)
+        this.codeCtx.setLang(lang)
       },
       onTabSizeChange: (tabSize) => {
-        this.codeMirror.setTabSize(tabSize)
+        this.codeCtx.setTabSize(tabSize)
       },
       onWrappingChange: (wrapping) => {
         this.wrapping = wrapping
@@ -141,7 +141,7 @@ export class EtCodeElement extends EtComponent {
   }
 
   focusToInnerEditable(ctx: Et.EditorContext, toStart: boolean) {
-    this.codeMirror.focus(toStart)
+    this.codeCtx.focus(toStart)
     ctx.forceUpdate()
     return null
   }
@@ -150,7 +150,7 @@ export class EtCodeElement extends EtComponent {
     const meta = this.meta
     return mdastNode({
       type: 'code',
-      value: this.codeMirror.code,
+      value: this.codeCtx.code,
       lang: this.lang,
       meta: Object.keys(meta).length ? JSON.stringify(meta) : undefined,
     })

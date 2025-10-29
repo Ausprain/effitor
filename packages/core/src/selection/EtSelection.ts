@@ -919,8 +919,20 @@ export class EtSelection {
     const lastParagraph = this._body.lastParagraph
     if (firstParagraph && lastParagraph) {
       const r = document.createRange() as Et.Range
-      firstParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
-      lastParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
+      r.setStartBefore(firstParagraph)
+      r.setEndAfter(lastParagraph)
+      // if (dom.isNotEditable(firstParagraph)) {
+      //   r.setStartBefore(firstParagraph)
+      // }
+      // else {
+      //   firstParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
+      // }
+      // if (dom.isNotEditable(lastParagraph)) {
+      //   r.setEndAfter(lastParagraph)
+      // }
+      // else {
+      //   lastParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
+      // }
       return this.selectRange(r)
     }
     return false
@@ -937,6 +949,7 @@ export class EtSelection {
     if (!tr) {
       return false
     }
+    console.log('selectAllGradually', this._selectAllLevel)
     if (tr.collapsed) {
       this._selectAllLevel = SelectAllLevel.No_Select_All
     }
@@ -1015,6 +1028,7 @@ export class EtSelection {
    * 在 selectionchange 事件中调用, 清除全选等级
    */
   clearSelectAllLevel() {
+    console.log('clearSelectAllLevel', this._selectAllLevel)
     this._selectAllLevel = 0
   }
 

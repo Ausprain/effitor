@@ -40,6 +40,7 @@ et-code.et {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    z-index: 1;
   }
 
   &:hover::before {
@@ -82,7 +83,7 @@ et-code.et {
 }
 
 
-/* code mirror */
+/* code pre */
 .et-code__wrapper > pre {
   position: relative;
   pointer-events: none;

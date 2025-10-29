@@ -188,7 +188,12 @@ interface _CreateEditorOptions {
    */
   effectorInline?: boolean
   /**
-   * 编辑器插件 \
+   * 编辑器助手(插件) \
+   * 若effectorInline设置为true, 则只能使用支持内联effector的插件
+   */
+  assists?: EditorPlugin[] | EditorPluginSupportInline[]
+  /**
+   * 编辑器(内容)插件 \
    * 若effectorInline设置为true, 则只能使用支持内联effector的插件
    */
   plugins?: EditorPlugin[] | EditorPluginSupportInline[]

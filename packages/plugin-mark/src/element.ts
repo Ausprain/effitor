@@ -44,7 +44,7 @@ export class EtMarkElement extends EtRichText {
     if (this.textContent === '\u200b') {
       // 回调在selchange之后触发，光标已不在this节点; 标记节点内光标位置，以便撤回删除时能让光标落于this节点内
       ctx.commandManager.withSrcCaretRange(cr.caretInStart(this), () => {
-        ctx.commonHandlers.removeNodeAndMerge(this)
+        ctx.commonHandler.removeNodeAndMerge(this)
       })
     }
     else {
@@ -155,7 +155,7 @@ export class EtMarkElement extends EtRichText {
             }),
           ],
         })]
-        checkAddHeadingAndTailingTextNode(replaceNodes, headText, tailText)
+        checkAddLeadingAndTrailingTextNode(replaceNodes, headText, tailText)
         manager.replaceCurrentNode(index, parent, replaceNodes)
         return null
       }
@@ -188,20 +188,20 @@ export class EtMarkElement extends EtRichText {
         const innerTailText = nextValue.slice(0, nextRegResult.indices[0][0])
         const tailText = nextValue.slice(nextRegResult.indices[0][1])
         const children = parent.children.slice(index + 1, nextIndex) as PhrasingContent[]
-        checkAddHeadingAndTailingTextNode(children, innerHeadText, innerTailText)
+        checkAddLeadingAndTrailingTextNode(children, innerHeadText, innerTailText)
         const replaceNodes: Et.MdastNodes[] = [
           manager.newNode({
             type: 'highlight',
             children,
           }),
         ]
-        checkAddHeadingAndTailingTextNode(replaceNodes, headText, tailText)
+        checkAddLeadingAndTrailingTextNode(replaceNodes, headText, tailText)
         manager.replaceCurrentNode(index, parent, replaceNodes, nextIndex - index + 1)
         return null
       }
 
       /** 通过字符串是否非空，判断是否插入开头或结尾文本节点 */
-      function checkAddHeadingAndTailingTextNode(arr: Et.MdastNodes[], headText: string, tailText: string) {
+      function checkAddLeadingAndTrailingTextNode(arr: Et.MdastNodes[], headText: string, tailText: string) {
         if (headText) arr.unshift(manager.newNode({
           type: 'text',
           value: headText,

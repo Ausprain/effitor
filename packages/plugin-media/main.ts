@@ -4,7 +4,7 @@ import { usePopupAssist } from '@effitor/assist-popup'
 import { Effitor } from '@effitor/core'
 
 import { useMediaPlugin } from './src'
-import { CreateImageOptions } from './src/config'
+import { CreateImageOptions, MediaType } from './src/config'
 
 const editor = new Effitor({
   plugins: [
@@ -44,6 +44,28 @@ const editor = new Effitor({
       audio: true,
       video: true,
     }),
+    {
+      name: 'media-test',
+      effector: {
+        keydownSolver: {
+          // cmd + k to insert media, just for test
+          K: (ev, ctx) => {
+            const tc = ctx.selection.getTargetCaret()
+            if (!ev.metaKey || !tc) {
+              return
+            }
+            if (ctx.effectInvoker.invoke(ctx.focusParagraph, 'insertMedia', ctx, {
+              targetCaret: tc,
+              type: MediaType.Video,
+              url: `/tmp/media.mp4`,
+              meta: ctx.pctx.$media_ctx.video ?? {},
+            })) {
+              ctx.preventAndSkipDefault(ev)
+            }
+          },
+        },
+      },
+    },
   ],
 })
 

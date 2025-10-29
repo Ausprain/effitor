@@ -109,10 +109,11 @@ et-body {
   white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
 }
 
-et-p {
+et-p.etp {
   /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
   /* position: relative; */
-  padding-block: 0.2em;
+  padding-block: 0.25em;
+  min-height: 2em;
   /* 分栏在需要时, 设置在段落上 */
   /* column-count: 2; */
 }

@@ -114,7 +114,7 @@ export const getBeforeinputListener = (
       // todo remove
       if (import.meta.env.DEV) {
         if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
-          ctx.assists.logger?.warn(`There's unhandled inputType:${ev.inputType}`, `core[beforeinput]`)
+          ctx.assists.logger?.warn(`There's unhandled inputType: ${ev.inputType}`, `core[beforeinput]`)
         }
       }
       // 阻止所有beforeinput默认行为

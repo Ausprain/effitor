@@ -132,12 +132,13 @@ export class HotkeyManager {
   }
 
   /**
-   * 在 keydown 中监听内置系统级按键行为; 如 MacOS 下 `opt+ArrowLeft` 光标向左移动一个单词等;
-   * 监听成功返回 true, 结束 keydown 事件周期
-   * * 具体行为在 {@link ModKeyDownBuiltinMap} 中定义;
+   * 根据当前 modkey 调用 effectMap 中对应的 effectAction
+   * * 可在插件效应器中根据指定效应元素监听指定快捷键列表
+   * @param effectActionMap modkey 到 effectAction 的映射, effectAction 可以是 inputType 字符串, 或带一个 ctx 参数的函数
+   * @returns 是否监听成功, 如果 effectAction 是函数, 则返回的是函数执行结果
    */
-  listenBuiltin() {
-    const effect = this._builtinModKeyEffect[this._modkey]
+  listenEffect(effectActionMap: ModKeyDownEffectMap) {
+    const effect = effectActionMap[this._modkey]
     if (!effect) {
       return false
     }
@@ -146,6 +147,22 @@ export class HotkeyManager {
     }
     this._ctx.body.dispatchInputEvent('beforeinput', { inputType: effect })
     return true
+  }
+
+  /**
+   * 在 keydown 中监听内置系统级按键行为; 如 MacOS 下 `opt+ArrowLeft` 光标向左移动一个单词等;
+   * 监听成功返回 true, 结束 keydown 事件周期
+   * * 具体行为在 {@link ModKeyDownBuiltinMap} 中定义;
+   */
+  listenBuiltin() {
+    return this.listenEffect(this._builtinModKeyEffect)
+  }
+
+  /**
+   * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
+   */
+  listenDefault() {
+    return this.listenEffect(this._defaultModKeyEffect)
   }
 
   /**
@@ -157,21 +174,6 @@ export class HotkeyManager {
       return action.run(this._ctx)
     }
     return false
-  }
-
-  /**
-   * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
-   */
-  listenDefault() {
-    const effect = this._defaultModKeyEffect[this._modkey]
-    if (!effect) {
-      return false
-    }
-    if (typeof effect === 'function') {
-      return effect(this._ctx)
-    }
-    this._ctx.body.dispatchInputEvent('beforeinput', { inputType: effect })
-    return true
   }
 
   /**

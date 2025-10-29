@@ -7,7 +7,7 @@ import { platform } from '../config'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
 import { etcode, type EtParagraphElement } from '../element'
 import { CommandManager } from '../handler/command/CommandManager'
-import { CommonHandlers } from '../handler/common'
+import { CommonHandler } from '../handler/CommonHandler'
 import { effectInvoker } from '../handler/invoker'
 import { KeepDefaultModkeyMap } from '../hotkey/builtin'
 import { HotkeyManager } from '../hotkey/HotkeyManager'
@@ -137,15 +137,19 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   /** 命令管理器 */
   readonly commandManager: CommandManager
   /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
-  readonly commonHandlers: CommonHandlers
+  readonly commonHandler: CommonHandler
   /** 热键管理器 */
   readonly hotkeyManager: Et.hotkey.Manager
   /** 热字符串管理器 */
   readonly hotstringManager: Et.hotstring.Manager
 
-  /** 获取编辑区所有文本 */
+  /**
+   * 获取编辑区所有文本, 可被插件(如 text-counter)重写
+   */
   textContent = () => this.body.textContent()
-  /** 获取当前选区的文本 */
+  /**
+   * 获取当前选区的文本, 可被插件(如 text-counter)重写
+   */
   selectedTextContent = () => this.selection.selectedTextContent
 
   // 回调
@@ -176,7 +180,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.effectInvoker = effectInvoker
     this.commandManager = new CommandManager(this)
     // 只能在命令管理器创建之后创建
-    this.commonHandlers = new CommonHandlers(this)
+    this.commonHandler = new CommonHandler(this)
     this.hotkeyManager = new HotkeyManager(this)
     this.hotstringManager = getHotstringManager(this, options.hotstringOptions)
 
@@ -438,7 +442,9 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
-   * 设置光标定位优先倾向, 'former' 优先定位到前节点末尾; 'latter'优先定位到后节点开头
+   * 设置光标定位优先倾向
+   * @param toFormer `true` 优先定位到前节点末尾; `false`优先定位到后节点开头,
+   *                 `undefined` 优先定位到最近一个文本节点, 无文本节点相当于`true`
    */
   setCaretAffinityPreference(toFormer?: boolean) {
     this.affinityPreference = toFormer
@@ -476,11 +482,19 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
+  isEtElement(node: Node | null): node is Et.EtElement {
+    return !!node && etcode.check(node)
+  }
+
   /**
    * 判断一个节点是否为 EtParagraph 实例, 即是否具有段落效应
    */
-  isEtParagraph(node: Node) {
-    return etcode.check(node, EtTypeEnum.Paragraph)
+  isEtParagraph(node: Node | null) {
+    return !!node && etcode.check(node, EtTypeEnum.Paragraph)
+  }
+
+  isEtComponent(node: Node | null) {
+    return !!node && etcode.check(node, EtTypeEnum.Component)
   }
 
   /**

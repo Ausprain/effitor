@@ -2,7 +2,7 @@ import type { Et } from '@effitor/core'
 import { cr, createEffectHandle } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
-import { EtHeadingElement } from './element'
+import { EtHeadingElement } from './EtHeadingElement'
 
 export const replaceParagraphWithHeading = createEffectHandle(
   'replaceParagraphWithHeading',
@@ -26,7 +26,7 @@ export const replaceParagraphWithHeading = createEffectHandle(
       }
     }
     ctx.commandManager.commitNextHandle(true)
-    return ctx.commonHandlers.replaceNode(paragraph, heading, dest)
+    return ctx.commonHandler.replaceNode(paragraph, heading, dest)
   },
 )
 
@@ -39,6 +39,6 @@ export const inHeadingHandler: Et.EffectHandler & Pick<Required<Et.EffectHandler
   regressHeadingToParagraph: (ctx, { heading }) => {
     const newP = ctx.createPlainParagraph(false)
     newP.textContent = heading.textContent
-    return ctx.commonHandlers.replaceNode(heading, newP, true)
+    return ctx.commonHandler.replaceNode(heading, newP, true)
   },
 }

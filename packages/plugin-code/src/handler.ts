@@ -1,19 +1,19 @@
 import { cmd, type Et } from '@effitor/core'
 
-import { CodeMirror } from './CodeMirror'
+import { CodeContext } from './CodeContext'
 import { Brackets } from './config'
 import type { EtCodeElement } from './EtCodeElement'
 
 export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
   InsertCompositionTextInRawEl(ctx, { rawEl, data }) {
-    const codeMirror = ctx.commonEtElement.codeMirror
-    if (rawEl !== codeMirror.area) {
+    const codeCtx = ctx.commonEtElement.codeCtx
+    if (rawEl !== codeCtx.area) {
       return false
     }
-    const row = codeMirror.getLineIndexByOffset(rawEl.selectionStart)
+    const row = codeCtx.getLineIndexByOffset(rawEl.selectionStart)
     const tailCmd = cmd.functional({
       meta: {
-        _cm: codeMirror,
+        _cm: codeCtx,
         _row: row,
       },
       execCallback() {
@@ -33,12 +33,12 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     })
   },
   InsertTextInRawEl(ctx, { rawEl, data, offset, focus }) {
-    const codeMirror = ctx.commonEtElement.codeMirror
-    data = codeMirror.toCodeText(data)
-    if (!data || rawEl !== codeMirror.area) {
+    const codeCtx = ctx.commonEtElement.codeCtx
+    data = codeCtx.toCodeText(data)
+    if (!data || rawEl !== codeCtx.area) {
       return false
     }
-    const row = codeMirror.getLineIndexByOffset(offset)
+    const row = codeCtx.getLineIndexByOffset(offset)
     const addCount = data.split('\n').length
     const insertNewLine = data === '\n' && (
       rawEl.selectionEnd === rawEl.value.length
@@ -46,17 +46,17 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     )
     // 插入换行, 对齐缩进
     if (data === '\n') {
-      let indent = codeMirror.getLineIndent(row)
+      let indent = codeCtx.getLineIndent(row)
       if (focus === false) {
         // 不带 focus, 说明是下面回调中插入的换行符, 缩进需要减一层
-        indent = Math.max(0, indent - codeMirror.tabSize)
+        indent = Math.max(0, indent - codeCtx.tabSize)
       }
       data += ' '.repeat(indent)
       // 括号后插入换行, 增加一层缩进
-      const precedingChar = codeMirror.precedingChar
+      const precedingChar = codeCtx.precedingChar
       if (precedingChar in Brackets) {
-        data += codeMirror.tab
-        if (codeMirror.followingChar === Brackets[precedingChar]) {
+        data += codeCtx.tab
+        if (codeCtx.followingChar === Brackets[precedingChar]) {
           ctx.commandManager.pushHandleCallback(() => {
             this.InsertTextInRawEl(ctx, {
               rawEl, data: '\n', offset: rawEl.selectionStart, focus: false,
@@ -77,7 +77,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         })
       }
       // 插入右括号, 且与 followingChar 匹配, 则光标后移一位
-      else if (Object.values(Brackets).includes(data) && codeMirror.followingChar === data) {
+      else if (Object.values(Brackets).includes(data) && codeCtx.followingChar === data) {
         rawEl.setSelectionRange(rawEl.selectionEnd + 1, rawEl.selectionEnd + 1)
         return true
       }
@@ -89,7 +89,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const tailCmd = addCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
           },
           execCallback() {
@@ -101,7 +101,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         })
       : cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
             _addCount: addCount,
             _insertNewLine: insertNewLine,
@@ -132,9 +132,9 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     })
   },
   DeleteInRawEl(ctx, payload) {
-    const codeMirror = ctx.commonEtElement.codeMirror
+    const codeCtx = ctx.commonEtElement.codeCtx
     const { rawEl, isBackward, deleteType, focus } = payload
-    if (rawEl !== codeMirror.area) {
+    if (rawEl !== codeCtx.area) {
       return false
     }
     if (rawEl.selectionStart === rawEl.selectionEnd) {
@@ -146,7 +146,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
           e--
         }
         if (indentChars.length && (e === 0 || rawEl.value[e - 1] === '\n')) {
-          const delLen = indentChars.length % codeMirror.tabSize || codeMirror.tabSize
+          const delLen = indentChars.length % codeCtx.tabSize || codeCtx.tabSize
           ctx.commandManager.commitNextHandle(true)
           return this.DeleteTextInRawEl(ctx, {
             rawEl,
@@ -157,8 +157,8 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         }
       }
       // 删除左括号, 连带删除右括号
-      const precedingChar = codeMirror.precedingChar
-      if (precedingChar in Brackets && Brackets[precedingChar] === codeMirror.followingChar) {
+      const precedingChar = codeCtx.precedingChar
+      if (precedingChar in Brackets && Brackets[precedingChar] === codeCtx.followingChar) {
         ctx.commandManager.commitNextHandle(true)
         return this.DeleteTextInRawEl(ctx, {
           rawEl,
@@ -177,12 +177,12 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     })
   },
   DeleteTextInRawEl(ctx, payload) {
-    const codeMirror = ctx.commonEtElement.codeMirror
+    const codeCtx = ctx.commonEtElement.codeCtx
     const { rawEl, start, end } = payload
-    if (rawEl !== codeMirror.area) {
+    if (rawEl !== codeCtx.area) {
       return false
     }
-    const row = codeMirror.getLineIndexByOffset(start)
+    const row = codeCtx.getLineIndexByOffset(start)
     const delText = rawEl.value.slice(start, end)
     let delCount = 1
     for (const char of delText) {
@@ -196,7 +196,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const tailCmd = delCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
           },
           execCallback() {
@@ -208,7 +208,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         })
       : cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
             _delCount: delCount,
           },
@@ -225,19 +225,19 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     }) && ctx.commandManager.handle()
   },
   ReplaceTextInRawEl(ctx, payload) {
-    const codeMirror = ctx.commonEtElement.codeMirror
+    const codeCtx = ctx.commonEtElement.codeCtx
     const { rawEl, start, end, data } = payload
-    if (rawEl !== codeMirror.area) {
+    if (rawEl !== codeCtx.area) {
       return false
     }
     const delText = rawEl.value.slice(start, end)
     const delCount = delText.split('\n').length
     const addCount = data.split('\n').length
-    const row = codeMirror.getLineIndexByOffset(start)
+    const row = codeCtx.getLineIndexByOffset(start)
     const tailCmd = delCount === 1 && addCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
           },
           execCallback() {
@@ -249,7 +249,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         })
       : cmd.functional({
           meta: {
-            _cm: codeMirror,
+            _cm: codeCtx,
             _row: row,
             _addCount: addCount,
             _delCount: delCount,
@@ -269,8 +269,8 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
   },
   FormatIndentInRawEl(ctx, { rawEl, start, end }) {
     const value = rawEl.value
-    const cm = ctx.commonEtElement.codeMirror
-    const tabSize = cm.tabSize
+    const cc = ctx.commonEtElement.codeCtx
+    const tabSize = cc.tabSize
     const selectedLines = value.slice(start, end).split('\n')
     if (selectedLines.length === 1) {
       if (start !== end) {
@@ -294,10 +294,10 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
       })
     }
     else {
-      const startLine = ctx.commonEtElement.codeMirror.getLineIndexByOffset(start)
+      const startLine = ctx.commonEtElement.codeCtx.getLineIndexByOffset(start)
       const endLine = startLine + selectedLines.length - 1
       const lines = value.split('\n')
-      const [startOffset] = cm.getLineOffset(startLine)
+      const [startOffset] = cc.getLineOffset(startLine)
       let endOffset = startOffset
       let code = '', startBias = -1
       for (let i = startLine; i <= endLine; i++) {
@@ -318,7 +318,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
       ctx.commandManager.commitNextHandle(true)
       return ctx.commandManager.push(cmd.functional({
         meta: {
-          _cm: cm,
+          _cm: cc,
           _startLine: startLine,
           _endLine: endLine,
           _code: code,
@@ -352,13 +352,13 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
   },
   FormatOutdentInRawEl(ctx, { rawEl, start, end }) {
     const value = rawEl.value
-    const cm = ctx.commonEtElement.codeMirror
-    const tabSize = cm.tabSize
+    const cc = ctx.commonEtElement.codeCtx
+    const tabSize = cc.tabSize
     const selectedLines = value.slice(start, end).split('\n')
-    const startLine = ctx.commonEtElement.codeMirror.getLineIndexByOffset(start)
+    const startLine = ctx.commonEtElement.codeCtx.getLineIndexByOffset(start)
     const endLine = startLine + selectedLines.length - 1
     const lines = value.split('\n')
-    const [startOffset] = cm.getLineOffset(startLine)
+    const [startOffset] = cc.getLineOffset(startLine)
     let endOffset = startOffset
     let code = '', startBias = -1
     for (let i = startLine; i <= endLine; i++) {
@@ -376,7 +376,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     ctx.commandManager.commitNextHandle(true)
     return ctx.commandManager.push(cmd.functional({
       meta: {
-        _cm: cm,
+        _cm: cc,
         _startLine: startLine,
         _endLine: endLine,
         _code: code,
@@ -409,42 +409,42 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     })).handle()
   },
 
-  insertNewLineInCode(ctx, { codeMirror }) {
-    const { selectionStart, selectionEnd, selectionDirection } = codeMirror.area
+  insertNewLineInCode(ctx, { codeCtx }) {
+    const { selectionStart, selectionEnd, selectionDirection } = codeCtx.area
     const anchorOffset = selectionDirection === 'backward' ? selectionStart : selectionEnd
-    const lineIndex = codeMirror.getLineIndexByOffset(anchorOffset)
-    const lineIndent = codeMirror.getLineIndent(lineIndex)
-    const [_, lineEnd] = codeMirror.getLineOffset(lineIndex)
+    const lineIndex = codeCtx.getLineIndexByOffset(anchorOffset)
+    const lineIndent = codeCtx.getLineIndent(lineIndex)
+    const [_, lineEnd] = codeCtx.getLineOffset(lineIndex)
     const data = '\n' + ' '.repeat(lineIndent)
     this.InsertTextInRawEl(ctx, {
-      rawEl: codeMirror.area as Et.HTMLRawEditElement,
+      rawEl: codeCtx.area as Et.HTMLRawEditElement,
       offset: lineEnd - 1,
       data,
     })
     ctx.commandManager.commitNextHandle()
     return ctx.commandManager.handle()
   },
-  codeLinesUp(ctx, { codeMirror }) {
-    const [startLine, endLine] = codeMirror.selectedLineIndices()
+  codeLinesUp(ctx, { codeCtx }) {
+    const [startLine, endLine] = codeCtx.selectedLineIndices()
     if (startLine === 0) {
       return
     }
-    return lineShift(ctx, codeMirror, startLine - 1, endLine)
+    return lineShift(ctx, codeCtx, startLine - 1, endLine)
   },
-  codeLinesDown(ctx, { codeMirror }) {
-    const [startLine, endLine] = codeMirror.selectedLineIndices()
-    if (endLine === codeMirror.lineCount - 1) {
+  codeLinesDown(ctx, { codeCtx }) {
+    const [startLine, endLine] = codeCtx.selectedLineIndices()
+    if (endLine === codeCtx.lineCount - 1) {
       return
     }
-    return lineShift(ctx, codeMirror, endLine + 1, startLine)
+    return lineShift(ctx, codeCtx, endLine + 1, startLine)
   },
 }
 
-const lineShift = (ctx: Et.EditorContext, cm: CodeMirror, index: number, shiftTo: number) => {
+const lineShift = (ctx: Et.EditorContext, cc: CodeContext, index: number, shiftTo: number) => {
   ctx.commandManager.commitNextHandle(true)
   ctx.commandManager.push(cmd.functional({
     meta: {
-      _cm: cm,
+      _cm: cc,
       _index: index,
       _shiftTo: shiftTo,
     },

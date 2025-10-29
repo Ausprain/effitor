@@ -66,16 +66,16 @@ export const checkBackspaceAtCaretDeleteParagraph = function (
   // 理论上的调用关系 (以 et-list 元素开头 Backspace 举例):
   // 光标在 et-list 内开头 按下 Backspace, ctx.effectInvoker.invoke 'deleteContentBackward' 效应
   // 执行此函数(若未被et-list重写), this 是 et-list效应元素构造器, ctx.paragraphEl 是第一个 listItem
-  // et-list 元素实现BackspaceAtParagraphStart, 内部通过 ctx.effectInvoker.getEffectElCtor(this)
+  // et-list 元素实现DeleteBackwardAtParagraphStart, 内部通过 ctx.effectInvoker.getEffectElCtor(this)
   // 获取原型(et-list 构造器的原型, 即 EffectElement或其子类构造器)
-  // 调用原型的 BackspaceAtParagraphStart 方法, 若返回 true, 说明父类已经成功处理了该效应, 返回 true
+  // 调用原型的 DeleteBackwardAtParagraphStart 方法, 若返回 true, 说明父类已经成功处理了该效应, 返回 true
   // 若返回 false, 说明未处理, et-list 自身应当继续处理该效应
-  // 对于 BackspaceAtParagraphStart, 默认的处理函数还可能返回一个 Paragraph 元素对象
+  // 对于 DeleteBackwardAtParagraphStart, 默认的处理函数还可能返回一个 Paragraph 元素对象
   // 表明说明处理了一半(希望将光标定位到该元素对象末尾, 但想征求子类处理函数的意见)
   // 若 et-list 对此有意见, 如判断 返回的 Paragraph 是否也是 et-list 实例, 进而处理列表合并问题
   // 若 et-list 对此没意见, 则原样返回, 于是这里的 res 就可以拿到这个元素对象,
   // 然后将光标定位到该元素末尾 (即完成默认处理逻辑)
-  const res = this.BackspaceAtParagraphStart?.(ctx, targetCaret)
+  const res = this.DeleteBackwardAtParagraphStart?.(ctx, targetCaret)
   if (typeof res === 'object') {
     ctx.setCaretToAParagraph(res, false)
     return true
@@ -172,7 +172,7 @@ export const checkDeleteAtCaretDeleteParagraph = function (
   if (!targetCaret.isCaretAtParagraphEnd()) {
     return false
   }
-  const res = this.DeleteAtParagraphEnd?.(ctx, targetCaret)
+  const res = this.DeleteForwardAtParagraphEnd?.(ctx, targetCaret)
   if (typeof res === 'object') {
     ctx.setCaretToAParagraph(res, true)
     return true

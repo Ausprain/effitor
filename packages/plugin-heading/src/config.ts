@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import type { EtHeadingElement } from './element'
+import type { EtHeadingElement } from './EtHeadingElement'
 
 export const enum HeadingEnum {
   ElName = 'et-heading',

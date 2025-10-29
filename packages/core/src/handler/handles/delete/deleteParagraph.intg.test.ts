@@ -189,7 +189,7 @@ suite.each([
         }
         expect(ctx.selection.getTargetCaret()).not.toBe(null)
         ctx.effectInvoker.invoke(
-          ctx.commonEtElement, 'BackspaceAtParagraphStart', ctx, ctx.selection.getTargetCaret()!,
+          ctx.commonEtElement, 'DeleteBackwardAtParagraphStart', ctx, ctx.selection.getTargetCaret()!,
         )
       })
       .handle(() => {
@@ -209,7 +209,7 @@ suite.each([
         }
         expect(ctx.selection.getTargetCaret()).not.toBe(null)
         ctx.effectInvoker.invoke(
-          ctx.commonEtElement, 'BackspaceAtParagraphStart', ctx, ctx.selection.getTargetCaret()!,
+          ctx.commonEtElement, 'DeleteBackwardAtParagraphStart', ctx, ctx.selection.getTargetCaret()!,
         )
       })
       .handle(() => {
@@ -420,7 +420,7 @@ suite.each([
         }
         expect(ctx.selection.getTargetCaret()).not.toBe(null)
         ctx.effectInvoker.invoke(
-          ctx.commonEtElement, 'DeleteAtParagraphEnd', ctx, ctx.selection.getTargetCaret()!,
+          ctx.commonEtElement, 'DeleteForwardAtParagraphEnd', ctx, ctx.selection.getTargetCaret()!,
         )
       })
       .handle(() => {
@@ -440,7 +440,7 @@ suite.each([
         }
         expect(ctx.selection.getTargetCaret()).not.toBe(null)
         ctx.effectInvoker.invoke(
-          ctx.commonEtElement, 'DeleteAtParagraphEnd', ctx, ctx.selection.getTargetCaret()!,
+          ctx.commonEtElement, 'DeleteForwardAtParagraphEnd', ctx, ctx.selection.getTargetCaret()!,
         )
       })
       .handle(() => {
