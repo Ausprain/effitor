@@ -132,6 +132,7 @@ const removeNodesAndMergeSiblingsIfCan = (
  * @param checkNeedMerge 是否需要检查合并插入片段与前后兄弟节点;
  *    这在 includeExpandNode 为 false, 时是有必要的; 因为扩大节点会被删除, 而如果
  *    插入内容不含扩大节点边缘, 则扩大节点前后兄弟与插入内容边缘节点可能存在可合并的情况.
+ * @param destCaretRange 命令执行后光标位置, 缺省则使用片段合并位置
  * @returns 是否成功添加命令, 若 起始/结束 扩大节点不是同层节点, 或不在页面上, 返回 false
  */
 export const expandRemoveInsert = (
@@ -142,6 +143,7 @@ export const expandRemoveInsert = (
   extraContents: Et.Fragment | null,
   includeExpandNode: boolean,
   checkNeedMerge: boolean,
+  destCaretRange?: Et.CaretRange,
 ) => {
   // 使用 SpanRange 强制要求俩扩大节点必须同层且在页面上, 并且开始节点在结束节点前
   let removeRange = cr.spanRange(startExpandNode, endExpandNode)
@@ -211,12 +213,19 @@ export const expandRemoveInsert = (
   }
 
   // 合并内容, 结束光标位置优先亲和到前者末尾
-  const out = checkNeedMerge
-    ? fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, true, ctx.affinityPreference) // 需要合并时添加一个清理, 避免出现空节点
-    : fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, false, ctx.affinityPreference) // 上面已经 clean, 这里不用再clean
+  // 需要合并时添加一个清理, 避免出现空节点
+  let content: Et.Fragment | undefined
+  if (destCaretRange) {
+    content = fragmentUtils.mergeEtFragments(df1, df2, false, checkNeedMerge)
+  }
+  else {
+    const out = fragmentUtils.getMergedEtFragmentAndCaret(df1, df2, false, checkNeedMerge, ctx.affinityPreference)
+    content = out?.[0]
+    destCaretRange = out?.[1]
+  }
 
   // 插入内容为空, 仅删除, 同时判断是否连带删除空祖先
-  if (!out) {
+  if (!content) {
     return removeNodesAndChildlessAncestorAndMergeSiblings(ctx, startExpandNode, endExpandNode)
   }
 
@@ -225,9 +234,9 @@ export const expandRemoveInsert = (
       ? cmd.removeNode({ node: startExpandNode })
       : cmd.removeContent({ removeRange }),
     cmd.insertContent({
-      content: out[0],
+      content,
       execAt: removeRange.removeAt(),
-      destCaretRange: out[1],
+      destCaretRange,
     }),
   )
   return true

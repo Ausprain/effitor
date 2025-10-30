@@ -173,7 +173,7 @@ const splitPartialToInsertElementInEtElement = (
   }
   const df = document.createDocumentFragment() as Et.Fragment
   df.appendChild(el)
-  return expandRemoveInsert(ctx, targetCaret, partialNode, partialNode, df, true, false)
+  return expandRemoveInsert(ctx, targetCaret, partialNode, partialNode, df, true, false, destCaretRange)
 }
 const insertParagraphElementAtCaret = (
   ctx: Et.EditorContext,

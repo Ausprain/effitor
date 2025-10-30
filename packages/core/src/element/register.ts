@@ -23,7 +23,7 @@ export const registerEtElement = (
     })
   }
   else if (import.meta.env.DEV) {
-    throw new Error(`Element ${ctor.elName} has been registered`)
+    console.error(`Element ${ctor.elName} has been registered`)
   }
 }
 /**

@@ -279,10 +279,15 @@ export const mergeEtFragments = (
   f1: Et.Fragment,
   f2: Et.Fragment,
   clone = false,
+  clean = true,
 ): Et.Fragment => {
   if (clone) {
     f1 = f1.cloneNode(true) as Et.Fragment
     f2 = f2.cloneNode(true) as Et.Fragment
+  }
+  if (clean) {
+    cleanEtFragment(f1)
+    cleanEtFragment(f2)
   }
 
   if (!f1.childNodes.length && !f2.childNodes.length) {
