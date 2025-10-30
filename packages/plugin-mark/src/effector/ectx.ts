@@ -1,15 +1,13 @@
 import type { Et } from '@effitor/core'
 import { useEffectorContext } from '@effitor/core'
 
-import { markerMap, MarkType } from '../config'
+import { MarkType } from '../config'
 
 export const checkInsertMark = (ctx: Et.EditorContext, markType: MarkType, checkRemoveMarkChar = true) => {
   return !!ctx.commonEtElement && ctx.effectInvoker.invoke(
     ctx.commonEtElement, 'checkInsertMark', ctx, {
       markType,
-      removeMarkerChars: checkRemoveMarkChar && markerMap[markType].marker.length > 1
-        ? markerMap[markType].char
-        : undefined,
+      checkRemoveMarkChar,
     },
   )
 }

@@ -1,7 +1,7 @@
 import { type Et, etcode } from '@effitor/core'
 
 import { MarkType, nestedMarkMap } from '../config'
-import { ET_MARK_CODE, EtMarkElement } from '../element'
+import { ET_MARK_CODE, EtMarkElement } from '../EtMarkElement'
 import { nestedChecker } from '../util'
 
 export const checkAllowMarkEffect = (anchorEtElement: Et.EtElement) => {

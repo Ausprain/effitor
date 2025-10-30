@@ -4,7 +4,7 @@ import type { Et } from '@effitor/core'
 
 import { initMarkPluginContext } from './config'
 import { markEffector } from './effector'
-import { EtMarkElement } from './element'
+import { EtMarkElement } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler } from './handler/markHandles'
 

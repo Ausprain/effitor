@@ -48,7 +48,7 @@ export const inMarkHandler: Et.EffectHandler = {
               return !!this.checkInsertMark?.(ctx, {
                 markType: MarkType.BOLD,
                 targetRange: tc,
-                removeMarkerChars: markerMap[MarkType.BOLD].char,
+                checkRemoveMarkChar: true,
               })
             }
           }

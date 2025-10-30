@@ -18,6 +18,10 @@ export const markEffector: Et.EffectorSupportInline = {
   htmlEventSolver: {
     mousedown: (_ev, ctx) => {
       if (ctx.pctx.$mark_ctx.enableHinting) {
+        // 光标已经在 mark 节点内, 不处理; 避免页面跳动(layout shift)
+        if (ctx.schema.mark.is(ctx.focusEtElement)) {
+          return
+        }
         ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
       }
       if (ctx.pctx.$mark_ctx.markState.checkAndEndMarking(false)) {

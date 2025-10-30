@@ -1,7 +1,7 @@
 import { type Et, traversal } from '@effitor/core'
 
 import { MarkEnum, MarkType } from './config'
-import type { EtMarkElement } from './element'
+import type { EtMarkElement } from './EtMarkElement'
 
 // TODO 这里似乎不用这么复杂, 直接判断祖先有无同类 mark 元素即可
 // 或许当初有别的考量, 待考证

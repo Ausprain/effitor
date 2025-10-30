@@ -2,8 +2,8 @@ import type { Et } from '@effitor/core'
 import { cr, handlerUtils } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
-import { MarkType } from '../config'
-import { createMarkNode } from '../element'
+import { markerMap, MarkType } from '../config'
+import { createMarkNode } from '../EtMarkElement'
 import { checkAllowMarkEffect, checkAllowNested } from './utils'
 
 /**
@@ -83,6 +83,7 @@ const formatMarkAtCaret = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
   return !!ctx.getEtHandler(tc.anchorEtElement).checkInsertMark?.(ctx, {
     markType,
     targetRange: tc,
+    checkRemoveMarkChar: false,
   })
 }
 
@@ -92,7 +93,7 @@ const formatMarkAtCaret = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markT
 export const markHandler: Et.EffectHandler = {
   checkInsertMark: (ctx, {
     markType,
-    removeMarkerChars,
+    checkRemoveMarkChar,
     targetRange: tr,
   }) => {
     // 光标在 text 末尾, 插入标记节点到 text 外末尾
@@ -109,6 +110,9 @@ export const markHandler: Et.EffectHandler = {
     }
     ctx.commandManager.commit()
     ctx.commandManager.startTransaction()
+    const removeMarkerChars = checkRemoveMarkChar && markerMap[markType].marker.length > 1
+      ? markerMap[markType].char
+      : undefined
     let insertAt = checkRemoveZWSAndMarkChars(ctx, tc, removeMarkerChars)
     if (!insertAt) {
       insertAt = tc.etCaret

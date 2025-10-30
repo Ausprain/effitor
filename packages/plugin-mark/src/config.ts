@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import type { EtMarkElement } from './element'
+import type { EtMarkElement } from './EtMarkElement'
 
 export const enum MarkEnum {
   ElName = 'et-mark',

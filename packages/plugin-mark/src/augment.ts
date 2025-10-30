@@ -1,7 +1,7 @@
 import type { Et } from '@effitor/core'
 
 import { MarkEnum, MarkPluginContext, MarkType } from './config'
-import type { EtMarkElement } from './element'
+import type { EtMarkElement } from './EtMarkElement'
 
 declare module 'mdast' {
   interface Highlight extends Parent {
@@ -42,8 +42,8 @@ declare module '@effitor/core' {
     /** 插入标记符节点 */
     checkInsertMark: (ctx: Et.EditorContext, payload: {
       markType: MarkType
-      /** 并移除已经插入页面的标记符文本, 若为 undefined 或空串, 则不检查 */
-      removeMarkerChars?: string
+      /** 是否检查并移除已经插入页面的标记符文本 */
+      checkRemoveMarkChar: boolean
       /** 目标范围, 为空时使用当前选区; 若非 collapsed, 则返回 false */
       targetRange?: Et.ValidTargetSelection | null
     }) => boolean

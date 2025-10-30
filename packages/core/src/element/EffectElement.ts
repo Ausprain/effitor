@@ -146,7 +146,7 @@ export abstract class EffectElement
   }
 
   /**
-   * // FIXME 待完善
+   * // TODO 待完善\
    * 为当前效应元素添加css类名, 并自动会添加前缀: `ET_cls-` (BuiltinConfig.EDITOR_CSS_CLASS_PREFIX)
    */
   addCssClass(cls: string) {

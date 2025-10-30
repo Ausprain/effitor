@@ -14,12 +14,18 @@ export class EtMarkElement extends EtRichText {
   static readonly elName = MarkEnum.ElName
   static readonly cssText: string = markCssText
 
-  public markType: `${MarkType}` | undefined
+  get markType() {
+    return this.dataset.markType as `${MarkType}` | ''
+  }
+
+  set markType(value: `${MarkType}` | '') {
+    this.dataset.markType = value
+  }
 
   static create(markType?: `${MarkType}`): EtMarkElement {
     const el = document.createElement(MarkEnum.ElName) as EtMarkElement
     if (markType) {
-      el.markType = markType
+      el.markType = markType ?? ''
       el.addCssClass(markType)
     }
     return el
@@ -49,18 +55,6 @@ export class EtMarkElement extends EtRichText {
     }
     else {
       this.classList.remove(CssClassEnum.CaretIn)
-    }
-  }
-
-  /**
-   * fix: issues15, 复制粘贴丢失this.markType的问题
-   */
-  connectedCallback(): void {
-    if (!this.markType) {
-      this.markType = this.dataset.markType as MarkType
-    }
-    else {
-      this.dataset.markType = this.markType
     }
   }
 
