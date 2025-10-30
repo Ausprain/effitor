@@ -1,16 +1,17 @@
 {
   "extends": "./tsconfig.json",
-  "include": [], // override
+  "include": ["./main", "./packages"],
   "exclude": [
-    "**/dist/**/*",
+    "**/dist",
     "**/__tests__/**/*",
     "**/*.test.ts",
     "**/*.help.ts",
     "**/packages/*/main.ts"
   ],
   "compilerOptions": {
+    // 设置 baseUrl, 让 tsc 可以找到配置的 paths
     "baseUrl": ".",
-    // override, only need shared which is not a package
+    // override paths, only need shared which is not a package
     "paths": {
       "@effitor/shared": ["./packages/shared/src/index.ts"]
     }

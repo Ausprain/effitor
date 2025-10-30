@@ -40,11 +40,6 @@ export class EtSelection {
   private _rawEl: Et.HTMLRawEditElement | null = null
   private _revealIdleCallbackId = 0
 
-  /**
-   * 全选等级, 1 全选当前行, 2 全选当前段落, 3 全选文档,
-   */
-  private _selectAllLevel: SelectAllLevel = 0
-
   /** 选区是否在 shadowDOM 内 */
   public inShadow: boolean
   /** 选区历史记录 */
@@ -295,6 +290,15 @@ export class EtSelection {
     return this._targetRange && this._targetRange.isCaretAtBodyEnd()
   }
 
+  /** 是否全选编辑区 */
+  get isRangingBody() {
+    return (!this.isCollapsed && this.range
+      && this.range.startContainer === this.range.endContainer
+      && this.range.startContainer === this._body.el
+      && this.range.startOffset === 0
+      && this.range.endOffset === this._body.el.childNodes.length)
+  }
+
   /**
    * 获取光标位置对应的 CaretRange 对象
    * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
@@ -542,7 +546,8 @@ export class EtSelection {
 
   /**
    * 折叠选区, 使光标位置位于选区开头或结尾
-   * @param [reveal=true] 是否保证光标显示在视口内
+   * @param [toStart=true] 是否折叠到选区开头, 默认 true
+   * @param [reveal=true] 是否尝试滚动以保证光标显示在视口内, 默认 true
    */
   collapse(toStart = true, reveal = true) {
     if (this._rawEl) {
@@ -913,29 +918,18 @@ export class EtSelection {
 
   /**
    * 扩展选区至全选当前编辑区文档内容
+   * * 即 Range 范围为: et-body,0 -> et-body,et-body.childNodes.length
    */
   selectDocument() {
-    const firstParagraph = this._body.firstParagraph
-    const lastParagraph = this._body.lastParagraph
-    if (firstParagraph && lastParagraph) {
-      const r = document.createRange() as Et.Range
-      r.setStartBefore(firstParagraph)
-      r.setEndAfter(lastParagraph)
-      // if (dom.isNotEditable(firstParagraph)) {
-      //   r.setStartBefore(firstParagraph)
-      // }
-      // else {
-      //   firstParagraph.innerStartEditingBoundary().adoptToRange(r, true, false)
-      // }
-      // if (dom.isNotEditable(lastParagraph)) {
-      //   r.setEndAfter(lastParagraph)
-      // }
-      // else {
-      //   lastParagraph.innerEndEditingBoundary().adoptToRange(r, false, true)
-      // }
-      return this.selectRange(r)
+    if (this._body.el.childNodes.length === 0) {
+      return false
     }
-    return false
+    const r = document.createRange() as Et.Range
+    // FIXME chromium shadowDOM 内, selection 端点会自动亲和到最近的文本节点,
+    // 即最终选区范围为, 首段落内开头 ~ 末段落内末尾
+    r.setStart(this._body.el, 0)
+    r.setEnd(this._body.el, this._body.el.childNodes.length)
+    return this.selectRange(r)
   }
 
   /**
@@ -946,43 +940,49 @@ export class EtSelection {
       return this._selectAllInRawEl(this._rawEl)
     }
     const tr = this.getTargetRange()
-    if (!tr) {
-      return false
+    if (!tr || this.isRangingBody) {
+      return true
     }
-    console.log('selectAllGradually', this._selectAllLevel)
+    let level = SelectAllLevel.No_Select_All
     if (tr.collapsed) {
-      this._selectAllLevel = SelectAllLevel.No_Select_All
+      level = SelectAllLevel.No_Select_All
     }
     else {
       const startP = tr.startParagraph
       const endP = tr.endParagraph
       if (startP === endP && endP) {
-        if (tr.DOMRange.getClientRects().length > 1
-          && this._selectAllLevel < SelectAllLevel.Select_Soft_Line
-        ) {
-          this._selectAllLevel = SelectAllLevel.Select_Soft_Line
+        const rects = tr.DOMRange.getClientRects()
+        if (rects.length <= 1) {
+          if (endP.getClientRects().length <= 1) {
+            level = SelectAllLevel.Select_Paragraph
+          }
+          else {
+            level = SelectAllLevel.Select_Soft_Line
+          }
         }
-        else if (endP.getClientRects().length === 1) {
-          this._selectAllLevel = SelectAllLevel.Select_Paragraph
+        else {
+          // 第一个矩形框和最后一个矩形框垂直距离小于 10px 时, 视为选中一行, 否则视为选中多行
+          // 因为在同一行内有其他行内元素时, 矩形框会存在多个
+          if (Math.abs(rects[0].y - rects[rects.length - 1].y) < 10) {
+            level = SelectAllLevel.Select_Soft_Line
+          }
+          else {
+            level = SelectAllLevel.Select_Paragraph
+          }
         }
       }
-      else if (this._selectAllLevel < SelectAllLevel.Select_Soft_Line) {
-        this._selectAllLevel = SelectAllLevel.Select_Soft_Line
+      else {
+        level = SelectAllLevel.Select_Paragraph
       }
     }
-    if (this._selectAllLevel === SelectAllLevel.Select_Document) {
-      return true
-    }
-    if (this._selectAllLevel === SelectAllLevel.No_Select_All) {
-      this._selectAllLevel++
+    console.log('selection level', level)
+    if (level === SelectAllLevel.No_Select_All) {
       return this.selectSoftLine()
     }
-    if (this._selectAllLevel === SelectAllLevel.Select_Soft_Line) {
-      this._selectAllLevel++
+    if (level === SelectAllLevel.Select_Soft_Line) {
       return this.selectParagraph()
     }
-    if (this._selectAllLevel === SelectAllLevel.Select_Paragraph) {
-      this._selectAllLevel++
+    if (level === SelectAllLevel.Select_Paragraph) {
       return this.selectDocument()
     }
     return false
@@ -1022,14 +1022,6 @@ export class EtSelection {
       return true
     }
     return this.selectSoftLine()
-  }
-
-  /**
-   * 在 selectionchange 事件中调用, 清除全选等级
-   */
-  clearSelectAllLevel() {
-    console.log('clearSelectAllLevel', this._selectAllLevel)
-    this._selectAllLevel = 0
   }
 
   cloneContents() {

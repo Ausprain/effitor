@@ -34,6 +34,6 @@ export const getInputListener = (
 
     // TODO drag/drop 引起的dom改变未触发此回调
     // 思考该回调的用意, 有了 Effitor.observeEditing 是否还必要此回调
-    ctx.editor.callbacks.onEditorContentChanged?.(ctx, [ctx.focusTopElement])
+    // ctx.editor.callbacks.onEditorContentChanged?.(ctx, [ctx.focusTopElement])
   }
 }

@@ -51,7 +51,7 @@ const editor = new Effitor({
           // cmd + k to insert media, just for test
           K: (ev, ctx) => {
             const tc = ctx.selection.getTargetCaret()
-            if (!ev.metaKey || !tc) {
+            if (!ev.metaKey || !tc || !ctx.focusParagraph) {
               return
             }
             if (ctx.effectInvoker.invoke(ctx.focusParagraph, 'insertMedia', ctx, {

@@ -6,7 +6,7 @@ export const codeAreaEffector: Et.EffectorSupportInline = {
   inline: true,
   keydownSolver: {
     K: (ev, ctx) => {
-      if (ev.metaKey) {
+      if (ev.metaKey && ctx.isPlainParagraph(ctx.focusParagraph)) {
         const ca = EtCodeAreaElement.create()
         ctx.commandManager.push(cmd.insertNode({
           node: ca,

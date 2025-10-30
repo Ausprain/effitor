@@ -28,12 +28,15 @@ export class EtBodyElement extends EffectElement {
   }
 
   focusinCallback(ctx: Et.EditorContext): void {
-    console.log('et-body 获得焦点')
-    // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落
+    // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落, 否则聚焦到首段落
+    if (!ctx.selection.isCollapsed) {
+      return
+    }
     if (ctx.bodyEl.childNodes.length > 0 && ctx.isEtParagraph(ctx.bodyEl.firstChild)) {
       ctx.setCaretToAParagraph(ctx.bodyEl.firstChild as Et.Paragraph, true)
       return
     }
+    // 编辑区为空，插入一个段落
     ctx.commonHandler.initEditorContents(false)
   }
 

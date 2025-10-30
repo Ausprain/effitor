@@ -36,6 +36,8 @@ export interface EditorCallbacks {
   onTopElementChanged?: OnParagraphChanged
   /**
    * 编辑器内容改变时调用
+   * @deprecated 未清晰此回调用意
+   *
    * @param ctx
    * @param changedTopElements 改变了的顶层元素
    */

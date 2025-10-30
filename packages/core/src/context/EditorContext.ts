@@ -43,8 +43,6 @@ type UpdatedContextSelection = ContextSelection & {
 export interface UpdatedContext extends EditorContext {
   readonly commonEtElement: NodeHasParent<Et.EtElement>
   readonly focusEtElement: NodeHasParent<Et.EtElement>
-  readonly focusParagraph: NodeHasParent<Et.Paragraph>
-  readonly focusTopElement: NodeHasParent<Et.Paragraph>
   readonly selection: UpdatedContextSelection
 }
 export interface CreateEditorContextOptionsFields {
@@ -209,8 +207,9 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this._oldNode = this.selection.anchorText
 
     // topElement 非空, 则 paragraph 非空, 则 etElement 非空
-    if (!this.selection.focusTopElement || !this.selection.commonEffectElement) {
-      this.assists.logger?.error('ctx update failed: effect element or paragraph not found. ', 'EditorContext')
+    if (!this.selection.commonEffectElement) {
+      // 更新上下文后, commonEffectElement 必须存在, 因为光标选区必须在 et-body 内, 而 et-body 是效应元素, 即兜底的最外层 commonEffectElement
+      this.assists.logger?.error('ctx update failed: common effect element not found. ', 'EditorContext')
       this.editor.blur()
       return (this._updated = false)
     }
@@ -290,6 +289,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   /**
    * 当前光标所在"段落"元素, 光标只能落在"段落"里
    * * 若选区非collapsed, 该值与选区结束(focus)位置对齐
+   * * **正常情况下, ctx 更新后, 当且仅当选区非collapsed时, 该值可能为 null**
    */
   get focusParagraph() {
     return this._focusParagraph
@@ -503,8 +503,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    *    etcode的方法用于判断节点是否为paragraph效应类型元素
    * * 而该方法用于判断一个节点是否为当前编辑器配置的paragraph段落元素本身
    */
-  isPlainParagraph(node: Et.Node): node is EtParagraphElement {
-    return node.localName === this.schema.paragraph.elName
+  isPlainParagraph(node: Node | null): node is EtParagraphElement {
+    return !!node && (node as HTMLElement).localName === this.schema.paragraph.elName
   }
 
   /**

@@ -27,7 +27,7 @@ import md from '../../../README_zh.md?raw'
 
 const editor = new Effitor({
   // effectorInline: true,
-  shadow: false,
+  // shadow: false,
   // customStyleText: css,
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,

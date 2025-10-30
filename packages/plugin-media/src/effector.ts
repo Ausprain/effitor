@@ -98,7 +98,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
     // 鼠标点击图片右上角拖拽调整大小; 配合css在鼠标hover时显示右上角“小方块”; 当float-right时为左上角
     mousedown: (ev, ctx) => {
       // 当且仅当鼠标左键按下时, 才允许调整大小
-      if (ev.buttons !== 1 || !ctx.isUpdated()) {
+      if (ev.buttons !== 1 || !ctx.isUpdated() || !ctx.focusParagraph) {
         return
       }
       const etMedia = ev.target as IEtMediaElement

@@ -27,7 +27,6 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
     //   return
     // }
     ctx.update()
-    ctx.selection.clearSelectAllLevel()
     if (ctx.selection.isCollapsed) {
       if (ctx.bodyEl.classList.contains(CssClassEnum.SelectionRange)) {
         ctx.bodyEl.classList.remove(CssClassEnum.SelectionRange)

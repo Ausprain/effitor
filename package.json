@@ -33,9 +33,9 @@
     "url": "git+https://github.com/Ausprain/effitor.git"
   },
   "scripts": {
-    "check": "tsc --noEmit -p ./tsconfig.build.json",
-    "build:main": "bun run prebuild && bun ./scripts/build.js",
-    "prebuild": "tsc --noEmit -p ./tsconfig.build.json && bun run update:packages",
+    "check": "tsc --noEmit",
+    "build": "bun ./scripts/build.js",
+    "prebuild": "tsc --noEmit && bun run update:packages",
     "update:packages": "bun ./scripts/updatePackageJson.js",
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",

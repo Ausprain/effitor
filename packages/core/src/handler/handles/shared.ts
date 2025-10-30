@@ -20,6 +20,7 @@ export const checkTargetRangePosition = (
   inTheSameTextFn: (ctx: Et.EditorContext, targetRange: Et.ValidTargetRange, currP: Et.Paragraph, textNode: Et.Text) => boolean,
   inTheSameParagraphFn: (ctx: Et.EditorContext, targetRange: Et.ValidTargetRange, currP: Et.Paragraph) => boolean,
   inSpanningParagraphFn: (ctx: Et.EditorContext, targetRange: Et.ValidTargetRange, startP: Et.Paragraph, endP: Et.Paragraph) => boolean,
+  noParagraphFn?: (ctx: Et.EditorContext, targetRange: Et.ValidTargetRange) => boolean,
 ) => {
   if (targetRange.collapsed || !targetRange.isValid()) {
     return false
@@ -35,7 +36,16 @@ export const checkTargetRangePosition = (
   const p1 = targetRange.startParagraph
   const p2 = targetRange.endParagraph
   if (!p1 || !p2) {
-    return false
+    // 无段落, 判断是否全选, 全选则删除, 否则让光标 collapsed
+    if (noParagraphFn) {
+      return noParagraphFn(ctx, targetRange)
+    }
+    if (ctx.selection.isRangingBody) {
+      return ctx.commonHandler.initEditorContents(false)
+    }
+    else {
+      return ctx.selection.collapse(false, true)
+    }
   }
   // 段落内跨节点
   if (p1 === p2) {
