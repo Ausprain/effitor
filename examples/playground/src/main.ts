@@ -7,6 +7,8 @@ import './assets/main.css'
 import * as icons from '../../../packages/shared/src/icons'
 
 import { Effitor } from '@effitor/core'
+import { HtmlAttrEnum } from '@effitor/shared'
+
 import { useMarkPlugin } from '@effitor/plugin-mark'
 import { useHeadingPlugin } from '@effitor/plugin-heading'
 import { useListPlugin } from '@effitor/plugin-list'
@@ -17,7 +19,7 @@ import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
 import { useCodePlugin } from '@effitor/plugin-code'
 import { useLinkPlugin } from '@effitor/plugin-link'
-import { HtmlAttrEnum } from '@effitor/shared'
+import { useMediaPlugin } from '@effitor/plugin-media'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 
@@ -45,6 +47,7 @@ const editor = new Effitor({
     useListPlugin(),
     await useCodePlugin(),
     useLinkPlugin(),
+    useMediaPlugin(),
     {
       name: 'some',
       effector: {

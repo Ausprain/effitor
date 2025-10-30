@@ -89,6 +89,19 @@ export class EtCodeElement extends EtComponent {
     }
   }
 
+  onAfterCopy(_ctx: Et.EditorContext): this | null {
+    this.setAttribute(CodeAttr.Code_Value, this.querySelector('textarea')?.value || '')
+    this.textContent = ''
+    return this
+  }
+
+  onBeforePaste(ctx: Et.EditorContext): this | null {
+    const newEl = EtCodeElement.withDefaultDecoration(ctx, this.getAttribute(CodeAttr.Code_Value) || '', this.lang)
+    newEl.meta = this.meta
+    newEl.wrapping = this.wrapping
+    return newEl as this
+  }
+
   /**
    * 装饰代码块并初始化代码块上下文
    * * 新元素使用 el.prepend 方法添加; 代码块结构如下

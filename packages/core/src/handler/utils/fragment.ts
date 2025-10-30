@@ -1,8 +1,12 @@
+import { EtTypeEnum } from '@effitor/shared'
+
 import type { Et } from '../../@types'
 import { etcode } from '../../element'
 import { cr } from '../../selection'
 import { dom, traversal } from '../../utils'
 
+// 以下节点及其后代保留不clean
+const SAVE_ELEMENT_NAMES = ['svg', 'img', 'audio', 'video', 'input', 'textarea']
 /* -------------------------------------------------------------------------- */
 /*                               clean fragment                               */
 /* -------------------------------------------------------------------------- */
@@ -199,17 +203,24 @@ const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
     }
     return 2 /** NodeFilter.FILTER_REJECT */
   }
-  // 以下节点及其后代保留不clean
-  // svg元素的nodeName是小写
-  else if (['svg', 'img', 'audio', 'video'].includes(node.localName)) {
-    return 2 /** NodeFilter.FILTER_REJECT */
-  }
+
   // 移除元素 id 属性;
   // 空元素移除 (不含 br, br 在上述逻辑中处理)
   if (node.nodeType === 1) {
+    if (etcode.check(node)) {
+      dom.removeStatusClassForEl(node)
+      // 组件和嵌入元素整体保留
+      if (etcode.check(node, EtTypeEnum.Component | EtTypeEnum.Embedment)) {
+        return 2 /** NodeFilter.FILTER_REJECT */
+      }
+    }
+    // 保留 svg/img/textarea 等空内容元素节点
+    else if (SAVE_ELEMENT_NAMES.includes(node.localName)) {
+      return 2 /** NodeFilter.FILTER_REJECT */
+    }
     if (!node.textContent && (
       !node.firstElementChild
-      || !['svg', 'img', 'audio', 'video'].includes(node.firstElementChild.localName)
+      || !SAVE_ELEMENT_NAMES.includes(node.firstElementChild.localName)
     )) {
       // 不可边遍历边移除, node从父节点移除后其nextSibling为 null, 会终止遍历
       removeArray.push(node)
@@ -219,9 +230,6 @@ const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
     else if ((node as Element).id) {
       (node as Element).removeAttribute('id')
     }
-  }
-  if (dom.isEtElement(node)) {
-    dom.removeStatusClassForEl(node)
   }
   // 其他节点跳过walk, 但继续遍历其后代
   return 3 /** NodeFilter.FILTER_SKIP */
@@ -615,4 +623,99 @@ const innermostMiddlePosition = (former: Et.HTMLNodeOrNull, latter: Et.HTMLNodeO
   }
 
   return caretRange
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               copy & paste                                 */
+/* -------------------------------------------------------------------------- */
+
+export const onCopyToEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+  const nodesToRemove: Et.EtElement[] = []
+  const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
+  traversal.traverseNode(df, null, {
+    whatToShow: 1, /** NodeFilter.SHOW_ELEMENT */
+    filter(el) {
+      if (etcode.check(el)) {
+        const res = el.onAfterCopy(ctx)
+        if (!res) {
+          nodesToRemove.push(el)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        if (res !== el) {
+          nodesToReplace.set(el, res)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        dom.removeStatusClassForEl(el)
+      }
+      // 不需要走 walk，直接跳过
+      return 3 /** NodeFilter.FILTER_SKIP */
+    },
+  })
+  nodesToRemove.forEach(el => el.remove())
+  nodesToReplace.forEach((rep, el) => {
+    el.replaceWith(rep)
+  })
+}
+
+export const onCopyToNativeHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+  const nodesToRemove: Et.EtElement[] = []
+  const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
+  const nodesToReplaceWithoutChildren = new Map<Et.EtElement, HTMLElement>()
+  traversal.traverseNode(df, null, {
+    whatToShow: 1 /** NodeFilter.SHOW_ELEMENT */,
+    filter(el) {
+      if (etcode.check(el)) {
+        const res = el.toNativeElement(ctx)
+        if (!res) {
+          nodesToRemove.push(el)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        if (typeof res === 'function') {
+          nodesToReplace.set(el, res())
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        nodesToReplaceWithoutChildren.set(el, res)
+      }
+      return 3 /** NodeFilter.FILTER_SKIP */
+    },
+  })
+  nodesToRemove.forEach(el => el.remove())
+  nodesToReplace.forEach((rep, el) => {
+    el.replaceWith(rep)
+  })
+  nodesToReplaceWithoutChildren.forEach((rep, el) => {
+    el.replaceWith(rep)
+    let node = el.firstChild
+    while (node) {
+      rep.appendChild(node)
+      node = node.nextSibling
+    }
+  })
+}
+
+export const onPasteFromEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+  const nodesToRemove: Et.EtElement[] = []
+  const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
+  traversal.traverseNode(df, null, {
+    whatToShow: 1, /** NodeFilter.SHOW_ELEMENT */
+    filter(el) {
+      if (etcode.check(el)) {
+        const res = el.onBeforePaste(ctx)
+        if (!res) {
+          nodesToRemove.push(el)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        if (res !== el) {
+          nodesToReplace.set(el, res)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+      }
+      // 不需要走 walk，直接跳过
+      return 3 /** NodeFilter.FILTER_SKIP */
+    },
+  })
+  nodesToRemove.forEach(el => el.remove())
+  nodesToReplace.forEach((rep, el) => {
+    el.replaceWith(rep)
+  })
 }

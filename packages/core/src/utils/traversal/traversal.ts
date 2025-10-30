@@ -3,11 +3,19 @@ import { BuiltinElName } from '@effitor/shared'
 import type { Et } from '../../@types'
 import { dom } from '../dom'
 
-type TreeWalkNode<T> = T extends 1 ? Et.Element : T extends 4 ? Et.Text : T extends 5 ? Et.Node : never
 type TraversalWalk<T> = (node: TreeWalkNode<T>) => TrueOrVoid
+type TreeWalkNode<T> = T extends 1 ? Et.Element : T extends 4 ? Et.Text : T extends 5 ? Et.Node : never
+interface TreeWalkFilter<T> {
+  /**
+   * 遍历过滤回调
+   * @param node 遍历节点, 该节点经过 whatToShow 过滤
+   * @returns 1 接受节点, 2 拒绝节点及其子树, 3 跳过节点, 继续遍历其后代节点; 被接受的节点将被 walk 遍历
+   */
+  (node: TreeWalkNode<T>): 1 | 2 | 3
+}
 interface TraversalOptions<T> {
   whatToShow?: T
-  filter?: ((node: TreeWalkNode<T>) => 1 | 2 | 3) | null
+  filter?: TreeWalkFilter<T> | null
 }
 
 /**
@@ -208,7 +216,7 @@ export const traverseRange = <T extends 1 | 4 | 5 = 5>(
  * @param walk 遍历回调, 返回 true 时停止遍历
  * @param options 遍历选项\
  *    options.whatToShow 显示哪些节点, 1: 元素, 4: #text, 5: 包含两者\
- *    options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点;\
+ *    options.filter 过滤回调, 返回 1 时接受节点, 2 时拒绝节点及其子树, 3 时跳过节点, 继续遍历其后代节点; 被接受的节点将被 walk 遍历\
  *    filter 的参数 node是经过 whatToShow 过滤后的节点; walk 参数是经过 filter 过滤后的节点
  */
 export const traverseNode = <T extends 1 | 4 | 5 = 5>(

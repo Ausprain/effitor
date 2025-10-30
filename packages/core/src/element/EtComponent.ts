@@ -5,6 +5,7 @@ import { EtParagraph } from './EtParagraph'
 
 /**
  * 组件节点, 只有含嵌套contenteditable的元素, 才算组件节点; 任何含嵌套contenteditable的元素, 都应继承该类
+ * * 现（v0.2.0）组件默认不支持复制粘贴，复制内容中包含组件节点，将会丢失组件节点
  */
 export abstract class EtComponent extends EtParagraph {
   static readonly elName: string = BuiltinElName.ET_COMPONENT
@@ -21,6 +22,10 @@ export abstract class EtComponent extends EtParagraph {
 
   toNativeElement() {
     return document.createElement('div')
+  }
+
+  onAfterCopy(_ctx: Et.EditorContext): this | null {
+    return null
   }
 
   /**

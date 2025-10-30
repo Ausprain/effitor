@@ -13,7 +13,7 @@
 
 import { MIMETypeEnum } from '@effitor/shared'
 
-import { createEffectHandle, createInputEffectHandle } from '../../utils'
+import { createEffectHandle, createInputEffectHandle, fragmentUtils } from '../../utils'
 import { insertContentsAtCaret, insertTextAtCaret } from './insert.shared'
 
 export const insertFromPaste = createInputEffectHandle(function (ctx, pl) {
@@ -54,6 +54,7 @@ export const insertFromEtHtml = createEffectHandle('InsertFromEtHtml' as 'E', fu
   }
   return ctx.commonHandler.checkRemoveTargetRange(tr, (ctx, caret) => {
     const df = ctx.createFragment(etHtml)
+    fragmentUtils.onPasteFromEtHTML(ctx, df)
     if (this.TransformInsertContents) {
       this.TransformInsertContents(ctx, {
         fragment: df,

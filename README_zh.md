@@ -8,9 +8,9 @@
 
 > **语言选择：[English](./README.md) | [中文](./README_zh.md)**
 
-effitor是一个高性能插件化的web富文本编辑器框架，取名自*efficient editor*，追求极致优雅的编辑体验。
+effitor是一个高性能插件化的web富文本编辑器框架，取名自*efficient editor*，拥抱最新标准和技术，追求极致优雅的编辑体验。
 
-> ⚠️ 目前 effitor 只是一个桌面端的框架，仅适配主流浏览器（chrome，edge，firefox，safari），且不支持协同编辑。
+> ⚠️ effitor 是一种尝试，它不是一个稳定的编辑器，尚有许多问题待解决和完善。目前仅适配桌面端现代浏览器（chrome，edge，firefox，safari），且不支持协同编辑。
 
 ## Why Effitor
 
@@ -139,7 +139,7 @@ bun dev
 
 - 无抽象数据模型，编辑操作采用直接操作DOM方式进行交互
 - 基于`contenteditable`，但接管浏览器所有行为（除输入法输入和剪切板行为）
-- 对齐w3c最新标准，包括但不限于：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)
+- 对齐web最新标准，如：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)等
 
 ### 局限
 

@@ -297,7 +297,8 @@ export abstract class EffectElement
    * - `() => HTMLElement`, 声明以该效应元素为根的子树, 将以何种形式被
    *   复制到 `text/html` 中; 即包括后代处理
    */
-  toNativeElement(this: EffectElement): null | HTMLElement | (() => HTMLElement) {
+  toNativeElement(this: EffectElement, _ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    // TODO 获取样式并记录到 style 属性中
     const cssValues = window.getComputedStyle(this)
     let el
     if (['block', 'flex'].includes(cssValues.display)) {
@@ -307,6 +308,22 @@ export abstract class EffectElement
       el = document.createElement('span')
     }
     return el
+  }
+
+  /**
+   * 复制后回调，用于修改复制的DOM片段内的对应效应元素，默认不修改，即返回`this`
+   * @returns 若返回`null`, 则从复制内容中丢弃该节点
+   */
+  onAfterCopy(_ctx: Et.EditorContext): this | null {
+    return this
+  }
+
+  /**
+   * 粘贴前回调，用于修改粘贴的DOM片段内的对应效应元素，默认不修改，即返回`this`
+   * @returns 若返回`null`, 则从即将粘贴的内容中丢弃该节点
+   */
+  onBeforePaste(_ctx: Et.EditorContext): this | null {
+    return this
   }
 
   /* -------------------------------------------------------------------------- */

@@ -20,6 +20,8 @@ export const enum CodeAttr {
   Lang = 'et-code-lang',
   /** 代码元数据 */
   Meta = 'et-code-meta',
+  /** 代码内容 */
+  Code_Value = 'et-code-value',
 }
 export const CODE_ET_TYPE = etcode.get(CodeEnum.ElName)
 

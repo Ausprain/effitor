@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { useEffectorContext } from '@effitor/core'
-import { orderListIcon, unorderListIcon } from '@effitor/shared'
+import { HtmlCharEnum, orderListIcon, unorderListIcon } from '@effitor/shared'
 
 import { ListEnum, styleTypeMapping, unOrderedListStyle } from './config'
 import { EtListItemElement } from './EtListElement'
@@ -24,10 +24,10 @@ const beforeKeydownSolver: Et.KeyboardKeySolver = {
       return
     }
     const text = currP.textContent
-    if (!text || text.length > 2) {
+    if (!text || text.length > 3) {
       return
     }
-    const styleType = ectx._et_$list.styleTypeMapping[text]
+    const styleType = ectx._et_$list.styleTypeMapping[text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')]
     if (!styleType) {
       return
     }

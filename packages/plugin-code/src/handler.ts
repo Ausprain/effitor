@@ -13,13 +13,13 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const row = codeCtx.getLineIndexByOffset(rawEl.selectionStart)
     const tailCmd = cmd.functional({
       meta: {
-        _cm: codeCtx,
+        _cc: codeCtx,
         _row: row,
       },
       execCallback() {
         // 此时(beforeinput事件内)输入法尚未插入文本, 延迟渲染
         setTimeout(() => {
-          this.meta._cm.updateCodeLine(this.meta._row)
+          this.meta._cc.updateCodeLine(this.meta._row)
         }, 0)
       },
       undoCallback(_ctx) {
@@ -89,37 +89,37 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const tailCmd = addCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
           },
           execCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
           undoCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
         })
       : cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
             _addCount: addCount,
             _insertNewLine: insertNewLine,
           },
           execCallback() {
             if (this.meta._insertNewLine) {
-              this.meta._cm.renderCodeLines(this.meta._row + 1, 1)
+              this.meta._cc.renderCodeLines(this.meta._row + 1, 1)
             }
             else {
-              this.meta._cm.spliceCodeLines(this.meta._row, 1, this.meta._addCount)
+              this.meta._cc.spliceCodeLines(this.meta._row, 1, this.meta._addCount)
             }
           },
           undoCallback() {
             if (this.meta._insertNewLine) {
-              this.meta._cm.removeCodeLines(this.meta._row + 1, 1)
+              this.meta._cc.removeCodeLines(this.meta._row + 1, 1)
             }
             else {
-              this.meta._cm.spliceCodeLines(this.meta._row, this.meta._addCount, 1)
+              this.meta._cc.spliceCodeLines(this.meta._row, this.meta._addCount, 1)
             }
           },
         })
@@ -196,27 +196,27 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const tailCmd = delCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
           },
           execCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
           undoCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
         })
       : cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
             _delCount: delCount,
           },
           execCallback() {
-            this.meta._cm.spliceCodeLines(this.meta._row, this.meta._delCount, 1)
+            this.meta._cc.spliceCodeLines(this.meta._row, this.meta._delCount, 1)
           },
           undoCallback() {
-            this.meta._cm.spliceCodeLines(this.meta._row, 1, this.meta._delCount)
+            this.meta._cc.spliceCodeLines(this.meta._row, 1, this.meta._delCount)
           },
         })
     return this.superHandler.DeleteTextInRawEl(ctx, {
@@ -237,28 +237,28 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     const tailCmd = delCount === 1 && addCount === 1
       ? cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
           },
           execCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
           undoCallback() {
-            this.meta._cm.updateCodeLine(this.meta._row)
+            this.meta._cc.updateCodeLine(this.meta._row)
           },
         })
       : cmd.functional({
           meta: {
-            _cm: codeCtx,
+            _cc: codeCtx,
             _row: row,
             _addCount: addCount,
             _delCount: delCount,
           },
           execCallback() {
-            this.meta._cm.spliceCodeLines(this.meta._row, this.meta._delCount, this.meta._addCount)
+            this.meta._cc.spliceCodeLines(this.meta._row, this.meta._delCount, this.meta._addCount)
           },
           undoCallback() {
-            this.meta._cm.spliceCodeLines(this.meta._row, this.meta._addCount, this.meta._delCount)
+            this.meta._cc.spliceCodeLines(this.meta._row, this.meta._addCount, this.meta._delCount)
           },
         })
     ctx.commandManager.commitNextHandle(true)
@@ -318,7 +318,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
       ctx.commandManager.commitNextHandle(true)
       return ctx.commandManager.push(cmd.functional({
         meta: {
-          _cm: cc,
+          _cc: cc,
           _startLine: startLine,
           _endLine: endLine,
           _code: code,
@@ -327,23 +327,23 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
           _startBias: startBias,
         },
         execCallback() {
-          const { _cm, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
-          this.meta._code = _cm.area.value.slice(_start, _end)
+          const { _cc, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
+          this.meta._code = _cc.area.value.slice(_start, _end)
           this.meta._end = _start + _code.length
-          const selectStart = _cm.area.selectionStart
-          _cm.area.setRangeText(_code, _start, _end)
+          const selectStart = _cc.area.selectionStart
+          _cc.area.setRangeText(_code, _start, _end)
           // 保持选区位置
-          _cm.area.setSelectionRange(selectStart + _startBias, _cm.area.selectionEnd)
-          _cm.updateIndent(_startLine, _endLine)
+          _cc.area.setSelectionRange(selectStart + _startBias, _cc.area.selectionEnd)
+          _cc.updateIndent(_startLine, _endLine)
         },
         undoCallback() {
-          const { _cm, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
-          this.meta._code = _cm.area.value.slice(_start, _end)
+          const { _cc, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
+          this.meta._code = _cc.area.value.slice(_start, _end)
           this.meta._end = _start + _code.length
-          const { selectionStart, selectionEnd } = _cm.area
-          _cm.area.setRangeText(_code, _start, _end)
-          _cm.area.setSelectionRange(selectionStart - _startBias, selectionEnd - (_end - _start - _code.length))
-          _cm.updateIndent(_startLine, _endLine)
+          const { selectionStart, selectionEnd } = _cc.area
+          _cc.area.setRangeText(_code, _start, _end)
+          _cc.area.setSelectionRange(selectionStart - _startBias, selectionEnd - (_end - _start - _code.length))
+          _cc.updateIndent(_startLine, _endLine)
         },
         // 禁用初始光标, 防止撤回时代码块失去焦点
         srcCaretRange: null,
@@ -376,7 +376,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     ctx.commandManager.commitNextHandle(true)
     return ctx.commandManager.push(cmd.functional({
       meta: {
-        _cm: cc,
+        _cc: cc,
         _startLine: startLine,
         _endLine: endLine,
         _code: code,
@@ -385,24 +385,24 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
         _startBias: startBias,
       },
       execCallback() {
-        const { _cm, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
-        this.meta._code = _cm.area.value.slice(_start, _end)
+        const { _cc, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
+        this.meta._code = _cc.area.value.slice(_start, _end)
         this.meta._end = _start + _code.length
-        const { selectionStart, selectionEnd } = _cm.area
-        _cm.area.setRangeText(_code, _start, _end)
+        const { selectionStart, selectionEnd } = _cc.area
+        _cc.area.setRangeText(_code, _start, _end)
         // 保持选区位置
-        _cm.area.setSelectionRange(selectionStart - _startBias, selectionEnd - (_end - _start - _code.length))
-        _cm.updateIndent(_startLine, _endLine)
+        _cc.area.setSelectionRange(selectionStart - _startBias, selectionEnd - (_end - _start - _code.length))
+        _cc.updateIndent(_startLine, _endLine)
       },
       undoCallback() {
-        const { _cm, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
-        this.meta._code = _cm.area.value.slice(_start, _end)
+        const { _cc, _startLine, _endLine, _code, _start, _end, _startBias } = this.meta
+        this.meta._code = _cc.area.value.slice(_start, _end)
         this.meta._end = _start + _code.length
-        const { selectionStart, selectionEnd } = _cm.area
-        _cm.area.setRangeText(_code, _start, _end)
+        const { selectionStart, selectionEnd } = _cc.area
+        _cc.area.setRangeText(_code, _start, _end)
         // 保持选区位置
-        _cm.area.setSelectionRange(selectionStart + _startBias, selectionEnd - (_end - _start - _code.length))
-        _cm.updateIndent(_startLine, _endLine)
+        _cc.area.setSelectionRange(selectionStart + _startBias, selectionEnd - (_end - _start - _code.length))
+        _cc.updateIndent(_startLine, _endLine)
       },
       // 禁用初始光标, 防止撤回时代码块失去焦点
       srcCaretRange: null,
@@ -444,17 +444,17 @@ const lineShift = (ctx: Et.EditorContext, cc: CodeContext, index: number, shiftT
   ctx.commandManager.commitNextHandle(true)
   ctx.commandManager.push(cmd.functional({
     meta: {
-      _cm: cc,
+      _cc: cc,
       _index: index,
       _shiftTo: shiftTo,
     },
     execCallback() {
-      const { _cm, _index, _shiftTo } = this.meta
-      _cm.shiftLine(_index, _shiftTo)
+      const { _cc, _index, _shiftTo } = this.meta
+      _cc.shiftLine(_index, _shiftTo)
     },
     undoCallback() {
-      const { _cm, _index, _shiftTo } = this.meta
-      _cm.shiftLine(_shiftTo, _index)
+      const { _cc, _index, _shiftTo } = this.meta
+      _cc.shiftLine(_shiftTo, _index)
     },
     srcCaretRange: null,
   }))

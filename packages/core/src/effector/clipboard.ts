@@ -7,8 +7,8 @@
 import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
-import { type EffectElement, etcode } from '../element'
-import { dom, traversal } from '../utils'
+import { fragmentUtils } from '../handler'
+import { dom } from '../utils'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }
 type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
@@ -95,20 +95,10 @@ const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.Data
   if (ctx.selection.rawEl) {
     return
   }
-  const fragment = ctx.selection.cloneContents()
-  const etElList: EffectElement[] = []
-  traversal.traverseNode(fragment, void 0, {
-    whatToShow: 1 /** NodeFilter.SHOW_ELEMENT */,
-    filter(el) {
-      if (etcode.check(el)) {
-        etElList.push(el)
-        dom.removeStatusClassForEl(el)
-      }
-      return 3 /** NodeFilter.FILTER_SKIP */
-    },
-  })
-
-  clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentToHTML(fragment))
-  etElList.forEach(el => el.toNativeElement?.())
-  clipboardData.setData('text/html', dom.fragmentToHTML(fragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
+  const etFragment = ctx.selection.cloneContents()
+  const htmlFragment = etFragment.cloneNode(true)
+  fragmentUtils.onCopyToEtHTML(ctx, etFragment)
+  fragmentUtils.onCopyToNativeHTML(ctx, htmlFragment)
+  clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentToHTML(etFragment))
+  clipboardData.setData('text/html', dom.fragmentToHTML(htmlFragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
 }
