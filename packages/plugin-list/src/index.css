@@ -52,6 +52,7 @@ et-list[style-type="upper-roman"] {
 
 et-list {
   display: block;
+  margin: 4px 0;
   list-style-type: disc;
   padding-inline-start: var(--et-list-indent);
   &::before {
@@ -76,6 +77,7 @@ et-list:has(> et-li.caret-in) {
 et-li.etp {
   display: list-item;
   position: relative;
+  margin: 2px 0;
 
   &[et-check] {
     &::marker {

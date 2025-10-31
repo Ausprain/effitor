@@ -4,10 +4,9 @@
   "description": "A web editor based on `Input Events Level 2`",
   "private": true,
   "keywords": [
-    "effitor",
-    "web editor",
-    "markdown",
-    "WYSIWYG"
+    "editor",
+    "wysiwyg",
+    "markdown"
   ],
   "type": "module",
   "main": "dist/index.js",

@@ -57,6 +57,7 @@
       "version": "0.2.0-alpha",
       "dependencies": {
         "@excalidraw/excalidraw": "^0.18.0",
+        "dompurify": "^3.3.0",
         "effitor": "workspace:*",
       },
       "devDependencies": {

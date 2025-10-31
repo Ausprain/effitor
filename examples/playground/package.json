@@ -3,10 +3,9 @@
   "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
-    "effitor",
-    "web editor",
-    "markdown",
-    "WYSIWYG"
+    "editor",
+    "wysiwyg",
+    "markdown"
   ],
   "type": "module",
   "author": "Henvn Leaf",
@@ -23,6 +22,7 @@
   },
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
+    "dompurify": "^3.3.0",
     "effitor": "workspace:*"
   },
   "devDependencies": {

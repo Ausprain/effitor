@@ -177,7 +177,11 @@ export interface CreateEditorOptions extends _CreateEditorOptions {
   effectorInline?: false
 }
 interface _CreateEditorOptions {
-  /** 是否使用shadowDOM, 默认为true; 但仅chromium (准确说是拥有ShadowRoot.getSelection方法的), 其他平台始终为false;  */
+  /**
+   * 是否使用shadowDOM, 默认为false; 目前仅chromium (准确说是拥有ShadowRoot.getSelection方法的)支持设置为 true, 其他平台始终为false;
+   * * ⚠️ 目前在 chrome ShadowDOM 内, 选区无法选中不可编辑节点边缘，Selection 会自动将选区调整到最近的可编辑文本节点边缘, 不清楚这是否是chrome的bug, 尚不建议设置为true
+   * @default false
+   */
   shadow?: boolean
   /** schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容 */
   schemaInit?: Partial<EditorSchema>

@@ -24,6 +24,7 @@ import { useMediaPlugin } from '@effitor/plugin-media'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 
 import md from '../../../README_zh.md?raw'
+import DOMPurify from 'dompurify'
 
 // console.log(css.length)  // 186452
 
@@ -33,6 +34,9 @@ const editor = new Effitor({
   // customStyleText: css,
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,
+  },
+  htmlOptions: {
+    sanitizer: html => DOMPurify.sanitize(html),
   },
   assists: [
     useCounterAssist(),

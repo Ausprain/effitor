@@ -391,8 +391,12 @@ export class CodeContext<L extends string = string> {
       'text/html': this.codeHTML(),
     })
     return navigator.clipboard.write([item]).then(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore to solve `error TS2339: Property 'msg' does not exist on type 'EditorAssists'.` on bundle
       ctx.assists.msg?.success('复制成功')
     }).catch(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       ctx.assists.msg?.error('复制失败')
     })
   }

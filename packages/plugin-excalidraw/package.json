@@ -3,10 +3,9 @@
   "version": "0.2.0-alpha",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
-    "effitor",
-    "web editor",
-    "markdown",
-    "WYSIWYG"
+    "editor",
+    "wysiwyg",
+    "markdown"
   ],
   "type": "module",
   "main": "dist/index.js",
