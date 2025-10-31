@@ -4,6 +4,7 @@ import type { EtHeadingElement } from './EtHeadingElement'
 
 export const enum HeadingEnum {
   ElName = 'et-heading',
+  Class_HiddenMarker = 'heading-marker--hidden',
 }
 
 declare module '@effitor/core' {

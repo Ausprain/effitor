@@ -24,12 +24,12 @@ export class EtHeadingElement extends EtHeading {
 
   set headingLevel(v: Et.HeadingLevel) {
     v = Math.max(1, Math.min(Math.floor(v), 6)) as Et.HeadingLevel
-    this.dataset.headLevel = v.toString()
+    this.dataset.level = v.toString()
     this.addCssClass(levelClass(v))
   }
 
   get headingLevel() {
-    return parseInt(this.dataset.headLevel ?? '-1') as Et.HeadingLevel
+    return parseInt(this.dataset.level ?? '-1') as Et.HeadingLevel
   }
 
   changeLevel(hl: Et.HeadingLevel) {

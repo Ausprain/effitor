@@ -1,23 +1,53 @@
 
+.heading-marker--hidden et-heading {
+  &::before {
+    content: none;
+  }
+}
+
 et-heading {
-  font-weight: bold;
+  position: relative;
   margin: 0.5em 0 0.2em;
+  line-height: 1.5;
+  font-weight: bold;
+
+  &::before {
+    content: "#" attr(data-level);
+    position: absolute;
+    top: var(--semi-line-height);
+    left: -8px;
+    translate: -100% -50%;
+    font-size: 1.1rem;
+    /* font-weight: normal; */
+    opacity: 0.1;
+    transition: opacity 0.2s ease-out;
+  }
+  &.caret-in::before,
+  &:hover::before {
+    opacity: 0.6;
+  }
 }
 et-heading.ET_cls-h1 {
-  font-size: 2em;
+  font-size: 2rem;
+  --semi-line-height: calc(1.5 * 2rem / 2);
 }
 et-heading.ET_cls-h2 {
-  font-size: 1.8em;
+  font-size: 1.8rem;
+  --semi-line-height: calc(1.5 * 1.8rem / 2);
 }
 et-heading.ET_cls-h3 {
-  font-size: 1.6em;
+  font-size: 1.6rem;
+  --semi-line-height: calc(1.5 * 1.6rem / 2);
 }
 et-heading.ET_cls-h4 {
-  font-size: 1.4em;
+  font-size: 1.4rem;
+  --semi-line-height: calc(1.5 * 1.4rem / 2);
 }
 et-heading.ET_cls-h5 {
-  font-size: 1.2em;
+  font-size: 1.2rem;
+  --semi-line-height: calc(1.5 * 1.2rem / 2);
 }
 et-heading.ET_cls-h6 {
-  font-size: 1em;
+  font-size: 1rem;
+  --semi-line-height: calc(1.5 * 1rem / 2);
 }
