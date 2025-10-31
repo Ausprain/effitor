@@ -57,15 +57,17 @@ export const normalizeAndCleanEtFragment = (
   df.normalize()
   const { inEtCode, notInEtCode } = etElement ? etElement : { inEtCode: -1, notInEtCode: 0 }
   const removeNodes: ChildNode[] = []
-  const regressEls: Et.EtElement[] = []
+  const regressNodes: Et.Node[] = []
   traversal.traverseNode(df, void 0, {
     filter: (node) => {
-      let reject = filterToNormalize(node, regressEls, inEtCode, notInEtCode, cleanZWS) === 2
-      reject = filterToClean(node, removeNodes) === 2
+      let reject = filterToNormalize(node, regressNodes, inEtCode, notInEtCode, cleanZWS) === 2
+      if (!reject) {
+        reject = filterToClean(node, removeNodes) === 2
+      }
       return reject ? 2 : 3
     },
   })
-  for (const el of regressEls) {
+  for (const el of regressNodes) {
     const data = el.textContent
     el.replaceWith((data[0] === '\u200B' ? '\u200B' : '') + (data.replaceAll('\u200B', '')))
   }
@@ -101,7 +103,7 @@ export const normalizeEtFragment = (
   return df
 }
 const filterToNormalize = (
-  node: Et.Node, regressEls: Et.EtElement[],
+  node: Et.Node, nodesToRegress: Et.Node[],
   inEtCode: number, notInEtCode: number, cleanZWS: boolean,
 ) => {
   if (cleanZWS && dom.isText(node)) {
@@ -110,6 +112,11 @@ const filterToNormalize = (
     node.data = (data[0] === '\u200B' ? '\u200B' : '') + (data.replaceAll('\u200B', ''))
     return 3 /** NodeFilter.FILTER_SKIP */
   }
+  if (inEtCode === EtTypeEnum.PlainText) {
+    // 父节点只允许纯文本
+    nodesToRegress.push(node)
+    return 2 /** NodeFilter.FILTER_REJECT */
+  }
   if (inEtCode && dom.isEtElement(node)) {
     let etP: Et.EtElement | number | null = dom.findEffectParent(node)
     if (!etP || etP === node) {
@@ -117,7 +124,7 @@ const filterToNormalize = (
     }
     if (!etcode.checkIn(etP, node.etCode, notInEtCode)) {
       // 子效应不符合父节点效应, 替换为纯文本; 跳过后代
-      regressEls.push(node)
+      nodesToRegress.push(node)
       return 2 /** NodeFilter.FILTER_REJECT */
     }
   }
@@ -191,15 +198,18 @@ export const cleanEtFragment = (df: Et.Fragment) => {
   return df
 }
 
-const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
+/**
+ * 过滤节点
+ */
+const filterToClean = (node: Et.Node, nodesToRemove: ChildNode[]) => {
   if (!dom.isElementOrText(node)) {
-    removeArray.push(node)
+    nodesToRemove.push(node)
     return 2 /** NodeFilter.FILTER_REJECT */
   }
   if (node.localName === 'br') {
     // 若某节点下只有一个br, 则移除
     if (!node.previousSibling && !node.nextSibling) {
-      removeArray.push(traversal.outermostAncestorWithSelfAsOnlyChild(node))
+      nodesToRemove.push(traversal.outermostAncestorWithSelfAsOnlyChild(node))
     }
     return 2 /** NodeFilter.FILTER_REJECT */
   }
@@ -223,7 +233,7 @@ const filterToClean = (node: Et.Node, removeArray: ChildNode[]) => {
       || !SAVE_ELEMENT_NAMES.includes(node.firstElementChild.localName)
     )) {
       // 不可边遍历边移除, node从父节点移除后其nextSibling为 null, 会终止遍历
-      removeArray.push(node)
+      nodesToRemove.push(node)
       // 节点被移除, 不应再遍历其后代
       return 2 /** NodeFilter.FILTER_REJECT */
     }

@@ -43,6 +43,12 @@ export class EtHeadingElement extends EtHeading {
     this.addCssClass(levelClass(hl))
   }
 
+  fromPlainParagraph(plainParagraph: Et.EtParagraph): Et.EtParagraph {
+    const heading = EtHeadingElement.create(this.headingLevel)
+    heading.textContent = plainParagraph.textContent
+    return heading
+  }
+
   toMdast(mdastNode: Et.CreateMdastNode): Nodes | Nodes[] | null {
     return mdastNode('heading', this.childNodes, {
       depth: this.headingLevel,

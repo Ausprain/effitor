@@ -389,7 +389,14 @@ const splitParagraphToInsertParagraphContents = (
     if (!paragraphEtParent || !etcode.checkIn(paragraphEtParent, ctx.schema.paragraph.etType)) {
       // 当前(目标光标位置)段落无效应父节点(不应该发生), 或效应父节点不接受普通段落效应,
       // 将普通段落转为当前段落类型
+      const nodesToRemove: Et.Node[] = []
       for (const child of contents.childNodes) {
+        // 非普通段落，丢弃
+        if (!ctx.isPlainParagraph(child)) {
+          nodesToRemove.push(child)
+          continue
+        }
+        // 普通段落，转换为当前段落类型
         child.replaceWith(currParagraph.fromPlainParagraph(
           child as Et.Paragraph,
           ctx,
@@ -398,6 +405,7 @@ const splitParagraphToInsertParagraphContents = (
           },
         ))
       }
+      nodesToRemove.forEach(node => node.remove())
     }
   }
   // 当前段落就是普通段落, 或已经适应段落类别, 直接拆分插入
