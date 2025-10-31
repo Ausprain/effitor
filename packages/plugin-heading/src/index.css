@@ -17,6 +17,7 @@ et-heading {
     top: var(--semi-line-height);
     left: -8px;
     translate: -100% -50%;
+    color: var(--et-color-hinting);
     font-size: 1.1rem;
     /* font-weight: normal; */
     opacity: 0.1;
@@ -24,7 +25,7 @@ et-heading {
   }
   &.caret-in::before,
   &:hover::before {
-    opacity: 0.6;
+    opacity: 1;
   }
 }
 et-heading.ET_cls-h1 {

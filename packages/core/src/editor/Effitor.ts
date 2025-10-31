@@ -157,7 +157,7 @@ export class Effitor {
   }
 
   constructor({
-    shadow = true,
+    shadow = false,
     schemaInit = {},
     mainEffector = getMainEffector(),
     effectorInline = false,
