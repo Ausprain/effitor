@@ -1,3 +1,5 @@
+import { CssClassEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import type { EditorBody } from '../context/EditorBody'
 import { dom } from '../utils'
@@ -176,6 +178,13 @@ export class EtSelection {
       this._focusEtElement = void 0
       this._focusParagraph = void 0
       this._focusTopElement = void 0
+    }
+
+    if (this.isRangingBody) {
+      this._body.el.classList.add(CssClassEnum.SelectionAll)
+    }
+    else {
+      this._body.el.classList.remove(CssClassEnum.SelectionAll)
     }
     return true
   }
@@ -925,8 +934,11 @@ export class EtSelection {
       return false
     }
     const r = document.createRange() as Et.Range
-    // FIXME chromium shadowDOM 内, selection 端点会自动亲和到最近的文本节点,
+    // FIXME chrome shadowDOM 内, selection 端点会自动亲和到最近的文本节点,
     // 即最终选区范围为, 首段落内开头 ~ 末段落内末尾
+    // FIXME chrome 和 Safari 下, 如果首尾段落不可编辑, 则全选的::selection 样式会丢失(实际上已经全选了)
+    // 在 Safari 下, 首尾段落任意一个不可编辑, 也会如此
+    // 暂时用给 et-body 添加背景的方式来模拟全选的::selection
     r.setStart(this._body.el, 0)
     r.setEnd(this._body.el, this._body.el.childNodes.length)
     return this.selectRange(r)

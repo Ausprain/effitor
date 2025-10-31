@@ -50,6 +50,9 @@ et-code.et {
   }
 }
 
+.selection-all .et-code__wrapper.shiki {
+  background-color: unset !important;
+}
 .et-code__wrapper {
   position: relative;
   display: block;
@@ -175,12 +178,12 @@ et-code.et {
       opacity: 1;
     }
 
-    et-editor.dark &,
+    /* et-editor.dark &,
     :host(.dark) & {
       --et-color-bg: #0002;
       --et-color-bg--hover: #0004;
       --et-color-bg--active: #0006;
-    }
+    } */
   }
   
   /* copy */

@@ -3,14 +3,15 @@ et-editor,
   --et_mark-color__marker: var(--et-color-hinting);
   --et_mark-color__code_text: #ec3639;
   --et_mark-color__code_bg: #f7f7ff;
-  --et_mark-color__code_font: 'Cascadia Code';
+  --et_mark-color__code_font: 'monospace';
   --et_mark-color__hl_text: #212223;
   --et_mark-color__hl_bg: #fcd13c;
 }
 
 et-editor.dark,
 :host(.dark) {
-  --et_mark-color__code_bg: #212427;
+  --et_mark-color__code_text: #9ecbff;
+  --et_mark-color__code_bg: #24292e;
 }
 
 et-mark {

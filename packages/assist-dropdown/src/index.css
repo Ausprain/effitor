@@ -1,15 +1,15 @@
 .et-dd__wrapper {
-  display: inline;
-  /* fixme: only chromium now */
+  /* 定位会让 anchor-position 失效 */
+  /* position: relative; */
+  /* fixme: only chromium supports now */
   anchor-name: --et-dd-wrapper;
-
-  z-index: 1;
+  display: inline;
 
   &>span {
     margin: 0 2px;
     padding: 2px 3px;
     border-radius: 3px;
-    background-color: var(--et-color-bg--hover);
+    background-color: var(--et-color-bg-mute);
     text-decoration: underline;
   }
 }
@@ -23,14 +23,14 @@
 
   margin: 3px 0;
   border-radius: 4px;
-  background-color: var(--et-color-bg);
-  box-shadow: var(--et-shadow);
+  background-color: var(--et-color-bg-soft);
+  box-shadow: var(--et-shadow-m);
   overflow: hidden;
   z-index: 99;
   animation: dropdown-in 0.2s ease-in;
 
   /* dev */
-  border: 1px solid #ddd;
+  border: 1px solid var(--et-color-border-1);
 }
 
 .et-dd__content {

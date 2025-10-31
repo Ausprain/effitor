@@ -1,15 +1,55 @@
 
+/* 深色模式, 指向 et-editor.dark (编辑器非 shadow 时) */
+et-editor.dark,
+/* 该 css会插入 shadowRoot, 而 et-editor 是 shadowRoot 的 host, 访问不到, 内部需要用 :host 来访问 host */
+:host(.dark) {
+  color-scheme: dark;
+
+  --et-color-bg: oklch(15% 0 0);
+  --et-color-bg-soft: oklch(25% 0 0);
+  --et-color-bg-mute: oklch(30% 0 0);
+  --et-color-bg--hover: oklch(35% 0 0);
+  --et-color-bg--active: oklch(40% 0 0);
+  --et-color-bg__card: var(--et-color-bg-soft);  /* 深色模式的卡片背景需要通过亮度提高层级 */
+  --et-color-bg__item: var(--et-color-bg-mute);
+  
+  --et-color-text: oklch(98% 0 0);
+  --et-color-text-soft: oklab(88% 0 0);
+  --et-color-text-mute: oklch(78% 0 0);
+  --et-color-text-disabled: oklch(68% 0 0);
+
+  --et-color-caret: #e1e2e3;
+
+  --et-color-border-1: #222;
+  --et-color-border-2: #333;
+  --et-color-border-3: #444;
+
+  --et-color-hinting: #9bd;
+  --et-color-selection-all: #3b516f;
+
+}
+
 et-editor,
 /* 在 shadowDOM 内部, :host指向宿主元素, 即 et-editor */
 :host {
   color-scheme: light;
 
-  --et-color-bg: #fafbfc;
-  --et-color-bg--hover: #ecedee;
-  --et-color-bg--active: #e1e2e3;
+  /* --et-theme-color: ;
+  --et-theme-color--hover: ;
+  --et-theme-color--active: ; */
 
-  --et-color-text: #1b1b1b;
-  --et-color-text-disabled: #888;
+  --et-color-bg: oklch(100% 0 0);
+  --et-color-bg-soft: oklch(98% 0 0);
+  --et-color-bg-mute: oklch(96% 0 0);
+  --et-color-bg--hover: oklch(94% 0 0);
+  --et-color-bg--active: oklch(92% 0 0);
+  --et-color-bg__card: var(--et-color-bg); /* 亮模式的卡片背景通过阴影提高层级, 背景色使用基础背景 */
+  --et-color-bg__item: var(--et-color-bg);
+
+  --et-color-text: oklch(10% 0 0);
+  --et-color-text-soft: oklab(20% 0 0);
+  --et-color-text-mute: oklch(40% 0 0);
+  --et-color-text-disabled: oklch(60% 0 0);
 
   --et-color-caret: #111213;
 
@@ -18,13 +58,22 @@ et-editor,
   --et-color-border-3: #ccc;
 
   --et-color-hinting: #79d;
+  --et-color-selection-all: #b9d4fa;
 
-  --et-shadow: 
+  --et-shadow-s: 
+    inset 0 1px 1px #ffffff30,
+    1px 2px 4px rgb(0 0 0 / 0.20), 
+    1px 4px 6px rgb(0 0 0 / 0.10),
+    0 6px 8px rgb(0 0 0 / 0.10);
+
+  --et-shadow-m: 
+    inset 0 1px 1px #ffffff50,
     2px 2px 6px rgb(0 0 0 / 0.24), 
     2px 4px 10px rgb(0 0 0 / 0.12),
     0 8px 16px rgb(0 0 0 / 0.12);
 
-  --et-shadow-1: 
+  --et-shadow-l: 
+    inset 0 1px 1px #ffffff70,
     3px 3px 6px rgb(0 0 0 / 0.24),
     6px 8px 12px rgb(0 0 0 / 0.24), 
     0 12px 16px rgb(0 0 0 / 0.12);
@@ -35,28 +84,6 @@ et-editor,
   --et-letter-space: 0.02em;
 
   --et-transition-color-scheme: background-color 0.2s ease-in, color 0.2s ease-in;
-}
-
-/* 深色模式, 指向 et-editor.dark (编辑器非 shadow 时) */
-et-editor.dark,
-/* 该 css会插入 shadowRoot, 而 et-editor 是 shadowRoot 的 host, 访问不到, 内部需要用 :host 来访问 host */
-:host(.dark) {
-  color-scheme: dark;
-
-  --et-color-bg: #0a0b0c;
-  --et-color-bg--hover: #1d1e1f;
-  --et-color-bg--active: #313233;
-
-  --et-color-text: #e1e1e1;
-  --et-color-text--disabled: #aaa;
-
-  --et-color-caret: #e1e2e3;
-
-  --et-color-border-1: #222;
-  --et-color-border-2: #333;
-  --et-color-border-3: #444;
-
-  --et-color-hinting: #9bd;
 }
 
 et-editor,
@@ -79,7 +106,7 @@ et-editor,
   display: flow-root;
 
   caret-color: var(--et-color-caret);
-  color: var(--et-color-text);
+  color: var(--et-color-text-soft);
   background-color: var(--et-color-bg);
   font-family: var(--et-font-family);
   font-size: var(--et-font-size);
@@ -87,35 +114,4 @@ et-editor,
   letter-spacing: var(--et-letter-space);
 
   transition: var(--et-transition-color-scheme);
-}
-
-/* 默认编辑器外框样式 */
-et-editor[et-theme="default"],
-:host([et-theme="default"]) {
-  min-height: 300px;
-  max-width: 760px;
-  padding: 40px;
-  margin: 8px auto;
-  border: 1px solid var(--et-color-border-3);
-  border-radius: 8px;
-}
-
-/* 编辑区内置样式 */
-et-body {
-  display: block !important;
-  min-height: 128px;
-  margin: 8px auto;
-  outline: none;
-  border: none;
-  hyphens: auto;  /* 末尾单词自动连接符 */
-  white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
-}
-
-et-p.etp {
-  /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
-  /* position: relative; */
-  padding-block: 0.25em;
-  min-height: 2em;
-  /* 分栏在需要时, 设置在段落上 */
-  /* column-count: 2; */
 }

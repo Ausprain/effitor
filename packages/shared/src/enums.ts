@@ -69,8 +69,10 @@ export const enum CssClassEnum {
   /** 当前拖拽悬浮 */
   Dragover = 'dragover',
 
-  /** 用于et-body 选区为Range, 需通过ctx.range.collpased==false判断, Selection.isCollapsed在shadowRoot内不准 */
+  /** 用于et-body 选区为Range是添加此 css 类 */
   SelectionRange = 'selection-range',
+  /** 用于et-body 全选文档添加此 css 类 */
+  SelectionAll = 'selection-all',
   /** 段落类节点 */
   ParagraphLike = 'etp',
   /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */

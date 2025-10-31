@@ -1,8 +1,46 @@
+
+/* 默认编辑器外框样式 */
+et-editor[et-theme="default"],
+:host([et-theme="default"]) {
+  min-height: 300px;
+  max-width: 760px;
+  padding: 40px;
+  margin: 8px auto;
+  border: 1px solid var(--et-color-border-3);
+  border-radius: 8px;
+}
+
+/* 编辑区内置样式 */
+et-body {
+  display: block !important;
+  min-height: 128px;
+  margin: 8px auto;
+  outline: none;
+  border: none;
+  hyphens: auto;  /* 末尾单词自动连接符 */
+  white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
+}
+et-body.selection-all {
+  background-color: var(--et-color-selection-all);
+}
+
+et-p.etp {
+  /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
+  /* position: relative; */
+  padding-block: 0.25em;
+  min-height: 2em;
+  /* 分栏在需要时, 设置在段落上 */
+  /* column-count: 2; */
+}
 .etp {
   display: block;
   /* 段落最小高度, 防止段落空内容时高度坍缩 */
   min-height: 1.5em;
   line-height: 1.5;
+}
+
+.hidden {
+  display: none !important;
 }
 
 /* 鼠标悬浮提示元素的 hint-title属性值 */
@@ -20,11 +58,11 @@
     padding: 4px;
     border: 1px solid var(--et-color-border-2);
     border-radius: 3px;
-    background-color: var(--et-color-bg);
+    background-color: var(--et-color-bg__item);
     color: var(--et-color-text);
     font-size: 9px;
     white-space: pre;
-    box-shadow: var(--et-shadow);
+    box-shadow: var(--et-shadow-s);
   }
 
   &.selected::before,
@@ -48,33 +86,32 @@
   }
 }
 
-/* 背景色按钮 */
+/* 背景按钮 */
 .bg-item {
-  background-color: var(--et-color-bg);
-
+  background-color: var(--et-color-bg__card);
   &:hover {
     background-color: var(--et-color-bg--hover);
   }
-
   &:active,
   &.selected {
     background-color: var(--et-color-bg--active);
   }
 }
 
-.hidden {
-  display: none !important;
-}
+/* 主题按钮 */
+/* .theme-item {
+  &:hover {
+    background-color: var(--et-theme-color--hover);
+  }
+  &:active,
+  &.selected {
+    background-color: var(--et-theme-color--active);
+  }
+} */
 
 .et-card {
-
-  background-color: var(--et-color-bg);
-  box-shadow: var(--et-shadow);
-
-  et-editor.dark &,
-  :host(.dark) & {
-    background-color: var(--et-color-bg--hover);
-  }
+  background-color: var(--et-color-bg__card);
+  box-shadow: var(--et-shadow-l);
 }
 
 /* 动画 */

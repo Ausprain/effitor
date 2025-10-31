@@ -1,3 +1,18 @@
+et-editor,
+:host {
+  --et-link-color__text: hsl(240 66% 57%);
+  --et-link-color__bg: hsl(240 66% 98%);
+  --et-link-color__bg--hover: hsl(240 66% 95%);
+}
+
+et-editor.dark,
+:host(.dark) {
+  --et-link-color__text: hsl(240 100% 77%);
+  --et-link-color__bg: hsl(0 0 3%);
+  --et-link-color__bg--hover: hsl(0 0 6%);
+}
+
+
 et-link {
   /* 设置position的同时设置background-color, 光标会被其吞掉(看不见) */
   /* position: relative; */
@@ -5,14 +20,20 @@ et-link {
   margin: 0 2px;
   padding: 1px 3px;
   border-radius: 2px;
-  background-color: hsl(240 100% 98%);
+  background-color: var(--et-link-color__bg);
 
-  color: hsl(240 61% 57%);
+  color: var(--et-link-color__text);
   text-decoration: underline;
+  transition: var(--et-transition-color-scheme);
+
+  &::before {
+    /* unicode link */
+    content: "🔗";
+    font-size: 0.8em;
+  }
 
   &:hover {
-    background-color: hsl(240 100% 96%);
-
+    background-color: var(--et-link-color__bg--hover);
     /* &::after {
       content: "[" attr(link-title)"]:\00a0\00a0\00a0" attr(link-url);
       position: absolute;
@@ -29,12 +50,6 @@ et-link {
       z-index: 1;
     } */
   }
-
-  &:active {
-    background-color: hsl(240 100% 95%);
-    color: hsl(240 61% 51%);
-    user-select: none;
-  }
 }
 
 .et-link-popup {
@@ -45,8 +60,8 @@ et-link {
   margin: 0 4px;
   border: 1px solid var(--et-color-border-1);
   border-radius: 6px;
-  background-color: var(--et-color-bg);
-  box-shadow: var(--et-shadow);
+  background-color: var(--et-color-bg-mute);
+  box-shadow: var(--et-shadow-s);
 }
 
 .et-link-popup_input {
