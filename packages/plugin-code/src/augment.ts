@@ -1,9 +1,8 @@
 import type { Et } from '@effitor/core'
 
 import type { CodeContext } from './CodeContext'
-import { CodeEnum } from './config'
+import { CodeEnum, CodePluginContext } from './config'
 import type { EtCodeElement } from './EtCodeElement'
-import type { EtCodeHighlighter } from './highlighter'
 
 declare module '@effitor/core' {
   interface EditorSchema {
@@ -31,13 +30,5 @@ declare module '@effitor/core' {
     codeLinesDown: Et.EffectHandle<{
       codeCtx: CodeContext
     }>
-  }
-}
-
-interface CodePluginContext {
-  highlighter: EtCodeHighlighter<string>
-  config: {
-    /** 默认 Tab 大小, 单位为字符宽度 */
-    defaultTabSize: number
   }
 }

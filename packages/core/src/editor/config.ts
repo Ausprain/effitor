@@ -11,6 +11,7 @@ import type {
 } from '../element'
 import type { MountEtHandler } from '../element/register'
 import { HotstringOptions } from '../hotstring/manager'
+import { HtmlProcessorOptions } from '../html'
 import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
 
@@ -161,7 +162,7 @@ export interface EditorPlugin {
    *  }
    */
   readonly register?: (
-    ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, mountEtHandler: MountEtHandler
+    ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, mountEtHandler: MountEtHandler,
   ) => void
 };
 
@@ -207,8 +208,14 @@ interface _CreateEditorOptions {
   customStyleLinks?: CustomStyleLink[]
   /** 编辑器回调, 编辑器核心会主动调用的函数(钩子) */
   callbacks?: EditorCallbacks
-  /** */
+  // /** 热键配置选项 */
+  // hotkeyOptions?: HotkeyOptions
+  /** 热字符串配置选项 */
   hotstringOptions?: HotstringOptions
+  /** html 处理器选项 */
+  htmlOptions?: HtmlProcessorOptions
+  // /** markdown 处理器选项 */
+  // markdownOptions?: MarkdownProcessorOptions
   /**
    * 配置管理器, 用于恢复存储的编辑器配置, 并监听编辑器配置更新, 以持久化编辑器配置
    * 通过该属性获取的配置的优先级是最高的, 会覆盖 config 传入的配置

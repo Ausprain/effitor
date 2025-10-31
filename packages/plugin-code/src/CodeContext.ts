@@ -11,10 +11,10 @@ export interface CodeContextOptions<L extends string = string> {
   highlighter: EtCodeHighlighter<L>
 }
 export class CodeContext<L extends string = string> {
+  public readonly wrapper: HTMLDivElement
   public readonly area: HTMLTextAreaElement
   public readonly pre: HTMLPreElement
   private readonly _lineWrapper: HTMLElement
-  private readonly _wrapper: HTMLDivElement
   private __lang: L
   private __tab = ''
   private readonly _highlighter: EtCodeHighlighter<L>
@@ -35,12 +35,12 @@ export class CodeContext<L extends string = string> {
       this.pre.scrollTop = this.area.scrollTop
       this.pre.scrollLeft = this.area.scrollLeft
     }
-    this._wrapper = document.createElement('div')
-    this._wrapper.classList.add(CodeEnum.Class_Wrapper)
-    this._wrapper.appendChild(this.pre)
-    this._wrapper.appendChild(this.area)
+    this.wrapper = document.createElement('div')
+    this.wrapper.classList.add(CodeEnum.Class_Wrapper)
+    this.wrapper.appendChild(this.pre)
+    this.wrapper.appendChild(this.area)
     // this.pre.appendChild(this._lineWrapper)
-    highlighter.onInit?.(this._wrapper, lang)
+    highlighter.onInit?.(this.wrapper, lang)
     // 代码块初始内容为空, 设置初始值为一个换行符, 否则代码块坍缩
     if (!value) {
       value = '\n'
@@ -69,7 +69,7 @@ export class CodeContext<L extends string = string> {
   }
 
   mount(el: HTMLElement) {
-    el.appendChild(this._wrapper)
+    el.appendChild(this.wrapper)
   }
 
   /**
@@ -374,8 +374,8 @@ export class CodeContext<L extends string = string> {
   codeHTML() {
     const pre = document.createElement('pre')
     let html = '<code>'
-    pre.className = this._wrapper.className
-    pre.style = this._wrapper.style.cssText
+    pre.className = this.wrapper.className
+    pre.style = this.wrapper.style.cssText
     html += this._lineWrapper.innerHTML
     html += '</code>'
     pre.innerHTML = html

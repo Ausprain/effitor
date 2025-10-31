@@ -45,7 +45,9 @@ const editor = new Effitor({
     useMarkPlugin(),
     useHeadingPlugin(),
     useListPlugin(),
-    await useCodePlugin(),
+    await useCodePlugin({
+      canRenderHTML: true,
+    }),
     useLinkPlugin(),
     useMediaPlugin(),
     {

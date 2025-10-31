@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@effitor/core": "workspace:*",
+    "dompurify": "^3.3.0",
     "shiki": "^3.13.0"
   }
 }

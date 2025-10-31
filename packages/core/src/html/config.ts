@@ -21,3 +21,8 @@ export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement>
 export type HtmlToEtElementTransformerMap = {
   [k in keyof HTMLElementTagNameMap]?: HtmlToEtElementTransformer<HTMLElementTagNameMap[k]>
 }
+
+export interface HtmlProcessorOptions {
+  /** 自定义 HTML 过滤规则 */
+  sanitizer?: (html: string) => string
+}

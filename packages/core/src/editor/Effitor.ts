@@ -169,6 +169,7 @@ export class Effitor {
     customStyleLinks = [],
     callbacks = {},
     hotstringOptions = undefined,
+    htmlOptions = undefined,
   }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM以及ShadowDOM内选区, 则强制不使用 ShadowDOM
     if (shadow) {
@@ -242,7 +243,7 @@ export class Effitor {
       customStyleLinks: [...customStyleLinks],
       hotstringOptions,
     }
-    this.htmlProcessor = new HtmlProcessor(htmlTransformerMaps)
+    this.htmlProcessor = new HtmlProcessor(htmlTransformerMaps, htmlOptions)
     this.mdProcessor = getMdProcessor({
       fromMdHandlerMapList,
       toMdTransformerMapList,

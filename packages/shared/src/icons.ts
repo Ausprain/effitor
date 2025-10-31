@@ -71,7 +71,7 @@ export const downloadIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', str
 </svg>
 `
 export const trashIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(trashIconHtml(d, fill, stroke))
-export const trashIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+export const trashIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
 <path d="M3 3.33334L3 14.6667L13 14.6667L13 3.33334L3 3.33334Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round"  ></path>
 <path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"  d="M6.66669 6.66666L6.66669 11"></path>
 <path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"  d="M9.33331 6.66666L9.33331 11"></path>
@@ -79,6 +79,14 @@ export const trashIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke
 <path d="M5.33331 3.33334L6.42965 1.33334L9.59235 1.33334L10.6666 3.33334L5.33331 3.33334Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round"  ></path>
 </svg>
 `
+export const repeatIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(repeatIconHtml(d, fill, stroke))
+export const repeatIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>`
+
+export const undoIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(undoIconHtml(d, fill, stroke))
+export const undoIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`
+
+export const redoIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(redoIconHtml(d, fill, stroke))
+export const redoIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>`
 
 /* -------------------------------------------------------------------------- */
 /*                                    popup                                   */
@@ -237,9 +245,9 @@ export const linkIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke 
 `
 export const inlineMathIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(inlineMathIconHtml(d, fill, stroke))
 export const inlineMathIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M12 3.66667L11 2.66667L4 2.66667L9.33333 8.00001L4 13.3333L11 13.3333L12 12.3333"></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M2 1.66667L2 14.3333"></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M14 1.66667L14 14.3333"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M12.3334 3L11.3334 2L2.66669 2L8.33335 8L2.66669 14L11.3334 14L12.3334 13"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M1.66669 8L5.00002 8"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M11 8L14.3333 8"></path>
 </svg>
 `
 
@@ -263,9 +271,9 @@ export const codeBlockIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', st
 `
 export const mathBlockIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(mathBlockIconHtml(d, fill, stroke))
 export const mathBlockIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M12.3334 3L11.3334 2L2.66669 2L8.33335 8L2.66669 14L11.3334 14L12.3334 13"></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M1.66669 8L5.00002 8"></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M11 8L14.3333 8"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M12 3.66667L11 2.66667L4 2.66667L9.33333 8.00001L4 13.3333L11 13.3333L12 12.3333"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M2 1.66667L2 14.3333"></path>
+<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M14 1.66667L14 14.3333"></path>
 </svg>
 `
 export const tableIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(tableIconHtml(d, fill, stroke))
@@ -305,26 +313,13 @@ export const horizontalLineIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor
 `
 
 export const imageFileIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(imageFileIconHtml(d, fill, stroke))
-export const imageFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
-<path d="M3.33335 14.6667L12.6667 14.6667C13.0349 14.6667 13.3334 14.3682 13.3334 14L13.3334 4.66668L10 4.66668L10 1.33334L3.33335 1.33334C2.96516 1.33334 2.66669 1.63182 2.66669 2.00001L2.66669 14C2.66669 14.3682 2.96516 14.6667 3.33335 14.6667Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M10 1.33334L13.3333 4.66668"></path>
-<circle cx="6.000020345052083" cy="5.666676839192708" r="1.32" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></circle>
-<path d="M5 9.33333L5 12.3333L11 12.3333L11 7L7.8298 10.5L5 9.33333Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path>
-</svg>
+export const imageFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/></svg>
 `
 export const audioFileIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(audioFileIconHtml(d, fill, stroke))
-export const audioFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
-<path d="M2.66669 14.6667L2.66669 1.33334L10.3334 1.33334L13.3334 4.83334L13.3334 14.6667L2.66669 14.6667Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M10.6667 4.66666L8.66669 5.65626L8.66669 10.5"></path>
-<circle cx="6.82" cy="10.499989827473959" r="1.82" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></circle>
-</svg>
+export const audioFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 22h.5a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M2 19a2 2 0 1 1 4 0v1a2 2 0 1 1-4 0v-4a6 6 0 0 1 12 0v4a2 2 0 1 1-4 0v-1a2 2 0 1 1 4 0"/></svg>
 `
 export const videoFileIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(videoFileIconHtml(d, fill, stroke))
-export const videoFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">
-<path d="M3.33335 14.6667L12.6667 14.6667C13.0349 14.6667 13.3334 14.3682 13.3334 14L13.3334 4.66668L10 4.66668L10 1.33334L3.33335 1.33334C2.96516 1.33334 2.66669 1.63182 2.66669 2.00001L2.66669 14C2.66669 14.3682 2.96516 14.6667 3.33335 14.6667Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path>
-<path stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" d="M10 1.33334L13.3333 4.66668"></path>
-<path d="M4.66669 7L9.16429 7L9.16429 8.16667L11.3334 7.33333L11.3334 11L9.16429 10.1667L9.16429 11.3333L4.66669 11.3333L4.66669 7Z" stroke="${stroke}" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path>
-</svg>
+export const videoFileIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><rect width="8" height="6" x="2" y="12" rx="1"/><path d="m10 13.843 3.033-1.755a.645.645 0 0 1 .967.56v4.704a.645.645 0 0 1-.967.56L10 16.157"/></svg>
 `
 export const imageIcon: SvgIcon = (d = 16, fill = 'currentColor', stroke = 'currentColor') => createSvgIcon(imageIconHtml(d, fill, stroke))
 export const imageIconHtml: SvgIconHtml = (d = 16, fill = 'currentColor', stroke = 'currentColor') => `<svg width="${d}" height="${d}" viewBox="0 0 16 16" fill="none">

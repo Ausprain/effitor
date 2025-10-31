@@ -47,10 +47,10 @@ export class EtCodeElement extends EtComponent {
     el.decorate({
       value,
       lang: el.lang,
-      tabSize: ctx.pctx.$code_ctx.config.defaultTabSize,
+      tabSize: ctx.pctx.$code_ctx.defaultTabSize,
       highlighter: ctx.pctx.$code_ctx.highlighter,
     }, (el, cbs) => {
-      el.prepend(codeHeader(ctx, cbs))
+      el.prepend(codeHeader(ctx, el, cbs))
     })
     return el
   }
@@ -172,6 +172,14 @@ export class EtCodeElement extends EtComponent {
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     code: (node, ctx) => {
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value, node.lang ?? 'js')
+      return el
+    },
+    html: (node, ctx) => {
+      if (!ctx.pctx.$code_ctx.canRenderHTML) {
+        return null
+      }
+      const el = EtCodeElement.withDefaultDecoration(ctx, node.value, 'html')
+      ctx.pctx.$code_ctx.renderHtmlCodeBlock?.(ctx, el)
       return el
     },
   }

@@ -1,15 +1,18 @@
 import type { Et } from '../@types'
 import { EffectElement } from '../element'
 import { dom } from '../utils'
-import { HtmlToEtElementTransformer, HtmlToEtElementTransformerMap } from './config'
+import type { HtmlProcessorOptions, HtmlToEtElementTransformer, HtmlToEtElementTransformerMap } from './config'
 
 type TransformersMap = Record<string, HtmlToEtElementTransformer[]>
 
 export class HtmlProcessor {
   private readonly transformersMap: TransformersMap
+  private readonly sanitizer?: (html: string) => string
   constructor(
     transformerMaps: HtmlToEtElementTransformerMap[],
+    options?: HtmlProcessorOptions,
   ) {
+    this.sanitizer = options?.sanitizer
     this.transformersMap = {}
     for (const map of transformerMaps) {
       if (!map) {
@@ -31,6 +34,9 @@ export class HtmlProcessor {
   }
 
   fromHtml(ctx: Et.EditorContext, html: string): Et.Fragment {
+    if (this.sanitizer) {
+      html = this.sanitizer(html)
+    }
     const df = document.createDocumentFragment() as Et.Fragment
     const div = document.createElement('div')
     div.innerHTML = html
@@ -60,7 +66,7 @@ export class HtmlProcessor {
       return null
     }
     // TODO 过滤敏感及非法节点
-    if (['script', 'html', 'head', 'meta', 'link', 'title', 'style'].includes(el.localName)) {
+    if (!this.sanitizer && ['script', 'html', 'head', 'meta', 'link', 'title', 'style'].includes(el.localName)) {
       return null
     }
     if (el instanceof HTMLElement) {
@@ -127,10 +133,10 @@ export class HtmlProcessor {
     ctx: Et.EditorContext, target?: Et.EtElement | Et.Fragment | Et.StaticRange | null): string {
     let res
     if (target === void 0 || target instanceof EffectElement) {
-      res = this.#parseEtElement(target ?? ctx.bodyEl)
+      res = this.#parseEtElement(ctx, target ?? ctx.bodyEl)
     }
     else if (target instanceof DocumentFragment) {
-      res = this.#parseFragment(target)
+      res = this.#parseFragment(ctx, target)
     }
     else {
       res = this.#parseTargetRange(ctx, target)
@@ -144,37 +150,37 @@ export class HtmlProcessor {
     return res.outerHTML
   }
 
-  #parseElement(el: Element) {
+  #parseElement(ctx: Et.EditorContext, el: Element) {
     if (dom.isEtElement(el)) {
-      return this.#parseEtElement(el)
+      return this.#parseEtElement(ctx, el)
     }
     // TODO 过滤敏感节点
     if (!dom.isElementOrText(el) || ['script'].includes(el.localName)) {
       return null
     }
     const clone = el.cloneNode(false) as Element
-    clone.appendChild(this.#parseChildNodes(el.childNodes))
+    clone.appendChild(this.#parseChildNodes(ctx, el.childNodes))
     return clone
   }
 
-  #parseEtElement(etel: Et.EtElement) {
-    const native = etel.toNativeElement()
+  #parseEtElement(ctx: Et.EditorContext, etel: Et.EtElement) {
+    const native = etel.toNativeElement(ctx)
     if (!native) {
       return document.createDocumentFragment() as Et.Fragment
     }
     if (typeof native === 'function') {
       return native()
     }
-    native.appendChild(this.#parseChildNodes(etel.childNodes))
+    native.appendChild(this.#parseChildNodes(ctx, etel.childNodes))
     return native
   }
 
-  #parseChildNodes(childNodes: NodeListOf<Node>) {
+  #parseChildNodes(ctx: Et.EditorContext, childNodes: NodeListOf<Node>) {
     const df = document.createDocumentFragment() as Et.Fragment
     let next = childNodes.item(0) as Et.NodeOrNull
     while (next) {
       if (dom.isElement(next)) {
-        const res = this.#parseElement(next)
+        const res = this.#parseElement(ctx, next)
         if (res) {
           df.appendChild(res)
         }
@@ -187,8 +193,8 @@ export class HtmlProcessor {
     return df
   }
 
-  #parseFragment(fragment: Et.Fragment) {
-    return this.#parseChildNodes(fragment.childNodes)
+  #parseFragment(ctx: Et.EditorContext, fragment: Et.Fragment) {
+    return this.#parseChildNodes(ctx, fragment.childNodes)
   }
 
   #parseTargetRange(ctx: Et.EditorContext, sr: Et.StaticRange | null) {
@@ -222,7 +228,7 @@ export class HtmlProcessor {
       let next = startAncestor.nextSibling
       while (next && next !== endAncestor) {
         if (dom.isElement(next)) {
-          const res = this.#parseElement(next)
+          const res = this.#parseElement(ctx, next)
           if (res) {
             df.appendChild(res)
           }
@@ -253,10 +259,10 @@ export class HtmlProcessor {
     const df2 = r.cloneContents()
 
     orphanBody.appendChild(df1)
-    df.prepend(this.#parseChildNodes(orphanBody.childNodes))
+    df.prepend(this.#parseChildNodes(ctx, orphanBody.childNodes))
     orphanBody.textContent = ''
     orphanBody.appendChild(df2)
-    df.appendChild(this.#parseChildNodes(orphanBody.childNodes))
+    df.appendChild(this.#parseChildNodes(ctx, orphanBody.childNodes))
     orphanBody.remove()
     return dom.fragmentToHTML(df)
   }

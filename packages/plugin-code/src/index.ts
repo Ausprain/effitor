@@ -5,14 +5,15 @@
  */
 import type { Et } from '@effitor/core'
 
-import { initCodePluginContext } from './config'
+import { initCodePluginContext } from './codePluginContext'
+import type { HTMLRenderOptions } from './config'
 import { codeEffector } from './effector'
 import { EtCodeElement } from './EtCodeElement'
 import { codeHandler } from './handler'
-import { createShikiHighlighter, ShikiHighlighterOptions } from './highlighter'
+import { createShikiHighlighter, type ShikiHighlighterOptions } from './highlighter'
 import cssText from './index.css?raw'
 
-export interface CodePluginOptions {
+export interface CodePluginOptions extends HTMLRenderOptions {
   /**
    * Shiki 配置项, 未提供highlighter时有效
    */
@@ -32,13 +33,37 @@ export interface CodePluginOptions {
 
 export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPluginSupportInline> => {
   const highlighter = await createShikiHighlighter(options?.shikiOptions)
+  let sanitizer: ((html: string) => string) | undefined
+  if (options?.canRenderHTML) {
+    if (options.sanitizer === void 0) {
+      const dp = (await import('dompurify')).default
+      if (dp) {
+        sanitizer = (html: string) => dp.sanitize(html)
+      }
+      else {
+        if (import.meta.env.DEV) {
+          throw new Error('dompurify not found, code block html render will be disabled')
+        }
+        sanitizer = (html: string) => html
+      }
+    }
+    else if (options.sanitizer === null) {
+      sanitizer = (html: string) => html
+    }
+    else {
+      sanitizer = options.sanitizer
+    }
+  }
   return {
     name: '@effitor/plugin-code',
     cssText: cssText,
     effector: [codeEffector],
     elements: [EtCodeElement],
     register(ctxMeta, setSchema, mountEtHandler) {
-      initCodePluginContext(ctxMeta, highlighter, options?.defaultTabSize ?? 2)
+      initCodePluginContext(ctxMeta, highlighter, {
+        ...options,
+        sanitizer,
+      })
       setSchema({
         code: EtCodeElement,
       })
