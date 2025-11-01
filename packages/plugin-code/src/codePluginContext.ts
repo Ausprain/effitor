@@ -19,7 +19,7 @@ export const initCodePluginContext = (
   // @ts-expect-error first assign
   ctxMeta.pctx.$code_ctx = {}
 
-  // TODO 将此功能抽象，不仅支持渲染 html 块，后续还支持渲染图表等，这样就不用额外实现图表插件了
+  // TODO 将此功能抽象，不仅支持渲染 html 块，后续还支持渲染图表/markdown等，这样就不用额外实现图表插件了
   let renderHtmlCodeBlock
   if (canRenderHTML) {
     renderHtmlCodeBlock = (ctx: Et.EditorContext, el: EtCodeElement) => {
