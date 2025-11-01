@@ -1,6 +1,7 @@
 import { CssClassEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { platform } from '../config'
 import type { EditorBody } from '../context/EditorBody'
 import { dom } from '../utils'
 import { CaretRange } from './CaretRange'
@@ -905,10 +906,7 @@ export class EtSelection {
       this._rawEl.setSelectionRange(i, j, 'forward')
       return true
     }
-    return this.modifyMulti([
-      ['extend', 'backward', 'lineboundary'],
-      ['extend', 'forward', 'lineboundary'],
-    ])
+    return !!this._selection && selectSoftLine(this._selection)
   }
 
   /**
@@ -955,31 +953,41 @@ export class EtSelection {
     if (!tr || this.isRangingBody) {
       return true
     }
-    let level = SelectAllLevel.No_Select_All
+    let level
     if (tr.collapsed) {
-      level = SelectAllLevel.No_Select_All
+      if (tr.startParagraph && dom.isEmptyContentNode(tr.startParagraph)) {
+        level = SelectAllLevel.Select_Paragraph
+      }
+      else {
+        level = SelectAllLevel.No_Select_All
+      }
     }
     else {
       const startP = tr.startParagraph
       const endP = tr.endParagraph
       if (startP === endP && endP) {
-        const rects = tr.DOMRange.getClientRects()
-        if (rects.length <= 1) {
-          if (endP.getClientRects().length <= 1) {
-            level = SelectAllLevel.Select_Paragraph
-          }
-          else {
-            level = SelectAllLevel.Select_Soft_Line
-          }
+        if (dom.isEmptyContentNode(endP)) {
+          level = SelectAllLevel.Select_Paragraph
         }
         else {
-          // 第一个矩形框和最后一个矩形框垂直距离小于 10px 时, 视为选中一行, 否则视为选中多行
-          // 因为在同一行内有其他行内元素时, 矩形框会存在多个
-          if (Math.abs(rects[0].y - rects[rects.length - 1].y) < 10) {
-            level = SelectAllLevel.Select_Soft_Line
+          const rects = tr.DOMRange.getClientRects()
+          if (rects.length <= 1) {
+            if (endP.getClientRects().length <= 1) {
+              level = SelectAllLevel.Select_Paragraph
+            }
+            else {
+              level = SelectAllLevel.Select_Soft_Line
+            }
           }
           else {
-            level = SelectAllLevel.Select_Paragraph
+            // 第一个矩形框和最后一个矩形框垂直距离小于 10px 时, 视为选中一行, 否则视为选中多行
+            // 因为在同一行内有其他行内元素时, 矩形框会存在多个
+            if (Math.abs(rects[0].y - rects[rects.length - 1].y) < 10) {
+              level = SelectAllLevel.Select_Soft_Line
+            }
+            else {
+              level = SelectAllLevel.Select_Paragraph
+            }
           }
         }
       }
@@ -987,7 +995,6 @@ export class EtSelection {
         level = SelectAllLevel.Select_Paragraph
       }
     }
-    console.log('selection level', level)
     if (level === SelectAllLevel.No_Select_All) {
       return this.selectSoftLine()
     }
@@ -1051,6 +1058,22 @@ export class EtSelection {
     document.dispatchEvent(new Event('selectionchange'))
   }
 }
+
+// firefox 的 selectionmodify 在Range 状态下按 lineboundary 扩展选区时, 会先 collapse 到对应方向边缘, 再 extend
+// 据 mdn 的说法, 早期 webkit 也是这么做的, 但后来改了, 现在是从指定方向远端开始扩展, 即'backward', 'forward'一来一回
+// 就能选中当前行, 为对齐 chrome 和 Safari, 我们这里对 firefox 单独处理
+const selectSoftLine = platform.isFirefox
+  ? (sel: Selection) => {
+      sel.modify('extend', 'backward', 'lineboundary')
+      sel.collapseToStart()
+      sel.modify('extend', 'forward', 'lineboundary')
+      return true
+    }
+  : (sel: Selection) => {
+      sel.modify('extend', 'backward', 'lineboundary')
+      sel.modify('extend', 'forward', 'lineboundary')
+      return true
+    }
 
 /**
  * 光标/选区历史记录

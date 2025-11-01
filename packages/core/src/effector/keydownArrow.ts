@@ -1,5 +1,9 @@
 /**
  * 处理 keydown 中方向键行为
+ *
+ * // TODO 边缘情况处理
+ * - [ ] 光标在不可编辑节点边缘, 上下软换行无文本时, SelectionModify的 line 粒度失效
+ * - [ ] 文档首段落不可编辑, 则使用 cmd + ↑ 将光标定位文档开头无效; 末段落不可编辑同理
  */
 
 import type { Et } from '../@types'
@@ -8,6 +12,72 @@ import { Key } from '../hotkey/Key'
 import { CtrlCmd, LineModifier, Mod, WordModifier } from '../hotkey/Mod'
 import { create, modKey } from '../hotkey/util'
 import { dom, traversal } from '../utils'
+
+let moveToDocumentStart, moveToDocumentEnd, extendToDocumentStart, extendToDocumentEnd
+if (platform.isFirefox) {
+  moveToDocumentEnd = (ctx: Et.EditorContext) => {
+    const lastParagraph = ctx.bodyEl.lastChild
+    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
+      ctx.editor.blur()
+      return true
+    }
+    ctx.setCaretToAParagraph(lastParagraph, false, true)
+    ctx.selection.dispatchChange()
+    ctx.selection.revealSelection(false)
+    return true
+  }
+  moveToDocumentStart = (ctx: Et.EditorContext) => {
+    const firstParagraph = ctx.bodyEl.firstChild
+    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
+      ctx.editor.blur()
+      return true
+    }
+    ctx.setCaretToAParagraph(firstParagraph, true, true)
+    ctx.selection.dispatchChange()
+    ctx.selection.revealSelection(true)
+    return true
+  }
+  extendToDocumentEnd = (ctx: Et.EditorContext) => {
+    const lastParagraph = ctx.bodyEl.lastChild
+    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
+      ctx.editor.blur()
+      return true
+    }
+    const newRange = lastParagraph.innerEndEditingBoundary().toRange()
+    if (!newRange || !ctx.selection.range) {
+      ctx.editor.blur()
+      return true
+    }
+    newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
+    ctx.selection.selectRange(newRange)
+    ctx.selection.dispatchChange()
+    ctx.selection.revealSelection(false)
+    return true
+  }
+  extendToDocumentStart = (ctx: Et.EditorContext) => {
+    const firstParagraph = ctx.bodyEl.firstChild
+    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
+      ctx.editor.blur()
+      return true
+    }
+    const newRange = firstParagraph.innerStartEditingBoundary().toRange()
+    if (!newRange || !ctx.selection.range) {
+      ctx.editor.blur()
+      return true
+    }
+    newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
+    ctx.selection.selectRange(newRange)
+    ctx.selection.dispatchChange()
+    ctx.selection.revealSelection(true)
+    return true
+  }
+}
+else {
+  moveToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'forward', 'documentboundary')
+  moveToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'backward', 'documentboundary')
+  extendToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'forward', 'documentboundary')
+  extendToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'backward', 'documentboundary')
+}
 
 type ModKeyActionMap = Record<string, (ctx: Et.EditorContext) => boolean>
 const ModKeyDownModifySelectionMap: ModKeyActionMap = {
@@ -37,8 +107,8 @@ const ModKeyDownModifySelectionMap: ModKeyActionMap = {
   [create(Key.ArrowRight, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'character')
     : ctx.selection.collapse(false, true)),
-  [create(Key.ArrowUp, CtrlCmd)]: ctx => ctx.selection.modify('move', 'backward', 'documentboundary'),
-  [create(Key.ArrowDown, CtrlCmd)]: ctx => ctx.selection.modify('move', 'forward', 'documentboundary'),
+  [create(Key.ArrowUp, CtrlCmd)]: ctx => moveToDocumentStart(ctx),
+  [create(Key.ArrowDown, CtrlCmd)]: ctx => moveToDocumentEnd(ctx),
   [create(Key.ArrowLeft, WordModifier)]: ctx => (ctx.selection.isCollapsed
     ? ctx.selection.modify('move', 'backward', 'word')
     : ctx.selection.collapse(true, true)),
@@ -49,8 +119,8 @@ const ModKeyDownModifySelectionMap: ModKeyActionMap = {
   // 选择
   [create(Key.ArrowUp, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'line'),
   [create(Key.ArrowDown, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'line'),
-  [create(Key.ArrowUp, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'documentboundary'),
-  [create(Key.ArrowDown, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'documentboundary'),
+  [create(Key.ArrowUp, CtrlCmd | Mod.Shift)]: ctx => extendToDocumentStart(ctx),
+  [create(Key.ArrowDown, CtrlCmd | Mod.Shift)]: ctx => extendToDocumentEnd(ctx),
   [create(Key.ArrowLeft, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'character'),
   [create(Key.ArrowRight, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'character'),
   [create(Key.ArrowLeft, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'word'),
@@ -162,22 +232,7 @@ const checkAtTextEndToNextNode = (ctx: Et.EditorContext) => {
   return false
 }
 
-const solveMap: ModKeyActionMap = platform.isFirefox
-  ? {
-      [create(Key.ArrowUp, Mod.None)]: ctx => ctx.selection.isCollapsed && (
-        checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx)
-      ),
-      [create(Key.ArrowLeft, Mod.None)]: ctx => ctx.selection.isCollapsed && (
-        checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx)
-      ),
-      [create(Key.ArrowDown, Mod.None)]: ctx => ctx.selection.isCollapsed && (
-        checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx)
-      ),
-      [create(Key.ArrowRight, Mod.None)]: ctx => ctx.selection.isCollapsed && (
-        checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx)
-      ),
-    }
-  : ModKeyDownModifySelectionMap
+const solveMap: ModKeyActionMap = ModKeyDownModifySelectionMap
 
 export const solveKeydownArrow = (ev: Et.KeyboardEvent, ctx: Et.EditorContext) => {
   const fn = solveMap[modKey(ev)]

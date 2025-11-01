@@ -205,6 +205,16 @@ export const isTrailingZWS = (data: string, offset: number) => {
   return true
 }
 
+/**
+ * 判断节点是否为空内容节点, 其定义为: 节点无文本内容, 或文本内容仅包含零宽度字符
+ * @param node 待判断节点
+ * @returns 若节点为空返回true, 否则返回false
+ */
+export const isEmptyContentNode = (node: Et.Node) => {
+  const data = node.textContent
+  return !data || isTrailingZWS(data, 0)
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                 equal utils                                */
 /* -------------------------------------------------------------------------- */
