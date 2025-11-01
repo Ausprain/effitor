@@ -12,6 +12,7 @@ export interface CodeContextOptions<L extends string = string> {
 }
 export class CodeContext<L extends string = string> {
   public readonly wrapper: HTMLDivElement
+  private readonly _container: HTMLDivElement
   public readonly area: HTMLTextAreaElement
   public readonly pre: HTMLPreElement
   private readonly _lineWrapper: HTMLElement
@@ -31,14 +32,13 @@ export class CodeContext<L extends string = string> {
     this.pre = document.createElement('pre')
     this._lineWrapper = this.pre
     // this._lineWrapper = document.createElement('code')
-    this.area.onscroll = () => {
-      this.pre.scrollTop = this.area.scrollTop
-      this.pre.scrollLeft = this.area.scrollLeft
-    }
     this.wrapper = document.createElement('div')
     this.wrapper.classList.add(CodeEnum.Class_Wrapper)
-    this.wrapper.appendChild(this.pre)
-    this.wrapper.appendChild(this.area)
+    this._container = document.createElement('div')
+    this._container.classList.add(CodeEnum.Class_Container)
+    this._container.appendChild(this.pre)
+    this._container.appendChild(this.area)
+    this.wrapper.appendChild(this._container)
     // this.pre.appendChild(this._lineWrapper)
     highlighter.onInit?.(this.wrapper, lang)
     // 代码块初始内容为空, 设置初始值为一个换行符, 否则代码块坍缩

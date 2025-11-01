@@ -6,7 +6,24 @@ import type { EtCodeHighlighter } from './highlighter'
 
 export const enum CodeEnum {
   ElName = 'et-code',
+  /**
+   * 代码块结构:
+   * ```
+   * et-code.--wrap.--no
+   *   div.header
+   *     button.render
+   *     button.copy.--copied
+   *   div.wrapper <scroll>
+   *     div.container
+   *       pre
+   *         span.line
+   *         span.line
+   *         ...
+   *       textarea
+   * ```
+   */
   Class_Wrapper = 'et-code__wrapper',
+  Class_Container = 'et-code__container',
   Class_CodeLine = 'et-code__line',
   Class_Header = 'et-code__header',
   /** 代码自动换行 */
