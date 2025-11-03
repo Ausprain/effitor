@@ -88,7 +88,7 @@ et-p.etp {
 
 /* 背景按钮 */
 .bg-item {
-  background-color: var(--et-color-bg__card);
+  background-color: var(--et-color-bg__item);
   &:hover {
     background-color: var(--et-color-bg--hover);
   }
@@ -112,6 +112,7 @@ et-p.etp {
 .et-card {
   background-color: var(--et-color-bg__card);
   box-shadow: var(--et-shadow-l);
+  transition: var(--et-transition-color-scheme);
 }
 
 /* 动画 */

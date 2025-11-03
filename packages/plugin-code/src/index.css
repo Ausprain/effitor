@@ -28,6 +28,8 @@ et-code.et {
   position: relative;
   margin: 8px 0;
   padding: 0;
+  border: 1px solid var(--et-color-border-1);
+  border-radius: var(--et-code-radius);
   hyphens: none;
 
   /* lang */
@@ -56,21 +58,20 @@ et-code.et {
 .et-code__wrapper {
   margin: 0;
   padding: 0;
-  border: 1px solid var(--et-color-border-1);
-  border-radius: var(--et-code-radius);
   min-height: 32px;
   max-height: var(--et-code-max-height);
+  border-radius: inherit;
   overflow: auto;
 }
 .et-code__container {
   position: relative;
   height: fit-content;
   width: fit-content;
-  margin: 16px 0;
+  min-width: 100%;
   & > pre,
   & > textarea {
     margin: 0;
-    padding: 0 16px 0 40px;
+    padding: 16px 16px 16px 40px;
     background: none;
     font-family: monospace;
     font-size: 13.5px;
@@ -217,6 +218,7 @@ et-code.et {
   }
 }
 et-code[et-html].et {
+  border: none;
   &::before {
     display: none;
   }

@@ -5,6 +5,8 @@
   top: 0;
   right: 0;
   bottom: 0;
+  background-color: var(--et-color-bg__backdrop);
+  transition: var(--et-transition-color-scheme);
   z-index: 1;
 
   &.et-dialog--show {
@@ -25,4 +27,5 @@
   min-height: 160px;
   min-width: 258px;
   border-radius: 8px;
+  transition: var(--et-transition-color-scheme);
 }

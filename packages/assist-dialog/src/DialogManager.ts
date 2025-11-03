@@ -31,8 +31,8 @@ const defaultOptions = {
    * 因此现阶段, dialog 是全屏(视口)遮罩的, 即当前的 dialog 就是个 modal
    */
   backdropPosition: 'fixed' as 'fixed' | 'absolute',
-  /** 遮罩层背景 */
-  backdropBackground: 'rgba(0, 0, 0, 0.1)' as CSSStyleDeclaration['background'],
+  /** 遮罩层背景, 当设置为 false 时, 背景遮罩为透明; 设置为 true 时, 使用 css 变量 `--et-color-bg__backdrop` 设置遮罩背景颜色 */
+  backdropBackground: true,
   /** 容器初始样式 */
   containerStyle: {} as Partial<CSSStyleDeclaration>,
 }
@@ -46,10 +46,10 @@ export class DialogManager {
   }
 
   constructor(private _ctx: Et.EditorContext, options?: DialogAssistOptions) {
-    if (options) {
-      options = Object.fromEntries(Object.entries(options).filter(([_, v]) => v !== undefined))
+    this._options = {
+      ...defaultOptions,
+      ...options ? Object.fromEntries(Object.entries(options).filter(([_, v]) => v !== undefined)) : void 0,
     }
-    this._options = { ...defaultOptions, ...options }
     this.__init()
   }
 
@@ -58,7 +58,9 @@ export class DialogManager {
     backdrop.classList.add(DialogEnum.Class_Backdrop)
     const container = document.createElement('div')
     // backdrop.style.position = this._options.backdropPosition
-    backdrop.style.background = this._options.backdropBackground
+    if (!this._options.backdropBackground) {
+      backdrop.style.backgroundColor = 'transparent'
+    }
     Object.assign(container.style, this._options.containerStyle)
     container.classList.add(DialogEnum.Class_Container, CssClassEnum.Card)
     backdrop.appendChild(container)

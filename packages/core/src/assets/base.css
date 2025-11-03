@@ -12,6 +12,7 @@ et-editor.dark,
   --et-color-bg--active: oklch(40% 0 0);
   --et-color-bg__card: var(--et-color-bg-soft);  /* 深色模式的卡片背景需要通过亮度提高层级 */
   --et-color-bg__item: var(--et-color-bg-mute);
+  --et-color-bg__backdrop: rgb(0 0 0 / 0.5);
   
   --et-color-text: oklch(98% 0 0);
   --et-color-text-soft: oklab(88% 0 0);
@@ -39,12 +40,13 @@ et-editor,
   --et-theme-color--active: ; */
 
   --et-color-bg: oklch(100% 0 0);
-  --et-color-bg-soft: oklch(98% 0 0);
-  --et-color-bg-mute: oklch(96% 0 0);
-  --et-color-bg--hover: oklch(94% 0 0);
-  --et-color-bg--active: oklch(92% 0 0);
+  --et-color-bg-soft: oklch(97% 0 0);
+  --et-color-bg-mute: oklch(95% 0 0);
+  --et-color-bg--hover: oklch(93% 0 0);
+  --et-color-bg--active: oklch(91% 0 0);
   --et-color-bg__card: var(--et-color-bg); /* 亮模式的卡片背景通过阴影提高层级, 背景色使用基础背景 */
   --et-color-bg__item: var(--et-color-bg);
+  --et-color-bg__backdrop: rgb(0 0 0 / 0.2);
 
   --et-color-text: oklch(10% 0 0);
   --et-color-text-soft: oklab(20% 0 0);
@@ -83,7 +85,10 @@ et-editor,
   --et-font-weight: 449;
   --et-letter-space: 0.02em;
 
-  --et-transition-color-scheme: background-color 0.2s ease-in, color 0.2s ease-in;
+  --et-transition-color-scheme: 
+    background-color 0.2s ease-in, 
+    border-color 0.2s ease-in,
+    color 0.2s ease-in;
 }
 
 et-editor,

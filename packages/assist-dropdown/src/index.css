@@ -4,14 +4,12 @@
   /* fixme: only chromium supports now */
   anchor-name: --et-dd-wrapper;
   display: inline;
-
-  &>span {
-    margin: 0 2px;
-    padding: 2px 3px;
-    border-radius: 3px;
-    background-color: var(--et-color-bg-mute);
-    text-decoration: underline;
-  }
+  margin: 0 2px;
+  padding: 2px 3px;
+  border-radius: 2px;
+  text-decoration: underline;
+  background-color: var(--et-color-bg-mute);
+  transition: var(--et-transition-color-scheme);
 }
 
 .et-dd__container {
@@ -28,6 +26,7 @@
   overflow: hidden;
   z-index: 99;
   animation: dropdown-in 0.2s ease-in;
+  transition: var(--et-transition-color-scheme);
 
   /* dev */
   border: 1px solid var(--et-color-border-1);
@@ -57,6 +56,7 @@
   align-items: center;
 
   padding: 8px 0;
+  transition: var(--et-transition-color-scheme);
 
   &:not(:last-child) {
     border-bottom: 1px solid var(--et-color-border-1);
@@ -70,4 +70,5 @@
   margin: 2px;
   padding: 4px;
   border-radius: 3px;
+  background-color: inherit;
 }
