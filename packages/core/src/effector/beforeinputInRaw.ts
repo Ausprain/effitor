@@ -100,9 +100,4 @@ export const solveInputInRawEl = (
       ev.preventDefault()
   }
   ctx.commandManager.handle()
-  ctx.body.dispatchInputEvent('input', {
-    inputType: ev.inputType,
-    data: ev.data,
-    dataTransfer: ev.dataTransfer,
-  })
 }

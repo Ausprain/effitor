@@ -39,7 +39,7 @@ export const defaultOptions: Required<ShikiHighlighterOptions> = {
   langs: [
     'bat', 'shell', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
     'json', 'javascript', 'js', 'jsx', 'typescript', 'ts', 'tsx', 'html', 'css', 'less', 'scss', 'sass',
-    'lua', 'matlab', 'markdown',
+    'lua', 'matlab', 'markdown', 'md',
     'nginx', 'python', 'py', 'r', 'ruby', 'rust', 'rs', 'sql', 'swift', 'yaml', 'toml',
   ],
 }

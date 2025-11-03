@@ -43,6 +43,10 @@ export class MainBeforeInputTypeSolver implements Et.InputTypeSolver {
 }
 Object.assign(MainBeforeInputTypeSolver.prototype, mainBeforeInputTypeSolver)
 
+/**
+ * 运行效应器 inputSolver
+ * @returns 是否执行了默认行为, ctx 未更新或ctx.defaultSkipped为 true, 则返回 false
+ */
 export const runInputSolver = (
   ev: Et.InputEvent, ctx: Et.EditorContext,
   main: MainBeforeInputTypeSolver, solver?: Et.InputSolver,
@@ -67,6 +71,7 @@ export const runInputSolver = (
   if (typeof fn === 'function') {
     fn(ev, ctx)
   }
+  return true
 }
 
 export const getBeforeinputListener = (

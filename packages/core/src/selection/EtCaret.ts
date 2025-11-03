@@ -132,7 +132,7 @@ export class EtCaret extends CaretRange {
     }
     const r = document.createRange() as Et.Range
     // r初始位置在 Document 开头, 只设置开始位置即可
-    // valid 已经保证 offset位置合法
+    // toReality 已经保证 offset位置合法
     r.setStart(this.anchor, this.offset)
     return r
   }

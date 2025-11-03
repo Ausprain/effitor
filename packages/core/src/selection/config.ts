@@ -3,8 +3,8 @@ import type { Et } from '../@types'
 /**
  * 描述一个 DOM 位置
  */
-export interface EtPosition {
-  container: Et.Node
+export interface EtPosition<T extends Et.Node = Et.Node> {
+  container: T
   offset: number
 }
 

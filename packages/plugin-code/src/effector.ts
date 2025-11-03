@@ -62,7 +62,12 @@ export const codeEffector: Et.EffectorSupportInline = {
       }
     },
   },
-
+  afterInputSolver: {
+    [CodeEnum.ElName]: (ev, ctx) => {
+      ctx.commonEtElement.codeCtx?.revealSelection(ctx, false)
+      return ctx.preventAndSkipDefault(ev)
+    },
+  },
   onMounted(ctx) {
     addCodeBlockItemToDropdown(ctx.assists.dropdown)
   },

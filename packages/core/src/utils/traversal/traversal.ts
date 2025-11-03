@@ -238,6 +238,33 @@ export const traverseNode = <T extends 1 | 4 | 5 = 5>(
   }
 }
 
+/**
+ * 获取指定根节点内, 指定文本偏移量的光标位置; 该位置必定在文本节点上, 否则返回 null
+ * @param root 根节点
+ * @param textOffset 文本偏移量, 即光标位置基于 root.textContent 的偏移量
+ * @returns 指定偏移量位置所在文本节点及相对于该文本节点的偏移量
+ */
+export const textCaretPositionOf = (root: Node, textOffset: number): Et.Position<Et.Text> | null => {
+  let offset = 0, anchor: Et.Text | null = null
+  traverseNode(root, (node) => {
+    if (offset + node.length >= textOffset) {
+      anchor = node
+      offset = textOffset - offset
+      return true
+    }
+    offset += node.length
+  }, {
+    whatToShow: 4, /** NodeFilter.SHOW_TEXT */
+  })
+  if (!anchor) {
+    return null
+  }
+  return {
+    container: anchor,
+    offset,
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                search utils                                */
 /* -------------------------------------------------------------------------- */

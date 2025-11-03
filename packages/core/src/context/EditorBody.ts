@@ -187,6 +187,136 @@ export class EditorBody {
   }
 
   /* -------------------------------------------------------------------------- */
+  /*                                滚动容器相关                                  */
+  /* -------------------------------------------------------------------------- */
+  /**
+   * 若指定矩形框不在视口内, 尝试滚动滚动容器使其可见; 不检查滚动容器是否在视口内
+   * @param rect 矩形框
+   * @param options
+   *  * `toStart`: 若为true, 则滚动到矩形框顶部; 否则滚动到矩形框底部
+   *  * `paddingX`: 水平边距, 即滚动后距离滚动容器水平边缘的距离, 避免滚动后光标紧贴边缘, 单位px或比例(0~1)
+   *  * `paddingY`: 垂直边距, 类似水平边距, 单位px或比例(0~1)
+   *  * `scrollBehavior`: 滚动行为
+   *  * `scrollContainer`: 滚动容器, 默认为编辑区初始化时所指定的滚动容器; 可指定其他容器来将此方法应用于其他元素;
+   *                       指定为其他容器时, 若该容器不在视口内, 则直接返回
+   * @param 当且仅当滚动容器不是`document.documentElement`且即使滚动之后rect也不在视口内时, 返回`false`
+   */
+  scrollToReveal(rect: DOMRect, {
+    toStart = true,
+    paddingX = 20,
+    paddingY = 20,
+    scrollBehavior = 'auto',
+    scrollContainer = this.scrollContainer,
+  }: {
+    toStart?: boolean
+    paddingX?: number
+    paddingY?: number
+    scrollBehavior?: ScrollBehavior
+    scrollContainer?: Element
+  } = {}) {
+    let offsetTop, offsetBottom, offsetLeft, offsetRight
+    if (scrollContainer === document.documentElement) {
+      offsetTop = 0
+      offsetBottom = window.innerHeight
+      offsetLeft = 0
+      offsetRight = window.innerWidth
+    }
+    else {
+      const offsetRect = scrollContainer.getBoundingClientRect()
+      // 即使滚动滚动容器也无法让 rect 在视口内, 直接返回 false
+      if ((rect.top < offsetRect.top && offsetRect.bottom < 20)
+        || (rect.bottom > offsetRect.bottom && offsetRect.top > window.innerHeight - 20)
+      ) {
+        console.warn('return false')
+        return false
+      }
+      if ((toStart && rect.left > offsetRect.left && rect.left < offsetRect.right
+        && rect.top > offsetRect.top && rect.top < offsetRect.bottom)
+      || (!toStart && rect.right < offsetRect.right && rect.right > offsetRect.left
+        && rect.bottom < offsetRect.bottom && rect.bottom > offsetRect.top)
+      ) {
+        // rect在滚动容器内, 无需滚动滚动容器, 滚动视口
+        scrollContainer = document.documentElement
+        offsetTop = 0
+        offsetBottom = window.innerHeight
+        offsetLeft = 0
+        offsetRight = window.innerWidth
+      }
+      else {
+        // rect不在滚动容器内, 需滚动滚动容器
+        offsetTop = offsetRect.top
+        offsetBottom = offsetRect.bottom
+        offsetLeft = offsetRect.left
+        offsetRight = offsetRect.right
+      }
+    }
+    // 在视口内, 无需滚动
+    if (scrollContainer === document.documentElement
+      && rect.top > offsetTop && rect.top < offsetBottom
+      && rect.bottom < offsetBottom && rect.bottom > offsetTop
+    ) {
+      return true
+    }
+
+    const { clientHeight, clientWidth, scrollLeft, scrollTop } = scrollContainer
+    if (paddingX < 0) {
+      paddingX = 20
+    }
+    else if (paddingX > 0 && paddingX < 1) {
+      paddingX = paddingX * clientWidth
+    }
+    if (paddingY < 0) {
+      paddingY = 20
+    }
+    else if (paddingY > 0 && paddingY < 1) {
+      paddingY = paddingY * clientHeight
+    }
+    // 矩形框高度小于 50, 大概率是一个文本行, 取其高度一半追加到默认的 paddingY 上
+    if (paddingY === 20 && rect.height < 50) {
+      paddingY += Math.floor(rect.height / 2)
+    }
+
+    let left = scrollLeft, top = scrollTop
+    if (toStart) {
+      if (rect.top < offsetTop) {
+        top += rect.top - offsetTop - paddingY // rect.top < 0, 多减 padding 不至于紧贴边缘
+      }
+      else if (rect.top > offsetBottom) {
+        top += rect.top - offsetBottom + paddingY
+      }
+      if (rect.left < offsetLeft) {
+        left += rect.left - offsetLeft - paddingX
+      }
+      else if (rect.left > offsetRight) {
+        left += rect.left - offsetRight + paddingX
+      }
+    }
+    else {
+      if (rect.bottom > offsetBottom) {
+        top += rect.bottom - offsetBottom + paddingY
+      }
+      else if (rect.bottom < offsetTop) {
+        top += rect.bottom - offsetTop - paddingY
+      }
+      if (rect.right > offsetRight) {
+        left += rect.right - offsetRight + paddingX
+      }
+      else if (rect.right < offsetLeft) {
+        left += rect.right - offsetLeft - paddingX
+      }
+    }
+    if (left === scrollLeft && top === scrollTop) {
+      return true
+    }
+    scrollContainer.scroll({
+      left,
+      top,
+      behavior: scrollBehavior,
+    })
+    return true
+  }
+
+  /* -------------------------------------------------------------------------- */
   /*                                  DOM 工具                                  */
   /* -------------------------------------------------------------------------- */
 
@@ -217,8 +347,8 @@ export class EditorBody {
    * @param node 要检查的节点
    * @returns 若节点在编辑区内, 返回 true, 否则返回 false
    */
-  isNodeInBody(node: Node): node is Et.Node {
-    return node.isConnected && this.isNodeContainsOther(this.el, node)
+  isNodeInBody(node?: Node | null): node is Et.Node {
+    return !!node?.isConnected && this.isNodeContainsOther(this.el, node)
   }
 
   /**

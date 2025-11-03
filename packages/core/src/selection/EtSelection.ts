@@ -722,27 +722,35 @@ export class EtSelection {
 
   /**
    * 同 {@link revealSelection}, 但是同步执行
+   * @param range 指定 Range, 即滚动编辑区, 让该 range 对应矩形框显示在视口内, 缺省或为 null 时, 使用当前选区 Range
    */
-  revealSelectionSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
-    if (this._rawEl) {
+  revealSelectionSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto', range?: Range | null) {
+    if (this._rawEl && !range) {
       // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
       // 无法通过 Selection/Range API 来获取光标位置, 只能通过原生编辑节点的 scrollTop 来实现
       this._revealSelectionInRawEl(this._rawEl, toStart, scrollBehavior)
       return
     }
     this._revealIdleCallbackId = 0
-    if (!this.range) {
+    if (range && !this._body.isNodeInBody(range.commonAncestorContainer)) {
       return
     }
-    const rects = this.range.getClientRects()
+    if (!range) {
+      range = this.range
+      if (!range) {
+        return
+      }
+    }
+    const rects = range.getClientRects()
+    // 正常情况下, rect 是一行文本(css软换行)的边框
     let rect = rects[toStart ? 0 : rects.length - 1]
     if (!rect) {
       // fixed. 若光标collapsed在节点边缘(类似光标在input/textarea 内的情况), rects 可能为空 ()
-      let anchorEl = this.range.endContainer.childNodes.item(this.range.endOffset)
+      let anchorEl = range.endContainer.childNodes.item(range.endOffset) as Et.NodeOrNull
       if (!anchorEl) {
-        anchorEl = this.range.endContainer.hasChildNodes()
-          ? this.range.endContainer.lastChild as Et.Node
-          : this.range.endContainer
+        anchorEl = range.endContainer.hasChildNodes()
+          ? range.endContainer.lastChild as Et.Node
+          : range.endContainer as Et.Element
       }
       if (!dom.isElement(anchorEl)) {
         anchorEl = anchorEl.parentElement as Et.Element
@@ -752,44 +760,49 @@ export class EtSelection {
       }
       rect = anchorEl.getBoundingClientRect()
     }
-    const scrollContainer = this._body.scrollContainer
-    const { scrollLeft, scrollTop } = scrollContainer
-    let offsetTop, offsetBottom, offsetLeft, offsetRight
-    if (scrollContainer === document.documentElement) {
-      offsetTop = 0
-      offsetBottom = window.innerHeight
-      offsetLeft = 0
-      offsetRight = window.innerWidth
-    }
-    else {
-      const offsetRect = scrollContainer.getBoundingClientRect()
-      offsetTop = Math.min(0, offsetRect.top)
-      offsetBottom = Math.max(window.innerHeight, offsetRect.bottom)
-      offsetLeft = Math.min(0, offsetRect.left)
-      offsetRight = Math.max(window.innerWidth, offsetRect.right)
-    }
-
-    let left = scrollLeft, top = scrollTop
-    if (rect.top < offsetTop) {
-      top += rect.top - 20 // 多加 20 不至于紧贴边缘
-    }
-    if (rect.left < offsetLeft) {
-      left += rect.left - 20
-    }
-    if (rect.bottom > offsetBottom) {
-      top += rect.bottom - offsetBottom + 20
-    }
-    if (rect.right > offsetRight) {
-      left += rect.right - offsetRight + 20
-    }
-    if (left === scrollLeft && top === scrollTop) {
-      return
-    }
-    this._body.scrollContainer.scroll({
-      left,
-      top,
-      behavior: scrollBehavior,
+    this._body.scrollToReveal(rect, {
+      toStart,
+      scrollBehavior,
     })
+    // const scrollContainer = this._body.scrollContainer
+    // const { scrollLeft, scrollTop } = scrollContainer
+    // let offsetTop, offsetBottom, offsetLeft, offsetRight
+    // if (scrollContainer === document.documentElement) {
+    //   offsetTop = 0
+    //   offsetBottom = window.innerHeight
+    //   offsetLeft = 0
+    //   offsetRight = window.innerWidth
+    // }
+    // else {
+    //   const offsetRect = scrollContainer.getBoundingClientRect()
+    //   offsetTop = Math.min(0, offsetRect.top)
+    //   offsetBottom = Math.max(window.innerHeight, offsetRect.bottom)
+    //   offsetLeft = Math.min(0, offsetRect.left)
+    //   offsetRight = Math.max(window.innerWidth, offsetRect.right)
+    // }
+
+    // let left = scrollLeft, top = scrollTop
+    // if (rect.top < offsetTop) {
+    //   top += rect.top - 20 // rect.top < 0, 多减 20 不至于紧贴边缘
+    // }
+    // if (rect.left < offsetLeft) {
+    //   left += rect.left - 20
+    // }
+    // // 正常情况下, rect 是一行文本(css软换行)的边框, 高度理论上远小于scrollContainer的高度
+    // if (rect.bottom > offsetBottom) {
+    //   top += rect.bottom - offsetBottom + 20
+    // }
+    // if (rect.right > offsetRight) {
+    //   left += rect.right - offsetRight + 20
+    // }
+    // if (left === scrollLeft && top === scrollTop) {
+    //   return
+    // }
+    // this._body.scrollContainer.scroll({
+    //   left,
+    //   top,
+    //   behavior: scrollBehavior,
+    // })
   }
 
   private _revealSelectionInRawEl(

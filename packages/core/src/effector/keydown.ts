@@ -35,6 +35,10 @@ export class MainKeydownKeySolver implements Et.KeyboardKeySolver {
 }
 Object.assign(MainKeydownKeySolver.prototype, keydownKeySolver)
 
+/**
+ * 运行效应器 keyboardSolver
+ * @returns 是否执行了默认行为, ctx 未更新或ctx.defaultSkipped为 true, 则返回 false
+ */
 export const runKeyboardSolver = (
   ev: Et.KeyboardEvent, ctx: Et.UpdatedContext,
   main: Et.KeyboardKeySolver, solver?: Et.KeyboardSolver,

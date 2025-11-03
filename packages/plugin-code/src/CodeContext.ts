@@ -1,4 +1,5 @@
 import type { Et } from '@effitor/core'
+import { traversal } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
 import { CodeEnum } from './config'
@@ -11,6 +12,14 @@ export interface CodeContextOptions<L extends string = string> {
   highlighter: EtCodeHighlighter<L>
 }
 export class CodeContext<L extends string = string> {
+  //  html结构:
+  //    div.wrapper <scroll>
+  //      div.container
+  //        pre
+  //          span.line
+  //          span.line
+  //          ...
+  //        textarea
   public readonly wrapper: HTMLDivElement
   private readonly _container: HTMLDivElement
   public readonly area: HTMLTextAreaElement
@@ -369,6 +378,48 @@ export class CodeContext<L extends string = string> {
       el.remove()
     }
     this._lineWrapper.insertBefore(el, this._lineWrapper.childNodes.item(shiftTo))
+  }
+
+  /**
+   * 必要时滚动代码块容器, 让光标选区可见
+   * @param toStart 如果选区为 Range, 是否保证选区开始位置可见, undefined 时使用选区方向判断
+   * @param padding 滚动padding, 一个 0-1 的数值, 表示滚动后光标位置到代码块左/上边缘与代码块宽/高的比值;
+   *                undefined 时, 使用固定边距 20px
+   */
+  revealSelection(ctx: Et.EditorContext, toStart?: boolean, padding?: number) {
+    const { selectionStart, selectionEnd, selectionDirection } = this.area
+    toStart = toStart ?? selectionDirection === 'backward'
+    const caretOffset = toStart ? selectionStart : selectionEnd
+    const pos = traversal.textCaretPositionOf(this.pre, caretOffset)
+    if (!pos) {
+      return
+    }
+    const r = document.createRange()
+    r.setStart(pos.container, pos.offset)
+
+    const scrollToCaretRect = () => {
+      const rect = r.getClientRects()[0]
+      if (!rect) {
+        return true
+      }
+      return ctx.body.scrollToReveal(rect, {
+        toStart,
+        paddingX: padding,
+        paddingY: padding,
+        scrollBehavior: 'smooth',
+        scrollContainer: this.wrapper,
+      })
+    }
+
+    const scrolled = scrollToCaretRect()
+    // wrapper 不在视口内, 使用 selection 将其滚动到视口内, 再将代码行滚动到视口内
+    if (!scrolled) {
+      ctx.selection.revealSelectionSync(toStart, 'instant', r)
+      // 使用异步, 等待 selection 滚动完毕后, 再次滚动代码容器, 以获取新的 Range矩形框
+      setTimeout(() => {
+        scrollToCaretRect()
+      }, 20)
+    }
   }
 
   codeHTML() {
