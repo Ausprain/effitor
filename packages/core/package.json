@@ -1,6 +1,6 @@
 {
   "name": "@effitor/core",
-  "version": "0.2.0-alpha",
+  "version": "0.2.0-beta.1",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "editor",
@@ -18,9 +18,6 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./styles/*": {
-      "default": "./dist/styles/*"
     }
   },
   "author": "Henvn Leaf",

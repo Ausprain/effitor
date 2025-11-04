@@ -1,17 +1,17 @@
 et-editor,
 :host {
-  --et_mark-color__marker: var(--et-color-hinting);
-  --et_mark-color__code_text: #ec3639;
-  --et_mark-color__code_bg: #f7f7ff;
-  --et_mark-color__code_font: 'monospace';
-  --et_mark-color__hl_text: #212223;
-  --et_mark-color__hl_bg: #fcd13c;
+  --et-mark-color__marker: var(--et-color-hinting);
+  --et-mark-color__code_text: #ec3639;
+  --et-mark-color__code_bg: #f7f7ff;
+  --et-mark-color__hl_text: #212223;
+  --et-mark-color__hl_bg: #fcd13c;
+  --et-mark-font__code: 'monospace';
 }
 
 et-editor.dark,
 :host(.dark) {
-  --et_mark-color__code_text: #9ecbff;
-  --et_mark-color__code_bg: #24292e;
+  --et-mark-color__code_text: #9ecbff;
+  --et-mark-color__code_bg: #24292e;
 }
 
 et-mark {
@@ -30,7 +30,7 @@ et-mark.caret-in {
 
 et-mark::after, et-mark::before {
   display: none;
-  color: var(--et_mark-color__marker);
+  color: var(--et-mark-color__marker);
   font-weight: normal;
 }
 et-mark::after {
@@ -62,10 +62,10 @@ et-mark.marking::after {
 et-mark.ET_cls-code {
   margin: 0px 2px; 
   padding: 3px 3px 2px;
-  background-color: var(--et_mark-color__code_bg);
-  color: var(--et_mark-color__code_text);
+  background-color: var(--et-mark-color__code_bg);
+  color: var(--et-mark-color__code_text);
   font-size: 14px;
-  font-family: var(--et_mark-color__code_font), monospace ;
+  font-family: var(--et-mark-font__code), monospace ;
   transition: var(--et-transition-color-scheme);
 }
 et-mark.ET_cls-code.caret-in {
@@ -103,8 +103,8 @@ et-mark.ET_cls-delete::after, et-mark.ET_cls-delete::before {
 
 
 et-mark.ET_cls-highlight {
-  color: var(--et_mark-color__hl_text);
-  background-color: var(--et_mark-color__hl_bg);
+  color: var(--et-mark-color__hl_text);
+  background-color: var(--et-mark-color__hl_bg);
   padding: 1px 2px;
 }
 et-mark.ET_cls-highlight::after, et-mark.ET_cls-highlight::before {

@@ -1,0 +1,11 @@
+:root {
+  --et-font-ubuntu_mono: "Ubuntu Mono";
+}
+
+
+@font-face {
+  font-family: "Ubuntu Mono";
+  font-stretch: 100%;
+  font-style: normal;
+  src: url("../fonts/ubuntu/UbuntuMono-R.ttf") format("truetype");
+}

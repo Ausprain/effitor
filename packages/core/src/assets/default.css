@@ -1,15 +1,4 @@
 
-/* 默认编辑器外框样式 */
-et-editor[et-theme="default"],
-:host([et-theme="default"]) {
-  min-height: 300px;
-  max-width: 760px;
-  padding: 40px;
-  margin: 8px auto;
-  border: 1px solid var(--et-color-border-3);
-  border-radius: 8px;
-}
-
 /* 编辑区内置样式 */
 et-body {
   display: block !important;

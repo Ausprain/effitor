@@ -85,6 +85,7 @@ export class Effitor {
     isDark: false,
   }
 
+  public readonly theme: string
   public readonly config: Readonly<Et.EditorConfig>
   public readonly platform = platform
   public readonly isShadow: boolean
@@ -158,6 +159,7 @@ export class Effitor {
 
   constructor({
     shadow = false,
+    theme = 'default',
     schemaInit = {},
     mainEffector = getMainEffector(),
     effectorInline = false,
@@ -175,8 +177,9 @@ export class Effitor {
     if (shadow) {
       shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
     }
-    this.configManager = configManager
     this.isShadow = shadow
+    this.theme = theme
+    this.configManager = configManager
     const restoreConfig = configManager.getConfig('editorConfig')
     this.config = { ...defaultConfig, ...config, ...restoreConfig }
     if (this.config.toString() !== restoreConfig?.toString()) {
@@ -199,7 +202,10 @@ export class Effitor {
       pctx: {},
       settings: {},
       keepDefaultModkeyMap: {},
-    } as Et.EditorContextMeta
+      // 这里提示 assists 类型错误, 这是因为有些 assists 的类型增强中没有使用?可选声明
+      // 目的是为了避免在插件实现中频繁地使用?操作符, 或 as 运算
+      // 但这并不会影响类型安全, 此处做忽略处理
+    } as unknown as Et.EditorContextMeta
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
@@ -696,8 +702,8 @@ const formatEffitorStructure = (
   host.append(editorEl)
   host.classList.add(CssClassEnum.Effitor)
   host.style.position = 'relative'
-  if (editor.config.WITH_EDITOR_DEFAULT_STYLE) {
-    editorEl.setAttribute(BuiltinConfig.THEME_ATTR, BuiltinConfig.DEFAULT_THEME)
+  if (editor.theme) {
+    editorEl.setAttribute(BuiltinConfig.THEME_ATTR, editor.theme)
   }
   // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
   // fixed. 若为 relative, 会让内部的 anchor-position失效

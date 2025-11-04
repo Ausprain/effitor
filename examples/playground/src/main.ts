@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import '@effitor/core/styles/font.css'
+import '@effitor/themes/default.min.css'
 
 import './assets/main.css'
 
@@ -22,11 +22,10 @@ import { useLinkPlugin } from '@effitor/plugin-link'
 import { useMediaPlugin } from '@effitor/plugin-media'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
+// console.log(css.length)  // 186452
 
 import md from '../../../README_zh.md?raw'
 import DOMPurify from 'dompurify'
-
-// console.log(css.length)  // 186452
 
 const editor = new Effitor({
   // effectorInline: true,

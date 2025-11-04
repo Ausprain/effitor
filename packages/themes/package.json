@@ -1,0 +1,30 @@
+{
+  "name": "@effitor/themes",
+  "version": "0.2.0-beta.1",
+  "description": "official themes of effitor",
+  "keywords": [
+    "editor",
+    "wysiwyg",
+    "markdown"
+  ],
+  "type": "module",
+  "main": "dist/themes/default/index.css",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./*": "./dist/themes/*"
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/themes#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/themes"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {}
+}

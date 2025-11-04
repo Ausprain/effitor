@@ -1,6 +1,6 @@
 {
   "name": "@effitor/playground",
-  "version": "0.2.0-alpha",
+  "version": "0.2.0-beta.1",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "editor",
@@ -23,7 +23,8 @@
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
     "dompurify": "^3.3.0",
-    "effitor": "workspace:*"
+    "effitor": "workspace:*",
+    "@effitor/themes": "workspace:*"
   },
   "devDependencies": {
     "vite": "^7.0.6"

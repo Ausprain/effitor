@@ -9,8 +9,8 @@ interface ImportMetaEnv {
 
 // css 模块
 declare module '*.css?raw' {
-  const src: string
-  export default src
+  const content: string
+  export default content
 }
 declare module '*.css' {
   const src: string

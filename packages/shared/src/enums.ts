@@ -14,7 +14,7 @@ export const enum BuiltinConfig {
   /** 编辑器主题属性名 */
   THEME_ATTR = 'et-theme',
   /** 编辑器默认内置主题 */
-  DEFAULT_THEME = 'default',
+  // DEFAULT_THEME = 'default',
 }
 /** 内置自定义元素名 */
 export const enum BuiltinElName {

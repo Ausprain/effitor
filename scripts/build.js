@@ -60,18 +60,26 @@ const buildCore = async () => {
   console.log(styleText('cyan', `build core success\n`))
 }
 
+const buildThemes = async () => {
+  await tsupPkg(resolve(PACKAGES_DIR_PATH, 'themes'), false)
+  console.log(styleText('cyan', `build themes success\n`))
+}
+
 const buildMain = async () => {
   await tsupPkg(MAIN_PKG_DIR_PATH, false)
   console.log(styleText('cyan', `build main success\n`))
 }
 
 const buildElsePkgs = async () => {
-  const files = await fs.readdir(PACKAGES_DIR_PATH)
-  return Promise.all(files.map(async (file) => {
-    if (file === 'core') {
+  const pkgs = await fs.readdir(PACKAGES_DIR_PATH)
+  return Promise.all(pkgs.map(async (pkgName) => {
+    if (pkgName === 'core') {
       return
     }
-    return tryToBuildSubPackage(file)
+    if (pkgName === 'themes') {
+      return buildThemes()
+    }
+    return tryToBuildSubPackage(pkgName)
   }))
 }
 

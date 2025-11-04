@@ -80,7 +80,6 @@ et-editor,
     6px 8px 12px rgb(0 0 0 / 0.24), 
     0 12px 16px rgb(0 0 0 / 0.12);
 
-  --et-font-family: var(--et-font-ubuntu);
   --et-font-size: 15px;
   --et-font-weight: 449;
   --et-letter-space: 0.02em;
@@ -113,7 +112,6 @@ et-editor,
   caret-color: var(--et-color-caret);
   color: var(--et-color-text-soft);
   background-color: var(--et-color-bg);
-  font-family: var(--et-font-family);
   font-size: var(--et-font-size);
   font-weight: var(--et-font-weight);
   letter-spacing: var(--et-letter-space);

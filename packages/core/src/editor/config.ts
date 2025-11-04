@@ -88,7 +88,7 @@ export interface EditorConfig {
   /** 自动创建第一个段落, 默认 true */
   AUTO_CREATE_FIRST_PARAGRAPH?: boolean
   /** 使用编辑器默认样式; 默认 true */
-  WITH_EDITOR_DEFAULT_STYLE: boolean
+  // WITH_EDITOR_DEFAULT_STYLE: boolean
   /** 是否开启编辑器默认log记录; 默认 false */
   WITH_EDITOR_DEFAULT_LOGGER: boolean
   /** 是否在按下空格时自动将前面一个全角标点字符替换为半角字符; 默认 true */
@@ -183,6 +183,8 @@ interface _CreateEditorOptions {
    * @default false
    */
   shadow?: boolean
+  /** 主题名称, 默认为 'default' */
+  theme?: string
   /** schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容 */
   schemaInit?: Partial<EditorSchema>
   /** 主效应器 */
