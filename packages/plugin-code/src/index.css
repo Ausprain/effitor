@@ -207,18 +207,15 @@ et-code.et {
   
   /* render */
   & > .et-code__render {
+    display: block;
     right: 48px;
     background-image: var(--et-code-bg-render);
     background-position: center;
     background-repeat: no-repeat;
-  
-    display: none;
-    et-code[et-code-lang="html"] & {
-      display: block;
-    }
   }
 }
-et-code[et-html].et {
+/* 渲染后的代码块, 不显示边框和语言 */
+et-code.et-code--rendered {
   border: none;
   &::before {
     display: none;

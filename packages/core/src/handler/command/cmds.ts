@@ -50,7 +50,7 @@ interface CmdMap<MetaType = any> {
 type CmdCallback<T extends CmdTypeEm, MetaType = any> = (
   // 若命令 init 显示地配置了 meta, 那么 this 应当拥有必选的 meta 属性; 可通过判断 MetaType类型是否为 undefined 来实现
   this: CmdWithoutType<CmdMap<MetaType>[T]> & (MetaType extends undefined ? CmdMeta<MetaType> : Required<CmdMeta<MetaType>>),
-  ctx: Et.EditorContext
+  ctx: Et.EditorContext,
 ) => void
 
 interface CmdMeta<MetaType> {

@@ -2,20 +2,25 @@
  * 代码块插件
  * 现行方案: CodeContext: (textarea + pre)
  * 未来方案: 直接编辑 DOM, highlighter 即时渲染, 并使用 TreeWalker 记录和恢复光标位置
+ *
+ * 在代码块中, 约定以下术语:
+ * * highlight: 高亮代码
+ * * render: 渲染代码, 即将代码块内的代码渲染到页面上, 仅支持部分语言, 如 html, katex, markdown
  */
 import './augment'
 
 import type { Et } from '@effitor/core'
 
 import { initCodePluginContext } from './codePluginContext'
-import type { HTMLRenderOptions } from './config'
+import { RenderOptions } from './codeRenderer'
+import type { CodeBlockRenderOptions } from './config'
 import { codeEffector } from './effector'
 import { EtCodeElement } from './EtCodeElement'
 import { codeHandler } from './handler'
 import { createShikiHighlighter, type ShikiHighlighterOptions } from './highlighter'
 import cssText from './index.css?raw'
 
-export interface CodePluginOptions extends HTMLRenderOptions {
+export interface CodePluginOptions extends CodeBlockRenderOptions {
   /**
    * Shiki 配置项, 未提供highlighter时有效
    */
@@ -35,8 +40,10 @@ export interface CodePluginOptions extends HTMLRenderOptions {
 
 export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPluginSupportInline> => {
   const highlighter = await createShikiHighlighter(options?.shikiOptions)
-  let sanitizer: ((html: string) => string) | undefined
-  if (options?.canRenderHTML) {
+
+  const renderOptions: RenderOptions = {}
+  if (options?.canRenderLangs?.includes('html')) {
+    let sanitizer: ((html: string) => string) | undefined
     if (options.sanitizer === void 0) {
       const dp = (await import('dompurify')).default
       if (dp) {
@@ -55,7 +62,19 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
     else {
       sanitizer = options.sanitizer
     }
+    renderOptions.html = {
+      sanitizer,
+    }
   }
+  if (options?.canRenderLangs?.includes('latex')) {
+    // 动态加载 katex css, 由 vite 实现
+    import('katex/dist/katex.min.css')
+    const katex = (await import('katex')).default
+    renderOptions.latex = {
+      texToHtml: katex.renderToString,
+    }
+  }
+
   return {
     name: '@effitor/plugin-code',
     cssText: cssText,
@@ -64,7 +83,7 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
     register(ctxMeta, setSchema, mountEtHandler) {
       initCodePluginContext(ctxMeta, highlighter, {
         ...options,
-        sanitizer,
+        renderOptions,
       })
       setSchema({
         code: EtCodeElement,

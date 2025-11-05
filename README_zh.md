@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="./README.md">English</a> |
+  <a href="./README.md">English</a> | 
   <a href="./README_zh.md">中文</a>
 </p>
 <p align="center" style="font-style:italic"><span style="color:red;">effi</span>cient edi<span style="color:red;">tor</span></p>

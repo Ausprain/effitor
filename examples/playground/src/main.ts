@@ -49,7 +49,7 @@ const editor = new Effitor({
     useHeadingPlugin(),
     useListPlugin(),
     await useCodePlugin({
-      canRenderHTML: true,
+      canRenderLangs: ['html', 'latex'],
     }),
     useLinkPlugin(),
     useMediaPlugin(),

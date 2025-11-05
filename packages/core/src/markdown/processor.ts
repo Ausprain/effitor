@@ -15,7 +15,7 @@ import { mdParser } from './parser'
 import { buildMdastRoot, mdastNode } from './toMarkdown'
 
 type MdastTransformer = (
-  node: mdast.Nodes, ctx: Et.EditorContext, index?: number, parent?: mdast.Parents
+  node: mdast.Nodes, ctx: Et.EditorContext, index?: number, parent?: mdast.Parents,
 ) => boolean
 type MdastTransformersMap = Partial<Record<mdast.Nodes['type'], MdastTransformer[]>>
 
@@ -97,7 +97,10 @@ export const getMdProcessor = ({
     /* -------------------------------------------------------------------------- */
     /*                                just for dev                                */
     /* -------------------------------------------------------------------------- */
-    /** 一个仅用于开发的方法, 解析一个EtElement, 返回mdast节点树 */
+    /**
+     * @internal
+     * 一个仅用于开发的方法, 解析一个EtElement, 返回mdast节点树
+     */
     __toMarkdownMdastTree(ctx: Et.EditorContext, el: Et.EtElement) {
       let root = el.toMdast(mdastNode)
       if (!root) return
@@ -113,7 +116,10 @@ export const getMdProcessor = ({
       })
       return root
     },
-    /** 一个仅用于开发的方法, 解析一个md文本, 返回mdast节点树 */
+    /**
+     * @internal
+     * 一个仅用于开发的方法, 解析一个md文本, 返回mdast节点树
+     */
     __fromMarkdownMdastTree: (_ctx: Et.EditorContext, mdText: string, options?: FmOptions) => {
       const root = mdParser.fromMarkdown(mdText, options)
       return root

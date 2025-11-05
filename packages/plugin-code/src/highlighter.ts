@@ -37,10 +37,10 @@ export const defaultOptions: Required<ShikiHighlighterOptions> = {
     dark: 'github-dark',
   },
   langs: [
-    'bat', 'shell', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
+    'bat', 'powershell', 'ps1', 'shell', 'sh', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
     'json', 'javascript', 'js', 'jsx', 'typescript', 'ts', 'tsx', 'html', 'css', 'less', 'scss', 'sass',
-    'lua', 'matlab', 'markdown', 'md',
-    'nginx', 'python', 'py', 'r', 'ruby', 'rust', 'rs', 'sql', 'swift', 'yaml', 'toml',
+    'latex', 'lua', 'matlab', 'markdown', 'md',
+    'nginx', 'php', 'perl', 'python', 'py', 'r', 'ruby', 'rust', 'rs', 'sql', 'swift', 'yaml', 'toml',
   ],
 }
 export const createShikiHighlighter = async (

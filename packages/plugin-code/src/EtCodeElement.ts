@@ -173,11 +173,11 @@ export class EtCodeElement extends EtComponent {
       return el
     },
     html: (node, ctx) => {
-      if (!ctx.pctx.$code_ctx.canRenderHTML) {
+      if (!ctx.pctx.$code_ctx.codeRenderer['html']) {
         return null
       }
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value, 'html')
-      ctx.pctx.$code_ctx.renderHtmlCodeBlock?.(ctx, el)
+      ctx.pctx.$code_ctx.renderCodeBlock(ctx, el)
       return el
     },
   }

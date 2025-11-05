@@ -113,7 +113,7 @@ export function importCssRawPlugin(options?: ImportCssRawOptions): Plugin {
           contents = await options.postProcess(contents)
         }
         return {
-          contents: `export default ${JSON.stringify(contents)}`,
+          contents: `export default ${JSON.stringify(contents.trim())}`,
           loader: 'js',
         }
       })

@@ -8,30 +8,29 @@ export const codeHeader = (ctx: Et.EditorContext, el: EtCodeElement, cbs: CodeDe
   const header = document.createElement('div')
   const copyBtn = document.createElement('button')
   header.classList.add(CodeEnum.Class_Header)
-  copyBtn.classList.add(CodeEnum.Class_Copy, CssClassEnum.BgItem)
-  // copyBtn.title = 'Copy Code'
+  copyBtn.classList.add(CodeEnum.Class_Btn_Copy, CssClassEnum.BgItem)
   copyBtn.setAttribute(HtmlAttrEnum.HintTitle, 'Copy Code')
   header.appendChild(copyBtn)
 
   copyBtn.onclick = () => {
-    if (copyBtn.classList.contains(CodeEnum.Class_Copied)) {
+    if (copyBtn.classList.contains(CodeEnum.Class_Btn_Copied)) {
       return
     }
     cbs.onCopy(ctx)
-    copyBtn.classList.add(CodeEnum.Class_Copied)
+    copyBtn.classList.add(CodeEnum.Class_Btn_Copied)
     setTimeout(() => {
-      copyBtn.classList.remove(CodeEnum.Class_Copied)
+      copyBtn.classList.remove(CodeEnum.Class_Btn_Copied)
     }, 2000)
   }
 
-  if (ctx.pctx.$code_ctx.canRenderHTML) {
+  if (ctx.pctx.$code_ctx.codeRenderer[el.lang]) {
     const renderBtn = document.createElement('button')
-    renderBtn.classList.add(CodeEnum.Class_Render, CssClassEnum.BgItem)
-    renderBtn.setAttribute(HtmlAttrEnum.HintTitle, 'Render HTML')
+    renderBtn.classList.add(CodeEnum.Class_Btn_Render, CssClassEnum.BgItem)
+    renderBtn.setAttribute(HtmlAttrEnum.HintTitle, 'Render Code')
     header.appendChild(renderBtn)
 
     renderBtn.onclick = () => {
-      const render = ctx.pctx.$code_ctx.renderHtmlCodeBlock
+      const render = ctx.pctx.$code_ctx.renderCodeBlock
       if (!render) {
         return
       }

@@ -7,9 +7,15 @@
 
 背景
 
-> 对于编辑器，用户的每个编辑动作，编辑器必须立刻响应，否则用户体验就不好。而响应用户行为最快的方式，就是直接操作DOM。但直接操作DOM须满足一个大前提——避免短时间内操作大量DOM——或者更准确的说法——避免短时间内触发浏览器大量布局计算的DOM操作，否则性能就会急速下降。要实现这一目的，可以从两方面入手：“短时间”和“大量”。但编辑操作要求编辑器立刻响应，因此我们无法要求不在“短时间”内操作，进而只能从“大量”下手。即用户的编辑操作，我们如何确保只进行少量的DOM操作？\
-> 为实现这一目标，`effitor`引入了`效应元素(EffectElement)`的概念。每个`效应元素`，都是一个自定义元素（[CustomElement](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)）。编辑器内的所有关键节点，都是`效应元素`，编辑器以`效应元素`为基本单元进行内容更新和数据存储。用户的所有编辑行为，都由效应元素决定如何处理，这些行为统称为`效应(effect)`，并由挂载在`效应元素`上的`效应处理器(effectHandler)`处理这些`效应`。而用户怎样的编辑行为应该触发什么`效应`，则由`效应器(effector)`负责处理并`激活（invoke)`对应的`效应`。\
-> 不严谨的说，effitor也属于MVC架构，效应元素即model，效应处理器即view，效应器即controller。
+> 在富文本编辑场景中，用户的每个编辑动作都要求编辑器即时响应，否则将严重影响体验。而实现即时响应最直接的方式是操作 DOM，但这必须满足一个关键前提：**避免在短时间内触发大量导致浏览器重排/重绘的 DOM 操作**。
+>
+> 由于编辑操作本身要求“低延迟”，我们无法通过防抖、节流或批量延迟更新等通用优化手段来规避“短时间”这一约束。因此，优化的关键在于减少每次操作所涉及的 **DOM 更新量**。
+>
+> ~~当前主流的虚拟 DOM 方案（如 React 所采用）通过内存中的 diff 算法来最小化真实 DOM 的变更。然而，在富文本这类**结构敏感、高频局部更新**的场景中，虚拟 DOM 的优势可能受限：一方面，diff 算法本身存在计算开销；另一方面，若每次状态变更都导致整棵组件树重建，仍可能引发不必要的性能损耗。
+> 是否存在一种机制，能在编辑发生时**直接定位并更新最小受影响单元**？答案是肯定的。现代高性能富文本引擎（如 ProseMirror、Lexical）采用了一种**精细化的命令式更新策略**：基于对文档结构的精确建模，仅操作与用户意图直接相关的 DOM 节点。~~
+>
+> 为实现这一目标，`effitor` 引入了`效应元素（EffectElement）` 的概念。每个`效应元素`，都是一个 [自定义元素（CustomElement）](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)。所有关键节点均由 `效应元素` 构成，其内部封装了数据状态与更新逻辑。用户的所有编辑行为，都由效应元素决定如何处理，这些行为统称为`效应（Effect）`。
+> 当用户操作发生时，由 `效应器（Effector）` 解析并`激活（invoke)`对应的 `效应`，再由挂载在 `效应元素` 上的 `效应处理器（EffectHandler）` 处理这些`效应`（执行具体的 DOM 操作）。这种设计确保了每次编辑仅触发**局部、精确、最小化**的 DOM 更新，从而在保证响应速度的同时，维持优异的运行时性能。
 
 ![基本架构](./assets/editflow.png)
 
@@ -110,6 +116,11 @@ class EtParagraphElement extends EffectElement {
 效应元素和普通HTML元素一样，效应元素在编辑器内呈现什么样子，取决于其css样式以及子节点内容。
 
 编辑器内的每个操作，都是对效应元素及其后代节点的操作。每个操作前后，编辑器都会更新上下文，上下文记录了当前光标/选区位置所处的效应元素（`focusEtElement & commonEtElement`），编辑器会根据该效应元素，来决定下一次编辑操作如何执行。
+
+> [!IMPORTANT]
+> 效应元素的`etCode`属性(即`ETCODE`)是一个`symbol`属性，由编辑器内部维护。在开发过程中，需要留意，**_测试时不要混杂开发环境代码和生产环境代码_**（这通常取决于项目的目录结构和 import 的导入方式，不同的导入方式以及 tsconfig 配置，vite 可能会从`src`源码中或`dist`产物中导入），因为两份代码所创建的`ETCODE`是不同的，虽然在控制台输出时两个都是`Symbol("ETCODE")`，但其对应的是两个不同的Symbol对象。
+> 而效应码工具`etcode`（在编辑器内部广泛使用），使用指定的那个`ETCODE`来检查效应元素，如果某个效应元素上的`ETCODE`属性与指定的`ETCODE`不同，`etcode.check`会认为它不是效应元素，从而导致意外的测试结果。
+> 这通常不会遇到，但需要在此强调。因为在不知情的情况下遇到该问题，可能 debug 都无从下手。
 
 ## 效应处理器（effectHandler）
 
@@ -223,8 +234,8 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 - `selection`：选区模块
 - `composition`：输入法模块
 - `pctx`：插件上下文
-- `assists`： 助手（插件）模块
-- `effectInvoker`
+- `assists`：助手（插件）模块
+- `effectInvoker`：效应激活器
 
 ### 效应器上下文
 
@@ -238,6 +249,7 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 - 与效应器上下文`ectx`的区别\
   `pctx`与`ectx`最大的区别在于，`ectx`是全局唯一的，而`pctx`在每个编辑器上下文实例上都有一份。
   效应器上下文在插件代码被执行时创建，而插件上下文仅在插件被注册时创建到指定编辑器上下文实例中。
+  简言之，当你拥有多个Effitor编辑器实例时，每个实例使用的`ectx`指向内存里的同一个对象，而`pctx`则在每个实例上各有一份。
 
 # 插件化
 
@@ -251,11 +263,12 @@ effitor的插件分两类：助手插件（assist）和内容插件（plugin）�
 
 内置的助手有：
 
-- `assist-counter`：字数统计
-- `assist-dialog`：对话框
-- `assist-dropdown`：下拉菜单
-- `assist-message`：消息
-- `assist-popup`：弹窗或悬浮菜单
+- [x] `assist-counter`：字数统计
+- [x] `assist-dialog`：对话框
+- [x] `assist-dropdown`：下拉菜单
+- [x] `assist-message`：消息
+- [x] `assist-popup`：弹窗或悬浮菜单
+- [ ] `assist-toolbar`：工具栏
 
 ## 内容插件 plugin
 
@@ -263,14 +276,15 @@ effitor的插件分两类：助手插件（assist）和内容插件（plugin）�
 
 内置的插件有：
 
-- `plugin-heading`：标题
-- `plugin-mark`：高亮（加粗/斜体/删除线/内敛代码/高亮）
-- `plugin-list`：列表
-- `plugin-link`：链接
-- `plugin-media`：媒体（图片/音/视频）
-- `plugin-code`：代码块
+- [x] `plugin-heading`：标题
+- [x] `plugin-mark`：高亮（加粗/斜体/删除线/内敛代码/高亮）
+- [x] `plugin-list`：列表
+- [x] `plugin-link`：链接
+- [x] `plugin-media`：媒体（图片/音/视频）
+- [x] `plugin-code`：代码块（支持渲染 html 和 latex）
 - [ ] `plugin-math`：数学公式
 - [ ] `plugin-table`：表格
+- [ ] `plugin-blockquote`：引用块
 - [ ] `plugin-excalidraw`：Excalidraw
 
 ## 自定义插件
@@ -303,7 +317,9 @@ const editor = new Effitor({
 
 命令系统是 effitor 的底层，它赋予了编辑器直接操作 DOM 和撤回已执行的操作的能力。由于 effitor 没有抽象的数据模型，一切文档数据和操作都基于 DOM 进行，直接的 DOM 操作很容易破坏文档结构。为此，effitor 的命令基于严格的配置，只有正确配置的命令，才具备安全的撤回能力。
 
-effitor 的命令系统有 10 个基础命令，它们的类型分别是：
+## 命令对象
+
+effitor 的命令系统有 10 个基础命令（原子命令），它们分别是：
 
 - `Insert_Composition_Text`：插入输入法文本
 - `Insert_Text`：插入文本
@@ -320,6 +336,68 @@ effitor 提供了一个工具：`cmd`命令工厂，用于创建命令。
 
 ```ts
 import { cmd } from "@effitor/core";
+
+/** 创建一个命令: 插入输入法文本 */
+cmd.insertCompositionText(init);
+/** 创建一个命令: 插入文本到文本节点 */
+cmd.insertText(init);
+/** 创建一个命令: 从文本节点删除文本 */
+cmd.deleteText(init);
+/** 创建一个命令: 从文本节点替换文本 */
+cmd.replaceText(init);
+/** 创建一个命令: 插入节点 */
+cmd.insertNode(init);
+/** 创建一个命令: 移除节点 */
+cmd.removeNode(init);
+/** 创建一个命令: 替换节点 */
+cmd.replaceNode(init);
+/** 创建一个命令: 插入内容片段 */
+cmd.insertContent(init);
+/** 创建一个命令: 移除内容片段 */
+cmd.removeContent(init);
+/** 创建一个命令: 功能命令 */
+cmd.functional(init);
+```
+
+`cmd`创建的命令可以执行和撤回，通常我们不需要也不建议手动执行和撤回。effitor 借助上下文上的命令管理器来管理命令的生命周期。
+
+## 命令管理器
+
+```ts
+/** 命令管理器 */
+class CommandManager {
+  // ...
+}
+/** 编辑器上下文 */
+class EditorContext {
+  readonly commandManager: CommandManager;
+}
+```
+
+一个命令的生命周期
+
+```ts
+// 创建并添加
+ctx.commandManager.push(
+  cmd.functional({
+    execCallback(ctx) {
+      // 执行或重做命令
+    },
+    undoCallback(ctx) {
+      // 撤回命令
+    },
+  }),
+);
+// 执行已添加的命令
+ctx.commandManager.handle();
+// 丢弃已执行但未确认的命令（自动撤销）
+// ctx.commandManager.discard()
+// 确认已执行的命令
+ctx.commandManager.commit();
+// 撤回已确认的命令
+ctx.commandManager.undoTransaction();
+// 重做
+ctx.commandManager.redoTransaction();
 ```
 
 # 选区系统
@@ -332,11 +410,11 @@ effitor 的选区系统由三部分组成：选区、目标光标/范围、光�
 
 选区主要用于交互，理解用户当前行为所处的文档位置，以及更新上下文相关信息。
 
-## 目标光标/范围（TargetCaret/TargetRange）
+## 目标光标/目标范围（TargetCaret/TargetRange）
 
 目标光标/范围主要用于初始化命令，效应器或效应处理函数，根据目标光标/范围来确定激活什么效应，添加什么命令。
 
-## 光标范围（CaretRange、SpanRange）
+## 光标/范围（CaretRange、SpanRange）
 
 光标范围主要用于命令，在命令执行时确定要作用的光标位置，SpanRange用于删除；CaretRange 用于插入，以及在命令执行后确定新的选区（光标/范围）位置。
 

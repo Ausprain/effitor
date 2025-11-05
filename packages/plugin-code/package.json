@@ -35,6 +35,10 @@
   "dependencies": {
     "@effitor/core": "workspace:*",
     "dompurify": "^3.3.0",
+    "katex": "^0.16.25",
     "shiki": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7"
   }
 }
