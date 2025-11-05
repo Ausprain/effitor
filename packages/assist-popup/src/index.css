@@ -25,7 +25,6 @@
   padding: 4px;
   border: 1px solid var(--et-color-border-2);
   border-radius: 4px;
-  background-color: var(--et-color-bg-soft);
   color: var(--et-color-text);
   box-shadow: var(--et-shadow-s);
 }

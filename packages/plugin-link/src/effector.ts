@@ -73,7 +73,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
   ]
   popup.addHoverPopup<EtLinkElement>(LinkEnum.Popup_Key, () => {
     const div = document.createElement('div')
-    div.className = LinkEnum.Class_Popup
+    div.classList.add(LinkEnum.Class_Popup, CssClassEnum.Card)
     const urlInput = document.createElement('input')
     urlInput.className = LinkEnum.Class_Popup_Input
     urlInput.onclick = () => {

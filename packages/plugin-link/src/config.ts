@@ -8,7 +8,7 @@ export const enum LinkEnum {
 
   Popup_Key = '__popup_$et-link',
 
-  Class_Popup = 'et-link-popup ',
+  Class_Popup = 'et-link-popup',
   Class_Popup_Input = 'et-link-popup_input',
   Class_Dialog_Input = 'et-link-dialog_input',
   Class_Dialog_Btn = 'et-link-dialog_btn',

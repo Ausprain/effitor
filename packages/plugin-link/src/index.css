@@ -60,7 +60,6 @@ et-link {
   margin: 0 4px;
   border: 1px solid var(--et-color-border-1);
   border-radius: 6px;
-  background-color: var(--et-color-bg-mute);
   box-shadow: var(--et-shadow-s);
 }
 

@@ -92,7 +92,7 @@ export class Popup {
     this.popupEl = popupEl
     popupEl.className = PopupEnum.Class_Popup
     this.selectionRangePopupContent = document.createElement('div')
-    this.selectionRangePopupContent.className = PopupEnum.Class_Popup_Item_Container
+    this.selectionRangePopupContent.classList.add(PopupEnum.Class_Popup_Item_Container, CssClassEnum.Card)
 
     popupEl.addEventListener('mousedown', e => (e.preventDefault(), e.stopPropagation()), { signal })
     popupEl.addEventListener('mouseenter', () => {
@@ -312,7 +312,7 @@ export class Popup {
         return
       }
       el = document.createElement('div')
-      el.className = PopupEnum.Class_Popup_Item_Container
+      el.classList.add(PopupEnum.Class_Popup_Item_Container, CssClassEnum.Card)
     }
 
     this.hoverPopupContentMap.set(popupKey, [el, options])
