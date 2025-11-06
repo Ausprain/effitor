@@ -17,7 +17,7 @@ export const blockquoteEffector: Et.EffectorSupportInline = {
         return
       }
       let pText = currP.textContent
-      if (!pText || pText.length > 5) {
+      if (!pText || pText.length > 100) {
         return
       }
       pText = pText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
@@ -41,6 +41,7 @@ export const blockquoteEffector: Et.EffectorSupportInline = {
         meta,
         paragraph: currP,
       })
+      return ctx.preventAndSkipDefault(ev)
     },
   },
 

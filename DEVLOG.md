@@ -244,6 +244,7 @@ Todos
 - [ ] 基础
   - [x] atx标题, 可通过 `### ` 或 `#3 ` 方式插入标题
 - [x] markdown互转
+- [ ] 原生 html 互转
 - [x] Dropdown item
 - [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
 
@@ -279,6 +280,7 @@ Todos
   - [x] 缩进处理
   - [x] alt+上/下 移动列表
 - [x] markdown互转
+- [ ] 原生 html 互转
 - [x] Dropdown item
 - [ ] 首段落插入列表报错(无效应元素) [FIXME](./packages/plugin-list/src/effector.ts#L16)
 
@@ -291,6 +293,7 @@ Todos
 - [ ] 基础
   - [x] 识别 `[xxx](http://xxx.com)` 并自动转换为链接
 - [x] markdown互转
+- [ ] 原生 html 互转
 - [x] popup 更新, 跳转链接
 - [x] dropdown 插入链接
 
@@ -305,6 +308,7 @@ Todos
   - [x] 布局: 左右浮动, 居中; 调整大小
   - [x] 全屏预览
 - [x] markdown互转
+- [ ] 原生 html 互转
 - [x] popup 调整布局, 删除
 - [x] dropdown 插入媒体
 
@@ -339,9 +343,10 @@ Todos
 Todos
 
 - [ ] 基础
-  - [x] 识别 `> ` 并自动转换为引用块
-- [ ] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
-- [ ] markdown互转
+  - [x] 识别 `> ` | `> [!NOTE]` 并自动转换为引用块
+- [x] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
+- [x] markdown互转
+- [ ] 原生 html 互转
 
 ### plugin-table
 
@@ -351,6 +356,7 @@ Todos
 
 - [ ] 基础
 - [ ] markdown互转
+- [ ] 原生 html 互转
 
 ### plugin-excalidraw
 
