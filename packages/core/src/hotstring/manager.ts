@@ -78,7 +78,7 @@ export const getHotstringManager = (ctx: Et.EditorContext, options?: Partial<Hot
           Promise.resolve().then(() => {
             // _resetNeeded = false
             ctx.commandManager.startTransaction()
-            hs.action(ctx, () => removeHotstringOnTrigger(ctx, hs.hotstring))
+            hs.action(ctx, hs.hotstring, () => removeHotstringOnTrigger(ctx, hs.hotstring))
             ctx.commandManager.closeTransaction()
           })
           return (_resetNeeded = true)

@@ -258,7 +258,7 @@ export abstract class EffectElement
 
   /**
    * 光标落入其中时调用, 这与 focusin 事件无关, 也不是冒泡的;\
-   * 当当前效应元素被设置为 `ctx.focusEtElement/paragraph/topElement` 时会调用此回调
+   * * **⚠️注意**：当当前效应元素被赋值给 `ctx.focusEtElement/paragraph/topElement` 时均会调用此回调（但同一次 ctx 更新只调用一次）
    */
   focusinCallback(_ctx: Et.EditorContext) {
     this.classList.add(CssClassEnum.Active)
@@ -266,7 +266,7 @@ export abstract class EffectElement
 
   /**
    * 光标移出其中时调用, 这与 focusout 事件无关, 也不是冒泡的;\
-   * 当当前效应元素从 `ctx.focusEtElement/paragraph/topElement` 移除时会调用此回调
+   * * **⚠️注意**：当当前效应元素从 `ctx.focusEtElement/paragraph/topElement` 移除时均会调用此回调（但同一次 ctx 更新只调用一次）
    */
   focusoutCallback(_ctx: Et.EditorContext) {
     this.classList.remove(CssClassEnum.Active)
@@ -330,29 +330,32 @@ export abstract class EffectElement
   /*                                  markdown                                  */
   /* -------------------------------------------------------------------------- */
   /**
-   * 将自身转为mdast节点，需自行处理后代节点，
-   * 可使用{@link CreateMdastNode}构建mdast节点，
-   * 返回null则忽略该节点
+   * 将自身转为mdast节点，需自行处理后代节点, 即框架本身不会处理效应元素的后代;\
+   * 可使用参数 {@link Et.CreateMdastNode mdastNode} 构建mdast节点 并处理后代节点\
+   * 返回null则忽略该节点及其后代
    */
   abstract toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult
   /**
    * `mdast`处理器映射，定义`mdast`节点如何转为`html`节点，***无需手动处理后代节点***
+   * * `@link`{@link EffectElement.fromMarkdownHandlerMap `EffectElement.fromMarkdownHandlerMap`}
    * * 若处理器返回一个`html`节点，并且当前`mdast node`有`children`属性，则会继续处理其后代节点;
    *   并将处理得到的节点插入到该`html`节点的`childNodes`中
-   * * 若注册的EtElement中有多个定义了相同节点的解析方式, 则按插件注册顺序依次处理，直到处理成功为止
+   * * 若注册的`EtElement`中有多个定义了相同节点的解析方式, 则按插件注册顺序依次处理，直到处理成功为止
    * * 接受的返回值类型: `DocumentFragment | HTMLElement | Text | null`
-   * * 返回`null`说明当前效应元素不处理该`mdast节点`, 交给下一个处理器处理
+   * * 返回`null`说明当前效应元素不处理该`mdast节点`, 交给下一个处理器处理; 若所有处理器都返回`null`, 则忽略该节点及其后代
    * * 返回`DocumentFragment`说明当前`mdast节点`无对应`html节点`, 直接将其子节点插入到父节点`childNodes`中,
    *   即相当于跳过当前`mdast节点`
    */
   static readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap
   /**
-   * mdast节点转换器(对节点原地修改), 当且仅当返回 true 时终止后续transformer对该节点的处理\
+   * mdast节点转换器(对节点原地修改), 当且仅当返回 true 时终止后续transformer对该节点的处理;
    * 转换器会在toMarkdown的最后阶段（序列化为字符串前）执行，对mdast树进行修改
+   * * `@link`{@link EffectElement.toMarkdownTransformerMap `EffectElement.toMarkdownTransformerMap`}
    */
   static readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap
   /**
    * 定义自定义节点的处理逻辑，将mdast节点转为md字符串, 即toMarkdown最后阶段
+   * * `@link`{@link EffectElement.toMarkdownHandlerMap `EffectElement.toMarkdownHandlerMap`}
    * * 该定义是唯一的, 后来的会覆盖前面定义的
    * * 自定义mdast节点
    * ```ts

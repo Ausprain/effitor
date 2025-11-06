@@ -1,10 +1,11 @@
 # Bugfix
 
 - [ ] core
+  - [ ] 编辑器失去焦点后重新获取焦点，光标在末尾闪烁，但插入内容却在文档开头
+  - [ ] 段落开头/末尾亲和位置判断需要考虑零宽字符
   - [x] 在段落中间逐级全选会停止在段落层级，在段落末尾却可全选到整个文档
     - trig. 逐级全选会触发 selectionchange 事件，导致全选等级被清除
   - [x] 粘贴后没有滚动到光标位置
-  - [ ] 编辑器失去焦点后重新获取焦点，光标在末尾闪烁，但插入内容却在文档开头
   - [x] 当末段落内只有一个 et-media 时, 全选文档选区会没有"拖蓝"(实际上全选了, 但全选的 UI 没有展示)
   - [x] 逐级全选的判定缺漏: 空段落时
   - [x] firefox 中全选当前行只选了一半
@@ -20,6 +21,13 @@
     - [ ] 提升到组件的复制粘贴问题来解决 //TODO 现在的实现很粗糙
 - plugin-link
   - [ ] 复制网页的内容, 粘贴过来被识别为了粘贴链接
+
+# Todo
+
+- [ ] 插件需暴露一个接口给外部
+  - 现在的助手如 dropdown，popup 等，都必须在插件注册前挂载到 ctx.assists 上，才能被插件使用；如果未来新增助手如 toolbar，则没办法将插件的指定功能添加到 toolbar 上。
+  - 为解决此问题，考虑在插件 use 函数的参数提供一个接口给外部，一个在 onMounted 中执行的回调函数，并对外暴露插件内部的一些功能、配置、方法、快捷键等，以方便新增的助手能够将这些插件的功能添加到助手上。
+  - 这需要一个统一的抽象。
 
 # 算法
 
@@ -212,6 +220,12 @@ case:
 
 ## Assists
 
+### assist-dialog
+
+Todos
+
+- [ ] 打开 dialog 后，应让编辑器失去焦点，将焦点转移到 dialog 上
+
 ### assist-dropdown
 
 Todos
@@ -220,6 +234,18 @@ Todos
   - [ ] dropdown 打开后若失去焦点, 就再也无法关闭
 
 ## Plugins
+
+### plugin-heading
+
+> 标题插件
+
+Todos
+
+- [ ] 基础
+  - [x] atx标题, 可通过 `### ` 或 `#3 ` 方式插入标题
+- [x] markdown互转
+- [x] Dropdown item
+- [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
 
 ### plugin-mark
 
@@ -240,18 +266,6 @@ Todos
 - [x] markdown互转
 - [x] Dropdown item
 
-### plugin-heading
-
-> 标题插件
-
-Todos
-
-- [ ] 基础
-  - [x] atx标题, 可通过 `### ` 或 `#3 ` 方式插入标题
-- [x] markdown互转
-- [x] Dropdown item
-- [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
-
 ### plugin-list
 
 > 列表插件
@@ -267,6 +281,32 @@ Todos
 - [x] markdown互转
 - [x] Dropdown item
 - [ ] 首段落插入列表报错(无效应元素) [FIXME](./packages/plugin-list/src/effector.ts#L16)
+
+### plugin-link
+
+> 链接插件
+
+Todos
+
+- [ ] 基础
+  - [x] 识别 `[xxx](http://xxx.com)` 并自动转换为链接
+- [x] markdown互转
+- [x] popup 更新, 跳转链接
+- [x] dropdown 插入链接
+
+### plugin-media
+
+> 媒体插件
+
+Todos
+
+- [ ] 基础
+  - [x] 识别 `![xxx](http://xxx.png)` 并自动转换为媒体(图片/音/视频)
+  - [x] 布局: 左右浮动, 居中; 调整大小
+  - [x] 全屏预览
+- [x] markdown互转
+- [x] popup 调整布局, 删除
+- [x] dropdown 插入媒体
 
 ### plugin-code
 
@@ -286,7 +326,32 @@ Todos
   - [x] alt+上/下 移动代码行
     - [ ] alt+shift+上/下 复制代码行
   - [x] 逐级全选
+- [x] 可渲染 html、latex
 - [x] markdown互转
 - [x] Dropdown item
 - [ ] Popup item (hover 工具栏)
   - [ ] 设置语言, tabSize 等
+
+### plugin-blockquote
+
+> 引用块插件
+
+Todos
+
+- [ ] 基础
+  - [x] 识别 `> ` 并自动转换为引用块
+- [ ] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
+- [ ] markdown互转
+
+### plugin-table
+
+> 表格插件
+
+Todos
+
+- [ ] 基础
+- [ ] markdown互转
+
+### plugin-excalidraw
+
+### plugin-math

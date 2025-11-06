@@ -1,4 +1,7 @@
 
+et-editor {
+  padding: 16px;
+}
 /* 编辑区内置样式 */
 et-body {
   display: block !important;

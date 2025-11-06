@@ -59,7 +59,7 @@ export class EtParagraphElement extends EtParagraph {
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
     if (this.textContent === '') {
       // 空内容段落使用 零宽字符 占位, 防止空段落被忽略
-      // 插入的 零宽字符 会在 `ctx.fromMarkdown` 中调用 `DocumentFragment.normalizeAndCleanZWS` 去除
+      // 插入的 零宽字符 会在 `mdProcessor.fromMarkdown` 中调用 `DocumentFragment.normalizeAndCleanZWS` 去除
       return mdastNode({
         type: 'paragraph',
         children: [mdastNode({

@@ -1,0 +1,78 @@
+
+et-editor,
+:host {
+  --et-bq-color-highlight: var(--et-color-border-3);
+  --et-bq-color-text: var(--et-color-text-mute);
+}
+
+et-bq {
+  margin: 8px 0;
+  padding-left: 16px;
+  border-left: 3px solid var(--et-bq-color-highlight);
+  color: var(--et-bq-color-text);
+}
+
+et-bq[data-type]:not([data-type=""]) {
+  color: unset;
+}
+
+et-bq[data-type="note"] > et-p:first-of-type,
+et-bq[data-type="tip"] > et-p:first-of-type ,
+et-bq[data-type="important"] > et-p:first-of-type,
+et-bq[data-type="warning"] > et-p:first-of-type,
+et-bq[data-type="caution"] > et-p:first-of-type {
+  font-weight: bold;
+  &::before {
+    margin-right: 8px;
+  }
+}
+
+et-bq[data-type="note"] {
+  --et-bq-color-highlight: #227bff;
+}
+et-bq[data-type="note"] > et-p:first-of-type {
+  color: var(--et-bq-color-highlight);    
+  &::before {
+    content: 'ⓘ';
+  }
+}
+
+et-bq[data-type="tip"] {
+  --et-bq-color-highlight: #07a156;
+}
+et-bq[data-type="tip"] > et-p:first-of-type {
+  color: var(--et-bq-color-highlight);
+  &::before {
+    content: '💡';
+  }
+}
+
+et-bq[data-type="important"] {
+  --et-bq-color-highlight: #9771ff;
+}
+et-bq[data-type="important"] > et-p:first-of-type {
+  color: var(--et-bq-color-highlight);
+  &::before {
+    content: '🔔';
+  }
+}
+
+et-bq[data-type="warning"] {
+  --et-bq-color-highlight: #bd7b00;
+}
+et-bq[data-type="warning"] > et-p:first-of-type {
+  color: var(--et-bq-color-highlight);
+  &::before {
+    content: '⚠️';
+  }
+}
+
+et-bq[data-type="caution"] {
+  --et-bq-color-highlight: #f14c56;
+}
+et-bq[data-type="caution"] > et-p:first-of-type {
+  color: var(--et-bq-color-highlight);
+  &::before {
+    content: '🛑';
+  }
+}

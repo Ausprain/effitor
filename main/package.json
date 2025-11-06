@@ -68,6 +68,7 @@
     "@effitor/assist-dropdown": "workspace:*",
     "@effitor/assist-message": "workspace:*",
     "@effitor/assist-popup": "workspace:*",
+    "@effitor/plugin-blockquote": "workspace:*",
     "@effitor/plugin-code": "workspace:*",
     "@effitor/plugin-heading": "workspace:*",
     "@effitor/plugin-link": "workspace:*",

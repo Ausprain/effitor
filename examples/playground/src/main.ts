@@ -20,6 +20,7 @@ import { usePopupAssist } from '@effitor/assist-popup'
 import { useCodePlugin } from '@effitor/plugin-code'
 import { useLinkPlugin } from '@effitor/plugin-link'
 import { useMediaPlugin } from '@effitor/plugin-media'
+import { useBlockquotePlugin } from '@effitor/plugin-blockquote'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 // console.log(css.length)  // 186452
@@ -47,6 +48,7 @@ const editor = new Effitor({
   plugins: [
     useMarkPlugin(),
     useHeadingPlugin(),
+    useBlockquotePlugin(),
     useListPlugin(),
     await useCodePlugin({
       canRenderLangs: ['html', 'latex'],

@@ -5,27 +5,28 @@ import { dom } from '../utils'
 type MdastNode<T extends mdast.Nodes['type']> = Extract<mdast.Nodes, { type: T }>
 type MdastNodeWithChildren<T extends mdast.Nodes['type']> = Omit<MdastNode<T>, 'children'> & { children: mdast.Nodes[] }
 
-/**
- * 一个工具函数，使用ts类型辅助构建mdast节点\
- * FIXME: 这里强制了 children 的类型为 mdast.Nodes[]
- */
-export function mdastNode<T extends mdast.Nodes['type']>(
-  options: T extends mdast.Parents['type'] ? MdastNodeWithChildren<T> : MdastNode<T>
-): MdastNode<T>
-/**
- * 将html节点转为mdast节点, 并将childNodes转为其children (若子节点是效应元素, 则会递归调用子节点的toMdast方法)
- * ```
- *  mdastNode('paragraph', HTMLElement.childNodes, {})
- * ```
- * @param options 指定type的mdast节点的其他参数
- */
-export function mdastNode<T extends mdast.Parents['type']>(
-  type: T,
-  childNodes: ChildNode[] | NodeListOf<ChildNode>,
-  options: Omit<MdastNode<T>, 'type' | 'children' | 'position'>,
-): MdastNode<T>
-
-export function mdastNode<T extends mdast.Nodes['type']>(typeOrOptions: T | MdastNode<T>, childNodes?: ChildNode[] | NodeListOf<ChildNode>, options?: Omit<MdastNode<T>, 'type' | 'children' | 'position'>) {
+export interface CreateMdastNode {
+  /**
+   * 一个工具函数，使用ts类型辅助构建mdast节点\
+   */
+  // FIXME: 这里强行断言了 children 的类型为 mdast.Nodes[]
+  <T extends mdast.Nodes['type']>(
+    options: T extends mdast.Parents['type'] ? MdastNodeWithChildren<T> : MdastNode<T>,
+  ): MdastNode<T>
+  /**
+   * 创建一个mdast节点, 并将其指定childNodes转为该 mdast 节点的children (若子节点是效应元素, 则会递归调用子节点的 toMdast 方法)
+   * ```
+   *  mdastNode('paragraph', el.childNodes, {})  // 最后这个空对象是必须的, 若对应 mdast 节点没有其他选项, 则传入空对象
+   * ```
+   * @param options 指定type的mdast节点的其他参数
+   */
+  <T extends mdast.Parents['type']>(
+    type: T,
+    childNodes: ChildNode[] | NodeListOf<ChildNode>,
+    options: Omit<MdastNode<T>, 'type' | 'children' | 'position'>,
+  ): MdastNode<T>
+}
+export const mdastNode: CreateMdastNode = <T extends mdast.Nodes['type']>(typeOrOptions: T | MdastNode<T>, childNodes?: ChildNode[] | NodeListOf<ChildNode>, options?: Omit<MdastNode<T>, 'type' | 'children' | 'position'>) => {
   return typeof typeOrOptions === 'object'
     ? typeOrOptions
     : {
@@ -34,7 +35,6 @@ export function mdastNode<T extends mdast.Nodes['type']>(typeOrOptions: T | Mdas
         children: htmlChildNodes2Mdast(childNodes ?? [], typeOrOptions),
       }
 }
-export type CreateMdastNode = typeof mdastNode
 
 const htmlBrToMdast = (): mdast.Break => ({ type: 'break' })
 const htmlTextToMdast = (text: Text): mdast.Text => ({ type: 'text', value: text.data })
@@ -59,7 +59,7 @@ export const htmlChildNodes2Mdast = (childNodes: ChildNode[] | NodeListOf<ChildN
     }
     else if (child.nodeName === 'BR') {
       children.push(htmlBrToMdast())
-      if (!~lastBrIndex || lastBrIndex !== i - 1) {
+      if (lastBrIndex < 0 || lastBrIndex !== i - 1) {
         lastBrIndex = i
       }
     }

@@ -5,7 +5,7 @@ import type { Options as TmOptions } from 'mdast-util-to-markdown'
 
 import type { Et } from '../@types'
 import baseCss from '../assets/base.css?raw'
-import defaultCss from '../assets/default.css?raw'
+import builtinCss from '../assets/builtin.css?raw'
 import { defaultConfig, platform } from '../config'
 import { EditorContext } from '../context'
 import { CreateEditorContextOptionsFields } from '../context/EditorContext'
@@ -244,7 +244,7 @@ export class Effitor {
     this.__meta = {
       contextMeta,
       mainEffector,
-      cssText: baseCss + defaultCss + allCtorCssText,
+      cssText: baseCss + builtinCss + allCtorCssText,
       pluginConfigs: pluginConfigs,
       customStyleLinks: [...customStyleLinks],
       hotstringOptions,

@@ -50,7 +50,7 @@ et-editor,
 
   --et-color-text: oklch(10% 0 0);
   --et-color-text-soft: oklab(20% 0 0);
-  --et-color-text-mute: oklch(40% 0 0);
+  --et-color-text-mute: oklch(50% 0 0);
   --et-color-text-disabled: oklch(60% 0 0);
 
   --et-color-caret: #111213;

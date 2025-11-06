@@ -1,21 +1,19 @@
+<p align="center" style="font-style:italic;font-size:2em;margin-bottom:0;"><span style="color:red;">effi</span>cient edi<span style="color:red;">tor</span></p>
 <p align="center">
   <a href="./README.md">English</a> | 
   <a href="./README_zh.md">中文</a>
 </p>
-<p align="center" style="font-style:italic"><span style="color:red;">effi</span>cient edi<span style="color:red;">tor</span></p>
 
 # Effitor
 
-> **语言选择：[English](./README.md) | [中文](./README_zh.md)**
+effitor是一个高性能插件化的web富文本编辑器框架（或库），取名自*efficient editor*，拥抱最新标准和技术，追求极致优雅的编辑体验。
 
-effitor是一个高性能插件化的web富文本编辑器框架，取名自*efficient editor*，拥抱最新标准和技术，追求极致优雅的编辑体验。
-
-> ⚠️ effitor 是一种尝试，它不是一个稳定的编辑器，尚有许多问题待解决和完善。目前仅适配桌面端现代浏览器（chrome，edge，firefox，safari），且不支持协同编辑。
+> ⚠️ effitor 是一种尝试，它不是一个十分稳定的编辑器，尚有许多已知或未知的问题待解决和完善。目前仅适配桌面端现代浏览器（chrome，edge，firefox，safari），且不支持协同编辑。
 
 ## Why Effitor
 
-effitor 是一个追求编辑体验的富文本编辑器框架。它基于`contenteditable`实现，监听原生 DOM 事件，但几乎接管了浏览器对 contenteditable 的所有默认行为（输入法除外），以实现编辑操作的高度定制化。
-在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将长期持续。
+与其他编辑器不同，effitor 是一个以体验优先的富文本编辑器。它基于`contenteditable`实现，但几乎接管了浏览器对 contenteditable 的所有默认行为（输入法除外），以实现编辑操作的高度定制化。
+在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将持续进行。
 
 ### 优秀的性能
 
@@ -139,7 +137,7 @@ bun dev
 
 - 无抽象数据模型，编辑操作采用直接操作DOM方式进行交互
 - 基于`contenteditable`，但接管浏览器所有行为（除输入法输入和剪切板行为）
-- 对齐web最新标准，如：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)等
+- 基于最新web标准，如：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)等
 
 ### 局限
 
@@ -147,7 +145,7 @@ bun dev
 
 同时，effitor通过web标准api直接实现，而浏览器对web标准的实现存在差异，尽管effitor已经考虑并解决绝大多数的边界情况，但不排除个别未考虑到的细微差异，这些差异可能使得编辑器的表现不稳定。
 
-此外，effitor大量使用自定义元素，在可访问性和无障碍方面还需继续完善。
+此外，effitor大量使用自定义元素，在可访问性和无障碍方面有待完善。
 
 ## 文档
 

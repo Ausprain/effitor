@@ -134,11 +134,6 @@ export class CommonHandler {
     if (bodyEl.childNodes.length === 0) {
       return true
     }
-    // 撤回栈为空，不需要支持撤回，直接清空编辑区
-    if (this.commander.stackLength === 0) {
-      bodyEl.textContent = ''
-      return true
-    }
     const removeRange = cr.spanRangeAllIn(bodyEl)
     if (!removeRange) {
       return true
@@ -527,5 +522,55 @@ export class CommonHandler {
       }
       return ctx.commandManager.handle()
     })
+  }
+
+  /**
+   * 清空一个元素内容(如果有), 并插入新内容(节点或片段)
+   * * 该方法不检查效应规则
+   * @param el 要清空并插入内容的元素, 该元素不在编辑区内, 直接返回 false
+   * @param content 要插入的内容(节点或片段), 若片段为空, 则直接返回 false
+   * @param destCaretRange 命令执行后光标位置, 若缺省, 则使用content最后子节点的内末尾; 若为 null, 则命令执行后不更新选区
+   * @returns 是否成功清空并插入内容
+   */
+  emptyElAndInsert(el: HTMLElement, content: Et.Node | Et.Fragment, destCaretRange?: Et.CaretRange | null) {
+    if (!this._ctx.body.isNodeInBody(el)) {
+      return false
+    }
+    const cmds: Et.Command[] = []
+    if (el.hasChildNodes()) {
+      const removeRange = cr.spanRangeAllIn(el)
+      if (!removeRange) {
+        this._ctx.assists.logger?.error('create SpanRange failed while an el has child nodes', 'CommonHandler.emptyAndInsert')
+        return false
+      }
+      cmds.push(
+        cmd.removeContent({ removeRange }),
+      )
+    }
+    if (!dom.isFragment(content)) {
+      cmds.push(cmd.insertNode({ node: content, execAt: cr.caretInStart(el) }))
+    }
+    else {
+      if (!content.hasChildNodes()) {
+        return false
+      }
+      cmds.push(cmd.insertContent({
+        content,
+        execAt: cr.caretInStart(el),
+      }))
+    }
+    if (destCaretRange === void 0) {
+      const lastChild = content.lastChild
+      if (lastChild) {
+        destCaretRange = cr.caretEndAuto(lastChild)
+      }
+      else {
+        destCaretRange = null
+      }
+    }
+    this.commander.push(...cmds)
+    return destCaretRange
+      ? this.commander.handleAndUpdate(destCaretRange)
+      : this.commander.handle()
   }
 }

@@ -3,9 +3,11 @@ import type { Et } from '../@types'
 export interface HotstringAction {
   /**
    * 热字符串触发回调
-   * @param removeInsertedHotstring 移除已输入的热字符串
+   * @param ctx 编辑器上下文
+   * @param hs 热字符串
+   * @param removeInsertedHotstring 移除已输入的热字符串, 不会判断移除热字符串文本后节点是否为空
    */
-  (ctx: Et.EditorContext, removeInsertedHotstring: () => void): void
+  (ctx: Et.EditorContext, hs: string, removeInsertedHotstring: () => Text | null): void
 }
 /**
  * 热字符串类，用于判断输入字符是否匹配热字符串, 匹配后执行相应动作
