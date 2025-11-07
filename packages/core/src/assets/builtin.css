@@ -107,6 +107,10 @@ et-p.etp {
   transition: var(--et-transition-color-scheme);
 }
 
+.et-trans-cs {
+  transition: var(--et-transition-color-scheme);
+}
+
 /* 动画 */
 @keyframes fade-in {
   from {

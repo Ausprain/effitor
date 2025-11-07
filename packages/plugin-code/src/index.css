@@ -25,13 +25,14 @@ et-editor.dark,
   }
 }
 
-et-code.et {
+et-code {
   position: relative;
   margin: 8px 0;
   padding: 0;
   border: 1px solid var(--et-color-border-1);
   border-radius: var(--et-code-radius);
   hyphens: none;
+  transition: var(--et-transition-color-scheme);
 
   /* lang */
   &::before {
@@ -63,6 +64,7 @@ et-code.et {
   max-height: var(--et-code-max-height);
   border-radius: inherit;
   overflow: auto;
+  transition: var(--et-transition-color-scheme);
 }
 .et-code__container {
   position: relative;
@@ -180,7 +182,7 @@ et-code.et {
     z-index: 3;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease-in-out, var(--et-transition-color-scheme);
 
     et-code:hover & {
       opacity: 1;
