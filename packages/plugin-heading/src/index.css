@@ -11,20 +11,26 @@ et-heading {
   line-height: 1.5;
   font-weight: bold;
 
-  &::before {
-    content: "#" attr(data-level);
+  &::before, &::after {
     position: absolute;
     top: var(--semi-line-height);
     left: -8px;
-    translate: -100% -50%;
     color: var(--et-color-hinting);
-    font-size: 1.1rem;
-    /* font-weight: normal; */
     opacity: 0.1;
     transition: opacity 0.2s ease-out;
   }
-  &.caret-in::before,
-  &:hover::before {
+  &::before {
+    content: "#";
+    translate: -100% -50%;
+    font-size: 1.1rem;
+  }
+  &::after {
+    content: attr(data-level);
+    translate: 0 -70%;
+    font-size: 0.7rem;
+  }
+  &.caret-in::before,&.caret-in::after,
+  &:hover::before, &:hover::after {
     opacity: 1;
   }
 }
