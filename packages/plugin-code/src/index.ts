@@ -47,7 +47,24 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
     if (options.sanitizer === void 0) {
       const dp = (await import('dompurify')).default
       if (dp) {
-        sanitizer = (html: string) => dp.sanitize(html)
+        const cfgAllowSMIL = {
+          ADD_TAGS: ['animate'],
+          ADD_ATTR: [
+            'attributeName',
+            'values',
+            'from',
+            'to',
+            'dur',
+            'repeatCount',
+            'calcMode',
+            'keyTimes',
+            'keySplines',
+            'begin',
+            'end',
+            // 'fill', // 注意：这个 fill 是 SMIL 的 fill，不是 CSS fill
+          ],
+        }
+        sanitizer = (html: string) => dp.sanitize(html, options.allowSMIL ? cfgAllowSMIL : {})
       }
       else {
         if (import.meta.env.DEV) {
