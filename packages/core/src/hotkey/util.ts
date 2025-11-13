@@ -35,7 +35,7 @@ export const modKey = (ev: KeyboardEvent) => {
 }
 
 /**
- * 创建一个快捷键操作
+ * 创建一个全局快捷键操作
  * @param group 快捷键所属组别
  * @param title 标题
  * @param hotkey 将绑定的快捷键，使用hotkey函数创建

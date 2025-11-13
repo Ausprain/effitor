@@ -14,6 +14,7 @@ import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { getHotstringManager } from '../hotstring/manager'
 import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
+import { traversal } from '../utils'
 import { Composition } from './Composition'
 import type { EditorContextMeta } from './config'
 import { EditorBody } from './EditorBody'
@@ -482,6 +483,41 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
+  focusToPrevParagraph(toStart = false) {
+    if (!this._focusParagraph) {
+      return
+    }
+    let prevP = traversal.treePrevSibling(this._focusParagraph) as Et.Paragraph | null
+    if (!this.isEtParagraph(prevP)) {
+      prevP = this._focusTopElement?.previousSibling as Et.Paragraph | null
+      if (!prevP) {
+        return
+      }
+    }
+    this.setCaretToAParagraph(prevP, toStart, true)
+  }
+
+  focusToNextParagraph(toStart = true) {
+    if (!this._focusParagraph) {
+      return
+    }
+    let nextP = traversal.treeNextSibling(this._focusParagraph) as Et.Paragraph | null
+    if (!this.isEtParagraph(nextP)) {
+      nextP = this._focusTopElement?.nextSibling as Et.Paragraph | null
+      if (!nextP) {
+        return
+      }
+    }
+    this.setCaretToAParagraph(nextP, toStart, true)
+  }
+
+  /**
+   * 检查光标是否直接在指定效应元素内；当且仅当选区 collapsed 且 focusEtElement 等于 el 时返回 true
+   */
+  isCaretIn(el: Et.EtElement) {
+    return this.selection.isCollapsed && this._focusEtElement === el
+  }
+
   isEtElement(node: Node | null): node is Et.EtElement {
     return !!node && etcode.check(node)
   }
@@ -509,19 +545,37 @@ export class EditorContext implements Readonly<EditorContextMeta> {
 
   /**
    * 创建一个schema段落
-   * @package withBr 新是否带一个 br 或零宽字符 (取决于编辑器配置 `INSERT_BR_FOR_LINE_BREAK`), 默认为 true
+   * @param withBr 新是否带一个 br 或零宽字符 (取决于编辑器配置 `INSERT_BR_FOR_LINE_BREAK`), 默认为 true
    */
   createPlainParagraph(withBr = true): Et.EtParagraphElement {
     const p = this.schema.paragraph.create()
-    if (withBr) {
-      if (this.editor.config.INSERT_BR_FOR_LINE_BREAK) {
-        p.appendChild(document.createElement('br'))
-      }
-      else {
-        p.appendChild(document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE))
-      }
+    return withBr ? this.createElementWithBr(p) : p
+  }
+
+  /**
+   * 创建一个段落元素, 并根据编辑器配置 `INSERT_BR_FOR_LINE_BREAK` 决定是否在段落内插入一个 br 或零宽字符
+   * @param nameOrEl 元素标签名或元素本身
+   */
+  createElementWithBr<T extends HTMLElement | string>(nameOrEl: T): T extends string
+    ? T extends keyof Et.DefinedEtElementMap ? Et.DefinedEtElementMap[T]
+      : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
+        : HTMLElement
+    : T {
+    let el
+    if (typeof nameOrEl === 'string') {
+      el = document.createElement(nameOrEl)
     }
-    return p
+    else {
+      el = nameOrEl
+    }
+    if (this.editor.config.INSERT_BR_FOR_LINE_BREAK) {
+      el.appendChild(document.createElement('br'))
+    }
+    else {
+      el.appendChild(document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE))
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return el as any
   }
 
   /**

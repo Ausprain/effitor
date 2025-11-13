@@ -10,7 +10,7 @@ import type { Et } from '../@types'
 import { platform } from '../config'
 import { Key } from '../hotkey/Key'
 import { CtrlCmd, LineModifier, Mod, WordModifier } from '../hotkey/Mod'
-import { create, modKey } from '../hotkey/util'
+import { create } from '../hotkey/util'
 import { dom, traversal } from '../utils'
 
 let moveToDocumentStart, moveToDocumentEnd, extendToDocumentStart, extendToDocumentEnd
@@ -96,10 +96,10 @@ const ModKeyDownModifySelectionMap: ModKeyActionMap = {
   [create(Key.ArrowRight, LineModifier)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
 
   [create(Key.ArrowUp, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'line')
+    ? checkInRawElStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'line')
     : ctx.selection.collapse(true, true)),
   [create(Key.ArrowDown, Mod.None)]: ctx => (ctx.selection.isCollapsed
-    ? checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'line')
+    ? checkInRawElEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'line')
     : ctx.selection.collapse(false, true)),
   [create(Key.ArrowLeft, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'character')
@@ -232,12 +232,6 @@ const checkAtTextEndToNextNode = (ctx: Et.EditorContext) => {
   return false
 }
 
-const solveMap: ModKeyActionMap = ModKeyDownModifySelectionMap
-
-export const solveKeydownArrow = (ev: Et.KeyboardEvent, ctx: Et.EditorContext) => {
-  const fn = solveMap[modKey(ev)]
-  if (typeof fn === 'function' && fn(ctx)) {
-    ev.preventDefault()
-    return true
-  }
+export const solveKeydownArrow = (ctx: Et.EditorContext) => {
+  return ctx.hotkeyManager.listenEffect(ModKeyDownModifySelectionMap)
 }

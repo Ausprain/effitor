@@ -394,6 +394,20 @@ export class EditorBody {
   }
 
   /**
+   * 根据小写元素名, 向上（包括自身）找第一个`localName`元素, 不存在返回 null
+   * * 查找不会超出编辑区(et-body), 返回结果也不会是编辑区根节点(et-body)
+   */
+  findInclusiveParentByName(node: Et.NodeOrNull, localName: string) {
+    while (node && node !== this.el) {
+      if (node.localName === localName) {
+        return node
+      }
+      node = node.parentNode
+    }
+    return null
+  }
+
+  /**
    * 向上（包括自身）找第一个`Et.EtElement`, 无效应元素或节点不在编辑区(ctx.body)内, 将返回 null\
    * 使用"鸭子类型",  Effitor 内拥有`ETCODE`Symbol属性的元素被视为效应元素
    */

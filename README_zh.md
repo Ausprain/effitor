@@ -1,5 +1,28 @@
-<p align="center" style="font-style:italic;font-size:2em;margin-bottom:0;"><span style="color:red;">effi</span>cient edi<span style="color:red;">tor</span></p>
-<p align="center">
+<svg width="100%" height="50" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9921e7">
+        <animate 
+          attributeName="stop-color" 
+          values="#9921e7; #6671e7; #9921e7;"
+          keyTimes="0; 0.5; 1"
+          dur="2s" 
+          repeatCount="indefinite" />
+      </stop>
+      <stop offset="100%" stop-color="#6671e7">
+        <animate 
+          attributeName="stop-color" 
+          values="#6671e7; #9921e7; #6671e7;" 
+          keyTimes="0; 0.5; 1"
+          dur="2s" 
+          repeatCount="indefinite" />
+      </stop>
+    </linearGradient>
+  </defs>
+  <text x="50%" y="88%" text-anchor="middle" font-size="36" font-style="italic"><tspan fill="url(#textGradient)">effi</tspan><tspan fill="currentColor" font-size="33">cient edi</tspan><tspan fill="url(#textGradient)">tor</tspan></text>
+</svg>
+<!-- <p style="margin-bottom:0;text-align:center;font-style:italic;font-size:2.2em;"><span style="background: linear-gradient(79deg, #9921e7 0%, #6671e7 25%, #9921e7 50%, #6671e7 75%, #9921e7 100%);background-clip: text;text-shadow: none;padding:0 8px;animation: gradient-animation 2s ease-in-out infinite;"><span style="color: transparent;">effi</span>cient edi<span style="color: transparent;">tor</span><span></p> -->
+<p style="margin-bottom:2em;text-align:center;">
   <a href="./README.md">English</a> | 
   <a href="./README_zh.md">中文</a>
 </p>
@@ -12,8 +35,11 @@ effitor是一个高性能插件化的web富文本编辑器框架（或库），�
 
 ## Why Effitor
 
-与其他编辑器不同，effitor 是一个以体验优先的富文本编辑器。它基于`contenteditable`实现，但几乎接管了浏览器对 contenteditable 的所有默认行为（输入法除外），以实现编辑操作的高度定制化。
-在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将持续进行。
+与其他编辑器不同，effitor 是一个以编辑效率和体验优先的富文本编辑器，正如它名字的由来：_efficient editor_。它基于`contenteditable`，使用最基础的 DOM 操作实现，并几乎接管了浏览器对 contenteditable 的所有默认行为（输入法除外），以实现编辑操作的高度定制化。
+
+如果你不需要拼写检查、自动补全等功能，也不需要特别严谨的文档结构，只是希望能以自己喜欢的编辑方式惬意地记录一些内容，那么 effitor 很适合你。因为它很简单，没有抽象的结构，你只需要熟悉基础的 DOM 操作，就可以很容易地通过 effitor 构建独属于你自己的编辑器。或者，你满意 effitor 的默认配置，可以直接“开箱即用”。
+
+此外，在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将持续进行。
 
 ### 优秀的性能
 
@@ -45,6 +71,22 @@ effitor 内置了热字符串功能，你可以通过配置来定义自己的热
 但在 effitor，我们提供了一个更优雅的解决方案，当你按下\`键时却输入了`·`时，你只需要再按一下空格，即可将`·`替换为\`。
 类似的还有其他字符，如`【`转为`[`，`！`转为`!`等，只需要追加一个空格就可以完成。
 而如果你不喜欢多按一下空格，也可以通过配置，让编辑器插入全角字符时自动替换为对应的半角字符，或完全关闭这项功能。
+
+### 适应语言的光标跳跃控制
+
+编辑文档时，我们可能经常使用 alt+左/右方向键来切换光标位置以跳过一个单词，但通常只能识别半角标点符号，且无法判断非拉丁语言的单词边界。浏览器底层帮我们实现了，即会根据当前浏览器语言来判断单词边界。而 effitor 将这一功能集成到了编辑器里，你可以在编辑器内设置指定语言，然后就可以在编辑器中畅快地跳过一个单词了。
+
+### 一些我们认为好的体验
+
+- 系统级光标选区控制能力
+  - cmd/ctrl+↑/↓ 光标跳到文档开头/末尾
+  - cmd/alt+←/→ 光标跳到行首/行尾
+  - opt/ctrl+←/→ 光标跳过一个单词
+  - 以上+shift 则变为扩展选区，而非移动光标
+- OneNote 的逐级全选
+- VS Code 的部分“编辑习惯”
+  - ctrl/cmd+x 剪切当前行
+  - alt/opt+↑/↓ 移动行（段落）
 
 ## 安装
 

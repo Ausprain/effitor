@@ -45,7 +45,6 @@ import listCss from './index.css?raw'
 
 export { EtListElement, EtListItemElement }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ListPluginOptions {}
 
 export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPluginSupportInline => {

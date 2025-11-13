@@ -118,7 +118,7 @@ class EtParagraphElement extends EffectElement {
 编辑器内的每个操作，都是对效应元素及其后代节点的操作。每个操作前后，编辑器都会更新上下文，上下文记录了当前光标/选区位置所处的效应元素（`focusEtElement & commonEtElement`），编辑器会根据该效应元素，来决定下一次编辑操作如何执行。
 
 > [!IMPORTANT]
-> 效应元素的`etCode`属性(即`ETCODE`)是一个`symbol`属性，由编辑器内部维护。在开发过程中，需要留意，**_测试时不要混杂开发环境代码和生产环境代码_**（这通常取决于项目的目录结构和 import 的导入方式，不同的导入方式以及 tsconfig 配置，vite 可能会从`src`源码中或`dist`产物中导入），因为两份代码所创建的`ETCODE`是不同的，虽然在控制台输出时两个都是`Symbol("ETCODE")`，但其对应的是两个不同的Symbol对象。
+> 效应元素的`etCode`属性(即`ETCODE`)是一个`symbol`属性，由编辑器内部维护。在开发过程中，需要留意，**_测试时不要混杂开发环境代码和生产环境代码_**（这通常取决于项目的目录结构和 import 的导入方式，不同的导入方式以及 tsconfig 或 vite 配置，vite 可能会从`src`源码中或`dist`产物中导入），因为两份代码所创建的`ETCODE`是不同的，虽然在控制台输出时两个都是`Symbol("ETCODE")`，但其对应的是两个不同的Symbol对象。
 > 而效应码工具`etcode`（在编辑器内部广泛使用），使用指定的那个`ETCODE`来检查效应元素，如果某个效应元素上的`ETCODE`属性与指定的`ETCODE`不同，`etcode.check`会认为它不是效应元素，从而导致意外的测试结果。
 > 这通常不会遇到，但需要在此强调。因为在不知情的情况下遇到该问题，可能 debug 都无从下手。
 
@@ -242,27 +242,80 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 效应器上下文`ectx`是一个编辑器全局对象，通常情况下，它只在可内联效应器内被需要使用。
 因为开启效应器内联后，插件效应器回调函数无法引用外部变量，需要将外部变量绑定到`ectx`上，通过`ectx[scope].xxx`访问。
 
+> [!TIP]
+> 「效应器上下文」起初只是为了解决开启效应器内联后无法引用外部变量的问题。现在你可以将其当做一个仓库，在插件的任何地方存储和访问数据。
+>
+> ```ts
+> import { useEffectorContext } from "@effitor/core";
+> // 变量名必须使用 `ectx`，否则在内联效应器中找不到该变量
+> // useEffectorContext 每次返回的都是同一个只读对象， 但 ts 会根据传入的参数推导其返回值的类型
+> export const ectx = useEffectorContext("$table_ctx", {
+>   tabToNextCellOrInsertNewColumn(ctx, anchorTc) {
+>     // snippet
+>   },
+>   shiftTabToNextCellOrInsertNewColumn(ctx, anchorTc) {
+>     // snippet
+>   },
+> });
+>
+> export const tableEffector: Et.EffectorSupportInline = {
+>   inline: true,
+>   beforeKeydownSolver: {
+>     // 可内联效应器的 Solver 必须使用箭头函数
+>     Tab: (ev, ctx) => {
+>       if (!ctx.schema.tableCell.is(ctx.commonEtElement)) {
+>         return false;
+>       }
+>       const doTab = ev.shiftKey
+>         ? ectx.$table_ctx.shiftTabToNextCellOrInsertNewColumn
+>         : ectx.$table_ctx.tabToNextCellOrInsertNewColumn;
+>       doTab(ctx, ctx.commonEtElement);
+>       return true;
+>     },
+>   },
+> };
+> ```
+
 ### 插件上下文
 
 插件上下文`pctx`是一个挂在`编辑器上下文`上的对象，通常情况下，插件将自身的配置信息或工具绑定在`pctx`上，使得插件能够在编辑器各个生命周期阶段通过`ctx.pctx`访问到想要的信息。
 
-- 与效应器上下文`ectx`的区别\
-  `pctx`与`ectx`最大的区别在于，`ectx`是全局唯一的，而`pctx`在每个编辑器上下文实例上都有一份。
-  效应器上下文在插件代码被执行时创建，而插件上下文仅在插件被注册时创建到指定编辑器上下文实例中。
-  简言之，当你拥有多个Effitor编辑器实例时，每个实例使用的`ectx`指向内存里的同一个对象，而`pctx`则在每个实例上各有一份。
+```ts
+export interface EditorPluginContext {
+  [k: string]: any;
+}
+interface EditorContext {
+  pctx: EditorPluginContext;
+}
+```
+
+> [!NOTE] 与效应器上下文`ectx`的区别
+> `pctx`与`ectx`最大的区别在于，`ectx`是全局唯一的，而`pctx`在每个编辑器上下文实例上都有一份。
+> 效应器上下文在插件代码被执行时创建，而插件上下文仅在插件被注册时创建到指定编辑器上下文实例中。
+> 简言之，当你拥有多个Effitor编辑器实例时，每个实例使用的`ectx`指向内存里的同一个对象，而`pctx`则在每个实例上各有一份。
 
 # 插件化
 
-每个effitor插件，都是效应器、效应元素与效应处理器的集合。插件必须至少有一个效应器才会有效。
+effitor的核心仅提供一套处理 DOM 操作的 API，并实现基础的文本操作；“富文本”则必须通过插件实现。每个effitor插件，都是效应器、效应元素与效应处理器的组合。一般来说，插件应至少有一个效应器。
 
 effitor的插件分两类：助手插件（assist）和内容插件（plugin）。
 
 ## 助手插件 assist
 
-助手插件通常不携带效应元素，并最终挂载到编辑器上下文的assists属性上，供其他插件使用，或实现特定的编辑器功能，如工具栏、悬浮菜单等。
+助手插件通常不携带效应元素，并最终挂载到编辑器上下文的 assists 属性上，供其他插件使用，或实现特定的编辑器功能，如工具栏、悬浮菜单等。
+
+```ts
+export interface EditorAssists {
+  [k: string]: any;
+}
+interface EditorContext {
+  assists: EditorAssists;
+}
+```
 
 内置的助手有：
 
+- [ ] `assist-ai`：AI 助手
 - [x] `assist-counter`：字数统计
 - [x] `assist-dialog`：对话框
 - [x] `assist-dropdown`：下拉菜单

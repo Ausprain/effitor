@@ -107,13 +107,18 @@ export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
   // 插入相关
   [create(Key.Enter, Mod.None)]: 'insertParagraph',
   [create(Key.Enter, Mod.Shift)]: 'insertLineBreak',
+  [create(Key.Enter, CtrlCmd)]: (ctx) => {
+    const tc = ctx.selection.getTargetCaret()
+    return tc
+      ? ctx.commonHandler.appendParagraph(tc, { topLevel: false })
+      : false
+  },
   // cmd+opt+enter / ctrl+alt+enter 无视光标位置, 在当前顶层段落后边追加一个普通段落
   [create(Key.Enter, CtrlCmd | Mod.AltOpt)]: (ctx) => {
     const tc = ctx.selection.getTargetCaret()
-    if (!tc) {
-      return false
-    }
-    return ctx.commonHandler.appendParagraph(tc, { topLevel: true })
+    return tc
+      ? ctx.commonHandler.appendParagraph(tc, { topLevel: true })
+      : false
   },
   // TODO ...
 }

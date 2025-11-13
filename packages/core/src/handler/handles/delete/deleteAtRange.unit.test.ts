@@ -48,14 +48,18 @@ describe('removeInSameParagraph', () => {
     const ctx = editor.context as Et.UpdatedContext
     const p = editor.bodyEl.children[0] as Et.EtParagraphElement
     const b = p.children[0] as any
+    // '<et-p>Hello A78<b>bo^ld<i>I123</i>D|12</b>B12</et-p>'
     ctx.setSelection(cr.range(b.firstChild, 2, b.lastChild, 1))
     expect(ctx.selection.commonAncestor === b).toBe(true)
     expect(ctx.selection.commonAncestor === ctx.body.findCommonAncestor(b.firstChild, b.lastChild)).toBe(true)
     expect(removeInSameParagraph(ctx, ctx.selection.getTargetRange()!, p)).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
-    // 原本的b 已经被删除, 成为 orphan 节点保存在命令中
-    expect(b.isConnected).toBe(false)
-    expect(b.innerHTML).not.toBe('bo12')
+    // ~~原本的b 已经被删除, 成为 orphan 节点保存在命令中~~
+    // expect(b.isConnected).toBe(false)
+    // expect(b.innerHTML).not.toBe('bo12')
+    // 不应删除, 应保留
+    expect(b.isConnected).toBe(true)
+    expect(b.innerHTML).toBe('bo12')
     expect(p.innerHTML).toBe('Hello A78<b>bo12</b>B12')
   })
   test('start, end are same but not #text', async () => {

@@ -52,6 +52,7 @@ const editor = new Effitor({
     useListPlugin(),
     await useCodePlugin({
       canRenderLangs: ['html', 'latex'],
+      allowSMIL: true,
     }),
     useLinkPlugin(),
     useMediaPlugin(),

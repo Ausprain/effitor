@@ -280,6 +280,7 @@ export abstract class EffectElement
    * 定义该效应元素可以从哪些原生 html 元素转化而来\
    * 处理粘贴的 html 内容时, 会依据效应元素类注册的顺序, 依次从此列表中获取转换器,
    * 将 html 元素转为效应元素; 若未配置或处理失败, 则将原 html 元素转为纯文本后插入
+   * * `@internal-link`{@link EffectElement.fromNativeElementTransformerMap `EffectElement.fromNativeElementTransformerMap`}
    */
   static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap
 
@@ -337,7 +338,7 @@ export abstract class EffectElement
   abstract toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult
   /**
    * `mdast`处理器映射，定义`mdast`节点如何转为`html`节点，***无需手动处理后代节点***
-   * * `@link`{@link EffectElement.fromMarkdownHandlerMap `EffectElement.fromMarkdownHandlerMap`}
+   * * `@internal-link`{@link EffectElement.fromMarkdownHandlerMap `EffectElement.fromMarkdownHandlerMap`}
    * * 若处理器返回一个`html`节点，并且当前`mdast node`有`children`属性，则会继续处理其后代节点;
    *   并将处理得到的节点插入到该`html`节点的`childNodes`中
    * * 若注册的`EtElement`中有多个定义了相同节点的解析方式, 则按插件注册顺序依次处理，直到处理成功为止
@@ -350,12 +351,12 @@ export abstract class EffectElement
   /**
    * mdast节点转换器(对节点原地修改), 当且仅当返回 true 时终止后续transformer对该节点的处理;
    * 转换器会在toMarkdown的最后阶段（序列化为字符串前）执行，对mdast树进行修改
-   * * `@link`{@link EffectElement.toMarkdownTransformerMap `EffectElement.toMarkdownTransformerMap`}
+   * * `@internal-link`{@link EffectElement.toMarkdownTransformerMap `EffectElement.toMarkdownTransformerMap`}
    */
   static readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap
   /**
    * 定义自定义节点的处理逻辑，将mdast节点转为md字符串, 即toMarkdown最后阶段
-   * * `@link`{@link EffectElement.toMarkdownHandlerMap `EffectElement.toMarkdownHandlerMap`}
+   * * `@internal-link`{@link EffectElement.toMarkdownHandlerMap `EffectElement.toMarkdownHandlerMap`}
    * * 该定义是唯一的, 后来的会覆盖前面定义的
    * * 自定义mdast节点
    * ```ts

@@ -14,6 +14,9 @@ et-body {
 }
 et-body.selection-all {
   background-color: var(--et-color-selection-all);
+  &::selection {
+    background: none;
+  }
 }
 
 et-p.etp {

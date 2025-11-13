@@ -1,6 +1,6 @@
 {
   "name": "@effitor/plugin-heading",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.1.0",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "editor",

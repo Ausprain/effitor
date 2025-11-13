@@ -102,14 +102,16 @@ export const removeInSameParagraph = (
     )
   }
   // 扩大删除范围, 让range边缘的节点整体删除, 否则破坏 DOM 结构, 无法撤回
-  let startExpandNode = targetRange.startAncestor
-  let endExpandNode = targetRange.endAncestor
-  // 选区公共祖先不是段落, 且公共祖先没有与选区零相交的子节点
-  if (currP !== targetRange.commonAncestor
-    && !startExpandNode.previousSibling && !endExpandNode.nextSibling
-  ) {
-    startExpandNode = endExpandNode = targetRange.commonAncestor
-  }
+  const startExpandNode = targetRange.startAncestor
+  const endExpandNode = targetRange.endAncestor
+  // ~~选区公共祖先不是段落, 且公共祖先没有与选区零相交的子节点~~
+  // 起初这么做的目的, 是为了删除时将整个 commonAncestor 删除, 而不是零碎的删除其子节点
+  // 后来有了 SpanRange, 不整个删除也挺好, 还可以省内存
+  // if (currP !== targetRange.commonAncestor
+  //   && !startExpandNode.previousSibling && !endExpandNode.nextSibling
+  // ) {
+  //   startExpandNode = endExpandNode = targetRange.commonAncestor
+  // }
   return expandRemoveInsert(
     ctx, targetRange, startExpandNode, endExpandNode, null, true, true,
   )

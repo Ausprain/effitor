@@ -58,7 +58,8 @@ export interface MediaPluginContext {
      * 以及`targetEl.mediaState`判断媒体状态`(expanded | center | float-left | float-right)`
      */
     beforeShow: (
-      ctx: Et.EditorContext, targetEl: IEtMediaElement, contentEl: HTMLElement, items: PopupItem<IEtMediaElement>[]
+      ctx: Et.EditorContext, targetEl: IEtMediaElement,
+      contentEl: HTMLElement, items: PopupItem<IEtMediaElement>[],
     ) => TrueOrVoid
   }
   readonly image: Omit<ImageOptions, 'exts'> & { type: MediaType.Image, exts: Set<string>, maxSize: number }
@@ -151,17 +152,7 @@ export interface VideoOptions extends IMediaOptions, Pick<VideoUrlMetadata, 'con
   exts?: string[] | ('mp4' | 'webm')[]
   onfileselected?: (files: File[]) => CreateVideoOptions[]
 }
-export interface MediaOptions {
-  /** 通用资源url映射; 若图片/音/视频的url映射规则不同, 应单独配置 */
-  urlMapping?: Et.MdUrlMapping
-  /** hover media效应元素时会显示popup选项, 可通过此配置对popup的功能进行自定义 */
-  popupOptions?: Required<Et.EditorPluginContext>['$media_ctx']['popupOptions']
-  image: ImageOptions | true
-  audio?: AudioOptions | true
-  video?: VideoOptions | true
-}
-type EtElement = Et.EtElement
-export interface IEtMediaElement extends EtElement {
+export interface IEtMediaElement extends Et.EtElement {
   mediaState: MediaState
   mediaType: MediaType
 }

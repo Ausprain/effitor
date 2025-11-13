@@ -36,6 +36,7 @@ export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.Edito
     name: '@effitor/plugin-blockquote',
     cssText: cssText,
     effector: blockquoteEffector,
+    elements: [EtBlockquoteElement],
     register(ctxMeta, setSchema, mountEtHandler) {
       setSchema({
         blockquote: EtBlockquoteElement,

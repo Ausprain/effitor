@@ -30,8 +30,8 @@ export const removeNodesAndChildlessAncestorAndMergeSiblings = (
 ) => {
   if (startNode === endNode) {
     startNode = ancestorUnder
-      ? traversal.outermostAncestorWithSelfAsOnlyChildButUnder(startNode, ancestorUnder)
-      : traversal.outermostAncestorWithSelfAsOnlyChild(startNode)
+      ? traversal.outermostAncestorWithSelfAsOnlyChildButUnder(startNode, ancestorUnder, true)
+      : traversal.outermostAncestorWithSelfAsOnlyChild(startNode, true)
     return removeNodesAndMergeSiblingsIfCan(ctx, startNode, startNode)
   }
   if (!startNode.parentNode || startNode.parentNode !== endNode.parentNode) {
@@ -47,8 +47,8 @@ export const removeNodesAndChildlessAncestorAndMergeSiblings = (
     else {
       // 连带删除空祖先
       parentNode = ancestorUnder
-        ? traversal.outermostAncestorWithSelfAsOnlyChildButUnder(parentNode, ancestorUnder)
-        : traversal.outermostAncestorWithSelfAsOnlyChild(parentNode)
+        ? traversal.outermostAncestorWithSelfAsOnlyChildButUnder(parentNode, ancestorUnder, true)
+        : traversal.outermostAncestorWithSelfAsOnlyChild(parentNode, true)
       return removeNodesAndMergeSiblingsIfCan(ctx, parentNode, parentNode)
     }
   }

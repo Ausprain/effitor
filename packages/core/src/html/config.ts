@@ -6,9 +6,10 @@ export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement>
    * @param parent 未来父节点(这是只读的), 当前父节点可通过 el.parentNode 取得
    * @returns
    * - `null`, 处理"失败", 交由下一个插件
-   * - `EffectElement`, 处理成功, 使用该效应元素替换当前 html 元素, 并终止后续插件对该节点的转换
    * - `DocumentFragment`, 处理成功, 但该 html 元素不对应具体的效应元素, 仍需处理其后代; 即丢弃
-   *   该 html 节点, 直接转换其子节点然后插入 parent 中
+   *    该 html 节点, 直接转换其子节点然后插入 parent 中
+   * - `EffectElement`, 处理成功, 使用该效应元素替换当前 html 元素, 并终止后续插件对该节点的转换;
+   *    但该节点的后代, 交由调用者处理
    * - `()=>EffectElement`, 处理成功, 并接管后代处理, 即当前 html 节点及其后代转换为以该返回函数
    *   返回的效应元素为根的子树
    */

@@ -1,3 +1,4 @@
+export type { ModKeyDownEffectMap } from './builtin'
 export type { HotkeyAction as Action, ActionGroupMap_ as ActionGroupMap } from './config'
 export { HotkeyManager as Manager } from './HotkeyManager'
 export { Key } from './Key'

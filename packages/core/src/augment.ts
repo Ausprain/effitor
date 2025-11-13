@@ -25,7 +25,6 @@ declare global {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface EventTarget extends Et.EtCodeTarget { }
   interface Text {
     /** 文本节点使用.data, 不要使用.textContent; 前者比后者快 1 倍 */

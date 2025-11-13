@@ -1,6 +1,12 @@
 import type { Et } from '@effitor/core'
 
-import { MEDIA_ET_CODE, type MediaOptions, MediaPluginContext, MediaType } from './config'
+import type {
+  AudioOptions,
+  ImageOptions,
+  MediaPluginContext,
+  VideoOptions,
+} from './config'
+import { MEDIA_ET_CODE, MediaType } from './config'
 import { mediaEffector } from './effector'
 import { EtAudioElement } from './EtAudioElement'
 import { EtImageElement } from './EtImageElement'
@@ -32,6 +38,16 @@ const defaultOptions = {
   },
 } as const
 
+interface MediaOptions {
+  /** 通用资源url映射; 若图片/音/视频的url映射规则不同, 应单独配置 */
+  urlMapping?: Et.MdUrlMapping
+  /** hover media效应元素时会显示popup选项, 可通过此配置对popup的功能进行自定义 */
+  popupOptions?: Required<Et.EditorPluginContext>['$media_ctx']['popupOptions']
+  image: ImageOptions | true
+  audio?: AudioOptions | true
+  video?: VideoOptions | true
+}
+
 /**
  * 使用媒体插件, 含图片、音频、视频
  * * 此插件在调整资源尺寸的过程中, 会对document.onmousedown/move/up属性赋值, 注意避免冲突
@@ -42,6 +58,13 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
     name: '@effitor/plugin-media',
     cssText,
     effector: mediaEffector,
+    elements: [
+      EtImageElement,
+      ...[
+        options?.audio ? EtAudioElement : undefined,
+        options?.video ? EtVideoElement : undefined,
+      ].filter(el => !!el),
+    ],
 
     register(ctxMeta, setSchema, mountEtHandler) {
       const media: Mutable<MediaPluginContext> = { MEDIA_ET_CODE: MEDIA_ET_CODE } as Mutable<MediaPluginContext>

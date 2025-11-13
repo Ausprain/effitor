@@ -84,6 +84,8 @@ export const enum CssClassEnum {
   BgItem = 'bg-item',
   /** 主题背景按钮, 具有hover/active/selected状态主题背景色交互 */
   ThemeItem = 'theme-item',
+  /** 添加此类的元素在亮暗模式切换时，其背景色/文本颜色/边框颜色将拥有过渡效果 */
+  TransitionColorScheme = 'et-trans-cs',
 }
 
 /**
@@ -108,6 +110,8 @@ export const enum EtTypeEnum {
   Embedment = 1 << 7,
   /** 含此效应的效应元素在创建时会设置contenteditable=false */
   Uneditable = 1 << 8,
+  /** 允许内容为空, 如`<td></td>` */
+  AllowEmpty = 1 << 9,
   // List = 1 << 9,
   // ListItem = 1 << 10,
   // Table = 1 << 11,
@@ -119,5 +123,11 @@ export const enum EtTypeEnum {
    * 若当前效应元素后边没有内容, 则会依据当前效应元素是否为块节点, 而自动插入段落或#text节点
    */
   CaretOut = EtTypeEnum.RichText | EtTypeEnum.Component,
+  /**
+   * 不参与连带删除\
+   * 删除内容时，会判断其父节点是否为空，为空则连带删除；拥有此联合类型中其中一个类型的效应元素，
+   * 不参与连带删除。
+   */
+  NotJointDeletion = EtTypeEnum.Paragraph | EtTypeEnum.AllowEmpty,
 }
-export type EtType = Omit<typeof EtTypeEnum, 'CaretOut'>
+export type EtType = Omit<typeof EtTypeEnum, 'CaretOut' | 'NotJointDeletion'>

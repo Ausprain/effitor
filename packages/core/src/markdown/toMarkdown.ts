@@ -18,7 +18,7 @@ export interface CreateMdastNode {
    * ```
    *  mdastNode('paragraph', el.childNodes, {})  // 最后这个空对象是必须的, 若对应 mdast 节点没有其他选项, 则传入空对象
    * ```
-   * @param options 指定type的mdast节点的其他参数
+   * @param options 指定type的mdast节点的其他参数, 参考`mdast`库，或在 [astexplorer.net](https://astexplorer.net/) 查看
    */
   <T extends mdast.Parents['type']>(
     type: T,

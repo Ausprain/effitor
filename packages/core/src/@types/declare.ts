@@ -46,7 +46,7 @@ export interface HTMLInputElementWithTypeText extends HTMLInputElement {
 
 /**
  * 自定义EtElement设置属性
- * @extendable
+ * @augmentable
  */
 export interface ElAttrs {
   part: string

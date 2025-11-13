@@ -20,7 +20,7 @@ export abstract class EtComponent extends EtParagraph {
     return false
   }
 
-  toNativeElement() {
+  toNativeElement(this: Et.EffectElement, _ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
     return document.createElement('div')
   }
 

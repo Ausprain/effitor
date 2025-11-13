@@ -31,11 +31,12 @@ export default defineConfig(
   // typescript
   {
     files: ['./{example,packages,main}/**/*.ts'],
-    // languageOptions: {
-    //   parserOptions: {
-    //     project: './tsconfig.json',
-    //   },
-    // },
+    languageOptions: {
+      parserOptions: {
+        parser: '@typescript-eslint/parser',
+        // project: './tsconfig.json',
+      },
+    },
     extends: [
       importPlugin.flatConfigs.recommended,
       importPlugin.flatConfigs.typescript,
@@ -71,6 +72,15 @@ export default defineConfig(
       '@typescript-eslint/prefer-function-type': 'off',
       // 有些函数重载类型声明合并在一起影响阅读和理解, 甚至类型推断, 如 `addEventListener`
       '@typescript-eslint/unified-signatures': 'off',
+      // 有些 interface 是为了提供给插件进行类型增强的，使用 type 无法进行类型增强
+      '@typescript-eslint/consistent-indexed-object-style': 'off',
+      '@typescript-eslint/no-empty-object-type': [
+        'error',
+        {
+          // 允许空接口
+          allowInterfaces: 'always',
+        },
+      ],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

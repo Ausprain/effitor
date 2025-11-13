@@ -10,6 +10,8 @@ import { EffectElement } from './EffectElement'
 export abstract class EtParagraph extends EffectElement {
   static readonly etType = EtTypeEnum.Paragraph | EtTypeEnum.Block
 
+  static create() { return document.createElement(this.elName) as EtParagraph }
+
   /** 当前段落内部可编辑开始边界 */
   abstract innerStartEditingBoundary(): Et.EtCaret
 

@@ -1,0 +1,114 @@
+et-editor, :host {
+  --et-table-border-color: #888;
+  --et-table-border-radius: 8px;
+  --et-table-odd-row-bg-color: #f7f8f9;
+}
+et-editor.dark, :host.dark {
+  --et-table-odd-row-bg-color: #171819;
+}
+
+/* 等宽表格 */
+et-table[data-even="1"] {
+  table-layout: fixed;
+  & > et-tr > et-tc {
+    width: 100%;
+  }
+}
+
+/* 表格对齐 */
+et-table[data-align="left"] {
+  text-align: left;
+}
+et-table[data-align="right"] {
+  text-align: right;
+}
+et-table[data-align="center"] {
+  text-align: center;
+}
+
+/* 表格标题 */
+et-table[data-head="r"] {
+  & > et-tr:first-child {
+    font-weight: bold;
+  }
+}
+et-table[data-head="c"] {
+  & > et-tr > et-tc:first-child {
+    font-weight: bold;
+  }
+}
+
+et-table {
+  display: table !important;
+  /* collapse 会导致 border-radius 失效；但不 collapse 又太丑了 */
+  /* border-collapse: collapse; */
+  /* border-spacing: 0; */
+  /* table-layout: fixed; */
+  width: 100%;
+  margin-block: 8px;
+  overflow: auto;
+  border: 1px solid var(--et-table-border-color);
+  /* border-radius: 8px; */
+
+  &:has(> :only-child) {
+    border-radius: 4px;
+    --et-table-border-radius: 4px;
+  }
+  &:has(> :nth-child(2)) {
+    border-radius: 6px;
+    --et-table-border-radius: 6px;
+  }
+  &:has(> :nth-child(3)) {
+    border-radius: 8px;
+    --et-table-border-radius: 8px;
+  }
+}
+
+et-tr {
+  display: table-row !important;
+
+  &:nth-child(odd) {
+    background-color: var(--et-table-odd-row-bg-color);
+    transition: var(--et-transition-color-scheme);
+  }
+  &:first-child {
+    border-top-left-radius: var(--et-table-border-radius);
+    border-top-right-radius: var(--et-table-border-radius);
+  }
+  &:last-child {
+    border-bottom-left-radius: var(--et-table-border-radius);
+    border-bottom-right-radius: var(--et-table-border-radius);
+  }
+
+  .selection-all & {
+    background-color: transparent;
+    transition: none;
+  }
+}
+
+et-tc {
+  display: table-cell !important;
+  padding: 6px;
+  line-height: 1.5;
+  /* 设置最小高度, 避免空内容时高度坍缩; 表格中使用 height 而非 min-height, 后者无效 */
+  height: calc(1.5em + 12px);
+
+  &:not(:first-child) {
+    border-inline-start: 1px solid var(--et-table-border-color);
+  }
+  et-tr:not(:first-child) > & {
+    border-block-start: 1px solid var(--et-table-border-color);
+  }
+  et-tr:first-child > &:first-child {
+    border-top-left-radius: var(--et-table-border-radius);
+  }
+  et-tr:first-child > &:last-child {
+    border-top-right-radius: var(--et-table-border-radius);
+  }
+  et-tr:last-child > &:first-child {
+    border-bottom-left-radius: var(--et-table-border-radius);
+  }
+  et-tr:last-child > &:last-child {
+    border-bottom-right-radius: var(--et-table-border-radius);
+  }
+}

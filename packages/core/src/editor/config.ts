@@ -60,9 +60,8 @@ export interface ParagraphCreator {
 /**
  * 编辑器设置, 类似于编辑器回调, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \
  * 其最大的意义是, 在编辑器创建之后, 在不重启编辑器的情况下更改编辑器及其插件的配置
- * @extendable
+ * @augmentable
  */
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 export interface EditorSettings {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: (...args: any[]) => any
@@ -136,6 +135,10 @@ export interface EditorPlugin {
   readonly effector: Effector | Effector[]
   /**
    * 自定义的效应元素列表
+   * * ⚠️注意：虽然在 register 函数中使用setSchema设定的效应元素也会被注册，但强烈建议将插件
+   *     需要注册的效应元素全部声明在此处；因为 html/markdown 处理时，会按效应元素注册顺序依次
+   *     应用其声明的处理器，而 schema 中的元素默认最后注册。如果仅在setSchema中声明，最终的
+   *     html/markdown 处理结果可能与预期不符。
    */
   readonly elements?: EffectElementCtor[]
   /** 额外的样式css文本 */

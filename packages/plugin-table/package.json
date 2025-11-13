@@ -1,0 +1,38 @@
+{
+  "name": "@effitor/plugin-table",
+  "version": "0.2.0-beta.1.0",
+  "description": "A web editor based on `Input Events Level 2`",
+  "keywords": [
+    "editor",
+    "wysiwyg",
+    "markdown"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "homepage": "https:/github.com/Ausprain/effitor.git/packages/plugin-table#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/plugin-table"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@effitor/core": "workspace:*"
+  }
+}

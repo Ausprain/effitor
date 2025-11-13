@@ -3,7 +3,7 @@ import { CssClassEnum } from '@effitor/shared'
 import type { Et } from '../@types'
 import { platform } from '../config'
 import type { EditorBody } from '../context/EditorBody'
-import { dom } from '../utils'
+import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
 import { cr } from './cr'
 import { getTargetRangeCtor, ValidTargetCaret, ValidTargetRange } from './EtTargetRange'
@@ -307,6 +307,36 @@ export class EtSelection {
       && this.range.startContainer === this._body.el
       && this.range.startOffset === 0
       && this.range.endOffset === this._body.el.childNodes.length)
+  }
+
+  /**
+   * 判断选区结束位置是否在指定根元素的第一行 (包括 css 软换行)
+   * @param root 根元素, 不在页面上, 或选区不在此元素内, 将返回 false
+   */
+  isSelectionAtFirstLineOf(root: HTMLElement) {
+    if (!root.textContent) {
+      return true
+    }
+    if (!this._targetRange) {
+      return false
+    }
+    const pos = this._targetRange.toTargetCaret(this.isForward ? false : true)
+    return traversal.isPositionAtFirstLineOf(root, pos)
+  }
+
+  /**
+   * 判断选区结束位置是否在指定根元素的最后一行 (包括 css 软换行)
+   * @param root 根元素, 不在页面上, 或选区不在此元素内, 将返回 false
+   */
+  isSelectionAtLastLineOf(root: HTMLElement) {
+    if (!root.textContent) {
+      return true
+    }
+    if (!this._targetRange) {
+      return false
+    }
+    const pos = this._targetRange.toTargetCaret(this.isForward ? false : true)
+    return traversal.isPositionAtLastLineOf(root, pos)
   }
 
   /**

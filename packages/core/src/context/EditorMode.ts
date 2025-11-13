@@ -1,4 +1,4 @@
-import { Et } from '../@types'
+import type { Et } from '../@types'
 
 /**
  * 编辑器模式
@@ -27,6 +27,14 @@ export class EditorMode {
    * @todo
    */
   readonly() {
+    // todo
+  }
+
+  /**
+   * 选择模式; 如表格中选择多个单元格, 可能并入控制模式统一处理
+   * @todo
+   */
+  select() {
     // todo
   }
 }

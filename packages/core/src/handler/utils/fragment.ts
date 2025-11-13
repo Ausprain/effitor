@@ -209,7 +209,7 @@ const filterToClean = (node: Et.Node, nodesToRemove: ChildNode[]) => {
   if (node.localName === 'br') {
     // 若某节点下只有一个br, 则移除
     if (!node.previousSibling && !node.nextSibling) {
-      nodesToRemove.push(traversal.outermostAncestorWithSelfAsOnlyChild(node))
+      nodesToRemove.push(traversal.outermostAncestorWithSelfAsOnlyChild(node, false))
     }
     return 2 /** NodeFilter.FILTER_REJECT */
   }

@@ -670,7 +670,7 @@ const functional = <MetaType>(init: CmdFunctionalInit<MetaType>) => {
 /**
  * 命令工厂函数, 可通过扩展此接口实现自定义命令;
  * 类似 cmd.moveNodes, 就是一个 Functional 命令的封装
- * @extendable
+ * @augmentable
  */
 interface CmdFactory {
   <T extends CmdTypeEm, MetaType>(type: T, init: CmdInit<CmdMap<MetaType>[T], MetaType, CmdInitOmits[T]>): CmdWithExec<CmdMap<MetaType>[T]>

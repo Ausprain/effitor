@@ -47,7 +47,7 @@ export type ValidTargetRangeWithCommonEtElement = ValidTargetRange & {
   commonEtElement: Et.EtElement
 }
 
-class TargetCaret implements _SelectionTarget {
+class TargetCaret implements _SelectionTarget, Et.Position {
   declare private readonly body: Readonly<Et.EditorBody>
 
   // 私有缓存成员

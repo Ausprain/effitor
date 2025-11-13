@@ -1,5 +1,3 @@
-import './src/assets/font.css'
-
 import { Effitor, EtHeading } from './src'
 
 const editor = new Effitor({

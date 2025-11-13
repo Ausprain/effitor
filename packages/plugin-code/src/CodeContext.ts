@@ -390,7 +390,7 @@ export class CodeContext<L extends string = string> {
     const { selectionStart, selectionEnd, selectionDirection } = this.area
     toStart = toStart ?? selectionDirection === 'backward'
     const caretOffset = toStart ? selectionStart : selectionEnd
-    const pos = traversal.textCaretPositionOf(this.pre, caretOffset)
+    const pos = traversal.textPositionOf(this.pre, caretOffset)
     if (!pos) {
       return
     }

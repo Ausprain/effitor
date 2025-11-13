@@ -60,13 +60,15 @@ export interface DefaultEffectHandleMap {
    */
   InsertParagraphAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaretWithParagraph) => boolean
   /**
-   * 在段落开头 Backspace; 处理成功, 返回 true; 未处理, 返回topElement 的前兄弟, 处理失败, 返回false
+   * 在段落开头 Backspace;
    * @param targetCaret 目标光标, 由当前段落元素认可的段落开头位置
+   * @returns 处理成功, 返回 true; 未处理, 返回当前段落的前兄弟; 处理失败, 返回false
    */
   DeleteBackwardAtParagraphStart: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
-   * 在段落结尾 Delete; 处理成功, 返回 true; 未处理, 返回topElement 的后兄弟, 处理失败, 返回false
+   * 在段落结尾 Delete;
    * @param targetCaret 目标光标, 由当前段落元素认可的段落结尾位置
+   * @returns 处理成功, 返回 true; 未处理, 返回当前段落的后兄弟; 处理失败, 返回false
    */
   DeleteForwardAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
 
@@ -188,7 +190,7 @@ export interface DefaultEffectHandleMap {
  * 自定义 Effect 以 camelCase 命名\
  * 自定义的 Effect 只能通过 ctx.effectInvoker 来激活;
  * 而默认的 Effect 则可以通过 ctx.body.dispatchInputEvent 来激活
- * @extendable
+ * @augmentable
  */
 export interface EffectHandleDeclaration extends Record<string, EffectHandle> {
   E: EffectHandle

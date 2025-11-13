@@ -51,6 +51,8 @@ export interface Solvers {
    * `ev.stopImmediatePropagation` 阻止后续 keydown 事件的传播 (keydownSolver, MainKeydownKeySolver)
    * * 若按键处理函数返回 true, 则会同时禁止(传播\冒泡\默认行为)
    * * 如非必要, 不建议使用此solver, 此 solver 处理太多逻辑会影响性能, 降低编辑流畅性
+   * * 此外, 由于撤回记录在此 solver 中进行, 若某个效应元素在此 solver 内注册了 `效应元素特有效应器处理函数`
+   * 则需自行处理撤回记录, 否则可能导致很长一段操作才记录一次撤回
    */
   readonly beforeKeydownSolver: KeyboardSolver
   /**

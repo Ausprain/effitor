@@ -3,16 +3,6 @@
   "workspaces": {
     "": {
       "name": "effitor-monorepo",
-      "dependencies": {
-        "mdast-util-from-markdown": "^2.0.2",
-        "mdast-util-frontmatter": "^2.0.1",
-        "mdast-util-gfm": "^3.1.0",
-        "mdast-util-newline-to-break": "^2.0.0",
-        "mdast-util-to-markdown": "^2.1.2",
-        "micromark-extension-frontmatter": "^2.0.0",
-        "micromark-extension-gfm": "^3.0.0",
-        "unist-util-visit": "^5.0.0",
-      },
       "devDependencies": {
         "@eslint/js": "^9.32.0",
         "@stylistic/eslint-plugin": "^5.2.2",
@@ -75,6 +65,7 @@
         "@effitor/assist-message": "workspace:*",
         "@effitor/assist-popup": "workspace:*",
         "@effitor/core": "workspace:*",
+        "@effitor/plugin-blockquote": "workspace:*",
         "@effitor/plugin-code": "workspace:*",
         "@effitor/plugin-heading": "workspace:*",
         "@effitor/plugin-link": "workspace:*",
@@ -135,6 +126,13 @@
         "micromark-extension-frontmatter": "^2.0.0",
         "micromark-extension-gfm": "^3.0.0",
         "unist-util-visit": "^5.0.0",
+      },
+    },
+    "packages/plugin-blockquote": {
+      "name": "@effitor/plugin-blockquote",
+      "version": "0.2.0-beta.1",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-code": {
@@ -201,6 +199,13 @@
     },
     "packages/plugin-media": {
       "name": "@effitor/plugin-media",
+      "version": "0.2.0-beta.1",
+      "dependencies": {
+        "@effitor/core": "workspace:*",
+      },
+    },
+    "packages/plugin-table": {
+      "name": "@effitor/plugin-table",
       "version": "0.2.0-beta.1",
       "dependencies": {
         "@effitor/core": "workspace:*",
@@ -290,6 +295,8 @@
 
     "@effitor/playground": ["@effitor/playground@workspace:examples/playground"],
 
+    "@effitor/plugin-blockquote": ["@effitor/plugin-blockquote@workspace:packages/plugin-blockquote"],
+
     "@effitor/plugin-code": ["@effitor/plugin-code@workspace:packages/plugin-code"],
 
     "@effitor/plugin-excalidraw": ["@effitor/plugin-excalidraw@workspace:packages/plugin-excalidraw"],
@@ -305,6 +312,8 @@
     "@effitor/plugin-math": ["@effitor/plugin-math@workspace:packages/plugin-math"],
 
     "@effitor/plugin-media": ["@effitor/plugin-media@workspace:packages/plugin-media"],
+
+    "@effitor/plugin-table": ["@effitor/plugin-table@workspace:packages/plugin-table"],
 
     "@effitor/themes": ["@effitor/themes@workspace:packages/themes"],
 

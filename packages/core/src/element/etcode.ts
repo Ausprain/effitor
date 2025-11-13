@@ -20,6 +20,7 @@ const Em: { [K in keyof EtType]: EtType[K] } = {
   Component: EtTypeEnum.Component,
   Embedment: EtTypeEnum.Embedment,
   Uneditable: EtTypeEnum.Uneditable,
+  AllowEmpty: EtTypeEnum.AllowEmpty,
 } as const
 /** etcode专属元素表 */
 interface EtCodeElementMap {
@@ -35,6 +36,7 @@ let count = Object.keys(Em).length
 const codeMap = new Map<string, number>()
 
 export const etcode = {
+  Em,
   /**
    * 根据string(一般用小写元素名)获取一个唯一code，存在提取，不存在创建, 最多能保有30个code \
    * 为提高效率，获取后应另外保存副本，需要时直接引用副本

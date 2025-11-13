@@ -3,16 +3,21 @@ import type { EditorLogger } from './EditorLogger'
 
 /**
  * 编辑器助手插件
+ * @augmentable
  */
 export interface EditorAssists {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [k: string]: any
   logger?: EditorLogger
 }
 /**
  * 编辑器插件上下文
- * @extendable
+ * @augmentable
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface EditorPluginContext extends Record<symbol, unknown> {}
+export interface EditorPluginContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [k: string]: any
+}
 /**
  * 编辑器上下文元数据, 在编辑器 mount 前, 暴露给插件, 以增强编辑器上下文
  */

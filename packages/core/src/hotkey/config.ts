@@ -17,7 +17,7 @@ export interface ActionGroupMap_ {
 }
 export interface ActionRun {
   /** 当且仅当返回true，跳过后续操作 */
-  run: (ctx: Et.EditorContext) => boolean
+  run: (ctx: Et.EditorContext) => TrueOrVoid
 }
 export interface HotkeyAction extends Partial<ActionRun> {
   title: string

@@ -1,6 +1,7 @@
-import { BuiltinElName } from '@effitor/shared'
+import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
+import { etcode } from '../../element/etcode'
 import { dom } from '../dom'
 
 type TraversalWalk<T> = (node: TreeWalkNode<T>) => TrueOrVoid
@@ -239,12 +240,38 @@ export const traverseNode = <T extends 1 | 4 | 5 = 5>(
 }
 
 /**
+ * 获取指定根节点内, 指定文本光标位置的偏移量; 如果指定位置不在文本节点内, 返回 0
+ * @param root 根节点
+ * @param textPos 位于文本节点内的光标位置
+ * @returns 从 root 内开头到 textPos 位置的文本偏移量
+ */
+export const textOffsetOf = (root: HTMLElement | Text, textPos: Et.Position<Et.Text>) => {
+  if (!dom.isText(textPos.container)) {
+    return 0
+  }
+  if (root === textPos.container) {
+    return textPos.offset
+  }
+  let offset = 0
+  traverseNode(root, (node) => {
+    if (node === textPos.container) {
+      offset += Math.min(textPos.offset, node.length)
+      return true
+    }
+    offset += node.length
+  }, {
+    whatToShow: 4, /** NodeFilter.SHOW_TEXT */
+  })
+  return offset
+}
+
+/**
  * 获取指定根节点内, 指定文本偏移量的光标位置; 该位置必定在文本节点上, 否则返回 null
  * @param root 根节点
  * @param textOffset 文本偏移量, 即光标位置基于 root.textContent 的偏移量
  * @returns 指定偏移量位置所在文本节点及相对于该文本节点的偏移量
  */
-export const textCaretPositionOf = (root: Node, textOffset: number): Et.Position<Et.Text> | null => {
+export const textPositionOf = (root: Node, textOffset: number): Et.Position<Et.Text> | null => {
   let offset = 0, anchor: Et.Text | null = null
   traverseNode(root, (node) => {
     if (offset + node.length >= textOffset) {
@@ -342,6 +369,75 @@ export const treePrevSibling = (node: Et.Node): Et.Node | null => {
   }
   return null
 }
+/**
+ * 判断某个位置是否在指定根元素的第一行
+ * * 根元素或位置不在页面上, 或位置不在根元素内, 返回 false
+ */
+export const isPositionAtFirstLineOf = (root: HTMLElement, pos: Et.Position) => {
+  if (!root.isConnected || !pos.container.isConnected || !root.contains(pos.container)) {
+    return false
+  }
+
+  // 1. 找根元素的第一个 #text节点 后代, 创建一个 collapse 到该 #text 开头的 Range, 获取getClientRects的第一个矩形框(也是唯一一个), 记为 startRect
+  let firstText
+  traverseNode(root, (node) => {
+    if (!node.length) {
+      return false
+    }
+    firstText = node
+    return true
+  }, { whatToShow: 4 })
+
+  if (!firstText) return false
+  const startRange = document.createRange()
+  startRange.setStart(firstText, 0)
+  const startRect = startRange.getClientRects()[0]
+  if (!startRect) return false
+
+  // 2. 将选区 collapse 到开头, 获取getClientRects的第一个矩形框, 记为 selRect
+  const selRange = document.createRange()
+  selRange.setStart(pos.container, pos.offset)
+  const selRect = selRange.getClientRects()[0]
+  if (!selRect) return false
+
+  // 3. 若 selRect.top - startRect.bottom >= 2, 则视为不在第一行
+  return selRect.top - startRect.bottom < 2
+}
+/**
+ * 判断某个位置是否在指定根元素的最后一行
+ * * 根元素或位置不在页面上, 或位置不在根元素内, 返回 false
+ */
+export const isPositionAtLastLineOf = (root: HTMLElement, pos: Et.Position) => {
+  if (!root.isConnected || !pos.container.isConnected || !root.contains(pos.container)) {
+    return false
+  }
+
+  // 1. 找根元素的最后一个 #text节点 后代, 创建一个 collapse 到该 #text 结尾的 Range, 获取getClientRects的第一个矩形框(也是唯一一个), 记为 endRect
+  let lastText: Text | null = null
+  let node = innermostLastChild(root as Et.Node) as Et.NodeOrNull
+  while (node && node !== root) {
+    if (node.nodeType === 3 /** Node.TEXT_NODE */ && (node as Text).length > 0) {
+      lastText = node as Text
+      break
+    }
+    node = treePrevNode(node as Et.Node)
+  }
+
+  if (!lastText) return false
+  const endRange = document.createRange()
+  endRange.setStart(lastText, lastText.length)
+  const endRect = endRange.getClientRects()[0]
+  if (!endRect) return false
+
+  // 2. 将选区 collapse 到结尾, 获取getClientRects的第一个矩形框, 记为 selRect
+  const selRange = document.createRange()
+  selRange.setStart(pos.container, pos.offset)
+  const selRect = selRange.getClientRects()[0]
+  if (!selRect) return false
+
+  // 3. 若 endRect.top - selRect.bottom >= 2, 则视为不在最后一行
+  return endRect.top - selRect.bottom < 2
+}
 
 /* ------------------------------ outer utils ------------------------------ */
 
@@ -361,16 +457,21 @@ export const outermostAncestorUnderTheNode = (
 }
 /**
  * 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
+ * @param checkCode 是否检查效应码，若为 true，则返回的节点及其后代不会是拥有
+ *                  Paragraph 或 AllowEmpty 效应码的元素, 除非传入的`node`本身具有
  * @param stopTag 小写元素标签名
  * * **仅当返回节点是传入的`node`时可能匹配`stopTag`**
  */
 export const outermostAncestorWithSelfAsOnlyChild = (
-  node: Et.Node, stopTag: string = BuiltinElName.ET_BODY): Et.Node => {
+  node: Et.Node, checkCode: boolean, stopTag: string = BuiltinElName.ET_BODY,
+): Et.Node => {
   if (node.localName === stopTag) {
     return node
   }
   let p = node.parentNode
-  while (p && p.childNodes.length === 1 && p.localName !== stopTag) {
+  while (p && p.childNodes.length === 1 && p.localName !== stopTag
+    && (!checkCode || !etcode.check(p, EtTypeEnum.NotJointDeletion))
+  ) {
     node = p
     p = p.parentNode
   }
@@ -380,17 +481,22 @@ export const outermostAncestorWithSelfAsOnlyChild = (
  * 在特定节点下, 递归找以当前节点为唯一子节点的祖先, 有兄弟则返回自身
  * @param node 起始节点
  * @param underWhich 特定节点
+ * @param checkCode 是否检查效应码，若为 true，则返回的节点及其后代不会是拥有
+ *                  Paragraph 或 AllowEmpty 效应码的元素, 除非传入的`node`本身具有
  * @param stopTag 小写元素标签名
  * * **仅当返回节点是传入的`node`时可能等于`underWhich`或匹配`stopTag`**
  */
 export const outermostAncestorWithSelfAsOnlyChildButUnder = (
-  node: Et.Node, underWhich: Et.Element, stopTag: string = BuiltinElName.ET_BODY,
+  node: Et.Node, underWhich: Et.Element,
+  checkCode: boolean, stopTag: string = BuiltinElName.ET_BODY,
 ): Et.Node => {
   if (node === underWhich || node.localName === stopTag) {
     return node
   }
   let p = node.parentNode
-  while (p && p.childNodes.length === 1 && p !== underWhich && p.localName !== stopTag) {
+  while (p && p.childNodes.length === 1 && p !== underWhich && p.localName !== stopTag
+    && (!checkCode || !etcode.check(p, EtTypeEnum.NotJointDeletion))
+  ) {
     node = p
     p = p.parentNode
   }

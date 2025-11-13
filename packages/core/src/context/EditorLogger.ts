@@ -48,7 +48,7 @@ export class EditorLogger {
    */
   flush(chunk: number, fn: (
     /** chunk生成器，每次yield返回log chunk，next 传入true时停止迭代 */
-    it: Generator<string[], void, true | undefined>
+    it: Generator<string[], void, true | undefined>,
   ) => boolean) {
     const logs = this._logs
     const gen = function* (): Generator<string[], void, true | undefined> {

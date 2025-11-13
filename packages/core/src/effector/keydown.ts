@@ -126,9 +126,14 @@ export const getKeydownCaptureListener = (
       return
     }
 
-    // 效应元素独占效应器
+    // 设置按键组合
+    if (!ev.repeat) {
+      ctx.hotkeyManager.setModkey(ev)
+    }
+
     if (solver) {
       const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
+      // 效应元素独占效应器
       const fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
         || solver[key as keyof typeof solver] || solver.default
       if (typeof fn === 'function' && fn(
@@ -152,13 +157,13 @@ export const getKeydownListener = (
   return (ev: Et.KeyboardEvent) => {
     // 判断方向键
     if (ev.code[0] === 'A' && ev.code[4] === 'w') {
-      if (solveKeydownArrow(ev, ctx)) {
+      if (solveKeydownArrow(ctx)) {
+        ev.preventDefault()
+        ev.stopPropagation()
+        ev.stopImmediatePropagation()
         return
       }
     }
-
-    // 当剪贴板事件完全接管后, 该行可放到 2. 处, 因为 1. 处不需要
-    ctx.hotkeyManager.setModkey(ev)
 
     // MacOS 下非 Safari, 通过延迟1帧, 等待 compositionstart 激活来判断是否输入法输入
     requestAnimationFrame(() => {

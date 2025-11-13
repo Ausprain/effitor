@@ -1,6 +1,6 @@
 {
   "name": "effitor-monorepo",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.1.0",
   "description": "A web editor based on `Input Events Level 2`",
   "private": true,
   "keywords": [
@@ -39,16 +39,6 @@
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"
-  },
-  "dependencies": {
-    "mdast-util-from-markdown": "^2.0.2",
-    "mdast-util-frontmatter": "^2.0.1",
-    "mdast-util-gfm": "^3.1.0",
-    "mdast-util-newline-to-break": "^2.0.0",
-    "mdast-util-to-markdown": "^2.1.2",
-    "micromark-extension-frontmatter": "^2.0.0",
-    "micromark-extension-gfm": "^3.0.0",
-    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

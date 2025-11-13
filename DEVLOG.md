@@ -1,15 +1,17 @@
-# Bugfix
+# v0.2.0 开发日志
+
+## Bugfix
 
 - [ ] core
   - [ ] 编辑器失去焦点后重新获取焦点，光标在末尾闪烁，但插入内容却在文档开头
   - [ ] 段落开头/末尾亲和位置判断需要考虑零宽字符
+  - [ ] 开启微信输入法的使用英文标点后，在输入（1,2,3 的过程中出现（1，，2，，3 的问题；输入数字+括号：2）自动将括号半角，而后续输入数字将重复，输入 3 变成 33.
   - [x] 在段落中间逐级全选会停止在段落层级，在段落末尾却可全选到整个文档
     - trig. 逐级全选会触发 selectionchange 事件，导致全选等级被清除
   - [x] 粘贴后没有滚动到光标位置
   - [x] 当末段落内只有一个 et-media 时, 全选文档选区会没有"拖蓝"(实际上全选了, 但全选的 UI 没有展示)
-  - [x] 逐级全选的判定缺漏: 空段落时
-  - [x] firefox 中全选当前行只选了一半
-    - [x] firefox 方向键移动光标/扩展选区失效
+  - [x] 逐级全选的判定缺漏: 空段落时 firefox 中全选当前行只选了一半
+  - [x] firefox 方向键移动光标/扩展选区失效
 - plugin-heading
   - [x] 粘贴出现其他效应节点的问题
 - plugin-mark
@@ -17,21 +19,33 @@
   - [x] bold 节点的 markType 值错误地记录为 italic
   - [x] 优化标记符hinting，现在 mousedown 时会取消 hinting，但如果光标在 mark 节点内，已经展开了标记符，此时想要移动光标到节点内其他文字，鼠标按下时标记符隐藏，会导致页面跳动（shfit layout），这不是好的体验。
 - plugin-code
+  - [ ] 空代码块开头 Backspace 删除代码块
   - [x] 代码块的复制粘贴问题，粘贴的代码块无法编辑（CodeContext 丢失）
     - [ ] 提升到组件的复制粘贴问题来解决 //TODO 现在的实现很粗糙
 - plugin-link
   - [ ] 复制网页的内容, 粘贴过来被识别为了粘贴链接
 
-# Todo
+## Todo
 
+- [ ] ~~将 hotkey 提升至 keymap 的维度~~
+  - why？
+    - 目前除了文本输入，几乎每个 keydown 都得计算依次 modkey；而在插件 sovler 中，经常需要判断一些按键是否同时按下“shift”，“ctrl”，“alt”，这很繁琐。
+    - 何不直接用 keymap 的思想，keydown 中先计算 modkey，判断是否有对应的 keymap action，有则直接执行，返回 true 终止后续；这样插件直接实现 keymap 就好了，不用在额外做 ev.shift/altKey 等判断, 减少样板代码，开发效率更高，代码更简洁。
+  - why not
+    - keydownSolver 本身具有 keymap 功能, 如果独立一个 keymapSolver 出来, 还需要处理回退问题; 不如留给插件自己在效应元素专有 solver 上手动调用 ctx.hotkeyManager.listenEffect 来执行指定 keymap
+- [ ] 更新 CssClassEnum 的样式名, 统一格式
+- [ ] 选区增加选择节点case，即当选区 range，且 startOffset+1=endOffset时，视为选择节点
+- [ ] blockquote新增 pgroup 类型
+- [ ] 热字符串判定允许 Backspace 回退游标
+- [ ] 大文档性能优化，看看标题高度是否影响性能；以及 css 颜色方案 oklch 是否影响样式计算的性能
 - [ ] 插件需暴露一个接口给外部
-  - 现在的助手如 dropdown，popup 等，都必须在插件注册前挂载到 ctx.assists 上，才能被插件使用；如果未来新增助手如 toolbar，则没办法将插件的指定功能添加到 toolbar 上。
-  - 为解决此问题，考虑在插件 use 函数的参数提供一个接口给外部，一个在 onMounted 中执行的回调函数，并对外暴露插件内部的一些功能、配置、方法、快捷键等，以方便新增的助手能够将这些插件的功能添加到助手上。
-  - 这需要一个统一的抽象。
+  > - 现在的助手如 dropdown，popup 等，都必须在插件注册前挂载到 ctx.assists 上，才能被插件使用；如果未来新增助手如 toolbar，则没办法将插件的指定功能添加到 toolbar 上。
+  > - 为解决此问题，考虑在插件 use 函数的参数提供一个接口给外部，一个在 onMounted 中执行的回调函数，并对外暴露插件内部的一些功能、配置、方法、快捷键等，以方便新增的助手能够将这些插件的功能添加到助手上。
+  > - 这需要一个统一的抽象。`EditorAction`
 
-# 算法
+## 算法
 
-## 接管除输入法输入外的所有 keydown 行为, 使用当前光标位置, 手动判断要删除的内容
+### 接管除输入法输入外的所有 keydown 行为, 使用当前光标位置, 手动判断要删除的内容
 
 注意事项: \
 多码点字符的处理, 如大多数的Emoji 字符, 会占用多个码点, 且 JavaScript 字符串判断
@@ -61,19 +75,19 @@ node.deleteData(offset - textChar.length, textChar.length); // delData = '👦'
 
 sol. 使用 [Intl.Segmenter](packages/core/src/intl/Segmenter.ts)
 
-## 判断光标是否在段落开头/末尾
+### 判断光标是否在段落开头/末尾
 
-### 简单无脑, 快速实现方案:
+#### 简单无脑, 快速实现方案:
 
 方案1: 使用 Selection.modify 移动一个字符, 判断光标是否改变段落
 方案2: 使用 Range 选择当前光标位置到段落开头/末尾的 判断 .toString() 是否为空
 
-### 尝试的高效方案
+#### 尝试的高效方案
 
 方案1: 从光标位置按文档树顺序遍历到段落开头/末尾, 判断中间是否有其他节点; 此方案不好处理组件以及 Blockquote 的情况
 方案2: 光标亲和位置检查
 
-### "光标亲和位置检查"判断段落开头/末尾的实现
+#### "光标亲和位置检查"判断段落开头/末尾的实现
 
 注意事项(需求):
 
@@ -91,7 +105,7 @@ sol. 使用 [Intl.Segmenter](packages/core/src/intl/Segmenter.ts)
 
 光标位于`|`的位置, 应当视为组件段落`<comp>`的开头
 
-#### 实现
+##### 实现
 
 1. 段落元素 EtParagraphElement 提供两个函数(继承自 EffectElement), 返回段落自己认为的开头/结尾光标位置:
 
@@ -157,9 +171,41 @@ isAffinityTo(caret: EtCaret) {
 > 2. 简化命令结束光标位置的配置
 >    一些命令, 如删除节点, 若光标在该节点内, 则配置命令时必须指定结束光标位置, 否则会导致编辑器失去焦点; 而该算法可用于简化此配置, 即删除一个节点, 默认把命令结束光标位置设置在节点被删除位置的亲和位置, 算法会自动将光标位置指定到亲和的文本节点位置
 
-# 设计
+### 判断光标/选区是否在第一行 or 最后一行
 
-## 使用效应思路实现光标的左右移动, 以获取更精细化的实现和更好的性能
+> chrome 和 Safari 对 table 内的方向键处理不符合直觉; 其使用的 Selection.modify, 向上移动一个'line'时, 光标会移动到文档树的上一个 td, 而不是视觉上(直觉上)的上一个 td
+>
+> firefox 则符合直觉, 但它底层并不是通过 Selection.modify 来实现的, 我们无法复现, 即 firefox 表格内使用 Selection.modify 向上移动一个'line'没有任何效果.
+>
+> 而如果表格内 td 有多行(包括css软换行), 只要光标不在第一行, 则 modify 向上移动一个'line'时, 结果是符合预期(直觉)的.
+>
+> 因此要判断光标是否在 td 内的第一行 or 最后一行, 来决定是否接管方向键的行为, 来获取更符合直觉的光标选区控制.
+
+第一行:
+
+1. 找根元素的第一个非空 #text节点 后代, 创建一个 collapse 到该 #text 开头的 Range, 获取getClientRects的第一个矩形框(也是唯一一个), 记为 startRect
+2. 将选区 collapse 到开头, 获取getClientRects的第一个矩形框, 记为 selRect
+3. 若 selRect.top - startRect.bottom >= 2, 则视为不在第一行
+
+最后一行:
+
+1. 找根元素的最后一个非空 #text节点 后代, 创建一个 collapse 到该 #text 结尾的 Range, 获取getClientRects的第一个矩形框(也是唯一一个), 记为 endRect
+2. 将选区 collapse 到结尾, 获取getClientRects的第一个矩形框, 记为 selRect
+3. 若 endRect.top - selRect.bottom >= 2, 则视为不在最后一行
+
+> ps.
+>
+> 1. 为什么用 getClientRects 而不是 getBoundingClientRect?
+>    根据规范和 blink 源码, getBoundingClientRect 会先调用 "getClientRects", 再求包含所有矩形框的最小矩形框; 因此使用前者的性能会更好一些.
+>    参考: https://www.w3.org/TR/cssom-view-1/#dom-range-getclientrects
+> 2. 为什么一定要找文本节点
+>    因为非文本节点, Range.getClientRects() 会返回空数组, 虽然这不符合规范, 但这是浏览器事实
+
+ps. 以上算法计算一次耗时 0.3 ~ 0.5ms
+
+## 设计
+
+### 使用效应思路实现光标的左右移动, 以获取更精细化的实现和更好的性能
 
 case:
 
@@ -189,7 +235,7 @@ case:
 特别的, 对于embedment 节点, 光标无法落入其中, 则直接定位到该效应元素外末尾;
 而对于嵌套可编辑的 Component 节点, 则让其将光标定位到内部可编辑的对应位置.
 
-# Benchmark
+## Benchmark
 
 性能测试量级：
 
@@ -216,26 +262,26 @@ case:
 | 跨段落删除选区          |                      |         |
 | 复制粘贴 20w 字符富文本 |                      |         |
 
-# 插件
+## 插件
 
-## Assists
+### Assists
 
-### assist-dialog
+#### assist-dialog
 
 Todos
 
 - [ ] 打开 dialog 后，应让编辑器失去焦点，将焦点转移到 dialog 上
 
-### assist-dropdown
+#### assist-dropdown
 
 Todos
 
 - [ ] bugs
   - [ ] dropdown 打开后若失去焦点, 就再也无法关闭
 
-## Plugins
+### Plugins
 
-### plugin-heading
+#### plugin-heading
 
 > 标题插件
 
@@ -248,7 +294,7 @@ Todos
 - [x] Dropdown item
 - [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
 
-### plugin-mark
+#### plugin-mark
 
 > 标记插件
 
@@ -267,7 +313,7 @@ Todos
 - [x] markdown互转
 - [x] Dropdown item
 
-### plugin-list
+#### plugin-list
 
 > 列表插件
 
@@ -284,7 +330,7 @@ Todos
 - [x] Dropdown item
 - [ ] 首段落插入列表报错(无效应元素) [FIXME](./packages/plugin-list/src/effector.ts#L16)
 
-### plugin-link
+#### plugin-link
 
 > 链接插件
 
@@ -297,7 +343,7 @@ Todos
 - [x] popup 更新, 跳转链接
 - [x] dropdown 插入链接
 
-### plugin-media
+#### plugin-media
 
 > 媒体插件
 
@@ -312,7 +358,7 @@ Todos
 - [x] popup 调整布局, 删除
 - [x] dropdown 插入媒体
 
-### plugin-code
+#### plugin-code
 
 > 代码块插件
 
@@ -336,7 +382,7 @@ Todos
 - [ ] Popup item (hover 工具栏)
   - [ ] 设置语言, tabSize 等
 
-### plugin-blockquote
+#### plugin-blockquote
 
 > 引用块插件
 
@@ -347,17 +393,33 @@ Todos
 - [x] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
 - [x] markdown互转
 - [ ] 原生 html 互转
+- [ ] 新增 pgroup 类型
+  - 起因：想要分栏，如果给 et-body 添加 column-count，则整个文档都分栏了；而如果给段落添加，则每个段落都要独立加；
+  - 使用段落组（et-bq）是最佳方案，但缺乏相关 et-bq 类型；新增一个段落组类型（pgroup），给该类型的 et-bq 添加如下样式：column-count: x; column-gap: 1.6em; x 的取值为（1,2,3）；添加热字符串：pg.1, pg.2, pg.3 来快速插入分栏分别为 1 列、2 列、3 列的段落组。
+  - 段落组除了分栏外没有样式，只有光标落于其中时，即.active状态，显示边框等用于提示当在在段落组内
 
-### plugin-table
+#### plugin-table
 
 > 表格插件
 
 Todos
 
 - [ ] 基础
-- [ ] markdown互转
-- [ ] 原生 html 互转
+  - [x] 适用于表格的光标移动
+  - [x] 插入行/列
+    - enter: 插入行
+    - tab: 插入列
+  - [x] 单元格内换行
+    - shift + enter 换行
+  - [x] alt+上/下 移动表行
+  - [x] ctrl+alt+左/右 移动表列
+- [x] markdown互转
+- [x] 原生 html 互转
+- [ ] dropdown
+  - 新增表格
+  - 向左/右 插入新列
+  - 向上/下 插入新行
 
-### plugin-excalidraw
+#### plugin-excalidraw
 
-### plugin-math
+#### plugin-math

@@ -1,5 +1,3 @@
-import '@effitor/core/styles/font.css'
-
 import { Effitor } from '@effitor/core'
 
 import { useMarkPlugin } from './src'

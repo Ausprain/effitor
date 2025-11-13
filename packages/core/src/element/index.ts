@@ -24,7 +24,6 @@ interface BuiltinEtElement {
 }
 /**
  * 定义的EtElement映射表, 用于document.createElement()的提示
- * @extendable
+ * @augmentable
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DefinedEtElementMap extends BuiltinEtElement { }

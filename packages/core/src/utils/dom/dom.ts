@@ -3,7 +3,6 @@
  * DOM 相关的工具函数, 通过 dom 工具对象统一导出,\
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
-
 import { BuiltinElName, CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
@@ -16,9 +15,7 @@ type HTMLNodeCreator = <N extends string>(elName: N) => N extends keyof Et.Defin
 /** 创建一个只有一个零宽字符的文本节点 */
 export const zwsText = () => document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
 export const createText = (data: string) => document.createTextNode(data) as Et.Text
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createElement: HTMLNodeCreator = elName => document.createElement(elName) as any
-
+export const createElement: HTMLNodeCreator = elName => document.createElement(elName) as ReturnType<HTMLNodeCreator>
 /** 节点长度, 文本节点返回文本长度, 元素节点返回子节点数量 */
 export const nodeLength = (nod: Et.Node) => isText(nod) ? nod.length : nod.childNodes.length
 /** 获取节点在父节点中的索引; 若节点没有父节点, 返回 -1 */
@@ -47,7 +44,6 @@ export const prevSiblingCount = (node: Node) => {
   }
   return i
 }
-
 /** 克隆一个et元素节点 并去除状态class */
 export const cloneEtElement = <T extends Et.EtElement>(el: T, deep = false): T => {
   return removeStatusClassForEl(el.cloneNode(deep) as T)
@@ -77,7 +73,6 @@ export const removeStatusClassForEl = <E extends HTMLElement>(el: E, cls = []): 
   el.classList.remove(...[...cls, CssClassEnum.Active, CssClassEnum.CaretIn, CssClassEnum.Selected]),
   el
 )
-
 /**
  * 向上（包括自身）找第一个`EffectElement`
  * @param stopTag 小写元素标签名
@@ -91,18 +86,6 @@ export const findEffectParent = (node: Et.NodeOrNull, stopTag: string = BuiltinE
   }
   return null
 }
-// /**
-//  * ~~查找编辑区顶层元素(段落)~~
-//  * 向上查找最近一个拥有段落效应的父节点
-//  */
-// export const findParagraph = (node: Et.NodeOrNull): Et.EtParagraphElement | null => {
-//   while (node) {
-//     if (node.localName === BuiltinElName.ET_BODY) return null
-//     if (node.etCode && (node.etCode & EtTypeEnum.Paragraph)) return node as Et.EtParagraphElement
-//     node = node.parentNode
-//   }
-//   return null
-// }
 
 /* -------------------------------------------------------------------------- */
 /*                                  check utils                               */
@@ -138,7 +121,6 @@ export const isNotEditable = (node: Node): boolean => {
   }
   return true
 }
-
 export const isRawEditElement = (node: Node | null | undefined): node is Et.HTMLRawEditElement => {
   if (!node) {
     return false
@@ -146,7 +128,6 @@ export const isRawEditElement = (node: Node | null | undefined): node is Et.HTML
   return (node.nodeName === 'INPUT' && (node as HTMLInputElement).type === 'text')
     || (node.nodeName === 'TEXTAREA')
 }
-
 export const isNodeBeforeTheOther = (node: Et.Node, other: Et.Node) => node.compareDocumentPosition(other) & 4 /** Node.DOCUMENT_POSITION_FOLLOWING */
 /**
  * 判断节点是否是另一节点的直接/间接firstChild; 若俩参数相等, 会返回false
@@ -174,9 +155,8 @@ export const isWithinLast = (node: Et.Node, ancestor: Et.Node) => {
   }
   return false
 }
-
 /**
- * 判断字符串指定位置之前是否全为零宽度字符, offset <= 0 时返回 false
+ * 判断字符串指定位置之前是否全为零宽度字符, 若 offset <= 0, 返回 false
  */
 export const isLeadingZWS = (data: string, offset: number) => {
   if (offset <= 0) {
@@ -190,7 +170,7 @@ export const isLeadingZWS = (data: string, offset: number) => {
   return true
 }
 /**
- * 判断字符串指定位置之后是否全为零宽度字符, offset >= data.length 时返回 false
+ * 判断字符串指定位置之后是否全为零宽度字符, 若 offset >= data.length, 返回 false
  */
 export const isTrailingZWS = (data: string, offset: number) => {
   if (offset >= data.length) {
@@ -204,7 +184,6 @@ export const isTrailingZWS = (data: string, offset: number) => {
   }
   return true
 }
-
 /**
  * 判断节点是否为空内容节点, 其定义为: 节点无文本内容, 或文本内容仅包含零宽度字符
  * @param node 待判断节点
