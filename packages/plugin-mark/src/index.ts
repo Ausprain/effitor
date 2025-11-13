@@ -8,18 +8,13 @@ import { EtMarkElement } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler } from './handler/markHandles'
 
-export { EtMarkElement }
-
-interface MarkPluginOptions {
+export interface MarkPluginOptions {
   /** 是否开启标记符hinting */
   enableHinting?: boolean
   /** 需要mark effect的元素构造器列表, 若为缺省, 则默认添加schema段落 */
   needMarkEffectElementCtors?: Et.EtElementCtor[]
 }
-
-/**
- * mark标记节点插件
- */
+export { EtMarkElement }
 export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-mark',

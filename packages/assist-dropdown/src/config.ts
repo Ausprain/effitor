@@ -89,3 +89,22 @@ export interface DropdownCallbacks {
   /** 在dropdown.close开始时执行 */
   onclose?: () => void
 }
+export interface DropdownOptions {
+  maxWidth?: number
+  maxHeight?: number
+}
+export interface DropdownTrigger {
+  /** 触发dropdown 的按键, 现强制只能为 '/' 键 */
+  triggerKey?: '/'
+  /**
+   * 修饰键, 默认为true
+   * ```
+   * undefined: 不使用修饰键, 按下 / 直接打开dropdown
+   * true: MacOS下使用 Command+/; 其他使用Ctrl+/
+   * Alt: 使用 Alt+/
+   * Control: 使用 Ctrl+/
+   * Meta: 使用Meta+/, 或Command+/ (MacOS)
+   * ```
+   */
+  triggerMod?: true | 'Alt' | 'Control' | 'Meta'
+}

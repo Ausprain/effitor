@@ -5,15 +5,14 @@ import { headingEffector } from './effector'
 import { EtHeadingElement } from './EtHeadingElement'
 import cssText from './index.css?raw'
 
-interface headingOptions {
+export interface HeadingPluginOptions {
   /**
    * 是否隐藏标题前的`#1`标记符
    */
   hiddenHeadingLevelMarker?: boolean
 }
-
 export { EtHeadingElement }
-export const useHeadingPlugin = (options?: headingOptions): Et.EditorPluginSupportInline => {
+export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-heading',
     cssText,

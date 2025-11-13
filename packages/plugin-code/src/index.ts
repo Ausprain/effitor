@@ -37,7 +37,8 @@ export interface CodePluginOptions extends CodeBlockRenderOptions {
    */
   defaultTabSize?: 2 | 3 | 4
 }
-
+export { EtCodeElement }
+export type { EtCodeHighlighter } from './highlighter'
 export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPluginSupportInline> => {
   const highlighter = await createShikiHighlighter(options?.shikiOptions)
 

@@ -67,5 +67,5 @@ export const presetEditorCssVars = (vars: Record<`--${string}`, string>) => {
   return `et-editor,:host{${Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';')}}`
 }
 export const presetEditorCssVarsForDark = (vars: Record<`--${string}`, string>) => {
-  return `et-editor.dark,:host(.dark),:host-context(:root.dark),:host-context(body.dark){${Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';')}}`
+  return `et-editor.dark,:host(.dark){${Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';')}}`
 }

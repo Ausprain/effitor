@@ -43,10 +43,8 @@ import { EtListElement, EtListItemElement } from './EtListElement'
 import { inListHandler } from './handler/inListHandler'
 import listCss from './index.css?raw'
 
+export interface ListPluginOptions {}
 export { EtListElement, EtListItemElement }
-
-interface ListPluginOptions {}
-
 export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-list',

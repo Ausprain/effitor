@@ -11,6 +11,7 @@ declare module '@effitor/core' {
   }
 }
 
+export type * from './TextCounter'
 export const useCounterAssist = (options?: CounterAssistOptions): Et.EditorPluginSupportInline => ({
   name: '@effitor/assist-counter',
   effector: {

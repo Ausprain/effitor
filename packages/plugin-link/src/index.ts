@@ -18,10 +18,11 @@ import { EtLinkElement } from './EtLinkElement'
 import { markLinkHandler } from './handler'
 import cssText from './index.css?raw'
 
-interface LinkPluginOptions extends LinkPluginContextOptions {
+export interface LinkPluginOptions extends LinkPluginContextOptions {
   /** 允许插入链接的效应元素的构造器列表, 默认仅有shcema段落 */
   needLinkEffectElementCtors?: Et.EtElementCtor[]
 }
+export { EtLinkElement }
 export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-link',

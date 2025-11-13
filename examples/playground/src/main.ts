@@ -21,6 +21,7 @@ import { useCodePlugin } from '@effitor/plugin-code'
 import { useLinkPlugin } from '@effitor/plugin-link'
 import { useMediaPlugin } from '@effitor/plugin-media'
 import { useBlockquotePlugin } from '@effitor/plugin-blockquote'
+import { useTablePlugin } from '@effitor/plugin-table'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 // console.log(css.length)  // 186452
@@ -56,6 +57,7 @@ const editor = new Effitor({
     }),
     useLinkPlugin(),
     useMediaPlugin(),
+    useTablePlugin(),
     {
       name: 'some',
       effector: {

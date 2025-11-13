@@ -7,7 +7,7 @@ const enum DialogEnum {
   Class_Show = 'et-dialog--show',
 }
 
-interface DialogRender<T> {
+export interface DialogRender<T> {
   /** dialog渲染函数, 该函数需要返回一个 promise, fullfilled 时才会显示 dialog
    * @param container dialog容器
    * @param resolve open函数返回的promise的resolve函数, 调用时会关闭dialog并让编辑器聚焦, 同时恢复光标位置
@@ -37,7 +37,6 @@ const defaultOptions = {
   containerStyle: {} as Partial<CSSStyleDeclaration>,
 }
 export type DialogAssistOptions = Partial<typeof defaultOptions>
-
 export class DialogManager {
   private _options: Required<DialogAssistOptions>
   private _dialog!: {

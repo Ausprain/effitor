@@ -7,7 +7,7 @@
 
 et-heading {
   position: relative;
-  margin: 0.5em 0 0.2em;
+  margin: 1em 0 0.2em;
   line-height: 1.5;
   font-weight: bold;
 
@@ -22,12 +22,12 @@ et-heading {
   &::before {
     content: "#";
     translate: -100% -50%;
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
   &::after {
     content: attr(data-level);
     translate: 0 -70%;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
   }
   &.caret-in::before,&.caret-in::after,
   &:hover::before, &:hover::after {
@@ -35,10 +35,12 @@ et-heading {
   }
 }
 et-heading.ET_cls-h1 {
+  border-bottom: 1px solid var(--et-color-border-1);
   font-size: 2rem;
   --semi-line-height: calc(1.5 * 2rem / 2);
 }
 et-heading.ET_cls-h2 {
+  border-bottom: 1px solid var(--et-color-border-1);
   font-size: 1.8rem;
   --semi-line-height: calc(1.5 * 1.8rem / 2);
 }

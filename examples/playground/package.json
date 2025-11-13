@@ -28,5 +28,6 @@
   },
   "devDependencies": {
     "vite": "^7.0.6"
-  }
+  },
+  "private": true
 }

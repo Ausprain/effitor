@@ -14,12 +14,6 @@ import { EtVideoElement } from './EtVideoElement'
 import { markMediaHandler } from './handler'
 import cssText from './index.css?raw'
 
-export type {
-  CreateAudioOptions,
-  CreateImageOptions,
-  CreateVideoOptions,
-} from './config'
-
 const defaultOptions = {
   image: {
     type: MediaType.Image,
@@ -38,7 +32,7 @@ const defaultOptions = {
   },
 } as const
 
-interface MediaOptions {
+export interface MediaOptions {
   /** 通用资源url映射; 若图片/音/视频的url映射规则不同, 应单独配置 */
   urlMapping?: Et.MdUrlMapping
   /** hover media效应元素时会显示popup选项, 可通过此配置对popup的功能进行自定义 */
@@ -47,7 +41,13 @@ interface MediaOptions {
   audio?: AudioOptions | true
   video?: VideoOptions | true
 }
+export type {
+  CreateAudioOptions,
+  CreateImageOptions,
+  CreateVideoOptions,
+} from './config'
 
+export { EtAudioElement, EtImageElement, EtVideoElement }
 /**
  * 使用媒体插件, 含图片、音频、视频
  * * 此插件在调整资源尺寸的过程中, 会对document.onmousedown/move/up属性赋值, 注意避免冲突

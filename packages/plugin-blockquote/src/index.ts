@@ -31,6 +31,8 @@ export interface BlockquotePluginOptions {
   withBuiltinMeta?: boolean
 }
 
+export { EtBlockquoteElement } from './EtBlockquoteElement'
+
 export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.EditorPluginSupportInline => {
   return {
     name: '@effitor/plugin-blockquote',

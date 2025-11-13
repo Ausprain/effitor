@@ -11,15 +11,6 @@
  * 1. 实现完全键盘操作
  * 2. 数据关联(简单公式)
  *
- * * 完全键盘操作
- *    enter: 插入行
- *    tab: 仅有一行且在行末时, 插入列; 否则, 移动到下一列
- *    cmd + →: 在行末时向右插入列; 在单元格末时, 移动到下一个单元格; 否则移动到单元格末尾
- *    cmd + ←: 与上述相反
- *    cmd + c: 选区复制, 光标居中
- *    cmd + l, cmd + r: 左对齐, 右对齐; 光标单元格, 选区多个单元格
- *    cmd+alt + ↑, cmd+alt + ↓: 向上/下移动行
- *    cmd+alt + →, cmd+alt + ←: 向左/右移动列
  */
 
 import type { Et } from '@effitor/core'
@@ -31,19 +22,18 @@ import { EtTableRowElement } from './EtTableRowElement'
 import { inTableCellHandler, inTableRowHandler, tableHandler } from './handler'
 import cssText from './index.css?raw'
 
-export interface TableOptions {
+const defaultOptions: TablePluginOptions = {
+  tabToTableAfterShortText: true,
+}
+export interface TablePluginOptions {
   /**
    * 是否以 OneNote 风格插入表格: 在有效文本小于 20 字符的普通段落末尾按下 Tab,
    * 会将当前段落转换为表格单元格; 默认为 true
    */
   tabToTableAfterShortText?: boolean
 }
-
-const defaultOptions: TableOptions = {
-  tabToTableAfterShortText: true,
-}
-
-export const useTablePlugin = (options?: TableOptions): Et.EditorPluginSupportInline => {
+export { EtTableCellElement, EtTableElement, EtTableRowElement }
+export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPluginSupportInline => {
   options = { ...defaultOptions, ...options }
   return {
     name: '@effitor/plugin-table',

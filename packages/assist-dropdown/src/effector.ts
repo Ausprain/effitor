@@ -1,9 +1,10 @@
 import type { Et } from '@effitor/core'
 import { platform } from '@effitor/core'
 
-import { Dropdown, type DropdownAssistOptions } from './dropdown'
+import type { DropdownOptions, DropdownTrigger } from './config'
+import { Dropdown } from './dropdown'
 
-const getTriggerAction = (modType: Required<DropdownAssistOptions>['triggerMod']): Et.KeyboardAction => {
+const getTriggerAction = (modType: DropdownTrigger['triggerMod']): Et.KeyboardAction => {
   if (modType === true) {
     if (platform.isMac)
       return (ev, ctx) => {
@@ -55,7 +56,7 @@ const getTriggerAction = (modType: Required<DropdownAssistOptions>['triggerMod']
   }
 }
 
-export const getDropdownEffector = (options: Required<DropdownAssistOptions>): Et.EffectorSupportInline => {
+export const getDropdownEffector = (options: Required<DropdownOptions & DropdownTrigger>): Et.EffectorSupportInline => {
   return {
     inline: true,
 

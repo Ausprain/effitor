@@ -27,6 +27,7 @@
 
 ## Todo
 
+- [ ] 效应元素新增 contentText 属性, 用于字数统计; 代码块不参与字数统计, 因此返回空串
 - [ ] ~~将 hotkey 提升至 keymap 的维度~~
   - why？
     - 目前除了文本输入，几乎每个 keydown 都得计算依次 modkey；而在插件 sovler 中，经常需要判断一些按键是否同时按下“shift”，“ctrl”，“alt”，这很繁琐。
@@ -413,6 +414,8 @@ Todos
     - shift + enter 换行
   - [x] alt+上/下 移动表行
   - [x] ctrl+alt+左/右 移动表列
+  - [ ] 光标状态下 cmd+c/l/r: 居中/左对齐/右对齐
+  - [ ] 粘贴处理
 - [x] markdown互转
 - [x] 原生 html 互转
 - [ ] dropdown

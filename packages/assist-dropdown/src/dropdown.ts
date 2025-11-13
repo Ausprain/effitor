@@ -15,28 +15,9 @@ import type {
   DropdownMenuItem,
   DropdownMenuItemOptions,
   DropdownMenuOptions,
+  DropdownOptions,
 } from './config'
 import { DropdownEnum } from './config'
-
-export const defaultOptions = {
-  /** 触发dropdown 的按键, 现强制只能为 '/' 键 */
-  triggerKey: '/' as const,
-  /**
-   * 修饰键, 默认为true
-   * ```
-   * undefined: 不使用修饰键, 按下 / 直接打开dropdown
-   * true: MacOS下使用 Command+/; 其他使用Ctrl+/
-   * Alt: 使用 Alt+/
-   * Control: 使用 Ctrl+/
-   * Meta: 使用Meta+/, 或Command+/ (MacOS)
-   * ```
-   */
-  triggerMod: true as true | 'Alt' | 'Control' | 'Meta',
-
-  maxWidth: 188,
-  maxHeight: 256,
-}
-export type DropdownAssistOptions = Partial<typeof defaultOptions>
 
 /**
  * dropdown 菜单, 在光标附近展开; 展开时, 开启命令事务 在光标位置插入一个节点,
@@ -135,7 +116,7 @@ export class Dropdown {
     return text[0] === HtmlCharEnum.ZERO_WIDTH_SPACE ? text.slice(1) : text
   }
 
-  constructor(ctx: Et.EditorContext, signal: AbortSignal, options: Required<DropdownAssistOptions>) {
+  constructor(ctx: Et.EditorContext, signal: AbortSignal, options: DropdownOptions) {
     this._ctx = ctx
     this.blockRichMenu.filter.matchEtType = ctx.schema.paragraph.etType
     this.blockRichMenu.filter.unmatchEtType = ~ctx.schema.paragraph.etType
@@ -151,7 +132,9 @@ export class Dropdown {
     wrapper.className = DropdownEnum.Class_Wrapper
     container.className = DropdownEnum.Class_Container
     defaultContentEl.className = DropdownEnum.Class_Content
-    defaultContentEl.setAttribute('style', `max-height: ${options.maxHeight}px; max-width: ${options.maxWidth}px;`)
+    if (options.maxHeight && options.maxWidth) {
+      defaultContentEl.setAttribute('style', `max-height: ${options.maxHeight}px; max-width: ${options.maxWidth}px;`)
+    }
     this.defaultContent = {
       el: defaultContentEl,
       menus: [this.inlineRichMenu, this.blockRichMenu],

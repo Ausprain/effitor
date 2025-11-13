@@ -12,6 +12,7 @@ declare module '@effitor/core' {
   }
 }
 
+export type * from './DialogManager'
 /**
  * dialog 的 DOM结构和位置
  * ```
