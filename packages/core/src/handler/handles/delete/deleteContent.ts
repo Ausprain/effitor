@@ -55,7 +55,7 @@ export const deleteContentBackward = createInputEffectHandle(function (ctx, pl) 
   const tc = pl.targetRange.toTargetCaret()
   return (
     // 光标在文本节点上
-    checkBackspaceAtCaretDeleteText(ctx, tc, false)
+    checkBackspaceAtCaretDeleteText.call(this, ctx, tc, false)
     // 光标在段落开头?
     || checkBackspaceAtCaretDeleteParagraph.call(this, ctx, tc)
     // 光标落在非文本节点边缘?
@@ -75,7 +75,7 @@ export const deleteContentForward = createInputEffectHandle(function (ctx, pl) {
   const tc = pl.targetRange.toTargetCaret()
   return (
     // 光标在文本节点上
-    checkDeleteAtCaretDeleteText(ctx, tc, false)
+    checkDeleteAtCaretDeleteText.call(this, ctx, tc, false)
     // 光标在段落末尾
     || checkDeleteAtCaretDeleteParagraph.call(this, ctx, tc)
     // 光标在非文本节点边缘

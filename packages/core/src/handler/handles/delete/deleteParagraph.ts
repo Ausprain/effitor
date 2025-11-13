@@ -84,6 +84,7 @@ export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackward
   const isEmpty = currP.isEmpty()
   let prevPT = currP.previousSibling as Et.Paragraph | null
 
+  ctx.commandManager.commitNextHandle()
   // 当前段落有前兄弟
   if (prevPT) {
     // 当前为空, 删除当前, 光标置于前兄弟结尾
@@ -220,6 +221,7 @@ export const deleteForwardAtParagraphEnd = createEffectHandle('DeleteForwardAtPa
   const isEmpty = currP.isEmpty()
   let nextPT = currP.nextSibling as Et.Paragraph | null
 
+  ctx.commandManager.commitNextHandle()
   // 当前段落有后兄弟
   if (nextPT) {
     // 这里不同于 Backspace, Delete时优先删除空的后兄弟, 其次才是空自身

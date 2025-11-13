@@ -1,31 +1,23 @@
 import { HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../../../@types'
-import { cr } from '../../../selection'
 import { cmd } from '../../command'
-import {
-  removeNodesAndChildlessAncestorAndMergeSiblings,
-} from './delete.shared'
+import { removeNodesAndChildlessAncestorAndMergeSiblings } from './delete.shared'
 import { removeByTargetRange } from './deleteAtRange'
 
 /**
  * 是否光标在文本节点非开头位置 Backspace, 若删除后文本节点为空, 则连带删除父节点
  */
-export const checkBackspaceAtCaretDeleteText = (
-  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
-) => {
+export const checkBackspaceAtCaretDeleteText = function (
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
+) {
   if (!targetCaret.isAtText()) {
     return false
   }
   const textNode = targetCaret.container
-  // fixed. 段落开头是零宽字符, 且光标在零宽字符后, 移动光标, 而不是删除该零宽字符
-  // 因为如果段落只有零宽字符, 则删除后段落高度会坍缩 (这也是为什么浏览器要给可编辑 div 一个默认<br>)
-  if (textNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE
-    && targetCaret.offset === 1
-    && targetCaret.anchorParagraph?.firstChild === textNode
-  ) {
-    ctx.setSelection(cr.caret(textNode, 0))
-    return true
+  if (textNode.data === HtmlCharEnum.ZERO_WIDTH_SPACE && targetCaret.anchorParagraph?.childNodes.length === 1) {
+    // 如果段落只有一个零宽字符, 进入删除段落逻辑
+    return deleteParagraphBackward.call(this, ctx, targetCaret)
   }
   const removeData = deleteWord
     ? ctx.segmenter.precedingWord(textNode.data, targetCaret.offset)
@@ -50,15 +42,9 @@ export const checkBackspaceAtCaretDeleteText = (
   }
   return true
 }
-/**
- * 判断光标是否在段落开头 Backspace, 然后智能处理段落删除和合并情况
- */
-export const checkBackspaceAtCaretDeleteParagraph = function (
+function deleteParagraphBackward(
   this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) {
-  if (!targetCaret.isCaretAtParagraphStart()) {
-    return false
-  }
   // 首段落开头, 不用删除
   if (targetCaret.anchorParagraph === ctx.bodyEl.firstChild) {
     return true
@@ -81,6 +67,17 @@ export const checkBackspaceAtCaretDeleteParagraph = function (
     return true
   }
   return !!res
+}
+/**
+ * 判断光标是否在段落开头 Backspace, 然后智能处理段落删除和合并情况
+ */
+export const checkBackspaceAtCaretDeleteParagraph = function (
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
+) {
+  if (!targetCaret.isCaretAtParagraphStart()) {
+    return false
+  }
+  return deleteParagraphBackward.call(this, ctx, targetCaret)
 }
 /**
  * 判断光标位置 Backspace 是否删除节点, 若删除节点, 则会连带删除以其为唯一子节点的祖先(包含自身),
@@ -130,20 +127,16 @@ export const checkBackspaceAtCaretInTextStart = (
   return false
 }
 
-export const checkDeleteAtCaretDeleteText = (
-  ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
-) => {
+export const checkDeleteAtCaretDeleteText = function (
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret, deleteWord: boolean,
+) {
   if (!targetCaret.isAtText()) {
     return false
   }
   const textNode = targetCaret.container
-  // 同 backspace, 如果只是一个零宽字符, 则移动光标, 而不是将其删除
-  if (textNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE
-    && targetCaret.offset === 0
-    && targetCaret.anchorParagraph?.lastChild === textNode
-  ) {
-    ctx.setSelection(cr.caret(textNode, 1))
-    return true
+  if (textNode.textContent === HtmlCharEnum.ZERO_WIDTH_SPACE && targetCaret.anchorParagraph?.childNodes.length === 1) {
+    // 如果段落只有一个零宽字符, 进入删除段落逻辑
+    return deleteParagraphForward.call(this, ctx, targetCaret)
   }
   const removeData = deleteWord
     ? ctx.segmenter.followingWord(textNode.data, targetCaret.offset)
@@ -166,18 +159,23 @@ export const checkDeleteAtCaretDeleteText = (
   }))
   return true
 }
-export const checkDeleteAtCaretDeleteParagraph = function (
+function deleteParagraphForward(
   this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
 ) {
-  if (!targetCaret.isCaretAtParagraphEnd()) {
-    return false
-  }
   const res = this.DeleteForwardAtParagraphEnd?.(ctx, targetCaret)
   if (typeof res === 'object') {
     ctx.setCaretToAParagraph(res, true)
     return true
   }
   return !!res
+}
+export const checkDeleteAtCaretDeleteParagraph = function (
+  this: Et.EffectHandleThis, ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,
+) {
+  if (!targetCaret.isCaretAtParagraphEnd()) {
+    return false
+  }
+  return deleteParagraphForward.call(this, ctx, targetCaret)
 }
 export const checkDeleteAtCaretDeleteNode = (
   ctx: Et.UpdatedContext, targetCaret: Et.ValidTargetCaret,

@@ -24,12 +24,16 @@ test('checkBackspaceAtCaretDeleteText', async () => {
 
   // 测试删除单个字符
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 7))
-  expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, false)).toBe(true)
+  expect(checkBackspaceAtCaretDeleteText.call(
+    ctx.effectInvoker.getEtElCtor(p),
+    ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, false)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('Hello 78<b>bold<i>I123</i></b>B12')
   // 测试删除整个单词
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 6))
-  expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
+  expect(checkBackspaceAtCaretDeleteText.call(
+    ctx.effectInvoker.getEtElCtor(p),
+    ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('78<b>bold<i>I123</i></b>B12')
   ctx.commandManager.commit()
@@ -38,7 +42,9 @@ test('checkBackspaceAtCaretDeleteText', async () => {
 
   p.firstChild!.textContent = 'H  删除删除789'
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 7))
-  expect(checkBackspaceAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
+  expect(checkBackspaceAtCaretDeleteText.call(
+    ctx.effectInvoker.getEtElCtor(p),
+    ctx, ctx.selection.getTargetRange()!.toTargetCaret()!, true)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('H789<b>bold<i>I123</i></b>B12')
   ctx.commandManager.commit()
@@ -296,13 +302,17 @@ test('checkDeleteAtCaretDeleteText', async () => {
 
   // 测试删除单个字符
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 0))
-  expect(checkDeleteAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret(), false)).toBe(true)
+  expect(checkDeleteAtCaretDeleteText.call(
+    ctx.effectInvoker.getEtElCtor(p),
+    ctx, ctx.selection.getTargetRange()!.toTargetCaret(), false)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('ello A78<b>bold<i>I123</i></b>B12')
 
   // 测试删除整个单词
   ctx.setSelection(cr.caretIn(p.firstChild as Et.Text, 0))
-  expect(checkDeleteAtCaretDeleteText(ctx, ctx.selection.getTargetRange()!.toTargetCaret(), true)).toBe(true)
+  expect(checkDeleteAtCaretDeleteText.call(
+    ctx.effectInvoker.getEtElCtor(p),
+    ctx, ctx.selection.getTargetRange()!.toTargetCaret(), true)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('A78<b>bold<i>I123</i></b>B12')
 })
