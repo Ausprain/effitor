@@ -17,6 +17,9 @@ export class EtTableCellElement extends EtRichText {
     | ET_TABLE_CELL_CODE
     | EtTypeEnum.AllowEmpty /** etcode.Em.AllowEmpty */
 
+  /**
+   * 创建一个 tc 元素
+   */
   static create() {
     const el = document.createElement(this.elName)
     return el

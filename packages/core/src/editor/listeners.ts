@@ -100,7 +100,9 @@ export const addListenersToEditorBody = (
         }
         ctx.editor._markFocused()
         // 手动更新上下文和选区, 再绑定sel监听器
-        ctx.forceUpdate()
+        // fixed. 由于绑定 sel 监听器在 requestAnimationFrame 回调中, 则此处 focusin 所导致的 selectionchange 事件
+        // 不会被监听到, 因此此处应使用 ctx.update 而不是 forceUpdate; 否则其中的 skipNextSelChange 会导致下一次 selchange 事件被跳过
+        ctx.update()
         document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
         listeners.focusin(ev)
       })

@@ -2,6 +2,8 @@
  * 使用 Caret and Range 管理编辑器命令的光标位置
  */
 
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { dom } from '../utils'
 import type { CaretRange } from './CaretRange'
@@ -81,7 +83,6 @@ export const cr = {
   caretInEnd: (node: Et.Node) => {
     return new EtCaret(node, dom.nodeLength(node))
   },
-
   /**
    * 获取未来定位到节点内结尾的光标位置 (基于 node 定位, 但恒定内末尾位置)\
    * 使用一个虚拟偏移量, 确定一个永久指示节点内末尾的位置;
@@ -91,7 +92,6 @@ export const cr = {
   caretInEndFuture(node: Et.Node) {
     return new EtCaret(node, this.ANCHOR_IN_END)
   },
-
   /** 获取定位到节点内开头的光标位置 */
   caretInStart: (node: Et.Node) => {
     return new EtCaret(node, 0)
@@ -147,52 +147,56 @@ export const cr = {
    * 定位到一个节点末尾, 并自适应其位置
    * * 若为#text, 定位到内末尾
    * * 若为不可编辑节点, 定位到外末尾
-   * * 若为可编辑节点, 定位到内末尾
+   * * 若为可编辑节点, 使用其 lastChild 递归此方法
    */
-  caretEndAuto: (node: Et.Node) => {
+  caretEndAuto(node: Et.Node): Et.EtCaret {
     if (dom.isText(node)) {
       return new EtCaret(node, node.length)
     }
     if (dom.isNotEditable(node)) {
       return new EtCaret(node, Infinity)
     }
-    return new EtCaret(node, node.childNodes.length)
+    if (!node.lastChild) {
+      return new EtCaret(node, 0)
+    }
+    return this.caretEndAuto(node.lastChild)
   },
   /**
    * 定位到一个节点开头, 并自适应其位置
-   * * 若为#text, 定位到内开头
+   * * 若为#text, 定位到内开头; (如果仅有一个零宽字符, 则会定位到内末尾)
+   * * 若为 br 元素, 定位到 br 外开头
    * * 若为不可编辑节点, 定位到外开头
-   * * 若为可编辑节点且, 定位到内开头
+   * * 若为可编辑节点, 使用其 firstChild 递归此方法
    */
-  caretStartAuto: (node: Et.Node) => {
+  caretStartAuto(node: Et.Node): Et.EtCaret {
     if (dom.isText(node)) {
+      if (node.data === HtmlCharEnum.ZERO_WIDTH_SPACE) {
+        return new EtCaret(node, 1)
+      }
       return new EtCaret(node, 0)
+    }
+    if (dom.isBrElement(node)) {
+      return this.caretOutStart(node)
     }
     if (dom.isNotEditable(node)) {
       return new EtCaret(node, -Infinity)
     }
-    return new EtCaret(node, 0)
+    if (!node.firstChild) {
+      return new EtCaret(node, 0)
+    }
+    return this.caretStartAuto(node.firstChild)
   },
   /**
-   * 光标定位到一个新段落内的合适位置
-   * * 由于段落换行可能是用`<br>`或`\n`, 所以新增此方法统一判断;
-   * * 若段落末尾是 br, 定位到其外开头;
-   *   若是文本, 定位到其内末尾;
-   *   段落为空, 定位到段落内开头;
-   *   其余情况依据 lastChild 自动定位.
-   * @param p 段落元素
-   * @returns 定位与新段落内的光标位置
+   * 光标定位到一个节点内的合适位置
+   * * 节点为空, 定位到节点内开头;
+   * * 若节点末尾是文本, 定位到文本内末尾;
+   * * 若节点末尾是 br, 定位到 br 外开头;
+   * * 其余情况依据 lastChild 自动定位.
    */
-  caretInNewParagraph(p: Et.EtParagraphElement) {
-    const lastChild = p.lastChild
+  caretInAuto(node: Et.Node) {
+    const lastChild = node.lastChild
     if (!lastChild) {
-      return this.caretInStart(p)
-    }
-    if (dom.isBrElement(lastChild)) {
-      return this.caretOutStart(lastChild)
-    }
-    if (dom.isText(lastChild)) {
-      return this.caret(lastChild, lastChild.length)
+      return this.caretInStart(node)
     }
     return this.caretEndAuto(lastChild)
   },

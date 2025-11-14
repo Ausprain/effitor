@@ -27,7 +27,7 @@ export class EtBlockquoteElement extends EtBlockquote {
       return
     }
     const p = ctx.createPlainParagraph()
-    ctx.commonHandler.emptyElAndInsert(this, p, cr.caretInNewParagraph(p))
+    ctx.commonHandler.emptyElAndInsert(this, p, cr.caretInAuto(p))
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {

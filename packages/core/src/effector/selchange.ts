@@ -7,10 +7,11 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
     // if (import.meta.env.DEV) {
     //   console.error('sel change', ev)
     // }
-    // 在输入法会话中, 跳过
-    if (ctx.composition.inSession
-      // 编辑命令使用 ctx.forceUpdate 更新了上下文, 跳过
-      || ctx.selChangeSkipped
+    // 编辑命令使用 ctx.forceUpdate 更新了上下文, 跳过
+    // fixed. 必须先判断 selChangeSkipped, 因为要消耗掉, 避免其他几个一直为 true, 导致该属性一直不能消耗
+    if (ctx.selChangeSkipped
+      // 在输入法会话中, 跳过
+      || ctx.composition.inSession
       // 原生编辑节点内, 跳过
       || ctx.selection.rawEl
       // 编辑器失去焦点, 跳过

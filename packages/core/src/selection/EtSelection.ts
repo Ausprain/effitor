@@ -34,6 +34,7 @@ export class EtSelection {
   private _targetRange: Et.TargetRange | null = null
   private _validTargetRange?: Et.ValidTargetRange | null = void 0
 
+  private _anchorText: Et.Text | null = null
   private _isForward: boolean | undefined
   private _commonEtElement: Et.EtElement | null | undefined
   private _focusEtElement: Et.EtElement | null | undefined
@@ -81,8 +82,11 @@ export class EtSelection {
    * 2. 选区非 collapsed, 且 range起止节点是同一文本节点
    */
   get anchorText() {
+    if (this._anchorText) {
+      return this._anchorText
+    }
     if (!this._rawEl && this._targetRange && this._targetRange.isTextCommonAncestor()) {
-      return this._targetRange.commonAncestor
+      return this._anchorText = this._targetRange.commonAncestor
     }
     return null
   }
@@ -157,7 +161,8 @@ export class EtSelection {
     if (!sel || sel.rangeCount === 0) {
       return false
     }
-    const oldText = this.anchorText
+    const oldText = this._anchorText
+    this._anchorText = null
     if (this._rawEl) {
       const r = document.createRange()
       r.setStart(this._rawEl, 0)

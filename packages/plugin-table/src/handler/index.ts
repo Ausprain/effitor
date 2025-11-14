@@ -30,6 +30,7 @@ import type { EtTableCellElement } from '../EtTableCellElement'
 import { EtTableRowElement } from '../EtTableRowElement'
 import { backspaceToRemoveEmptyRowOrFocusToPrevRow, checkEmptyCellAndFocusToPrevOrNext, deleteInTableRow, deleteToRemoveRowEmptyOrFocusToNextRow } from './delete'
 import { insertTableRow } from './insert'
+import { collapseTargetRangeOfInputEffectPayload } from './shared'
 
 export const tableHandler: Et.EffectHandler = {
   replaceParagraphWithTable: (ctx, { data, paragraph }) => {
@@ -57,6 +58,12 @@ export const tableHandler: Et.EffectHandler = {
 
 // export const inTableHandler: Et.EffectHandler = {}
 export const inTableRowHandler: Et.EffectHandler = {
+  EinsertText(ctx, payload) {
+    return this.superHandler.EinsertText?.(ctx, collapseTargetRangeOfInputEffectPayload(payload))
+  },
+  // EinsertCompositionText(ctx, payload) {
+  //   return this.superHandler.EinsertCompositionText?.(ctx, collapseTargetRangeOfInputEffectPayload(payload))
+  // },
   EinsertParagraph(ctx, payload) {
     if (!ctx.schema.tableRow.is(payload.targetRange.commonEtElement)) {
       return this.superHandler.EinsertParagraph?.(ctx, payload)

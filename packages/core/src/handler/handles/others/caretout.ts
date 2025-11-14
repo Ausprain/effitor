@@ -50,7 +50,7 @@ export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
       }
       else {
         const newP = ctx.createPlainParagraph()
-        const destCaretRange = cr.caretInNewParagraph(newP)
+        const destCaretRange = cr.caretInAuto(newP)
         return ctx.commandManager.push(cmd.insertNode({
           node: newP,
           execAt: cr.caretOutEnd(currP),

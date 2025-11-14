@@ -181,9 +181,9 @@ export class Composition {
    * 记录compositionstart时, 段落的最后一个节点;
    * 用于在compositionend时, 恢复段落的最后一个节点
    */
-  private _paragraphLastNode: Et.NodeOrNull | undefined = void 0
-  get paragraphLastNodeInCompositionStart() {
-    return this._paragraphLastNode
+  private _lastNode: Et.NodeOrNull | undefined = void 0
+  get lastNodeInCompositionStart() {
+    return this._lastNode
   }
 
   onStart() {
@@ -191,7 +191,7 @@ export class Composition {
     this._isUsingIME = true
     this._updateCount = 0
     if (!this._ctx.selection.rawEl) {
-      this._paragraphLastNode = this._ctx.focusParagraph?.lastChild
+      this._lastNode = this._ctx.focusEtElement?.lastChild
     }
   }
 
@@ -247,26 +247,28 @@ export class Composition {
     // 定位的光标位置不精确, 从而导致一些异常
     // 因此我们要在此恢复 composition 会话开始时被浏览器删除的尾 br, 或使用被删除的尾 br 来替换
     // 浏览器为撑起段落而插入的新 br
-    if (this._ctx.focusParagraph) {
-      const pLastNode = this._paragraphLastNode
-      const currLastNode = this._ctx.focusParagraph.lastChild
-      if (currLastNode && currLastNode.nodeName === 'BR' && currLastNode !== pLastNode) {
-        if (!pLastNode) {
+
+    // fixed. 使用 focusEtElement 而不是 focusParagraph, 这样单元格等其他元素效应元素也能处理此情况
+    if (this._ctx.focusEtElement) {
+      const lastNode = this._lastNode
+      const currLastNode = this._ctx.focusEtElement.lastChild
+      if (currLastNode && currLastNode.nodeName === 'BR' && currLastNode !== lastNode) {
+        if (!lastNode) {
           // 这是浏览器私自插入的 br, 移除
           currLastNode.remove()
         }
-        else if (pLastNode.nodeName === 'BR') {
+        else if (lastNode.nodeName === 'BR') {
           // 或替换为一开始被浏览器私自删除的 br
-          currLastNode.replaceWith(pLastNode)
+          currLastNode.replaceWith(lastNode)
         }
       }
       // 段落为空, 而输入法开始时非空, 插回被意外删除的节点; 这种情况应该不太会发生
       // 可能的情况是, 浏览器在用户取消输入法输入时, 段落为空而没有惯例地插入一个 br
-      if (!currLastNode && pLastNode) {
-        this._ctx.focusParagraph.appendChild(pLastNode)
+      if (!currLastNode && lastNode) {
+        this._ctx.focusEtElement.appendChild(lastNode)
       }
     }
-    this._paragraphLastNode = null
+    this._lastNode = null
 
     // 输入法插入文本非空, 去掉插入位置前导的零宽字符
     if (data) {

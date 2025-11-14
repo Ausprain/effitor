@@ -31,7 +31,7 @@ const checkDeleteList = (ctx: Et.UpdatedContext) => {
         oldNode: currList,
         newNode: newP,
       }))
-      .handleAndUpdate(cr.caretInNewParagraph(newP))
+      .handleAndUpdate(cr.caretInAuto(newP))
   }
 }
 
@@ -86,7 +86,7 @@ const enterAtEmptyListItem = (ctx: Et.UpdatedContext) => {
           node: newP,
           execAt: cr.caretOutEnd(currList),
         }))
-        .handleAndUpdate(cr.caretInNewParagraph(newP))
+        .handleAndUpdate(cr.caretInAuto(newP))
     }
   }
   else {
@@ -110,7 +110,7 @@ const enterAtEmptyListItem = (ctx: Et.UpdatedContext) => {
       return ctx.commandManager.push(cmd.insertNode({
         node: newP,
         execAt: removeAt,
-      })).handleAndUpdate(cr.caretInNewParagraph(newP))
+      })).handleAndUpdate(cr.caretInAuto(newP))
     }
   }
 }

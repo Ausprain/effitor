@@ -480,6 +480,10 @@ class TargetRange implements _SelectionTarget {
     return this.endNode.nodeType === 3 /** Node.TEXT_NODE */
   }
 
+  /**
+   * 返回该 TargetRange 对应的 TargetCaret 实例
+   * @param toStart 是否返回开始位置的 TargetCaret, 默认为 true
+   */
   toTargetCaret(toStart = true): this extends ValidTargetRange ? ValidTargetCaret : TargetCaret {
     if (toStart) {
       return this.startCaret as this extends ValidTargetRange ? ValidTargetCaret : TargetCaret

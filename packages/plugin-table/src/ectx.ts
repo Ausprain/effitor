@@ -1,99 +1,9 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, dom, hotkey, useEffectorContext } from '@effitor/core'
+import { cr, dom, hotkey, useEffectorContext } from '@effitor/core'
 
-import type { EtTableCellElement } from './EtTableCellElement'
 import type { EtTableElement } from './EtTableElement'
 import type { EtTableRowElement } from './EtTableRowElement'
-
-/**
- * 格式化表格, 保证每行列数一致; 若不一致, 统一格式化到已有最大列数
- */
-const formatTable = (ctx: Et.EditorContext, table: EtTableElement) => {
-  const colMap: Record<number, EtTableRowElement[]> = {}
-  let maxCol = 0
-  for (const row of table.children) {
-    if (ctx.schema.tableRow.is(row)) {
-      if (row.childElementCount > maxCol) {
-        maxCol = row.childElementCount
-      }
-      if (colMap[row.childElementCount]) {
-        colMap[row.childElementCount].push(row)
-      }
-      else {
-        colMap[row.childElementCount] = [row]
-      }
-    }
-  }
-  const cols = Object.keys(colMap).map(Number)
-  if (cols.length === 1 && cols[0] === maxCol) {
-    return
-  }
-  // 若不一致, 统一格式化到已有最大列数
-  const cmds: Et.Command[] = []
-  for (const col of cols) {
-    if (col === maxCol) {
-      continue
-    }
-    const addCount = maxCol - col
-    const rows = colMap[col]
-    if (addCount === 1) {
-      for (const row of rows) {
-        cmds.push(cmd.insertNode({
-          node: ctx.schema.tableCell.create(),
-          execAt: cr.caretInEnd(row),
-        }))
-      }
-    }
-    else {
-      for (const row of rows) {
-        const content = ctx.createFragment()
-        content.append(...new Array(addCount).fill(ctx.schema.tableCell.create()))
-        cmds.push(cmd.insertContent({
-          content,
-          execAt: cr.caretInStart(row),
-        }))
-      }
-    }
-  }
-  if (cmds.length) {
-    ctx.commandManager.withTransaction(cmds)
-  }
-}
-
-/**
- * 插入新列
- * @param ctx 编辑器上下文
- * @param anchorTc 锚定单元格
- * @param to 插入位置
- */
-const insertNewColumn = (ctx: Et.EditorContext, anchorTc: EtTableCellElement, to: 'left' | 'right') => {
-  // 列数 -> 行元素数组
-  const table = anchorTc.parentNode?.parentNode
-  if (!ctx.schema.table.is(table)) {
-    return
-  }
-  // 插入新列时, 要保证每行的列数一致
-  formatTable(ctx, table)
-  const colIndex = dom.prevSiblingCount(anchorTc)
-  const cmds: Et.Command[] = []
-  const caretFn = to === 'left' ? cr.caretOutStart : cr.caretOutEnd
-  for (const row of table.children) {
-    const cell = row.children[colIndex] as Et.Node
-    if (cell && cell !== anchorTc) {
-      cmds.push(cmd.insertNode({
-        node: ctx.schema.tableCell.create(),
-        execAt: caretFn(cell),
-      }))
-    }
-  }
-  const nextCell = ctx.schema.tableCell.create()
-  const destCaretRange = cr.caretInStart(nextCell)
-  cmds.push(cmd.insertNode({
-    node: nextCell,
-    execAt: caretFn(anchorTc),
-  }))
-  ctx.commandManager.withTransaction(cmds, destCaretRange)
-}
+import { insertNewColumn } from './handler/insert'
 
 const tabToNextCellOrInsertNewColumn = (ctx: Et.EditorContext) => {
   if (!ctx.schema.tableCell.is(ctx.commonEtElement)) {
@@ -138,7 +48,7 @@ const moveCaretUpInCellOrAbove = (ctx: Et.EditorContext) => {
   }
   const upCell = prevRow.children[dom.prevSiblingCount(ctx.commonEtElement)]
   if (ctx.schema.tableCell.is(upCell)) {
-    ctx.setSelection(cr.caretInEnd(upCell).toTextAffinity())
+    ctx.setSelection(cr.caretEndAuto(upCell))
     return true
   }
 }
@@ -160,7 +70,7 @@ const moveCaretDownInCellOrBeneath = (ctx: Et.EditorContext) => {
   }
   const downCell = nextRow.children[dom.prevSiblingCount(ctx.commonEtElement)]
   if (ctx.schema.tableCell.is(downCell)) {
-    ctx.setSelection(cr.caretInStart(downCell).toTextAffinity())
+    ctx.setSelection(cr.caretStartAuto(downCell))
     return true
   }
 }
@@ -251,5 +161,4 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
 
 export const ectx = useEffectorContext('$table_ctx', {
   tableCellKeyMap,
-  insertNewColumn,
 })

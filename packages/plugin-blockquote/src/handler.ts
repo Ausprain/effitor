@@ -12,7 +12,7 @@ export const blockquoteHandler: Et.EffectHandler = {
       bq.appendChild(titleP)
       const newP = ctx.createPlainParagraph()
       bq.appendChild(newP)
-      destCaretRange = cr.caretInNewParagraph(newP)
+      destCaretRange = cr.caretInAuto(newP)
     }
     else {
       destCaretRange = cr.caret(bq, 0)
