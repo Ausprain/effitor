@@ -1,4 +1,4 @@
-import { type Et, useEffectorContext } from '@effitor/core'
+import { cmd, cr, dom, type Et, useEffectorContext } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
 import { BlockquoteMeta } from './config'
@@ -6,6 +6,58 @@ import { blockquoteMetaParser } from './util'
 
 const ectx = useEffectorContext('$blockquote_ctx', {
   bqMetaParser: blockquoteMetaParser,
+  checkQuitBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
+    if (!currP.nextSibling && dom.isEmptyContentNode(currP)) {
+      const bq = currP.parentNode
+      if (!ctx.schema.blockquote.is(bq)) {
+        return false
+      }
+      if (bq.childNodes.length === 1) {
+        // bq 仅有一个空段落, 删除
+        ctx.commandManager.push(
+          cmd.removeNode({ node: currP }),
+          cmd.removeNode({ node: bq }),
+          cmd.insertNode({
+            node: currP,
+            execAt: cr.caretOutStart(bq),
+          }),
+        ).handleAndUpdate(cr.caretInAuto(currP))
+      }
+      else {
+        ctx.commonHandler.moveNode(currP, cr.caretOutEnd(bq), cr.caretInAuto(currP))
+      }
+      return true
+    }
+    return false
+  },
+  checkInsertBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
+    let pText = currP.textContent
+    if (!pText || pText.length > 100) {
+      return false
+    }
+    pText = pText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+    if (pText[0] !== '>') {
+      return false
+    }
+    if (pText.replaceAll(' ', '') === '>') {
+      ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
+        paragraph: currP,
+      })
+      return true
+    }
+    if (!pText.startsWith('> ')) {
+      return false
+    }
+    const meta = ectx.$blockquote_ctx.bqMetaParser.fromText(pText.slice(2), ctx.pctx.$blockquote_ctx)
+    if (!meta) {
+      return false
+    }
+    ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
+      meta,
+      paragraph: currP,
+    })
+    return true
+  },
 })
 
 export const blockquoteEffector: Et.EffectorSupportInline = {
@@ -16,32 +68,11 @@ export const blockquoteEffector: Et.EffectorSupportInline = {
       if (!currP || !ctx.isPlainParagraph(currP)) {
         return
       }
-      let pText = currP.textContent
-      if (!pText || pText.length > 100) {
-        return
-      }
-      pText = pText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
-      if (pText[0] !== '>') {
-        return
-      }
-      if (pText.replaceAll(' ', '') === '>') {
-        ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
-          paragraph: currP,
-        })
+      if (ectx.$blockquote_ctx.checkQuitBlockquote(ctx, currP)
+        || ectx.$blockquote_ctx.checkInsertBlockquote(ctx, currP)
+      ) {
         return ctx.preventAndSkipDefault(ev)
       }
-      if (!pText.startsWith('> ')) {
-        return
-      }
-      const meta = ectx.$blockquote_ctx.bqMetaParser.fromText(pText.slice(2), ctx.pctx.$blockquote_ctx)
-      if (!meta) {
-        return
-      }
-      ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
-        meta,
-        paragraph: currP,
-      })
-      return ctx.preventAndSkipDefault(ev)
     },
   },
 

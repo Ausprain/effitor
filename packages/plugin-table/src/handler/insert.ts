@@ -5,7 +5,21 @@ import { EtTableCellElement } from '../EtTableCellElement'
 import type { EtTableRowElement } from '../EtTableRowElement'
 import { formatTable } from './shared'
 
-export const insertTableRow = (ctx: Et.EditorContext, anchorTr: EtTableRowElement) => {
+export const insertTableRowOrEnterNewParagraph = (ctx: Et.EditorContext, anchorTr: EtTableRowElement) => {
+  if (!anchorTr.nextSibling && dom.isEmptyContentNode(anchorTr)) {
+    const table = anchorTr.parentNode
+    if (!ctx.schema.table.is(table)) {
+      return
+    }
+    const newP = ctx.createPlainParagraph()
+    return ctx.commandManager.push(
+      cmd.removeNode({ node: anchorTr }),
+      cmd.insertNode({
+        node: newP,
+        execAt: cr.caretOutEnd(table),
+      }),
+    ).handleAndUpdate(cr.caretInAuto(newP))
+  }
   const tr = ctx.schema.tableRow.create()
   for (let i = 0; i < anchorTr.childElementCount; i++) {
     const cell = ctx.schema.tableCell.create()

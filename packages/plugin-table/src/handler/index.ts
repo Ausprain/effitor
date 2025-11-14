@@ -29,7 +29,7 @@ import { TableEnum } from '../config'
 import type { EtTableCellElement } from '../EtTableCellElement'
 import { EtTableRowElement } from '../EtTableRowElement'
 import { backspaceToRemoveEmptyRowOrFocusToPrevRow, checkEmptyCellAndFocusToPrevOrNext, deleteInTableRow, deleteToRemoveRowEmptyOrFocusToNextRow } from './delete'
-import { insertTableRow } from './insert'
+import { insertTableRowOrEnterNewParagraph } from './insert'
 import { collapseTargetRangeOfInputEffectPayload } from './shared'
 
 export const tableHandler: Et.EffectHandler = {
@@ -68,7 +68,7 @@ export const inTableRowHandler: Et.EffectHandler = {
     if (!ctx.schema.tableRow.is(payload.targetRange.commonEtElement)) {
       return this.superHandler.EinsertParagraph?.(ctx, payload)
     }
-    return insertTableRow(ctx, payload.targetRange.commonEtElement)
+    return insertTableRowOrEnterNewParagraph(ctx, payload.targetRange.commonEtElement)
   },
   // 触发 tableRow 的删除 handler, 则选区必定 range, 且 commonEtElement 为 tableRow
   EdeleteContentBackward: (ctx, payload) => deleteInTableRow(ctx, payload.targetRange, true),
@@ -85,7 +85,7 @@ export const inTableCellHandler: Et.EffectHandler = {
     if (!tr || !ctx.schema.tableRow.is(tr)) {
       return this.superHandler.EinsertParagraph?.(ctx, payload)
     }
-    return insertTableRow(ctx, tr)
+    return insertTableRowOrEnterNewParagraph(ctx, tr)
   },
   EdeleteContentBackward(ctx, payload) {
     if (checkEmptyCellAndFocusToPrevOrNext(ctx, payload.targetRange, true)) {

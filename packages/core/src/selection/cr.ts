@@ -192,6 +192,7 @@ export const cr = {
    * * 若节点末尾是文本, 定位到文本内末尾;
    * * 若节点末尾是 br, 定位到 br 外开头;
    * * 其余情况依据 lastChild 自动定位.
+   * * 该方法类似于 caretEndAuto, 只是一开始就使用 node.lastChild 判断
    */
   caretInAuto(node: Et.Node) {
     const lastChild = node.lastChild

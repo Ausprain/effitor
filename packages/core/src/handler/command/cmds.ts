@@ -557,6 +557,19 @@ const replaceText = <MetaType>(init: CmdReplaceTextInit<MetaType>) => {
   }) as CmdWithExec<CmdReplaceText>
 }
 /** 创建一个命令: 插入节点
+ * * ⚠️注意: 如果插入的节点 node, 是上一个未执行命令中要删除的节点(pNode)的后代, 则必须
+ *          先将 node 删除, 再删除 pNode, 否则撤回时找不到光标位置
+ * ```ts
+ * // 如 node 是 pNode 的后代, 我们希望删除 pNode, 并将 node 插入原本 pNode 的位置
+ * ctx.commandManager.push(
+ *    cmd.removeNode({node: node}),
+ *    cmd.removeNode({node: pNode}),
+ *    cmd.insertNode({
+ *        node: node,
+ *        execAt: ...
+ *    })
+ * ).handleAndUpdate(cr.caretInAuto(node))
+ * ```
  * @param init 命令初始化对象
  * @example
  * init: {
