@@ -33,6 +33,8 @@ et-code {
   border-radius: var(--et-code-radius);
   hyphens: none;
   transition: var(--et-transition-color-scheme);
+  /* 阻止代码块在分栏时被分割 */
+  break-inside: avoid-column;
 
   /* lang */
   &::before {

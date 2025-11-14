@@ -12,6 +12,10 @@ export const enum BlockquoteType {
   IMPORTANT = 'important',
   WARNING = 'warning',
   CAUTION = 'caution',
+  // 段落组 (分栏)
+  PG = 'pg',
+  PG2 = 'pg2',
+  PG3 = 'pg3',
 }
 
 declare module '@effitor/core' {
@@ -75,8 +79,12 @@ const buildinMetaMap: Record<string, BlockquoteMeta> = {
   [BlockquoteType.NOTE.toUpperCase()]: { type: BlockquoteType.NOTE, title: 'Note', abbr: 'note.' },
   [BlockquoteType.TIP.toUpperCase()]: { type: BlockquoteType.TIP, title: 'Tip', abbr: 'tip.' },
   [BlockquoteType.IMPORTANT.toUpperCase()]: { type: BlockquoteType.IMPORTANT, title: 'Important', abbr: 'impt.' },
-  [BlockquoteType.WARNING.toUpperCase()]: { type: BlockquoteType.WARNING, title: 'Warning', abbr: 'warning.' },
-  [BlockquoteType.CAUTION.toUpperCase()]: { type: BlockquoteType.CAUTION, title: 'Caution', abbr: 'caution.' },
+  [BlockquoteType.WARNING.toUpperCase()]: { type: BlockquoteType.WARNING, title: 'Warning', abbr: 'warn.' },
+  [BlockquoteType.CAUTION.toUpperCase()]: { type: BlockquoteType.CAUTION, title: 'Caution', abbr: 'caut.' },
+  // 段落组 (分栏)
+  [BlockquoteType.PG.toUpperCase()]: { type: BlockquoteType.PG, title: '', abbr: 'pg.' },
+  [BlockquoteType.PG2.toUpperCase()]: { type: BlockquoteType.PG2, title: '', abbr: 'pg2.' },
+  [BlockquoteType.PG3.toUpperCase()]: { type: BlockquoteType.PG3, title: '', abbr: 'pg3.' },
 }
 
 export const initBlockquotePluginContext = (

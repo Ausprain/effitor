@@ -23,7 +23,8 @@ export class EtBlockquoteElement extends EtBlockquote {
   }
 
   focusinCallback(ctx: Et.EditorContext): void {
-    if (!ctx.selection.isCollapsed || this !== ctx.focusEtElement) {
+    super.focusinCallback(ctx)
+    if (!ctx.isCaretIn(this)) {
       return
     }
     const p = ctx.createPlainParagraph()

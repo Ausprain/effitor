@@ -3,6 +3,7 @@
 ## Bugfix
 
 - [ ] core
+  - [ ] 全选后ArrowRight, 光标显示在末段落内末尾, 但上下文光标定位到了末段落外末尾, 导致接下来输入文本时直接插入到了 et-body 内
   - [ ] 编辑器失去焦点后重新获取焦点，光标在末尾闪烁，但插入内容却在文档开头
     - [x] 页面上光标位置更新了, 而上下文信息还停留在上一次的光标位置
   - [x] 段落开头/末尾亲和位置判断需要考虑零宽字符
@@ -10,6 +11,7 @@
   - [x] 如果删除段落中仅剩的零宽字符, 应当同时删除段落
   - [x] 在段落中间逐级全选会停止在段落层级，在段落末尾却可全选到整个文档
     - trig. 逐级全选会触发 selectionchange 事件，导致全选等级被清除
+    - sol. 不记录全选等级, 每次直接根据当前 range 计算
   - [x] 粘贴后没有滚动到光标位置
   - [x] 当末段落内只有一个 et-media 时, 全选文档选区会没有"拖蓝"(实际上全选了, 但全选的 UI 没有展示)
   - [x] 逐级全选的判定缺漏: 空段落时 firefox 中全选当前行只选了一半
@@ -21,7 +23,6 @@
   - [x] bold 节点的 markType 值错误地记录为 italic
   - [x] 优化标记符hinting，现在 mousedown 时会取消 hinting，但如果光标在 mark 节点内，已经展开了标记符，此时想要移动光标到节点内其他文字，鼠标按下时标记符隐藏，会导致页面跳动（shfit layout），这不是好的体验。
 - plugin-code
-  - [ ] 空代码块开头 Backspace 删除代码块
   - [x] 代码块的复制粘贴问题，粘贴的代码块无法编辑（CodeContext 丢失）
     - [ ] 提升到组件的复制粘贴问题来解决 //TODO 现在的实现很粗糙
 - plugin-link
@@ -32,6 +33,7 @@
 - [ ] 目录助手
 - [x] CommandManager 新增一个判断 keydown 是否需要 commit 的方法, 用于给插件的 beforekeydown 的效应元素特有处理函数使用
 - [x] 引用块/表格末尾连续两次 enter 插入空段落
+- [ ] 空代码块开头 Backspace 删除代码块
 - [ ] 效应元素新增 contentText 属性, 用于字数统计; 代码块不参与字数统计, 因此返回空串
 - [ ] ~~将 hotkey 提升至 keymap 的维度~~
   - why？
@@ -41,7 +43,7 @@
     - keydownSolver 本身具有 keymap 功能, 如果独立一个 keymapSolver 出来, 还需要处理回退问题; 不如留给插件自己在效应元素专有 solver 上手动调用 ctx.hotkeyManager.listenEffect 来执行指定 keymap
 - [ ] 更新 CssClassEnum 的样式名, 统一格式
 - [ ] 选区增加选择节点case，即当选区 range，且 startOffset+1=endOffset时，视为选择节点
-- [ ] blockquote新增 pgroup 类型
+- [x] blockquote新增 pgroup 类型
 - [ ] 热字符串判定允许 Backspace 回退游标
 - [ ] 大文档性能优化，看看标题高度是否影响性能；以及 css 颜色方案 oklch 是否影响样式计算的性能
 - [ ] 插件需暴露一个接口给外部
@@ -399,7 +401,7 @@ Todos
 - [x] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
 - [x] markdown互转
 - [ ] 原生 html 互转
-- [ ] 新增 pgroup 类型
+- [x] 新增 pgroup 类型
   - 起因：想要分栏，如果给 et-body 添加 column-count，则整个文档都分栏了；而如果给段落添加，则每个段落都要独立加；
   - 使用段落组（et-bq）是最佳方案，但缺乏相关 et-bq 类型；新增一个段落组类型（pgroup），给该类型的 et-bq 添加如下样式：column-count: x; column-gap: 1.6em; x 的取值为（1,2,3）；添加热字符串：pg.1, pg.2, pg.3 来快速插入分栏分别为 1 列、2 列、3 列的段落组。
   - 段落组除了分栏外没有样式，只有光标落于其中时，即.active状态，显示边框等用于提示当在在段落组内

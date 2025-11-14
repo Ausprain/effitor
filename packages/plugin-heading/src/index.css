@@ -34,13 +34,16 @@ et-heading {
     opacity: 1;
   }
 }
-et-heading.ET_cls-h1 {
+et-heading.ET_cls-h1,
+et-heading.ET_cls-h2 {
   border-bottom: 1px solid var(--et-color-border-1);
+  transition: var(--et-transition-color-scheme);
+}
+et-heading.ET_cls-h1 {
   font-size: 2rem;
   --semi-line-height: calc(1.5 * 2rem / 2);
 }
 et-heading.ET_cls-h2 {
-  border-bottom: 1px solid var(--et-color-border-1);
   font-size: 1.8rem;
   --semi-line-height: calc(1.5 * 1.8rem / 2);
 }

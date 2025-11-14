@@ -7,9 +7,11 @@ export const blockquoteHandler: Et.EffectHandler = {
     const bq = EtBlockquoteElement.create(meta?.type)
     let destCaretRange
     if (meta) {
-      const titleP = ctx.createPlainParagraph()
-      titleP.textContent = meta.title
-      bq.appendChild(titleP)
+      if (meta.title) {
+        const titleP = ctx.createPlainParagraph()
+        titleP.textContent = meta.title
+        bq.appendChild(titleP)
+      }
       const newP = ctx.createPlainParagraph()
       bq.appendChild(newP)
       destCaretRange = cr.caretInAuto(newP)

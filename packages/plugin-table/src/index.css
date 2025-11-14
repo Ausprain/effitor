@@ -48,7 +48,8 @@ et-table {
   margin-block: 10px;
   overflow: auto;
   border: 1px solid var(--et-table-border-color);
-  /* border-radius: 8px; */
+  /* 阻止表格在分栏时被分割 */
+  break-inside: avoid-column;
 
   &:has(> :only-child) {
     border-radius: 4px;

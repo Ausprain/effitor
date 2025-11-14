@@ -24,8 +24,8 @@ export interface BlockquotePluginOptions {
    * NOTE, note.
    * TIP, tip.
    * IMPORTANT, impt.
-   * WARNING, warning.
-   * CAUTION, caution.
+   * WARNING, warn.
+   * CAUTION, caut.
    * ```
    */
   withBuiltinMeta?: boolean

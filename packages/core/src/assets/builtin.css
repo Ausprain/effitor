@@ -11,6 +11,8 @@ et-body {
   border: none;
   hyphens: auto;  /* 末尾单词自动连接符 */
   white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
+  /* 容器查询, 仅关心宽度 */
+  container-type: inline-size;
 }
 et-body.selection-all {
   background-color: var(--et-color-selection-all);

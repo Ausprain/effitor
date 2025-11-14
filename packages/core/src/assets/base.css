@@ -5,6 +5,8 @@ et-editor.dark,
 :host(.dark) {
   color-scheme: dark;
 
+  --et-color-theme: #9971e7;
+
   --et-color-bg: oklch(15% 0 0);
   --et-color-bg-soft: oklch(25% 0 0);
   --et-color-bg-mute: oklch(30% 0 0);
@@ -34,6 +36,8 @@ et-editor,
 /* 在 shadowDOM 内部, :host指向宿主元素, 即 et-editor */
 :host {
   color-scheme: light;
+
+  --et-color-theme: #6621e7;
 
   /* --et-theme-color: ;
   --et-theme-color--hover: ;
