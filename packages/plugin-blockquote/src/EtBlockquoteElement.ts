@@ -27,8 +27,14 @@ export class EtBlockquoteElement extends EtBlockquote {
     if (!ctx.isCaretIn(this)) {
       return
     }
-    const p = ctx.createPlainParagraph()
-    ctx.commonHandler.emptyElAndInsert(this, p, cr.caretInAuto(p))
+    const firstP = this.firstChild
+    if (ctx.isEtParagraph(firstP)) {
+      ctx.setCaretToAParagraph(firstP, true, true)
+    }
+    else {
+      const p = ctx.createPlainParagraph()
+      ctx.commonHandler.emptyElAndInsert(this, p, cr.caretInAuto(p))
+    }
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {

@@ -45,7 +45,7 @@ export const paragraphMoveUp = createEffectHandle('ParagraphMoveUp', (ctx, tr) =
   }
   // 记录当前滚动位置, 移动段落后, 恢复滚动位置; 避免移动时因增删节点导致页面跳动
   return ctx.commandManager.withRememberScrollTop(ctx, () => {
-    ctx.commandManager.pushHandleCallback(() => ctx.selection.revealSelectionSync())
+    ctx.commandManager.pushHandleCallback(() => ctx.selection.scrollIntoViewSync())
     return ctx.commonHandler.moveNode(prevP, cr.caretOutEnd(prevP))
   })
 })
@@ -56,7 +56,7 @@ export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, t
     return false
   }
   return ctx.commandManager.withRememberScrollTop(ctx, () => {
-    ctx.commandManager.pushHandleCallback(() => ctx.selection.revealSelectionSync())
+    ctx.commandManager.pushHandleCallback(() => ctx.selection.scrollIntoViewSync())
     return ctx.commonHandler.moveNode(nextP, cr.caretOutStart(nextP).moved(-1))
   })
 })

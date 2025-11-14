@@ -1,4 +1,4 @@
-import { cmd, type Et } from '@effitor/core'
+import { cmd, cr, type Et } from '@effitor/core'
 
 import { CodeContext } from './CodeContext'
 import { Brackets } from './config'
@@ -409,6 +409,11 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
     })).handle()
   },
 
+  replaceCodeWithParagraph(ctx, { codeEl }) {
+    ctx.commandManager.commitNextHandle(true)
+    const p = ctx.createPlainParagraph()
+    return ctx.commonHandler.replaceNode(codeEl, p, cr.caretInAuto(p))
+  },
   insertNewLineInCode(ctx, { codeCtx }) {
     const { selectionStart, selectionEnd, selectionDirection } = codeCtx.area
     const anchorOffset = selectionDirection === 'backward' ? selectionStart : selectionEnd

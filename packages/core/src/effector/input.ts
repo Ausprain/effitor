@@ -17,7 +17,7 @@ export const getInputListener = (
     }
     if (runInputSolver(ev, ctx, main, sovler)) {
       // 插件未 skipDefault 时, 若光标不在视口内, 将其移动到视口中央
-      ctx.selection.revealSelection(false, ev.inputType.startsWith('insert') ? 'smooth' : 'instant')
+      ctx.selection.scrollIntoView(false, ev.inputType.startsWith('insert') ? 'smooth' : 'instant')
     }
 
     if (ctx.selection.rawEl) {

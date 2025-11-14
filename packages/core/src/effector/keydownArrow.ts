@@ -23,7 +23,7 @@ if (platform.isFirefox) {
     }
     ctx.setCaretToAParagraph(lastParagraph, false, true)
     ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(false)
+    ctx.selection.scrollIntoView(false)
     return true
   }
   moveToDocumentStart = (ctx: Et.EditorContext) => {
@@ -34,7 +34,7 @@ if (platform.isFirefox) {
     }
     ctx.setCaretToAParagraph(firstParagraph, true, true)
     ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(true)
+    ctx.selection.scrollIntoView(true)
     return true
   }
   extendToDocumentEnd = (ctx: Et.EditorContext) => {
@@ -51,7 +51,7 @@ if (platform.isFirefox) {
     newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
     ctx.selection.selectRange(newRange)
     ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(false)
+    ctx.selection.scrollIntoView(false)
     return true
   }
   extendToDocumentStart = (ctx: Et.EditorContext) => {
@@ -68,7 +68,7 @@ if (platform.isFirefox) {
     newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
     ctx.selection.selectRange(newRange)
     ctx.selection.dispatchChange()
-    ctx.selection.revealSelection(true)
+    ctx.selection.scrollIntoView(true)
     return true
   }
 }

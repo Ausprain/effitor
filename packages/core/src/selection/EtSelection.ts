@@ -638,7 +638,7 @@ export class EtSelection {
       this.selection.collapseToEnd()
     }
     if (reveal) {
-      this.revealSelection()
+      this.scrollIntoView()
     }
     return true
   }
@@ -742,7 +742,7 @@ export class EtSelection {
       (this._selection as Selection).modify(alter, direction, granularity)
     }
     if (reveal) {
-      this.revealSelection(['backward', 'left'].includes(direction))
+      this.scrollIntoView(['backward', 'left'].includes(direction))
     }
     return true
   }
@@ -769,22 +769,22 @@ export class EtSelection {
    * @param toStart 当选区为 range 时, 通过该参数决定是保证range起点
    *    在视口内, 还是优先保证range终点在视口内
    */
-  revealSelection(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
+  scrollIntoView(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
     if (this._revealIdleCallbackId) {
       cancelIdleCallbackPolyByEffitor(this._revealIdleCallbackId)
     }
-    requestIdleCallbackPolyByEffitor(() => this.revealSelectionSync(toStart, scrollBehavior))
+    requestIdleCallbackPolyByEffitor(() => this.scrollIntoViewSync(toStart, scrollBehavior))
   }
 
   /**
-   * 同 {@link revealSelection}, 但是同步执行
+   * 同 {@link scrollIntoView}, 但是同步执行
    * @param range 指定 Range, 即滚动编辑区, 让该 range 对应矩形框显示在视口内, 缺省或为 null 时, 使用当前选区 Range
    */
-  revealSelectionSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto', range?: Range | null) {
+  scrollIntoViewSync(toStart = true, scrollBehavior: ScrollBehavior = 'auto', range?: Range | null) {
     if (this._rawEl && !range) {
       // 光标在原生编辑节点 (input/textarea) 内时, range.getBoundingClientRect返回的 rect 全为 0
       // 无法通过 Selection/Range API 来获取光标位置, 只能通过原生编辑节点的 scrollTop 来实现
-      this._revealSelectionInRawEl(this._rawEl, toStart, scrollBehavior)
+      this._scrollIntoViewInRawEl(this._rawEl, toStart, scrollBehavior)
       return
     }
     this._revealIdleCallbackId = 0
@@ -816,7 +816,7 @@ export class EtSelection {
       }
       rect = anchorEl.getBoundingClientRect()
     }
-    this._body.scrollToReveal(rect, {
+    this._body.scrollIntoView(rect, {
       toStart,
       scrollBehavior,
     })
@@ -861,7 +861,7 @@ export class EtSelection {
     // })
   }
 
-  private _revealSelectionInRawEl(
+  private _scrollIntoViewInRawEl(
     rawEl: Et.HTMLRawEditElement, toStart = true, scrollBehavior: ScrollBehavior = 'auto',
   ) {
     let top: number | undefined = 0,

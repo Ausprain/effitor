@@ -201,7 +201,7 @@ export class EditorBody {
    *                       指定为其他容器时, 若该容器不在视口内, 则直接返回
    * @param 当且仅当滚动容器不是`document.documentElement`且即使滚动之后rect也不在视口内时, 返回`false`
    */
-  scrollToReveal(rect: DOMRect, {
+  scrollIntoView(rect: DOMRect, {
     toStart = true,
     paddingX = 20,
     paddingY = 20,

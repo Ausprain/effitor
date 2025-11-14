@@ -386,7 +386,7 @@ export class CodeContext<L extends string = string> {
    * @param padding 滚动padding, 一个 0-1 的数值, 表示滚动后光标位置到代码块左/上边缘与代码块宽/高的比值;
    *                undefined 时, 使用固定边距 20px
    */
-  revealSelection(ctx: Et.EditorContext, toStart?: boolean, padding?: number) {
+  scrollIntoView(ctx: Et.EditorContext, toStart?: boolean, padding?: number) {
     const { selectionStart, selectionEnd, selectionDirection } = this.area
     toStart = toStart ?? selectionDirection === 'backward'
     const caretOffset = toStart ? selectionStart : selectionEnd
@@ -402,7 +402,7 @@ export class CodeContext<L extends string = string> {
       if (!rect) {
         return true
       }
-      return ctx.body.scrollToReveal(rect, {
+      return ctx.body.scrollIntoView(rect, {
         toStart,
         paddingX: padding,
         paddingY: padding,
@@ -414,7 +414,7 @@ export class CodeContext<L extends string = string> {
     const scrolled = scrollToCaretRect()
     // wrapper 不在视口内, 使用 selection 将其滚动到视口内, 再将代码行滚动到视口内
     if (!scrolled) {
-      ctx.selection.revealSelectionSync(toStart, 'instant', r)
+      ctx.selection.scrollIntoViewSync(toStart, 'instant', r)
       // 使用异步, 等待 selection 滚动完毕后, 再次滚动代码容器, 以获取新的 Range矩形框
       setTimeout(() => {
         scrollToCaretRect()
