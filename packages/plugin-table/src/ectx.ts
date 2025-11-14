@@ -1,5 +1,5 @@
 import type { Et } from '@effitor/core'
-import { cr, dom, hotkey, useEffectorContext } from '@effitor/core'
+import { cmd, cr, dom, hotkey, useEffectorContext } from '@effitor/core'
 
 import type { EtTableElement } from './EtTableElement'
 import type { EtTableRowElement } from './EtTableRowElement'
@@ -146,6 +146,34 @@ const tryToMoveColRight = (ctx: Et.EditorContext) => {
   })
 }
 
+const setTableAlign = (ctx: Et.EditorContext, align: 'left' | 'center' | 'right') => {
+  if (!ctx.selection.isCollapsed) {
+    return
+  }
+  const table = ctx.commonEtElement?.parentNode?.parentNode as EtTableElement | undefined
+  if (!ctx.schema.table.is(table)) {
+    return
+  }
+  if (table.tableAlign === align) {
+    return
+  }
+  ctx.commandManager.commitNextHandle(true)
+  ctx.commandManager.push(cmd.functional({
+    meta: {
+      _align: align as string,
+      _table: table,
+    },
+    execCallback() {
+      const prevAlign = this.meta._table.tableAlign
+      table.tableAlign = this.meta._align
+      this.meta._align = prevAlign
+    },
+    undoCallback(ctx) {
+      this.execCallback(ctx)
+    },
+  })).handle()
+}
+
 // 当且仅当返回 false, 使用默认行为
 const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.Enter, hotkey.CtrlCmd)]: 'insertParagraph',
@@ -157,6 +185,9 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.ArrowDown, hotkey.Mod.AltOpt)]: tryToMoveRowDown,
   [hotkey.create(hotkey.Key.ArrowLeft, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColLeft,
   [hotkey.create(hotkey.Key.ArrowRight, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColRight,
+  [hotkey.create(hotkey.Key.C, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'center'),
+  [hotkey.create(hotkey.Key.R, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'right'),
+  [hotkey.create(hotkey.Key.L, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'left'),
 }
 
 export const ectx = useEffectorContext('$table_ctx', {

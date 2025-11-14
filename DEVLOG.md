@@ -428,8 +428,8 @@ Todos
     - shift + enter 换行
   - [x] alt+上/下 移动表行
   - [x] ctrl+alt+左/右 移动表列
-  - [ ] 光标状态下 cmd+c/l/r: 居中/左对齐/右对齐
-  - [ ] 粘贴处理
+  - [x] 光标状态下 cmd+c/l/r: 居中/左对齐/右对齐
+  - [x] 粘贴处理
 - [x] markdown互转
 - [x] 原生 html 互转
 - [ ] dropdown
