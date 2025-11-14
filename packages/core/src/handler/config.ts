@@ -81,13 +81,14 @@ export interface DefaultEffectHandleMap {
    * 对即将插入文档的外来内容进行转换; 如`insertFromPaste`时从剪切板`text/html`获取的内容;
    * 默认不转换, 原样使用 htmlProcessor 处理的到的片段
    * @param payload
-   * * `payload.fragment`, 要转换的内容(原地转换)
-   * * `payload.insertToEtElement`, 插入位置所属效应元素
+   * * `payload.fragment`, 要转换的内容
+   * * `payload.toEtElement`, 插入位置所属效应元素
+   * @returns 转换后的内容
    */
   TransformInsertContents: (this: EffectHandleThis, ctx: EditorContext, payload: {
-    fragment: Et.Fragment
-    insertToEtElement: Et.EtElement
-  }) => void
+    readonly fragment: Et.Fragment
+    readonly toEtElement: Et.EtElement
+  }) => Et.Fragment
 
   /* -------------------------------------------------------------------------- */
   /*                               原生编辑节点内                                 */

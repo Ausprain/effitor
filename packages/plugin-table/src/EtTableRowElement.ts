@@ -88,12 +88,14 @@ export class EtTableRowElement extends EtParagraph {
       return
     }
     const cell = ctx.schema.tableCell.create()
-    ctx.createElementWithBr(cell)
     ctx.commonHandler.emptyElAndInsert(this, cell, cr.caretInEnd(cell))
   }
 
-  onAfterCopy(_ctx: EditorContext): this | null {
+  onAfterCopy(ctx: EditorContext): this | null {
     // 禁止单独复制行
-    return null
+    if (!ctx.schema.table.is(this.parentNode)) {
+      return null
+    }
+    return this
   }
 }

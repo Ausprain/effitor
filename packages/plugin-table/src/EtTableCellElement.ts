@@ -45,8 +45,11 @@ export class EtTableCellElement extends EtRichText {
     return mdastNode('tableCell', this.childNodes, {})
   }
 
-  onAfterCopy(_ctx: EditorContext): this | null {
+  onAfterCopy(ctx: EditorContext): this | null {
     // 禁止单独复制单元格
-    return null
+    if (!ctx.schema.table.is(this.parentNode?.parentNode)) {
+      return null
+    }
+    return this
   }
 }

@@ -8,7 +8,6 @@ import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
-import { dom } from '../utils'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }
 type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
@@ -97,8 +96,9 @@ const copySelectionToClipboard = (ctx: Et.UpdatedContext, clipboardData: Et.Data
   }
   const etFragment = ctx.selection.cloneContents()
   const htmlFragment = etFragment.cloneNode(true)
-  fragmentUtils.onCopyToEtHTML(ctx, etFragment)
-  fragmentUtils.onCopyToNativeHTML(ctx, htmlFragment)
-  clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, dom.fragmentToHTML(etFragment))
-  clipboardData.setData('text/html', dom.fragmentToHTML(htmlFragment).replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
+  const etHtml = fragmentUtils.parseEtFragmentToEtHtml(ctx, etFragment)
+  const nativeHtml = fragmentUtils.parseEtFragmentToNativeHTML(ctx, htmlFragment)
+  clipboardData.setData(MIMETypeEnum.ET_TEXT_HTML, etHtml)
+  clipboardData.setData('text/html', nativeHtml)
+  // clipboardData.setData('text/html', nativeHtml.replace(HtmlCharEnum.ZERO_WIDTH_SPACE, ''))
 }

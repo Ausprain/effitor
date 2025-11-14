@@ -639,7 +639,10 @@ const innermostMiddlePosition = (former: Et.HTMLNodeOrNull, latter: Et.HTMLNodeO
 /*                               copy & paste                                 */
 /* -------------------------------------------------------------------------- */
 
-export const onCopyToEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+/**
+ * 将etFragment 序列化为etHtml; 会调用效应元素的 onAfterCopy方法
+ */
+export const parseEtFragmentToEtHtml = (ctx: Et.EditorContext, df: DocumentFragment) => {
   const nodesToRemove: Et.EtElement[] = []
   const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
   traversal.traverseNode(df, null, {
@@ -665,9 +668,12 @@ export const onCopyToEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
   nodesToReplace.forEach((rep, el) => {
     el.replaceWith(rep)
   })
+  return dom.fragmentToHTML(df)
 }
-
-export const onCopyToNativeHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+/**
+ * 将etFragment 序列化为nativeHtml; 会调用效应元素的 toNativeElement方法
+ */
+export const parseEtFragmentToNativeHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
   const nodesToRemove: Et.EtElement[] = []
   const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
   const nodesToReplaceWithoutChildren = new Map<Et.EtElement, HTMLElement>()
@@ -701,9 +707,13 @@ export const onCopyToNativeHTML = (ctx: Et.EditorContext, df: DocumentFragment) 
       node = node.nextSibling
     }
   })
+  return dom.fragmentToHTML(df)
 }
-
-export const onPasteFromEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) => {
+/**
+ * 将etHtml 序列化为etFragment; 会调用效应元素的 onBeforePaste方法
+ */
+export const parseEtHtmlFromPaste = (ctx: Et.EditorContext, etHtml: string) => {
+  const df = ctx.createFragment(etHtml)
   const nodesToRemove: Et.EtElement[] = []
   const nodesToReplace = new Map<Et.EtElement, HTMLElement>()
   traversal.traverseNode(df, null, {
@@ -728,4 +738,5 @@ export const onPasteFromEtHTML = (ctx: Et.EditorContext, df: DocumentFragment) =
   nodesToReplace.forEach((rep, el) => {
     el.replaceWith(rep)
   })
+  return df
 }

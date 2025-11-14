@@ -125,4 +125,14 @@ export const inTableCellHandler: Et.EffectHandler = {
     }
     return this.superHandler.DeleteForwardAtParagraphEnd?.(ctx, tc)
   },
+
+  // TODO 目标表格内粘贴, 全部转为纯文本
+  TransformInsertContents(ctx, payload) {
+    if (ctx.schema.tableCell.is(payload.toEtElement)) {
+      const df = ctx.createFragment()
+      df.append(payload.fragment.textContent)
+      return df
+    }
+    return payload.fragment
+  },
 }

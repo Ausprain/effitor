@@ -25,7 +25,7 @@ export abstract class EtComponent extends EtParagraph {
   }
 
   onAfterCopy(_ctx: Et.EditorContext): this | null {
-    return null
+    return this
   }
 
   /**
