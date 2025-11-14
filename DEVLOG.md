@@ -28,6 +28,9 @@
 
 ## Todo
 
+- [ ] 目录助手
+- [x] CommandManager 新增一个判断 keydown 是否需要 commit 的方法, 用于给插件的 beforekeydown 的效应元素特有处理函数使用
+- [ ] 引用块/表格末尾连续两次 enter 插入空段落
 - [ ] 效应元素新增 contentText 属性, 用于字数统计; 代码块不参与字数统计, 因此返回空串
 - [ ] ~~将 hotkey 提升至 keymap 的维度~~
   - why？

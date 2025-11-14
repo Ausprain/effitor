@@ -5,10 +5,8 @@ import { TableEnum } from './config'
 import { ectx } from './ectx'
 
 const beforeKeydownSolver: Et.KeyboardSolver = {
-  default: (ev, ctx) => {
-    if (ctx.commonEtElement.localName !== TableEnum.TableCell) {
-      return
-    }
+  [TableEnum.TableCell]: (ev, ctx) => {
+    ctx.commandManager.checkKeydownNeedCommit(ev, ctx)
     if (ctx.hotkeyManager.listenEffect(ectx.$table_ctx.tableCellKeyMap) === false) {
       return
     }

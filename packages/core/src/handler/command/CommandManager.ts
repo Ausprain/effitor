@@ -229,6 +229,27 @@ export class CommandManager implements CommandQueue {
   }
 
   /**
+   * 检查当前 keydown是否需要commit, 并自动 commit 已执行命令
+   * * 通常不需要调用此方法, 因为 undo 插件已经处理了; 但如果插件在 beforeKeydownSolver
+   *   中配置了 效应元素特有效应器处理函数 那么 undo 的处理逻辑会被覆盖, 则需要手动调用此方法
+   *   来对某些特定按键进行 commit 处理
+   * * 为什么需要? 假设输入 "aabb|", 然后按 Backspace 删除, 最终内容为 "a", 如果没有对
+   *   Backspace 按键进行 commit 处理, 则此时撤回, 最终内容为 "|", 因为输入与删除被记录在了一个命令事务内
+   * @param ev keydown键盘事件
+   * @param ctx 编辑器上下文
+   * @returns 该方法始终返回 false
+   */
+  checkKeydownNeedCommit(ev: KeyboardEvent, ctx: Et.EditorContext) {
+    if (![' ', 'Enter', 'Tab', 'Backspace', 'Delete'].includes(ev.key)) {
+      return false
+    }
+    if (!ev.repeat && ev.key !== ctx.currDownKey) {
+      this.commit()
+    }
+    return false
+  }
+
+  /**
    * 确认所有事务，执行命令的final回调，清空撤回栈;
    */
   commitAll(): void {
