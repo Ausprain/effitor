@@ -171,26 +171,6 @@ export class CommandManager implements CommandQueue {
   }
 
   /**
-   * 在回调中执行命令, 第一个命令的初始光标位置会被设置为参数srcCaretRange;
-   * 用于手动控制撤回时的光标落点位置;\
-   * 若有排队的命令, 则会先执行(不更新上下文和选区); 若回调结束后仍有排队命令,
-   * 则执行(并更新上下文和选区)
-   * @param srcCaretRange 命令执行前的光标位置, 仅标记, 不会改变当前光标位置
-   */
-  withSrcCaretRange(srcCaretRange: Et.CaretRange, fn: () => void) {
-    if (this.hasQueuedCmds) {
-      this.handle()
-    }
-    const nullCmd = cmd.null()
-    nullCmd.srcCaretRange = srcCaretRange
-    this._cmds.push(nullCmd)
-    fn()
-    if (this.hasQueuedCmds) {
-      this.handleAndUpdate()
-    }
-  }
-
-  /**
    * 撤回当前命令队列内所有命令（已执行）并丢弃
    * @returns 是否撤销了至少一个命令
    */
@@ -326,6 +306,41 @@ export class CommandManager implements CommandQueue {
       this.discard()
       this.closeTransaction()
     }
+  }
+
+  /**
+   * 在回调中执行命令, 第一个命令的初始光标位置会被设置为参数srcCaretRange;
+   * 用于手动控制撤回时的光标落点位置;\
+   * 若有排队的命令, 则会先执行(不更新上下文和选区); 若回调结束后仍有排队命令,
+   * 则执行(并更新上下文和选区)
+   * @param srcCaretRange 命令执行前的光标位置, 仅标记, 不会改变当前光标位置
+   */
+  withSrcCaretRange(srcCaretRange: Et.CaretRange, fn: () => void) {
+    if (this.hasQueuedCmds) {
+      this.handle()
+    }
+    const nullCmd = cmd.null()
+    nullCmd.srcCaretRange = srcCaretRange
+    this._cmds.push(nullCmd)
+    fn()
+    if (this.hasQueuedCmds) {
+      this.handleAndUpdate()
+    }
+  }
+
+  /**
+   * 记录当前滚动位置, 执行回调后, 尝试恢复滚动位置; 避免移动节点导致页面跳动
+   * @param ctx 编辑器上下文
+   * @param fn 回调函数
+   */
+  withRememberScrollTop<T>(ctx: Et.EditorContext, fn: () => T): T {
+    const scrollTop = ctx.body.scrollContainer.scrollTop
+    ctx.commandManager.pushHandleCallback(() => {
+      ctx.body.scrollContainer.scrollTop = scrollTop
+    })
+    const ret = fn()
+    this._clearHandleCallbacks()
+    return ret
   }
 
   /**

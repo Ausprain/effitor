@@ -71,6 +71,14 @@ export interface DefaultEffectHandleMap {
    * @returns 处理成功, 返回 true; 未处理, 返回当前段落的后兄弟; 处理失败, 返回false
    */
   DeleteForwardAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
+  /**
+   * 段落向上移动 (这是一个回调, 当在选区在某个"段落"时, 按下 Alt+Ctrl+ArrowUp 时, effitor 核心会激活当前段落元素的此效应)
+   */
+  ParagraphMoveUp: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
+  /**
+   * 段落向下移动 (这是一个回调, 当在选区在某个"段落"时, 按下 Alt+Ctrl+ArrowDown 时, effitor 核心会激活当前段落元素的此效应)
+   */
+  ParagraphMoveDown: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
 
   /**
    * 这是一个回调, 当 compositionend 事件中 event.data 非空时调用ctx.focusEtElement 的该效应处理函数

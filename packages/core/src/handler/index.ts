@@ -1,6 +1,6 @@
-import { EffectElement } from '../element'
+import { EffectElement, EtParagraph } from '../element'
 import { mountEtHandler } from '../element/register'
-import { buintinHandler } from './builtinHandler'
+import { buintinHandler, paragraphBuiltinHandler } from './builtinHandler'
 
 export * from './command'
 export type { CommonHandler } from './CommonHandler'
@@ -17,3 +17,4 @@ export type { MergeHtmlNode } from './utils/fragment'
 
 // 将内置效应处理挂载到效应元素基类构造器上
 mountEtHandler(EffectElement, buintinHandler, [])
+mountEtHandler(EtParagraph, paragraphBuiltinHandler, [])

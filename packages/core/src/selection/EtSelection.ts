@@ -345,6 +345,27 @@ export class EtSelection {
   }
 
   /**
+   * 判断选区是否在同一个段落内
+   * @param tr 目标选区对象, 若未指定, 则使用当前选区
+   * @returns 若选区在同一个段落内, 返回该段落; 否则返回 null
+   */
+  isSelectionInSameParagraph(tr?: Et.TargetSelection | null): Et.Paragraph | null {
+    if (!tr) {
+      tr = this.getTargetRange()
+      if (!tr) {
+        return null
+      }
+    }
+    if (tr.isCaret()) {
+      return tr.anchorParagraph
+    }
+    if (tr.startParagraph === tr.endParagraph) {
+      return tr.startParagraph
+    }
+    return null
+  }
+
+  /**
    * 获取光标位置对应的 CaretRange 对象
    * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
    *  若当前选区为空, 则返回编辑区开头位置

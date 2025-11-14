@@ -95,6 +95,23 @@ export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
   /*                                   编辑行为                                  */
   /* -------------------------------------------------------------------------- */
 
+  // 移动相关
+  [create(Key.ArrowUp, Mod.AltOpt)]: (ctx) => {
+    const p = ctx.selection.isSelectionInSameParagraph()
+    if (!p) {
+      return false
+    }
+    return ctx.getEtHandler(p).ParagraphMoveUp?.(
+      ctx, ctx.selection.getTargetRange() as Et.ValidTargetRangeWithParagraph)
+  },
+  [create(Key.ArrowDown, Mod.AltOpt)]: (ctx) => {
+    const p = ctx.selection.isSelectionInSameParagraph()
+    if (!p) {
+      return false
+    }
+    return ctx.getEtHandler(p).ParagraphMoveDown?.(
+      ctx, ctx.selection.getTargetRange() as Et.ValidTargetRangeWithParagraph)
+  },
   // 删除相关
   [create(Key.Backspace, Mod.None)]: 'deleteContentBackward',
   [create(Key.Backspace, Mod.Shift)]: 'deleteContentBackward',
@@ -113,8 +130,8 @@ export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
       ? ctx.commonHandler.appendParagraph(tc, { topLevel: false })
       : false
   },
-  // cmd+opt+enter / ctrl+alt+enter 无视光标位置, 在当前顶层段落后边追加一个普通段落
-  [create(Key.Enter, CtrlCmd | Mod.AltOpt)]: (ctx) => {
+  // cmd+shift+enter / ctrl+shift+enter 无视光标位置, 在当前顶层段落后边追加一个普通段落
+  [create(Key.Enter, CtrlCmd | Mod.Shift)]: (ctx) => {
     const tc = ctx.selection.getTargetCaret()
     return tc
       ? ctx.commonHandler.appendParagraph(tc, { topLevel: true })

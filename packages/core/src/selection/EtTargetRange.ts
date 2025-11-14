@@ -21,9 +21,6 @@ export interface ValidTargetRange extends EtTargetRange {
   readonly startEtElement: Et.EtElement
   readonly endEtElement: Et.EtElement
 }
-interface _SelectionTarget {
-  isCaret: () => boolean
-}
 export type TargetSelection = TargetRange | TargetCaret | ValidTargetCaret | ValidTargetRange
 export type ValidTargetSelection = ValidTargetCaret | ValidTargetRange
 export type ValidTargetCaretAtText = ValidTargetCaret & { container: Et.Text }
@@ -42,11 +39,18 @@ export type ValidTargetCaretWithParagraph<
 export type ValidTargetCaretWithTopElement<
   T extends Et.EtParagraph = Et.EtParagraph,
 > = ValidTargetCaretWithParagraph & { anchorTopElement: T }
-
+export type ValidTargetRangeWithParagraph = ValidTargetRange & {
+  anchorParagraph: Et.EtParagraph
+  startParagraph: Et.EtParagraph
+  endParagraph: Et.EtParagraph
+}
 export type ValidTargetRangeWithCommonEtElement = ValidTargetRange & {
   commonEtElement: Et.EtElement
 }
 
+interface _SelectionTarget {
+  isCaret: () => boolean
+}
 class TargetCaret implements _SelectionTarget, Et.Position {
   declare private readonly body: Readonly<Et.EditorBody>
 

@@ -34,6 +34,8 @@ import { dblSpace, tabout } from './handles/others/caretout'
 import {
   insertParagraphAtParagraphEnd,
   insertParagraphAtParagraphStart,
+  paragraphMoveDown,
+  paragraphMoveUp,
   transformInsertContents,
 } from './handles/others/default'
 import {
@@ -93,4 +95,9 @@ export const buintinHandler: Et.EffectHandler = {
   DeleteInRawEl: deleteInRawEl,
   DeleteTextInRawEl: deleteTextInRawEl,
   ReplaceTextInRawEl: replaceTextInRawEl,
+}
+
+export const paragraphBuiltinHandler: Et.EffectHandler = {
+  ParagraphMoveUp: paragraphMoveUp,
+  ParagraphMoveDown: paragraphMoveDown,
 }

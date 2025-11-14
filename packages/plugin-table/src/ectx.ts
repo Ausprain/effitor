@@ -2,7 +2,6 @@ import type { Et } from '@effitor/core'
 import { cmd, cr, dom, hotkey, useEffectorContext } from '@effitor/core'
 
 import type { EtTableElement } from './EtTableElement'
-import type { EtTableRowElement } from './EtTableRowElement'
 import { insertNewColumn } from './handler/insert'
 
 const tabToNextCellOrInsertNewColumn = (ctx: Et.EditorContext) => {
@@ -75,30 +74,30 @@ const moveCaretDownInCellOrBeneath = (ctx: Et.EditorContext) => {
   }
 }
 
-const tryToMoveRowUp = (ctx: Et.EditorContext) => {
-  const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
-  if (!row) {
-    return
-  }
-  const prevRow = row.previousSibling
-  if (!prevRow) {
-    return
-  }
-  // 先移除 prev, 再插入 row 的后边, 因此基于 row 计算的到的插入位置要 -1
-  ctx.commonHandler.moveNode(prevRow, cr.caretOutEnd(row).moved(-1))
-}
+// const tryToMoveRowUp = (ctx: Et.EditorContext) => {
+//   const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
+//   if (!row) {
+//     return
+//   }
+//   const prevRow = row.previousSibling
+//   if (!prevRow) {
+//     return
+//   }
+//   // 先移除 prev, 再插入 row 的后边, 因此基于 row 计算的到的插入位置要 -1
+//   ctx.commonHandler.moveNode(prevRow, cr.caretOutEnd(row).moved(-1))
+// }
 
-const tryToMoveRowDown = (ctx: Et.EditorContext) => {
-  const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
-  if (!row) {
-    return
-  }
-  const nextRow = row.nextSibling
-  if (!nextRow) {
-    return
-  }
-  ctx.commonHandler.moveNode(nextRow, cr.caretOutStart(row))
-}
+// const tryToMoveRowDown = (ctx: Et.EditorContext) => {
+//   const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
+//   if (!row) {
+//     return
+//   }
+//   const nextRow = row.nextSibling
+//   if (!nextRow) {
+//     return
+//   }
+//   ctx.commonHandler.moveNode(nextRow, cr.caretOutStart(row))
+// }
 
 const tryToMoveColLeft = (ctx: Et.EditorContext) => {
   const cell = ctx.commonEtElement
@@ -181,8 +180,8 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.Tab, hotkey.Mod.Shift)]: shiftTabToPrevCellOrInsertNewColumn,
   [hotkey.create(hotkey.Key.ArrowUp, 0)]: moveCaretUpInCellOrAbove,
   [hotkey.create(hotkey.Key.ArrowDown, 0)]: moveCaretDownInCellOrBeneath,
-  [hotkey.create(hotkey.Key.ArrowUp, hotkey.Mod.AltOpt)]: tryToMoveRowUp,
-  [hotkey.create(hotkey.Key.ArrowDown, hotkey.Mod.AltOpt)]: tryToMoveRowDown,
+  // [hotkey.create(hotkey.Key.ArrowUp, hotkey.Mod.AltOpt)]: tryToMoveRowUp,
+  // [hotkey.create(hotkey.Key.ArrowDown, hotkey.Mod.AltOpt)]: tryToMoveRowDown,
   [hotkey.create(hotkey.Key.ArrowLeft, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColLeft,
   [hotkey.create(hotkey.Key.ArrowRight, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColRight,
   [hotkey.create(hotkey.Key.C, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'center'),

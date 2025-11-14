@@ -37,3 +37,26 @@ export const insertParagraphAtParagraphEnd = createEffectHandle('InsertParagraph
   }))
   return true
 })
+
+export const paragraphMoveUp = createEffectHandle('ParagraphMoveUp', (ctx, tr) => {
+  const prevP = tr.anchorParagraph.previousSibling
+  if (!prevP) {
+    return false
+  }
+  // 记录当前滚动位置, 移动段落后, 恢复滚动位置; 避免移动时因增删节点导致页面跳动
+  return ctx.commandManager.withRememberScrollTop(ctx, () => {
+    ctx.commandManager.pushHandleCallback(() => ctx.selection.revealSelectionSync())
+    return ctx.commonHandler.moveNode(prevP, cr.caretOutEnd(prevP))
+  })
+})
+
+export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, tr) => {
+  const nextP = tr.anchorParagraph.nextSibling
+  if (!nextP) {
+    return false
+  }
+  return ctx.commandManager.withRememberScrollTop(ctx, () => {
+    ctx.commandManager.pushHandleCallback(() => ctx.selection.revealSelectionSync())
+    return ctx.commonHandler.moveNode(nextP, cr.caretOutStart(nextP).moved(-1))
+  })
+})
