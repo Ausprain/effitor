@@ -207,7 +207,6 @@ export class EtSelection {
     this._focusEtElement = void 0
     this._focusParagraph = void 0
     this._focusTopElement = void 0
-    this.selection?.removeAllRanges()
   }
 
   /** 尝试恢复选区 */

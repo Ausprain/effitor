@@ -7,77 +7,80 @@
  */
 
 import type { Et } from '../@types'
-import { platform } from '../config'
 import { Key } from '../hotkey/Key'
 import { CtrlCmd, LineModifier, Mod, WordModifier } from '../hotkey/Mod'
 import { create } from '../hotkey/util'
 import { dom, traversal } from '../utils'
 
-let moveToDocumentStart, moveToDocumentEnd, extendToDocumentStart, extendToDocumentEnd
-if (platform.isFirefox) {
-  moveToDocumentEnd = (ctx: Et.EditorContext) => {
-    const lastParagraph = ctx.bodyEl.lastChild
-    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    ctx.setCaretToAParagraph(lastParagraph, false, true)
-    ctx.selection.dispatchChange()
-    ctx.selection.scrollIntoView(false)
+// FIXME 使用 `selection.modify('move', 'forward', 'documentboundary')` 可能会让光标进入 et-body 内
+// 并且如果首段落或末段落不可编辑, 光标可能无法定位;
+// 于是, 当首段落或末段落不可编辑时, 直接让编辑器失去焦点; 让用户知道编辑器无法处理这样的行为, 而不是让用户意外地将文本插入到 et-body 内
+
+// let moveToDocumentStart, moveToDocumentEnd, extendToDocumentStart, extendToDocumentEnd
+// if (platform.isFirefox) {
+const moveToDocumentEnd = (ctx: Et.EditorContext) => {
+  const lastParagraph = ctx.bodyEl.lastChild as HTMLElement | null
+  if (!lastParagraph || !lastParagraph.isContentEditable || !ctx.isEtParagraph(lastParagraph)) {
+    ctx.editor.blur()
     return true
   }
-  moveToDocumentStart = (ctx: Et.EditorContext) => {
-    const firstParagraph = ctx.bodyEl.firstChild
-    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    ctx.setCaretToAParagraph(firstParagraph, true, true)
-    ctx.selection.dispatchChange()
-    ctx.selection.scrollIntoView(true)
-    return true
-  }
-  extendToDocumentEnd = (ctx: Et.EditorContext) => {
-    const lastParagraph = ctx.bodyEl.lastChild
-    if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    const newRange = lastParagraph.innerEndEditingBoundary().toRange()
-    if (!newRange || !ctx.selection.range) {
-      ctx.editor.blur()
-      return true
-    }
-    newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
-    ctx.selection.selectRange(newRange)
-    ctx.selection.dispatchChange()
-    ctx.selection.scrollIntoView(false)
-    return true
-  }
-  extendToDocumentStart = (ctx: Et.EditorContext) => {
-    const firstParagraph = ctx.bodyEl.firstChild
-    if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
-      ctx.editor.blur()
-      return true
-    }
-    const newRange = firstParagraph.innerStartEditingBoundary().toRange()
-    if (!newRange || !ctx.selection.range) {
-      ctx.editor.blur()
-      return true
-    }
-    newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
-    ctx.selection.selectRange(newRange)
-    ctx.selection.dispatchChange()
-    ctx.selection.scrollIntoView(true)
-    return true
-  }
+  ctx.setCaretToAParagraph(lastParagraph, false, true)
+  ctx.selection.dispatchChange()
+  ctx.selection.scrollIntoView(false)
+  return true
 }
-else {
-  moveToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'forward', 'documentboundary')
-  moveToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'backward', 'documentboundary')
-  extendToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'forward', 'documentboundary')
-  extendToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'backward', 'documentboundary')
+const moveToDocumentStart = (ctx: Et.EditorContext) => {
+  const firstParagraph = ctx.bodyEl.firstChild as HTMLElement | null
+  if (!firstParagraph || !firstParagraph.isContentEditable || !ctx.isEtParagraph(firstParagraph)) {
+    ctx.editor.blur()
+    return true
+  }
+  ctx.setCaretToAParagraph(firstParagraph, true, true)
+  ctx.selection.dispatchChange()
+  ctx.selection.scrollIntoView(true)
+  return true
 }
+const extendToDocumentEnd = (ctx: Et.EditorContext) => {
+  const lastParagraph = ctx.bodyEl.lastChild
+  if (!lastParagraph || !ctx.isEtParagraph(lastParagraph)) {
+    ctx.editor.blur()
+    return true
+  }
+  const newRange = lastParagraph.innerEndEditingBoundary().toRange()
+  if (!newRange || !ctx.selection.range) {
+    ctx.editor.blur()
+    return true
+  }
+  newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
+  ctx.selection.selectRange(newRange)
+  ctx.selection.dispatchChange()
+  ctx.selection.scrollIntoView(false)
+  return true
+}
+const extendToDocumentStart = (ctx: Et.EditorContext) => {
+  const firstParagraph = ctx.bodyEl.firstChild
+  if (!firstParagraph || !ctx.isEtParagraph(firstParagraph)) {
+    ctx.editor.blur()
+    return true
+  }
+  const newRange = firstParagraph.innerStartEditingBoundary().toRange()
+  if (!newRange || !ctx.selection.range) {
+    ctx.editor.blur()
+    return true
+  }
+  newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
+  ctx.selection.selectRange(newRange)
+  ctx.selection.dispatchChange()
+  ctx.selection.scrollIntoView(true)
+  return true
+}
+// }
+// else {
+//   moveToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'forward', 'documentboundary')
+//   moveToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('move', 'backward', 'documentboundary')
+//   extendToDocumentEnd = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'forward', 'documentboundary')
+//   extendToDocumentStart = (ctx: Et.EditorContext) => ctx.selection.modify('extend', 'backward', 'documentboundary')
+// }
 
 type ModKeyActionMap = Record<string, (ctx: Et.EditorContext) => boolean>
 const ModKeyDownModifySelectionMap: ModKeyActionMap = {
@@ -97,24 +100,24 @@ const ModKeyDownModifySelectionMap: ModKeyActionMap = {
 
   [create(Key.ArrowUp, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'line')
-    : ctx.selection.collapse(true, true)),
+    : collapseRange(ctx, true, true)),
   [create(Key.ArrowDown, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'line')
-    : ctx.selection.collapse(false, true)),
+    : collapseRange(ctx, false, true)),
   [create(Key.ArrowLeft, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'character')
-    : ctx.selection.collapse(true, true)),
+    : collapseRange(ctx, true, true)),
   [create(Key.ArrowRight, Mod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'character')
-    : ctx.selection.collapse(false, true)),
+    : collapseRange(ctx, false, true)),
   [create(Key.ArrowUp, CtrlCmd)]: ctx => moveToDocumentStart(ctx),
   [create(Key.ArrowDown, CtrlCmd)]: ctx => moveToDocumentEnd(ctx),
   [create(Key.ArrowLeft, WordModifier)]: ctx => (ctx.selection.isCollapsed
     ? ctx.selection.modify('move', 'backward', 'word')
-    : ctx.selection.collapse(true, true)),
+    : collapseRange(ctx, true, true)),
   [create(Key.ArrowRight, WordModifier)]: ctx => (ctx.selection.isCollapsed
     ? ctx.selection.modify('move', 'forward', 'word')
-    : ctx.selection.collapse(false, true)),
+    : collapseRange(ctx, false, true)),
 
   // 选择
   [create(Key.ArrowUp, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'line'),
@@ -125,11 +128,23 @@ const ModKeyDownModifySelectionMap: ModKeyActionMap = {
   [create(Key.ArrowRight, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'character'),
   [create(Key.ArrowLeft, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'word'),
   [create(Key.ArrowRight, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'word'),
-  [create(Key.ArrowLeft, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary'),
-  [create(Key.ArrowRight, CtrlCmd | Mod.Shift)]: ctx => ctx.selection.collapse(false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary'),
+  [create(Key.ArrowLeft, CtrlCmd | Mod.Shift)]: ctx => collapseRange(ctx, true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary'),
+  [create(Key.ArrowRight, CtrlCmd | Mod.Shift)]: ctx => collapseRange(ctx, false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary'),
 
 }
-
+const collapseRange = (ctx: Et.EditorContext, toStart: boolean, reveal: boolean) => {
+  if (ctx.selection.isRangingBody) {
+    if (toStart) {
+      return moveToDocumentStart(ctx)
+    }
+    else {
+      return moveToDocumentEnd(ctx)
+    }
+  }
+  else {
+    return ctx.selection.collapse(toStart, reveal)
+  }
+}
 const checkInRawElStartToPrevNode = (ctx: Et.EditorContext) => {
   let el
   if ((el = ctx.selection.rawEl) && el.selectionEnd === 0) {
@@ -168,7 +183,6 @@ const checkInRawElEndToNextNode = (ctx: Et.EditorContext) => {
   }
   return false
 }
-
 const checkAtTextStartToPrevNode = (ctx: Et.EditorContext) => {
   if (ctx.selection.rawEl) {
     return false
@@ -200,7 +214,6 @@ const checkAtTextStartToPrevNode = (ctx: Et.EditorContext) => {
   }
   return false
 }
-
 const checkAtTextEndToNextNode = (ctx: Et.EditorContext) => {
   if (ctx.selection.rawEl) {
     return false

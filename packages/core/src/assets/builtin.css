@@ -15,7 +15,10 @@ et-body {
   container-type: inline-size;
 }
 et-body.selection-all {
-  background-color: var(--et-color-selection-all);
+  background-color: var(--et-color-selection-all--blur);
+  &:focus {
+    background-color: var(--et-color-selection-all);
+  }
   &::selection {
     background: none;
   }

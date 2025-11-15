@@ -29,7 +29,7 @@ export class EtBodyElement extends EffectElement {
 
   focusinCallback(ctx: Et.EditorContext): void {
     // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落, 否则聚焦到首段落
-    if (!ctx.selection.isCollapsed || this !== ctx.focusEtElement) {
+    if (!ctx.isCaretIn(this)) {
       return
     }
     if (ctx.bodyEl.childNodes.length > 0 && ctx.isEtParagraph(ctx.bodyEl.firstChild)) {

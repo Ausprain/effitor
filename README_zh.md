@@ -177,7 +177,7 @@ bun dev
   - 列表（plugin-list）
   - 媒体（图片/音/视频）（plugin-media）
   - 代码块（plugin-code）
-  - [ ] 表格（//TODO
+  - 表格
   - [ ] 数学公式（//TODO
   - [ ] excalidraw（//Doing
 
@@ -204,3 +204,8 @@ bun dev
 ## 许可
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+### sdf
+
+sad sad asd sda
+aafjioew
