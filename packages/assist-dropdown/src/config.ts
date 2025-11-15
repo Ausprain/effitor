@@ -1,5 +1,7 @@
 import type { Et } from '@effitor/core'
 
+import type { Dropdown } from './dropdown'
+
 export const enum DropdownEnum {
   Class_Wrapper = 'et-dd__wrapper',
   Class_Container = 'et-dd__container',
@@ -9,8 +11,12 @@ export const enum DropdownEnum {
 }
 
 export interface DropdownContent {
+  /** 下拉菜单容器, 需自行将 menus 中的 el 或 icon 插入该容器内; dropdown 只负责将该 el 插入 dropdown 容器 */
   el: HTMLDivElement
+  /** 一级菜单项 */
   menus: DropdownMenu[]
+  /** 回调函数 */
+  callbacks?: DropdownCallbacks
 }
 
 interface DropdownFilter {
@@ -53,7 +59,9 @@ export interface DropdownMenuOptions extends DropdownItemOptions {
   nextContent?: DropdownContent
   /** 当前菜单中的选项, 为一个个图标, 当items非空时, nextContent将被忽视 */
   items?: DropdownMenuItem[]
-  onchosen?: (ctx: Et.EditorContext) => void
+  /** 是否使用默认hover/active样式 */
+  defaultStyle?: boolean
+  onchosen?: (this: Dropdown, ctx: Et.EditorContext) => void
 }
 export interface DropdownMenu extends Omit<DropdownMenuOptions, 'icon'> {
   el: HTMLDivElement
@@ -72,26 +80,26 @@ export interface DropdownMenuItem extends DropdownMenuItemOptions {
   onchosen: (ctx: Et.EditorContext) => void
 }
 export interface DropdownCallbacks {
-  onTab?: (shiftKey: boolean) => void
-  onEnter?: () => void
-  onArrowUp?: () => void
-  onArrowDown?: () => void
-  onArrowLeft?: () => void
-  onArrowRight?: () => void
+  onTab?: (this: Dropdown, shiftKey: boolean) => void
+  onEnter?: (this: Dropdown) => void
+  onArrowUp?: (this: Dropdown) => void
+  onArrowDown?: (this: Dropdown) => void
+  onArrowLeft?: (this: Dropdown) => void
+  onArrowRight?: (this: Dropdown) => void
   /**
    * 若没有设置onInput, 则在input时关闭dropdown
    * @param value dropdown期间输入的内容, 会去除前后空白字符和零宽字符
    */
-  onInput?: (value: string) => void
+  onInput?: (this: Dropdown, value: string) => void
 
-  /** 在dropdown.open初始化之后, 插入dropdown节点前执行 */
-  onopen?: () => void
+  /**
+   * 在dropdown.open初始化之后, 插入dropdown节点前执行; 当且仅当执行并返回 true, 阻止dropdown
+   * @param etel 当前效应元素 (ctx.focusEtElement)
+   * @returns 是否禁止dropdown打开
+   */
+  onopen?: (this: Dropdown, etel: Et.EtElement) => TrueOrVoid
   /** 在dropdown.close开始时执行 */
-  onclose?: () => void
-}
-export interface DropdownOptions {
-  maxWidth?: number
-  maxHeight?: number
+  onclose?: (this: Dropdown) => void
 }
 export interface DropdownTrigger {
   /** 触发dropdown 的按键, 现强制只能为 '/' 键 */
@@ -107,4 +115,7 @@ export interface DropdownTrigger {
    * ```
    */
   triggerMod?: true | 'Alt' | 'Control' | 'Meta'
+}
+export interface DropdownContentRender {
+  (container: HTMLDivElement): DropdownCallbacks
 }

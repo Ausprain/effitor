@@ -1,7 +1,7 @@
 import type { Et } from '@effitor/core'
 import { platform } from '@effitor/core'
 
-import type { DropdownOptions, DropdownTrigger } from './config'
+import type { DropdownTrigger } from './config'
 import { Dropdown } from './dropdown'
 
 const getTriggerAction = (modType: DropdownTrigger['triggerMod']): Et.KeyboardAction => {
@@ -56,7 +56,7 @@ const getTriggerAction = (modType: DropdownTrigger['triggerMod']): Et.KeyboardAc
   }
 }
 
-export const getDropdownEffector = (options: Required<DropdownOptions & DropdownTrigger>): Et.EffectorSupportInline => {
+export const getDropdownEffector = (options: Required<DropdownTrigger>): Et.EffectorSupportInline => {
   return {
     inline: true,
 
@@ -68,14 +68,14 @@ export const getDropdownEffector = (options: Required<DropdownOptions & Dropdown
         if (!ctx.assists.dropdown.isOpened) {
           return
         }
-        // 鼠标点击外部关闭dropdown, 将输入的文本插回光标位置
-        ctx.assists.dropdown.close(true)
+        // 鼠标点击外部关闭dropdown
+        ctx.assists.dropdown.close(false)
         ctx.preventAndSkipDefault(ev)
       },
     },
 
     onMounted(ctx, signal) {
-      ctx.assists.dropdown = new Dropdown(ctx, signal, options)
+      ctx.assists.dropdown = new Dropdown(ctx, signal)
     },
   }
 }

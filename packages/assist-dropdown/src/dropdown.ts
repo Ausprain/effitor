@@ -1,5 +1,4 @@
 import type { Et } from '@effitor/core'
-import { cr } from '@effitor/core'
 import {
   chevronRightIcon,
   CssClassEnum,
@@ -11,11 +10,11 @@ import {
 import type {
   DropdownCallbacks,
   DropdownContent,
+  DropdownContentRender,
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuItemOptions,
   DropdownMenuOptions,
-  DropdownOptions,
 } from './config'
 import { DropdownEnum } from './config'
 
@@ -51,9 +50,12 @@ import { DropdownEnum } from './config'
  * 重新重构currentMenuIndex/currentItemIndex的处理(可能需要额外变量记录当前filter出来的menu/item), 并重写选择上/下一个menu/item的函数
  */
 export class Dropdown {
-  #createMenuEl = () => {
+  #createMenuEl = (defaultStyle?: boolean) => {
     const div = document.createElement('div')
     div.className = DropdownEnum.Class_Menu
+    if (defaultStyle) {
+      div.classList.add(CssClassEnum.BgItem)
+    }
     return div
   }
 
@@ -66,19 +68,20 @@ export class Dropdown {
     obj.el.classList.remove(CssClassEnum.Selected)
   }
 
-  private _ctx: Et.EditorContext
+  private readonly _ctx: Et.EditorContext
 
-  private wrapper: HTMLDivElement
-  private inputSpan: HTMLSpanElement
-  private container: HTMLDivElement
+  private readonly wrapper: HTMLDivElement
+  private readonly inputSpan: HTMLSpanElement
+  private readonly container: HTMLDivElement
 
   // private isDefaultDropdown: boolean = true
-  private defaultContent: DropdownContent
-  private defaultCallbacks: DropdownCallbacks
+  private readonly defaultContent: DropdownContent
+  private readonly defaultCallbacks: DropdownCallbacks
+  private readonly contentMap = {} as Record<string, DropdownContent | DropdownContentRender>
   /** 内联富文本菜单 */
-  private inlineRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items'> = { el: this.#createMenuEl(), items: [] }
+  private readonly inlineRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items'> = { el: this.#createMenuEl(), items: [] }
   /** 块级富文本菜单 */
-  private blockRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items' | 'filter'> = {
+  private readonly blockRichMenu: DropdownMenu & Pick<Required<DropdownMenu>, 'items' | 'filter'> = {
     el: this.#createMenuEl(),
     items: [],
     filter: {
@@ -95,28 +98,34 @@ export class Dropdown {
   /** 前一个dropdown内容 */
   private prevContent: DropdownContent | null = null
   /** 当前open永久匹配的菜单项: 经过匹配当前ctx.effectElement的菜单项, 用于让prefix二次过滤 */
-  private menuItemsOnCurrentOpen: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
+  private readonly menuItemsOnCurrentOpen: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
   /** 当前open临时匹配的菜单项: 当前经过filter和prefix过滤的菜单项; 用于切换当前可选择的菜单项 */
-  private menuItemsOnCurrentInput: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
+  private readonly menuItemsOnCurrentInput: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
   /** 当前open永久隐藏的菜单项的元素节点: 经etType过滤掉的菜单项的元素 */
-  private hiddenMenuItemElsOnCurrentOpen = new Set<Element>()
+  private readonly hiddenMenuItemElsOnCurrentOpen = new Set<Element>()
   /** 当前open临时隐藏的菜单项的元素节点: 经prefix过滤掉的菜单项的元素 */
-  private hiddenMenuItemElsOnCurrentInput = new Set<Element>()
+  private readonly hiddenMenuItemElsOnCurrentInput = new Set<Element>()
   private currentMenuIndex = 0
   private currentItemIndex = 0
   /** 当前选择的menu/item的元素, 用于快速解除selected样式 */
   private currentSelectedMenuOrItem: DropdownMenu | DropdownMenuItem | null = null
   private currentCallbacks: Readonly<DropdownCallbacks> = {}
 
+  private _capturedKeydownListener: (ev: KeyboardEvent) => void
+  private _capturedKeyupListener: (ev: KeyboardEvent) => void
+  private _capturedBeforeInputListener: (ev: InputEvent) => void
+  private _capturedInputListener: (ev: Event) => void
+  private _capturedSelChangeListener: (ev: Event) => void
+  private _capturedMouseDownListener: (ev: MouseEvent) => void
+
   isOpened = false
 
   /** 当前dropdown输入的文本 */
   get currentValue() {
-    const text = this.inputSpan.textContent.trim()
-    return text[0] === HtmlCharEnum.ZERO_WIDTH_SPACE ? text.slice(1) : text
+    return this.inputSpan.textContent.trim().replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
   }
 
-  constructor(ctx: Et.EditorContext, signal: AbortSignal, options: DropdownOptions) {
+  constructor(ctx: Et.EditorContext, signal: AbortSignal) {
     this._ctx = ctx
     this.blockRichMenu.filter.matchEtType = ctx.schema.paragraph.etType
     this.blockRichMenu.filter.unmatchEtType = ~ctx.schema.paragraph.etType
@@ -132,16 +141,15 @@ export class Dropdown {
     wrapper.className = DropdownEnum.Class_Wrapper
     container.className = DropdownEnum.Class_Container
     defaultContentEl.className = DropdownEnum.Class_Content
-    if (options.maxHeight && options.maxWidth) {
-      defaultContentEl.setAttribute('style', `max-height: ${options.maxHeight}px; max-width: ${options.maxWidth}px;`)
-    }
     this.defaultContent = {
       el: defaultContentEl,
       menus: [this.inlineRichMenu, this.blockRichMenu],
     }
     // 将 defaultContent 的 menus 添加到 defaultContentEl 中
     this.#updateDefaultContent()
-
+    this.register({
+      [ctx.schema.paragraph.elName]: this.defaultContent,
+    })
     this.defaultCallbacks = {
       onTab: (shiftKey: boolean) => {
         if (shiftKey) this.selectPrevMenuOrItem()
@@ -162,18 +170,22 @@ export class Dropdown {
     wrapper.addEventListener('mousedown', ev => (ev.preventDefault(), ev.stopPropagation()), { signal })
     inputSpan.setAttribute('contenteditable', 'plaintext-only')
     // dropdown不参与编辑器编辑, 因此必须阻止dropdown内部输入的文本影响当前编辑区内容
-    inputSpan.addEventListener('keydown', (ev) => {
+    if (!import.meta.env.DEV) {
+      inputSpan.addEventListener('blur', () => this.close(false), { signal })
+    }
+
+    this._capturedKeydownListener = (ev: KeyboardEvent) => {
       ev.stopPropagation()
-      if (['Backspace', 'Delete'].includes(ev.key)) {
+      if (ev.key === 'Backspace' || ev.key === 'Delete') {
+        if (this.currentValue === '') {
+          // 没有内容了, 直接关闭
+          this.close(false)
+        }
         // 放行删除行为
         return
       }
-      if (ev.metaKey || ev.ctrlKey) {
+      if (ev.metaKey || ev.ctrlKey || ev.altKey || ev.key.length > 1) {
         // 禁止剪切/粘贴等操作
-        ev.preventDefault()
-      }
-      // 非可打印按键一律禁止, 如PageUp/PageDown等
-      if (ev.key.length > 1) {
         ev.preventDefault()
       }
       switch (ev.key) {
@@ -182,60 +194,110 @@ export class Dropdown {
           return
         }
         case 'Tab': {
-          this.currentCallbacks.onTab?.(ev.shiftKey)
+          this.currentCallbacks.onTab?.call(this, ev.shiftKey)
           return
         }
         case 'Enter': {
-          this.currentCallbacks.onEnter?.()
+          this.currentCallbacks.onEnter?.call(this)
           return
         }
         case 'ArrowUp': {
-          this.currentCallbacks.onArrowUp?.()
+          this.currentCallbacks.onArrowUp?.call(this)
           return
         }
         case 'ArrowDown': {
-          this.currentCallbacks.onArrowDown?.()
+          this.currentCallbacks.onArrowDown?.call(this)
           return
         }
         case 'ArrowLeft': {
-          this.currentCallbacks.onArrowLeft?.()
+          this.currentCallbacks.onArrowLeft?.call(this)
           return
         }
         case 'ArrowRight': {
-          this.currentCallbacks.onArrowRight?.()
+          this.currentCallbacks.onArrowRight?.call(this)
           return
         }
       }
-    }, { signal })
-    inputSpan.addEventListener('beforeinput', ev => ev.stopPropagation(), { signal })
-    inputSpan.addEventListener('input', (ev) => {
+    }
+    this._capturedKeyupListener = (ev: KeyboardEvent) => {
+      ev.stopPropagation()
+    }
+    this._capturedBeforeInputListener = (ev: InputEvent) => {
+      if (![
+        'insertFromComposition',
+        'insertText',
+        'deleteContentBackward',
+        'deleteContentForward',
+      ].includes(ev.inputType)) {
+        ev.preventDefault()
+      }
+      ev.stopPropagation()
+    }
+    this._capturedInputListener = (ev: Event) => {
       ev.stopPropagation()
       if (!this.inputSpan.textContent) {
         // 没内容了, 直接关闭
         this.close(false)
       }
       else {
-        this.currentCallbacks.onInput?.(this.currentValue)
+        this.currentCallbacks.onInput?.call(this, this.currentValue)
       }
-    }, { signal })
-    // input.addEventListener('blur', e => this.close(true), { signal })
+    }
+    this._capturedSelChangeListener = (ev: Event) => {
+      ev.stopPropagation()
+    }
+    this._capturedMouseDownListener = (ev: MouseEvent) => {
+      if (this.wrapper.contains(ev.target as Node)) {
+        return
+      }
+      // 点击了其他地方, 关闭dropdown
+      this.close(false)
+      ev.stopPropagation()
+    }
+  }
+
+  #addCaptureListener() {
+    this._ctx.editor.host.addEventListener('keydown', this._capturedKeydownListener, { capture: true })
+    this._ctx.editor.host.addEventListener('keyup', this._capturedKeyupListener, { capture: true })
+    this._ctx.editor.host.addEventListener('beforeinput', this._capturedBeforeInputListener, { capture: true })
+    this._ctx.editor.host.addEventListener('input', this._capturedInputListener, { capture: true })
+    document.addEventListener('selectionchange', this._capturedSelChangeListener, { capture: true })
+    document.addEventListener('mousedown', this._capturedMouseDownListener, { capture: true })
+  }
+
+  #removeCaptureListener() {
+    this._ctx.editor.host.removeEventListener('keydown', this._capturedKeydownListener, { capture: true })
+    this._ctx.editor.host.removeEventListener('keyup', this._capturedKeyupListener, { capture: true })
+    this._ctx.editor.host.removeEventListener('beforeinput', this._capturedBeforeInputListener, { capture: true })
+    this._ctx.editor.host.removeEventListener('input', this._capturedInputListener, { capture: true })
+    document.removeEventListener('selectionchange', this._capturedSelChangeListener, { capture: true })
+    document.removeEventListener('mousedown', this._capturedMouseDownListener, { capture: true })
   }
 
   /* -------------------------------------------------------------------------- */
   /*                                   create                                   */
   /* -------------------------------------------------------------------------- */
-  createContent(el: HTMLDivElement, menus: DropdownMenu[]): DropdownContent {
-    return { el, menus }
+  createContent(el: HTMLDivElement, menus: DropdownMenu[], callbacks?: DropdownCallbacks): DropdownContent {
+    el.classList.add(DropdownEnum.Class_Content)
+    return { el, menus, callbacks }
   }
 
   /**
    * 创建一个dropdown菜单
-   * @param name 菜单名, 当options.items非空时, name不会展示
-   * @param options
-   * @returns
+   * @param name 菜单名, 当options.items非空时, name不会展示;
+   *      items为空且 name 非空时, 该值会成为返回的 el 的第一个子节点(文本节点)的内容
+   * @param options 菜单选项
+   * ```ts
+   *  icon  菜单项图标  (items 非空时此项无效)
+   *  items  菜单子项
+   *  nextContent  下一级菜单  (items 非空时此项无效)
+   *  onchosen  被选择回调  (items 非空时此项无效)
+   *  filter  效应过滤规则
+   *  prefixes  提示前缀  (items 非空时此项无效)
+   * ```
    */
   createMenu(name: string, options: DropdownMenuOptions): DropdownMenu {
-    const div = this.#createMenuEl()
+    const div = this.#createMenuEl(options.defaultStyle)
     name = name.slice(0, 20).trim()
     const { icon, items, nextContent, onchosen } = options
     if (icon) {
@@ -247,7 +309,7 @@ export class Dropdown {
         e.stopPropagation()
         // 必须先close 撤销dropdown给编辑器带来的副作用
         this.close()
-        onchosen(this._ctx)
+        onchosen.call(this, this._ctx)
       }
     }
     if (items && items.length > 0) {
@@ -363,6 +425,7 @@ export class Dropdown {
       return
     }
     let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
+    const currItemIndex = iIndex
     let { menu, items } = currMenus[mIndex], item: DropdownMenuItem
     if (items && (item = items[iIndex])) {
       // 当前选择item
@@ -387,11 +450,13 @@ export class Dropdown {
     }
     menu = currMenus[mIndex].menu
     items = currMenus[mIndex].items
-    if (items && (item = items[0])) {
+    if (items && items.length) {
       // 有item, 选择item
+      const idx = itemStep > 1 && currItemIndex < items.length ? currItemIndex : 0
+      item = items[idx]
       this.#selectMenuOrItem(item)
       this.currentMenuIndex = mIndex
-      this.currentItemIndex = 0
+      this.currentItemIndex = idx
     }
     else {
       // 无item, 选择menu
@@ -415,6 +480,7 @@ export class Dropdown {
       return
     }
     let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
+    const currItemIndex = iIndex
     let { menu, items } = currMenus[mIndex], item: DropdownMenuItem
     if (items && (item = items[iIndex])) {
       // 当前选择item, 解除选择状态
@@ -439,11 +505,14 @@ export class Dropdown {
     }
     menu = currMenus[mIndex].menu
     items = currMenus[mIndex].items
-    // 上一个menu有item, 尝试选择最后一个
-    if (items && (item = items[items.length - 1])) {
+    // 上一个menu有item,
+    if (items && items.length) {
+      // 尝试视觉上一个, 没有则选择最后一个
+      const idx = itemStep > 1 && currItemIndex < items.length ? currItemIndex : items.length - 1
+      item = items[idx]
       this.#selectMenuOrItem(item)
       this.currentMenuIndex = mIndex
-      this.currentItemIndex = items.length - 1
+      this.currentItemIndex = idx
     }
     // 否则, 选择该menu
     else {
@@ -573,7 +642,8 @@ export class Dropdown {
     this.#beforeFilterOnInput()
     const currVal = this.currentValue
     if (!currVal) {
-      this.menuItemsOnCurrentInput = [...this.menuItemsOnCurrentOpen]
+      this.menuItemsOnCurrentInput.length = 0
+      this.menuItemsOnCurrentInput.push(...this.menuItemsOnCurrentOpen)
       this.#afterFilterOnInput()
       return
     }
@@ -674,47 +744,62 @@ export class Dropdown {
   /* -------------------------------------------------------------------------- */
   /*                                   handle                                   */
   /* -------------------------------------------------------------------------- */
-  choseMenuOrItem() {
+  /**
+   * 获取当前选择的菜单或菜单项; 当某个menu 的 items 非空时, 该 menu 不会被选择
+   * @returns 当前选择的菜单或菜单项, 若未选择则返回null
+   */
+  currentMenuOrItem(): DropdownMenu | DropdownMenuItem | null {
     if (!this.currentContent) {
-      return
+      return null
     }
-    // 记录当前选择的索引, close会重置这些索引
-    const mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
-    // 必须先close, 撤回dropdown给编辑器带来的副作用, 恢复原本光标位置
-    this.close()
-
-    const menuItems = this.menuItemsOnCurrentInput[mIndex]
+    const menuItems = this.menuItemsOnCurrentInput[this.currentMenuIndex]
     if (!menuItems) {
-      return
+      return null
     }
     let item
-    if (menuItems.items && (item = menuItems.items[iIndex])) {
-      item.onchosen(this._ctx)
+    if (menuItems.items && (item = menuItems.items[this.currentItemIndex])) {
+      return item
     }
     else {
-      menuItems.menu.onchosen?.(this._ctx)
+      return menuItems.menu
     }
   }
 
+  choseMenuOrItem() {
+    const menuOrItem = this.currentMenuOrItem()
+    // 必须先close, 撤回dropdown给编辑器带来的副作用, 恢复原本光标位置
+    this.close()
+    menuOrItem?.onchosen?.call(this, this._ctx)
+  }
+
   /**
-   * 初始化dropdown container元素
+   * 初始化dropdown container的内容, 并使用 dropdown 默认的交互逻辑 (tab/方向键选择, enter确认)
    * @param content dropdown的内容元素, 未提供时, 使用内置默认内容
    */
   adopt(content?: DropdownContent): Dropdown
   /**
    * 使用渲染函数初始化dropdown container元素; 并自定义处理dropdown过程中的交互逻辑
-   * * 由于dropdown在编辑区(et-body)内, 因此内部的事件监听器需要禁止冒泡, 特别的还需禁止默认事件, 如mousedown, 若不禁止会发生焦点转移, 导致CaretContext找不到selection
+   * * 由于dropdown在编辑区(et-body)内, 因此内部的事件监听器需要禁止冒泡,
+   *   特别的还需禁止默认事件, 如mousedown, 若不禁止会发生焦点转移, 导致找不到selection
    * @param render 提供给react/vue等框架的渲染接口, 有一个参数, 即dropdown容器元素; 并返回一个对象, 处理dropdown过程中的交互;
    */
-  adopt(render: (container: HTMLDivElement) => DropdownCallbacks): Dropdown
-  adopt(renderOrContent?: DropdownContent | ((container: HTMLDivElement) => DropdownCallbacks)) {
+  adopt(render: DropdownContentRender): Dropdown
+  adopt(renderOrContent?: DropdownContent | DropdownContentRender): Dropdown
+  adopt(renderOrContent?: DropdownContent | DropdownContentRender) {
     if (typeof renderOrContent === 'function') {
       this.currentCallbacks = renderOrContent(this.container)
       this.currentContent = null // 使用null表示当前内容由外部控制
     }
+    else if (renderOrContent) {
+      this.currentCallbacks = {
+        ...this.defaultCallbacks,
+        ...(renderOrContent.callbacks || {}),
+      }
+      this.updateCurrentContent(renderOrContent)
+    }
     else {
       this.currentCallbacks = this.defaultCallbacks
-      this.updateCurrentContent(renderOrContent ? renderOrContent : this.defaultContent)
+      this.updateCurrentContent(this.defaultContent)
     }
     return this
   }
@@ -731,12 +816,19 @@ export class Dropdown {
     if (!tc) {
       return false
     }
-    // TODO 仅允许在纯段落下展开dropdown
+    // TODO 仅允许在纯段落下展开默认的dropdown
     // 在其他位置展开dropdown上存在许多问题, 如dropdown展开创建一个mark.bold临时节点,
     // 然后在此临时节点内不输入任何内容再次展开dropdown, 光标就会定位到dropdown以外, 有待解决
     // 在解决这些潜在问题之前, 不应取消该限制
-    if (!this._ctx.isPlainParagraph(this._ctx.focusEtElement)) {
-      return false
+    // if (!this._ctx.isPlainParagraph(this._ctx.focusEtElement)) {
+    //   return false
+    // }
+    if (this.currentContent === void 0) {
+      const content = this.contentMap[this._ctx.focusEtElement.localName]
+      if (!content) {
+        return false
+      }
+      this.adopt(content)
     }
 
     this.isOpened = true
@@ -744,17 +836,22 @@ export class Dropdown {
     this.inputSpan.textContent = ''
     this.inputSpan.appendChild(text)
 
-    if (!this.currentContent) {
-      this.adopt()
-    }
     // 使用默认内置content 且无menu时, 直接退出
     if (this.currentContent && !this.currentContent.menus.length) {
       this._ctx.assists.logger?.log('dropdown 无menu, 不显示', 'Assist-Dropdown')
       return false
     }
 
-    this.currentCallbacks.onopen?.()
-    return this._ctx.commonHandler.insertElementTemporarily(this.wrapper, null, cr.caret(text, text.length))
+    if (this.currentCallbacks.onopen?.call(this, this._ctx.focusEtElement)) {
+      return false
+    }
+    this.#addCaptureListener()
+
+    // 以临时节点方式插入, 不设置光标位置, 让 dropdown 展开过程中的命令能用回原来的光标位置
+    this._ctx.commandManager.pushHandleCallback(() => {
+      this.inputSpan.focus()
+    })
+    return this._ctx.commonHandler.insertElementTemporarily(this.wrapper, null, null)
   }
 
   /**
@@ -763,7 +860,8 @@ export class Dropdown {
    */
   close(insertText = false) {
     // close时撤销dropdown给编辑区带来的副作用
-    this.currentCallbacks.onclose?.()
+    this.#removeCaptureListener()
+    this.currentCallbacks.onclose?.call(this)
     this._ctx.commandManager.discard()
 
     this.isOpened = false
@@ -781,5 +879,15 @@ export class Dropdown {
         this._ctx.commonHandler.insertText(data, null)
       }
     }
+  }
+
+  /**
+   * 注册dropdown内容, 后续open时, 优先根据当前光标所在效应元素渲染其内容;
+   * * 若已注册, 则覆盖
+   * * dropdown 初始化时, 会为当前 schema 段落注册默认的 dropdown 内容
+   * @param contentMap 效应元素小写标签名对应的dropdown内容或渲染函数
+   */
+  register(contentMap: Record<string, DropdownContent | DropdownContentRender>) {
+    Object.assign(this.contentMap, contentMap)
   }
 }

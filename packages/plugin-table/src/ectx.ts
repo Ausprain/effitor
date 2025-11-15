@@ -2,7 +2,8 @@ import type { Et } from '@effitor/core'
 import { cmd, cr, dom, hotkey, useEffectorContext } from '@effitor/core'
 
 import type { EtTableElement } from './EtTableElement'
-import { insertNewColumn } from './handler/insert'
+import { tryToRemoveNextColumn, tryToRemoveNextRow } from './handler/delete'
+import { insertNewColumn, insertNewRow } from './handler/insert'
 
 const tabToNextCellOrInsertNewColumn = (ctx: Et.EditorContext) => {
   if (!ctx.schema.tableCell.is(ctx.commonEtElement)) {
@@ -191,4 +192,8 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
 
 export const ectx = useEffectorContext('$table_ctx', {
   tableCellKeyMap,
+  insertNewRow,
+  insertNewColumn,
+  tryToRemoveTableRow: tryToRemoveNextRow,
+  tryToRemoveTableColumn: tryToRemoveNextColumn,
 })

@@ -20,6 +20,10 @@ export const insertTableRowOrEnterNewParagraph = (ctx: Et.EditorContext, anchorT
       }),
     ).handleAndUpdate(cr.caretInAuto(newP))
   }
+  return insertNewRow(ctx, anchorTr, 'bottom')
+}
+
+export const insertNewRow = (ctx: Et.EditorContext, anchorTr: EtTableRowElement, to: 'top' | 'bottom', setCaret = true) => {
   const tr = ctx.schema.tableRow.create()
   for (let i = 0; i < anchorTr.childElementCount; i++) {
     const cell = ctx.schema.tableCell.create()
@@ -31,8 +35,8 @@ export const insertTableRowOrEnterNewParagraph = (ctx: Et.EditorContext, anchorT
   }
   return ctx.commandManager.push(cmd.insertNode({
     node: tr,
-    execAt: cr.caretOutEnd(anchorTr),
-  })).handleAndUpdate(cr.caretEndAuto(firstCell))
+    execAt: to === 'top' ? cr.caretOutStart(anchorTr) : cr.caretOutEnd(anchorTr),
+  })).handleAndUpdate(setCaret ? cr.caretEndAuto(firstCell) : null)
 }
 
 /**
@@ -41,7 +45,7 @@ export const insertTableRowOrEnterNewParagraph = (ctx: Et.EditorContext, anchorT
  * @param anchorTc 锚定单元格
  * @param to 插入位置
  */
-export const insertNewColumn = (ctx: Et.EditorContext, anchorTc: EtTableCellElement, to: 'left' | 'right') => {
+export const insertNewColumn = (ctx: Et.EditorContext, anchorTc: EtTableCellElement, to: 'left' | 'right', setCaret = true) => {
   // 列数 -> 行元素数组
   const table = anchorTc.parentNode?.parentNode
   if (!ctx.schema.table.is(table)) {
@@ -67,5 +71,5 @@ export const insertNewColumn = (ctx: Et.EditorContext, anchorTc: EtTableCellElem
     node: nextCell,
     execAt: caretFn(anchorTc),
   }))
-  ctx.commandManager.withTransaction(cmds, destCaretRange)
+  ctx.commandManager.withTransaction(cmds, setCaret ? destCaretRange : null)
 }

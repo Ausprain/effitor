@@ -567,7 +567,7 @@ export const insertElementAtCaretTemporarily = (
   ctx: Et.EditorContext,
   element: Element,
   targetCaret: Et.ValidTargetCaret,
-  destCaretRange?: Et.CaretRange,
+  destCaretRange?: Et.CaretRange | null,
 ) => {
   // temporary方式插入的最大不同在于, 不考虑插入位置的具体情况; 不拆分节点,
   // 当且仅当插入位置是文本节点时将其拆分; 这样做的好处是避免多余的计算
@@ -604,7 +604,7 @@ const checkSplitTextToInsertContentsTemporarily = (
   ctx: Et.EditorContext,
   content: Et.Fragment,
   targetCaret: Et.ValidTargetCaret,
-  destCaretRange?: Et.CaretRange,
+  destCaretRange?: Et.CaretRange | null,
 ) => {
   if (!content.hasChildNodes()) {
     return false

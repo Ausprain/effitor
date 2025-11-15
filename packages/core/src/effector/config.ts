@@ -52,7 +52,7 @@ export interface Solvers {
    * * 若按键处理函数返回 true, 则会同时禁止(传播\冒泡\默认行为)
    * * 如非必要, 不建议使用此solver, 此 solver 处理太多逻辑会影响性能, 降低编辑流畅性
    * * 此外, 由于撤回记录在此 solver 中进行, 若某个效应元素在此 solver 内注册了 `效应元素特有效应器处理函数`
-   * 则需自行处理撤回记录, 否则可能导致很长一段操作才记录一次撤回
+   * 且返回 true, 则需自行处理撤回记录, 否则可能导致很长一段操作才记录一次撤回
    */
   readonly beforeKeydownSolver: KeyboardSolver
   /**
@@ -60,8 +60,8 @@ export interface Solvers {
    * * 若 ev.key长度为1 或为方向键, 则此 solver 捕获不到, 需使用 beforeKeydownSolver
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
    * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
-   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
-   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签名从 Solver 里获取处理函数,
+   *   若存在且返回 true, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
    *   独占该效应元素内的行为
    */
   readonly keydownSolver: KeyboardSolver
@@ -69,8 +69,8 @@ export interface Solvers {
    * keyup中处理按键响应
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
    * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
-   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
-   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签名从 Solver 里获取处理函数,
+   *   若存在且返回 true, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
    *   独占该效应元素内的行为
    */
   readonly keyupSolver: KeyboardSolver
@@ -78,8 +78,8 @@ export interface Solvers {
    * beforeinput中处理inputType
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
    * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
-   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
-   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签名从 Solver 里获取处理函数,
+   *   若存在且返回 true, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
    *   独占该效应元素内的行为
    */
   readonly beforeInputSolver: InputSolver
@@ -87,8 +87,8 @@ export interface Solvers {
    * input中处理inputType
    * * 当配置了`default`时, key 匹配失败将会使用 default, 但`效应元素特有效应器处理函数`除外
    * * 键名可用效应元素名(DefinedEtElementMap中定义的), 类似`default`, 光标或选区在效应元素
-   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签从 Solver 里获取处理函数,
-   *   一旦获取成功, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
+   *   (`ctx.commonEtElement`)内触发相应事件时, 会用该效应元素小写标签名从 Solver 里获取处理函数,
+   *   若存在且返回 true, 便不再访问该 solver, 可以理解为, 使用效应元素名定义的 sovler 处理函数会
    *   独占该效应元素内的行为
    * * [NB] 撤销/重做通过内置插件实现, 注册`效应元素特有效应器处理函数`时, 需手动放行 historyUndo/
    *   historyRedo (返回 false), 否则在该效应元素内无法通过快捷键撤回/重做

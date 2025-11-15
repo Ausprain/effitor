@@ -1,5 +1,5 @@
 import type { Et } from '@effitor/core'
-import { cr, dom } from '@effitor/core'
+import { cmd, cr, dom } from '@effitor/core'
 
 import { EtTableCellElement } from '../EtTableCellElement'
 import type { EtTableRowElement } from '../EtTableRowElement'
@@ -179,4 +179,34 @@ const checkDeleteEmptyCellInSingleRowTable = (
     ctx.commonHandler.removeNode(emptyCell, cr.caretInStart(nextCell))
   }
   return true
+}
+
+export const tryToRemoveNextRow = (ctx: Et.EditorContext, anchorTr?: EtTableRowElement) => {
+  const nextRow = anchorTr?.nextSibling
+  if (!ctx.schema.tableRow.is(nextRow)) {
+    return
+  }
+  ctx.commandManager.commitNextHandle(true)
+  ctx.commonHandler.removeNode(nextRow, false)
+}
+export const tryToRemoveNextColumn = (ctx: Et.EditorContext, anchorTc?: EtTableCellElement) => {
+  const nextCell = anchorTc?.nextSibling
+  const table = anchorTc?.parentNode?.parentNode
+  if (!ctx.schema.tableCell.is(nextCell) || !ctx.schema.table.is(table)) {
+    return
+  }
+  const index = dom.prevSiblingCount(nextCell)
+  const cmds: Et.Command[] = []
+  for (const row of table.childNodes) {
+    const curr = row.childNodes.item(index)
+    if (!curr) {
+      continue
+    }
+    cmds.push(cmd.removeNode({ node: curr }))
+  }
+  if (!cmds.length) {
+    return
+  }
+  ctx.commandManager.commitNextHandle(true)
+  ctx.commandManager.push(...cmds).handle()
 }

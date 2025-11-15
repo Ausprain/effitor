@@ -94,9 +94,9 @@ export const getKeydownCaptureListener = (
   return (ev: Et.KeyboardEvent) => {
     // 没有effectElement 或没有选区 阻止后续输入
     if (!ctx.isUpdated()) {
-      if (import.meta.env.DEV) {
-        console.error('keydown error: no effectelement', ctx)
-      }
+      // if (import.meta.env.DEV) {
+      //   console.error('keydown error: no effectelement', ctx)
+      // }
       ev.preventDefault()
       ev.stopPropagation()
       ev.stopImmediatePropagation()
@@ -134,13 +134,21 @@ export const getKeydownCaptureListener = (
     if (solver) {
       const key = ev.key.length === 1 ? ev.key.toUpperCase() : ev.key
       // 效应元素独占效应器
-      const fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
-        || solver[key as keyof typeof solver] || solver.default
-      if (typeof fn === 'function' && fn(
+      let fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
+      let ret = fn && fn(
         ev,
         // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
         ctx,
-      )) {
+      )
+      if (!ret) {
+        fn = solver[key as keyof typeof solver] || solver.default
+        ret = fn && fn(
+          ev,
+          // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
+          ctx,
+        )
+      }
+      if (ret) {
         ev.preventDefault()
         ev.stopPropagation()
         ev.stopImmediatePropagation()

@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import type { DropdownOptions, DropdownTrigger } from './config'
+import type { DropdownTrigger } from './config'
 import { Dropdown } from './dropdown'
 import { getDropdownEffector } from './effector'
 import cssText from './index.css?raw'
@@ -11,7 +11,7 @@ declare module '@effitor/core' {
   }
 }
 
-export interface DropdownAssistOptions extends DropdownOptions, DropdownTrigger {}
+export interface DropdownAssistOptions extends DropdownTrigger {}
 export type {
   DropdownCallbacks,
   DropdownContent,
@@ -25,8 +25,6 @@ export type { Dropdown } from './dropdown'
 const defaultOptions = {
   triggerKey: '/',
   triggerMod: true,
-  maxWidth: 188,
-  maxHeight: 256,
 } as const
 
 export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPluginSupportInline => {

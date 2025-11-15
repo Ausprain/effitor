@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { useEffectorContext } from '@effitor/core'
-import { HtmlCharEnum, orderListIcon, unorderListIcon } from '@effitor/shared'
+import { HtmlCharEnum, orderedListIcon, unorderedListIcon } from '@effitor/shared'
 
 import { ListEnum, styleTypeMapping, unOrderedListStyle } from './config'
 import { EtListItemElement } from './EtListElement'
@@ -123,7 +123,7 @@ export const listEffector: Et.EffectorSupportInline = {
 /* -------------------------------------------------------------------------- */
 const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
   dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
-    unorderListIcon(),
+    unorderedListIcon(),
     (ctx) => {
       // 通过dropdown插入无序列表
       toListAtCaret(ctx, false)
@@ -132,7 +132,7 @@ const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['
       prefixes: ['list', 'unordered'],
     },
   )).addBlockRichTextMenuItem(dropdown.createMenuItem(
-    orderListIcon(),
+    orderedListIcon(),
     (ctx) => {
       // 通过dropdown插入有序列表
       toListAtCaret(ctx, true)

@@ -123,7 +123,7 @@ export class CommandManager implements CommandQueue {
     this._afterHandleCallbacks.length = 0
   }
 
-  private _handle(destCaretRange?: Et.CaretRange) {
+  private _handle(destCaretRange?: Et.CaretRange | null) {
     if (!this.hasQueuedCmds) {
       this._lastCaretRange = null
       this._clearHandleCallbacks()
@@ -140,10 +140,12 @@ export class CommandManager implements CommandQueue {
    * 按顺序执行之前push的命令
    * * 该方法不会更新上下文和选区信息, 但会记录lastCaretRange(如果有)
    * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
-   *    即会覆盖最后一个命令中的destCaretRange属性
+   *    即会覆盖最后一个命令中的destCaretRange属性;
+   *    null 表示此次执行不更新光标位置;
+   *    undefined 表示使用命令配置中的值, 若没有命令配置结束光标位置, 效果等于 null
    * @returns 是否执行了至少一个命令
    */
-  handle(destCaretRange?: Et.CaretRange): boolean {
+  handle(destCaretRange?: Et.CaretRange | null): boolean {
     if (this._handle(destCaretRange)) {
       this._runHandleCallbacks()
       this._checkCommitNext()
@@ -155,10 +157,12 @@ export class CommandManager implements CommandQueue {
   /**
    * 按顺序执行之前push的命令并当lastCaretRange非空时更新上下文和选区信息
    * @param destCaretRange 所有命令执行后最终的光标位置; 此参数优先级更高,
-   *    即会覆盖最后一个命令中的destCaretRange属性
+   *    即会覆盖最后一个命令中的destCaretRange属性;
+   *    null 表示此次执行不更新光标位置;
+   *    undefined 表示使用命令配置中的值, 若没有命令配置结束光标位置, 效果等于 null
    * @returns 是否执行了至少一个命令
    */
-  handleAndUpdate(destCaretRange?: Et.CaretRange): boolean {
+  handleAndUpdate(destCaretRange?: Et.CaretRange | null): boolean {
     if (this._handle(destCaretRange)) {
       if (this._lastCaretRange) {
         this._ctx.setSelection(this._lastCaretRange.toTextAffinity())
@@ -265,7 +269,7 @@ export class CommandManager implements CommandQueue {
    * * 若在一个明确需要的事务内, 不要使用此方法
    * @param destCaretRange 所有命令执行后最终的光标位置
    */
-  withTransaction(cmds: Command[], destCaretRange?: Et.CaretRange) {
+  withTransaction(cmds: Command[], destCaretRange?: Et.CaretRange | null) {
     this.closeTransaction()
     this.startTransaction()
     try {

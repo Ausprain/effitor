@@ -23,36 +23,48 @@
  */
 
 import type { Et } from '@effitor/core'
-import { cr } from '@effitor/core'
+import { cmd, cr } from '@effitor/core'
 
-import { TableEnum } from '../config'
+import { TableName } from '../config'
 import type { EtTableCellElement } from '../EtTableCellElement'
 import { EtTableRowElement } from '../EtTableRowElement'
 import { backspaceToRemoveEmptyRowOrFocusToPrevRow, checkEmptyCellAndFocusToPrevOrNext, deleteInTableRow, deleteToRemoveRowEmptyOrFocusToNextRow } from './delete'
 import { insertTableRowOrEnterNewParagraph } from './insert'
 import { collapseTargetRangeOfInputEffectPayload } from './shared'
 
+const careteTable = (ctx: Et.EditorContext, data: string) => {
+  const table = ctx.schema.table.create(true)
+  const cell = table.firstChild?.firstChild as EtTableCellElement
+  cell.textContent = data
+  let destCaretRange
+  if (data) {
+    const nextCell = ctx.schema.tableCell.create()
+      ;(table.firstChild as EtTableRowElement).appendChild(nextCell)
+    destCaretRange = cr.caretInStart(nextCell)
+  }
+  else {
+    destCaretRange = cr.caretInEnd(cell)
+  }
+  return {
+    table,
+    destCaretRange,
+  }
+}
+
 export const tableHandler: Et.EffectHandler = {
   replaceParagraphWithTable: (ctx, { data, paragraph }) => {
     if (!data) {
       data = ''
     }
-    const el = ctx.schema.table.create(true)
-    const cell = el.firstChild?.firstChild as EtTableCellElement
-    if (!cell) {
-      return false
-    }
-    cell.textContent = data
-    let destCaretRange
-    if (data) {
-      const nextCell = ctx.schema.tableCell.create()
-      ;(el.firstChild as EtTableRowElement).appendChild(nextCell)
-      destCaretRange = cr.caretInStart(nextCell)
-    }
-    else {
-      destCaretRange = cr.caretInEnd(cell)
-    }
-    return ctx.commonHandler.replaceNode(paragraph, el, destCaretRange)
+    const { table, destCaretRange } = careteTable(ctx, data)
+    return ctx.commonHandler.replaceNode(paragraph, table, destCaretRange)
+  },
+  insertTableAfterParagraph: (ctx, { paragraph }) => {
+    const { table, destCaretRange } = careteTable(ctx, '')
+    return ctx.commandManager.push(cmd.insertNode({
+      node: table,
+      execAt: cr.caretOutEnd(paragraph),
+    })).handleAndUpdate(destCaretRange)
   },
 }
 
@@ -80,7 +92,7 @@ export const inTableCellHandler: Et.EffectHandler = {
   EinsertParagraph(ctx, payload) {
     const tr = ctx.body.findInclusiveParentByName(
       payload.targetRange.commonEtElement,
-      TableEnum.TableRow,
+      TableName.TableRow,
     )
     if (!tr || !ctx.schema.tableRow.is(tr)) {
       return this.superHandler.EinsertParagraph?.(ctx, payload)

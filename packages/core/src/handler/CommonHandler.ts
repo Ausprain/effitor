@@ -9,6 +9,7 @@
 import { HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { etcode } from '../element'
 import { cr } from '../selection'
 import { dom } from '../utils'
 import { cmd } from './command'
@@ -70,7 +71,7 @@ export class CommonHandler {
     this.commander = ctx.commandManager
   }
 
-  private handleWith(canHandle: boolean, destCaretRange?: Et.CaretRange) {
+  private handleWith(canHandle: boolean, destCaretRange?: Et.CaretRange | null) {
     if (!canHandle) {
       return false
     }
@@ -292,7 +293,7 @@ export class CommonHandler {
    * @returns 插入成功返回 true, 否则返回 false
    */
   insertElementTemporarily(
-    el: Element, insertAt: Et.EtCaret | Et.TargetSelection | null, destCaretRange?: Et.CaretRange,
+    el: Element, insertAt: Et.EtCaret | Et.TargetSelection | null, destCaretRange?: Et.CaretRange | null,
   ) {
     return this._ctx.selection.checkInsertAt(insertAt, (tc) => {
       if (!tc.isCaret()) {
@@ -334,6 +335,25 @@ export class CommonHandler {
       return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
     }
     return this.commander.handle()
+  }
+
+  /**
+   * 用一个普通段落替换指定"段落"
+   * @param original 被替换的段落 (必须有父节点)
+   * @param checkEtCode 是否检查效应规则; 当为 true 时, 如果 original 的父节点不接受普通段落, 则插入取消插入
+   */
+  replaceParagraphWithPlain(original: Et.Paragraph, checkEtCode: boolean) {
+    if (!original.parentNode) {
+      return
+    }
+    if (checkEtCode && etcode.check(original.parentNode)
+      && !etcode.checkIn(original.parentNode, this._ctx.schema.paragraph.etType)
+    ) {
+      return
+    }
+    const plain = this._ctx.createPlainParagraph()
+    this.commander.commitNextHandle(true)
+    return this.replaceNode(original, plain, cr.caretInAuto(plain))
   }
 
   /**

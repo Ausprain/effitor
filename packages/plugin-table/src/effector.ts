@@ -1,11 +1,21 @@
+import type { DropdownContent } from '@effitor/assist-dropdown'
 import { dom, type Et } from '@effitor/core'
-import { HtmlCharEnum } from '@effitor/shared'
+import {
+  colDeleteRightIcon,
+  colInsertLeftIcon,
+  colInsertRightIcon,
+  HtmlCharEnum,
+  rowDeleteBottomIcon,
+  rowInsertBottomIcon,
+  rowInsertTopIcon,
+  tableIcon,
+} from '@effitor/shared'
 
-import { TableEnum } from './config'
+import { TABLE_ET_CODE, TableName } from './config'
 import { ectx } from './ectx'
 
 const beforeKeydownSolver: Et.KeyboardSolver = {
-  [TableEnum.TableCell]: (ev, ctx) => {
+  [TableName.TableCell]: (ev, ctx) => {
     ctx.commandManager.checkKeydownNeedCommit(ev, ctx)
     if (ctx.hotkeyManager.listenEffect(ectx.$table_ctx.tableCellKeyMap) === false) {
       return
@@ -24,11 +34,14 @@ export const tableEffector: Et.EffectorSupportInline = {
     // 此外, payload.targetRange 可能非 collapse, 取决于输入法会话期间的最后一次更新上下文时机
     // 该时机可能在输入法会话开始时, 也可能在输入法输入第一个字符后, 这个上一次动作有关
     compositionstart: (_ev, ctx) => {
-      if (ctx.commonEtElement?.localName === TableEnum.TableRow && !ctx.selection.isCollapsed) {
+      if (ctx.commonEtElement?.localName === TableName.TableRow && !ctx.selection.isCollapsed) {
         ctx.selection.collapse(true)
         ctx.forceUpdate()
       }
     },
+  },
+  onMounted(ctx) {
+    initTableDropdown(ctx)
   },
 }
 
@@ -57,4 +70,149 @@ export const tabToTableEffector: Et.EffectorSupportInline = {
       return ctx.preventAndSkipDefault(ev)
     },
   },
+}
+
+const initTableDropdown = (ctx: Et.EditorContext) => {
+  const dropdown = ctx.assists.dropdown
+  if (!dropdown) {
+    return
+  }
+  dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
+    tableIcon(),
+    (ctx) => {
+      const currP = ctx.focusParagraph
+      if (!ctx.isPlainParagraph(currP)) {
+        return
+      }
+      const text = currP.textContent
+      if (text.length > 50) {
+        ctx.effectInvoker.invoke(currP, 'insertTableAfterParagraph', ctx, {
+          paragraph: currP,
+        })
+        return
+      }
+      ctx.effectInvoker.invoke(currP, 'replaceParagraphWithTable', ctx, {
+        data: text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, ''),
+        paragraph: currP,
+      })
+    },
+    {
+      filter: {
+        etType: TABLE_ET_CODE,
+      },
+    },
+  ))
+
+  dropdown.register({
+    [TableName.TableCell]: createTableDropdownContent(),
+  })
+
+  function createTableDropdownContent(): DropdownContent {
+    const el = document.createElement('div')
+    const insertItems = ([
+      [rowInsertTopIcon(), (ctx) => {
+        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
+          ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
+        }
+      }],
+      [rowInsertBottomIcon(), (ctx) => {
+        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
+          ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
+        }
+      }],
+      [colInsertLeftIcon(), (ctx) => {
+        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
+          ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
+        }
+      }],
+      [colInsertRightIcon(), (ctx) => {
+        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
+          ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
+        }
+      }],
+    ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
+      ([icon, onchosen]) => dropdown.createMenuItem(icon, onchosen),
+    )
+    const deleteItems = ([
+      [rowDeleteBottomIcon(), (ctx) => {
+        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
+          ectx.$table_ctx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
+        }
+      }],
+      [colDeleteRightIcon(), (ctx) => {
+        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
+          ectx.$table_ctx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
+        }
+      }],
+    ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
+      ([icon, onchosen]) => dropdown.createMenuItem(icon, onchosen),
+    )
+
+    const insertMenu = dropdown.createMenu('insertion', {
+      items: insertItems,
+    })
+    const deleteMenu = dropdown.createMenu('deletion', {
+      items: deleteItems,
+    })
+    // FIXME 目前这里的加粗只能临时展示, 不能持久化; 需待 mark 插件将 formatBold 接口提供出来;
+    // 然后在此处为对应单元格激活加粗效应, 方可实现markdown 互转
+    const boldFirstRowMenu = dropdown.createMenu('bold first row', {
+      defaultStyle: true,
+      onchosen(ctx) {
+        const table = ctx.focusParagraph?.parentNode
+        if (ctx.schema.table.is(table)) {
+          const f = table.tableHead
+          if (f.includes('r')) {
+            table.tableHead = f.replace('r', '')
+          }
+          else {
+            table.tableHead = 'r' + f
+          }
+        }
+        this.close()
+      },
+    })
+    // FIXME 同上
+    const boldFirstColumnMenu = dropdown.createMenu('bold first column', {
+      defaultStyle: true,
+      onchosen(ctx) {
+        const table = ctx.focusParagraph?.parentNode
+        if (ctx.schema.table.is(table)) {
+          const f = table.tableHead
+          if (f.includes('c')) {
+            table.tableHead = f.replace('c', '')
+          }
+          else {
+            table.tableHead += 'c'
+          }
+        }
+        this.close()
+      },
+    })
+    const menus = [insertMenu, deleteMenu, boldFirstRowMenu, boldFirstColumnMenu]
+
+    menus.forEach(menu => el.appendChild(menu.el))
+
+    return dropdown.createContent(el, menus, {
+      onEnter() {
+        this.currentMenuOrItem()?.onchosen?.call(this, ctx)
+        return
+      },
+      onopen(etel) {
+        const table = etel.parentNode?.parentNode
+        if (!ctx.schema.table.is(table)) {
+          return true
+        }
+        const f = table.tableHead
+        const t1 = boldFirstRowMenu.el.firstChild
+        if (t1?.nodeType === 3) {
+          t1.textContent = f.includes('r') ? 'unbold first row' : 'bold first row'
+        }
+        const t2 = boldFirstColumnMenu.el.firstChild
+        if (t2?.nodeType === 3) {
+          t2.textContent = f.includes('c') ? 'unbold first column' : 'bold first column'
+        }
+      },
+    })
+  }
 }

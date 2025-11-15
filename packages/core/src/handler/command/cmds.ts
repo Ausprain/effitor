@@ -824,7 +824,7 @@ const cmdHandler = {
    * 执行一组命令, 调用前必须判断 cmds长度 > 0
    * * 此方法会给第一个命令赋值srcCaretRange, 记录此刻光标位置
    */
-  handle(cmds: readonly Command[], recordCmds: ExecutedCmd[], ctx: Et.EditorContext, destCaretRange?: Et.CaretRange) {
+  handle(cmds: readonly Command[], recordCmds: ExecutedCmd[], ctx: Et.EditorContext, destCaretRange?: Et.CaretRange | null) {
     // 记录初始光标位置
     let lastCaretRange: Et.CaretRange | null = null
 
@@ -858,6 +858,9 @@ const cmdHandler = {
     if (destCaretRange) {
       recordCmds[recordCmds.length - 1].destCaretRange = destCaretRange
       lastCaretRange = destCaretRange
+    }
+    else if (destCaretRange === null) {
+      recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange = null
     }
     else {
       recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange

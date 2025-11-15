@@ -27,11 +27,13 @@ et-table[data-align="center"] {
 }
 
 /* 表格标题 */
+et-table[data-head="rc"],
 et-table[data-head="r"] {
   & > et-tr:first-child {
     font-weight: bold;
   }
 }
+et-table[data-head="rc"],
 et-table[data-head="c"] {
   & > et-tr > et-tc:first-child {
     font-weight: bold;

@@ -434,10 +434,10 @@ Todos
   - [x] 粘贴处理
 - [x] markdown互转
 - [x] 原生 html 互转
-- [ ] dropdown
+- [x] dropdown
   - 新增表格
-  - 向左/右 插入新列
-  - 向上/下 插入新行
+  - 向左/右 插入新列, 删除列
+  - 向上/下 插入新行, 删除行
 
 #### plugin-excalidraw
 

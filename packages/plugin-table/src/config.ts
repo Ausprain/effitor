@@ -5,7 +5,7 @@ import type { EtTableCellElement } from './EtTableCellElement'
 import type { EtTableElement } from './EtTableElement'
 import type { EtTableRowElement } from './EtTableRowElement'
 
-export const enum TableEnum {
+export const enum TableName {
   Talbe = 'et-table',
   TableRow = 'et-tr',
   TableCell = 'et-tc',
@@ -18,9 +18,9 @@ declare module '@effitor/core' {
     readonly tableCell: typeof EtTableCellElement
   }
   interface DefinedEtElementMap {
-    [TableEnum.Talbe]: EtTableElement
-    [TableEnum.TableRow]: EtTableRowElement
-    [TableEnum.TableCell]: EtTableCellElement
+    [TableName.Talbe]: EtTableElement
+    [TableName.TableRow]: EtTableRowElement
+    [TableName.TableCell]: EtTableCellElement
   }
   interface EffectHandleDeclaration {
     replaceParagraphWithTable: Et.EffectHandle<{
@@ -28,9 +28,12 @@ declare module '@effitor/core' {
       data?: string
       paragraph: Et.EtParagraphElement
     }>
+    insertTableAfterParagraph: Et.EffectHandle<{
+      paragraph: Et.EtParagraphElement
+    }>
   }
 }
 
-export const ET_TABLE_CODE = etcode.get(TableEnum.Talbe)
-export const ET_TABLE_ROW_CODE = etcode.get(TableEnum.TableRow)
-export const ET_TABLE_CELL_CODE = etcode.get(TableEnum.TableCell)
+export const TABLE_ET_CODE = etcode.get(TableName.Talbe)
+export const TABLE_ROW_ET_CODE = etcode.get(TableName.TableRow)
+export const TABLE_CELL_ET_CODE = etcode.get(TableName.TableCell)

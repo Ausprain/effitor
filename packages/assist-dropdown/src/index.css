@@ -26,8 +26,8 @@
   overflow: hidden;
   z-index: 99;
   animation: dropdown-in 0.2s ease-in;
-  transition: var(--et-transition-color-scheme);
 
+  user-select: none;
   /* dev */
   border: 1px solid var(--et-color-border-1);
 }
@@ -37,7 +37,7 @@
   flex-direction: column;
   min-width: 184px;
   max-height: 256px;
-  max-width: 188px;
+  max-width: 211px;
   padding: 0 8px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -54,21 +54,31 @@
   flex-wrap: wrap;
   justify-content: start;
   align-items: center;
+  user-select: none;
 
   padding: 8px 0;
-  transition: var(--et-transition-color-scheme);
 
   &:not(:last-child) {
     border-bottom: 1px solid var(--et-color-border-1);
+  }
+
+  &:not(:has(.et-dd-menu__item)) {
+    justify-content: space-between;
+    padding: 8px;
   }
 }
 
 .et-dd-menu__item {
   display: inline-block;
-  height: 24px;
-  width: 24px;
+  height: 28px;
+  width: 28px;
   margin: 2px;
   padding: 4px;
   border-radius: 3px;
   background-color: inherit;
+
+  & > svg {
+    width: 20px;
+    height: 20px;
+  }
 }

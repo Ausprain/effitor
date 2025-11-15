@@ -5,7 +5,7 @@ import {
   alignLeftIcon,
   alignRightIcon,
   audioFileIcon,
-  fourCornersExpandIcon,
+  fullScreenIcon,
   HtmlAttrEnum,
   HtmlCharEnum,
   imageFileIcon,
@@ -285,7 +285,7 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
 const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
   const popupItems = [
     popup.createPopupItem<IEtMediaElement>(
-      fourCornersExpandIcon(),
+      fullScreenIcon(),
       '放大',
       (ctx, _, etMedia) => {
         const state = etMedia.getAttribute(MediaEnum.State)
