@@ -99,7 +99,14 @@ export class EtMarkElement extends EtRichText {
       if (el.parentNode?.nodeName === 'PRE') {
         return null
       }
-      return () => EtMarkElement.create(MarkType.CODE)
+      if (!el.textContent) {
+        return null
+      }
+      return () => {
+        const res = EtMarkElement.create(MarkType.CODE)
+        res.textContent = el.textContent
+        return res
+      }
     },
   }
 

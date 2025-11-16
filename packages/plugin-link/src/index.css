@@ -28,7 +28,8 @@ et-link {
 
   & > * {
     pointer-events: none;
-    background-color: transparent;
+    background-color: transparent !important;
+    color: inherit !important;
   }
 
   &:hover {

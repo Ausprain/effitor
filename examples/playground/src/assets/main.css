@@ -1,4 +1,8 @@
 #effitor-host {
-  border: 1px solid slateblue;
+  /* border: 1px solid slateblue; */
   min-height: 160px;
+}
+
+et-editor.et { 
+  max-width: 1080px; 
 }

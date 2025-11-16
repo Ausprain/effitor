@@ -104,15 +104,17 @@ export class EtBlockquoteElement extends EtBlockquote {
       let type
       if (meta) {
         type = meta.type
-        children.unshift(manager.newNode({
-          type: 'paragraph',
-          children: [
-            manager.newNode({
-              type: 'text',
-              value: meta.title,
-            }),
-          ],
-        }))
+        if (meta.title) {
+          children.unshift(manager.newNode({
+            type: 'paragraph',
+            children: [
+              manager.newNode({
+                type: 'text',
+                value: meta.title,
+              }),
+            ],
+          }))
+        }
       }
       const el = EtBlockquoteElement.create(type)
       if (children.length === 0) {

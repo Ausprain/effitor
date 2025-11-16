@@ -26,7 +26,8 @@ import { useTablePlugin } from '@effitor/plugin-table'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 // console.log(css.length)  // 186452
 
-import md from '../../../README_zh.md?raw'
+// import md from '../../../README_zh.md?raw'
+import md from '../demo.md?raw'
 import DOMPurify from 'dompurify'
 
 const countSpan = initTextCountSpan()
@@ -63,19 +64,6 @@ const editor = new Effitor({
     useLinkPlugin(),
     useMediaPlugin(),
     useTablePlugin(),
-    {
-      name: 'some',
-      effector: {
-        keydownSolver: {
-          default: (ev, ctx) => {
-            console.log('keydown in main')
-            if (ctx.selection.rawEl) {
-              return ctx.skipDefault()
-            }
-          },
-        },
-      },
-    },
 
     // {
     //   name: 'excalidraw',
@@ -92,6 +80,8 @@ const editor = new Effitor({
 
 const host = document.getElementById('effitor-host') as HTMLDivElement
 editor.mount(host)
+editor.fromMarkdown(md, false)
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 window.ctx = editor.context
@@ -118,8 +108,6 @@ flex-wrap: wrap;`
     }
   })
   editor.root.appendChild(iconsHost)
-
-  editor.fromMarkdown(md, false)
 }
 iconGlances()
 

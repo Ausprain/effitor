@@ -10,7 +10,7 @@ et-editor,
 
 et-editor.dark,
 :host(.dark) {
-  --et-mark-color__code_text: #9ecbff;
+  --et-mark-color__code_text: #97b7dc;
   --et-mark-color__code_bg: #24292e;
 }
 

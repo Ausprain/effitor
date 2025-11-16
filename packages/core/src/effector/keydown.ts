@@ -6,6 +6,9 @@ export type MainKeyboardSolver = {
 }
 
 const keydownKeySolver: MainKeyboardSolver = {
+  Escape: (_ev, ctx) => {
+    ctx.editor.blur()
+  },
   // 在样式节点内按下 tab, 跳出样式节点, 否则插入制表符
   Tab: (ev, ctx) => {
     if (ev.ctrlKey || ev.altKey) return
