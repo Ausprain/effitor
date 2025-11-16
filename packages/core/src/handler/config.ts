@@ -72,13 +72,21 @@ export interface DefaultEffectHandleMap {
    */
   DeleteForwardAtParagraphEnd: (this: EffectHandleThis, ctx: UpdatedContext, targetCaret: Et.ValidTargetCaret) => EtParagraphElement | boolean
   /**
-   * 段落向上移动 (这是一个回调, 当在选区在某个"段落"时, 按下 Alt+Ctrl+ArrowUp 时, effitor 核心会激活当前段落元素的此效应)
+   * 段落向上移动 (这是一个回调, 当在选区在某个"段落"内, 按下 Alt+ArrowUp 时, effitor 核心会激活当前段落元素的此效应)
    */
   ParagraphMoveUp: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
   /**
-   * 段落向下移动 (这是一个回调, 当在选区在某个"段落"时, 按下 Alt+Ctrl+ArrowDown 时, effitor 核心会激活当前段落元素的此效应)
+   * 段落向下移动 (这是一个回调, 当在选区在某个"段落"内, 按下 Alt+ArrowDown 时, effitor 核心会激活当前段落元素的此效应)
    */
   ParagraphMoveDown: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
+  /**
+   * 拷贝并向上移动当前段落 (这是一个回调, 当在选区在某个"段落"内, 按下 Alt+Shift+ArrowUp 时, effitor 核心会激活当前段落元素的此效应)
+   */
+  ParagraphCopyUp: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
+  /**
+   * 拷贝并向下移动当前段落 (这是一个回调, 当在选区在某个"段落"内, 按下 Alt+Shift+ArrowDown 时, effitor 核心会激活当前段落元素的此效应)
+   */
+  ParagraphCopyDown: (this: EffectHandleThis, ctx: EditorContext, targetRange: Et.ValidTargetRangeWithParagraph) => boolean
 
   /**
    * 这是一个回调, 当 compositionend 事件中 event.data 非空时调用ctx.focusEtElement 的该效应处理函数

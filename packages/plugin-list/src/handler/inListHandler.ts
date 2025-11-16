@@ -116,7 +116,7 @@ const enterAtEmptyListItem = (ctx: Et.UpdatedContext) => {
 }
 const insertLiAt = (ctx: Et.UpdatedContext, insertAt: Et.EtCaret) => {
   const currLi = ctx.focusEtElement as EtListItemElement
-  const li = dom.cloneEtElement(currLi)
+  const li = dom.cloneEtElement(currLi, false)
   if (li.checked) li.checked = false
   return ctx.commandManager.push(cmd.insertNode({
     node: li,

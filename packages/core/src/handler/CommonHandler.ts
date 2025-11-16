@@ -304,6 +304,27 @@ export class CommonHandler {
   }
 
   /**
+   * 插入一个节点; 这是一个执行 cmd.insertNode 命令的快捷方法; 自动 commit
+   * * 这是一个底层方法, 直接添加命令并执行, 不检查效应规则
+   * * 若插入位置在文本节点内, 则拒绝插入
+   * @param node 要插入的节点
+   * @param insertAt 插入位置
+   * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入节点内开头
+   * @returns 插入成功返回 true, 否则返回 false
+   */
+  insertNode(node: Et.Node, insertAt: Et.EtCaret, destCaretRange?: Et.CaretRange | null) {
+    if (insertAt.isSurroundText) {
+      return false
+    }
+    this.commander.commitNextHandle(true)
+    this.commander.push(cmd.insertNode({ node, execAt: insertAt, setCaret: destCaretRange === void 0 }))
+    if (destCaretRange === null) {
+      return this.commander.handle()
+    }
+    return this.commander.handleAndUpdate(destCaretRange)
+  }
+
+  /**
    * 移动节点
    * @param node 要移动的节点
    * @param moveTo 移动到的位置

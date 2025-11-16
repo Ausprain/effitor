@@ -44,16 +44,31 @@ export const prevSiblingCount = (node: Node) => {
   }
   return i
 }
-/** 克隆一个et元素节点 并去除状态class */
-export const cloneEtElement = <T extends Et.EtElement>(el: T, deep = false): T => {
-  return removeStatusClassForEl(el.cloneNode(deep) as T)
+/**
+ * 克隆一个et元素节点 并去除 id属性 和 状态class类名 (包括后代效应元素)
+ * @param el 要克隆的元素节点
+ * @param deep 是否深克隆
+ * @returns 克隆后的元素节点
+ */
+export const cloneEtElement = <T extends Et.EtElement>(el: T, deep: boolean): T => {
+  const clone = el.cloneNode(deep) as T
+  clone.removeAttribute('id')
+  const walker = document.createTreeWalker(clone, 1, (el) => {
+    if (isEtElement(el)) {
+      el.removeAttribute('id')
+      removeStatusClassForEl(el)
+    }
+    return 3
+  })
+  while (walker.nextNode()) { /** */ }
+  return removeStatusClassForEl(clone)
 }
 /**
- * 克隆一个et段落元素, 去除(id, 状态class)
+ * 浅克隆一个et段落元素, 去除(id, 状态class)
  * * 该方法不仅会克隆指定元素html属性, 还会克隆其js对象的 可枚举属性
  * @param removeCls 额外需要去除的class名
  */
-export const cloneEtParagraph = <T extends Et.EtParagraphElement>(origin: T, removeCls = []): T => {
+export const cloneEtParagraph = <T extends Et.EtParagraph>(origin: T, removeCls = []): T => {
   // 浅克隆 元素名 + 属性
   const clone = origin.cloneNode(false) as T
   // 去掉特有属性
@@ -69,10 +84,10 @@ export const cloneEtParagraph = <T extends Et.EtParagraphElement>(origin: T, rem
  * CssClassEnum.Selected
  * ```
  */
-export const removeStatusClassForEl = <E extends HTMLElement>(el: E, cls = []): E => (
-  el.classList.remove(...[...cls, CssClassEnum.Active, CssClassEnum.CaretIn, CssClassEnum.Selected]),
-  el
-)
+export const removeStatusClassForEl = <E extends HTMLElement>(el: E, cls = []): E => {
+  el.classList.remove(...[...cls, CssClassEnum.Active, CssClassEnum.CaretIn, CssClassEnum.Selected])
+  return el
+}
 /**
  * 向上（包括自身）找第一个`EffectElement`
  * @param stopTag 小写元素标签名

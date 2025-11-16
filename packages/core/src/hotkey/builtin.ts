@@ -86,6 +86,16 @@ export const ModKeyDownBuiltinMap: ModKeyDownEffectMap = {
       }),
 }
 
+type ParagraphMoveCopyEffect = 'ParagraphMoveUp' | 'ParagraphMoveDown' | 'ParagraphCopyUp' | 'ParagraphCopyDown'
+const tryMoveOrCopyCurrentParagraph = (ctx: Et.EditorContext, effect: ParagraphMoveCopyEffect) => {
+  const p = ctx.selection.isSelectionInSameParagraph()
+  if (!p) {
+    return false
+  }
+  return ctx.effectInvoker.invoke(p, effect, ctx,
+    ctx.selection.getTargetRange() as Et.ValidTargetRangeWithParagraph,
+  )
+}
 /**
  * 默认的编辑行为按键映射, 在 MainKeydownSolver 之后执行
  */
@@ -96,22 +106,11 @@ export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
   /* -------------------------------------------------------------------------- */
 
   // 移动相关
-  [create(Key.ArrowUp, Mod.AltOpt)]: (ctx) => {
-    const p = ctx.selection.isSelectionInSameParagraph()
-    if (!p) {
-      return false
-    }
-    return ctx.getEtHandler(p).ParagraphMoveUp?.(
-      ctx, ctx.selection.getTargetRange() as Et.ValidTargetRangeWithParagraph)
-  },
-  [create(Key.ArrowDown, Mod.AltOpt)]: (ctx) => {
-    const p = ctx.selection.isSelectionInSameParagraph()
-    if (!p) {
-      return false
-    }
-    return ctx.getEtHandler(p).ParagraphMoveDown?.(
-      ctx, ctx.selection.getTargetRange() as Et.ValidTargetRangeWithParagraph)
-  },
+  [create(Key.ArrowUp, Mod.AltOpt)]: ctx => tryMoveOrCopyCurrentParagraph(ctx, 'ParagraphMoveUp'),
+  [create(Key.ArrowDown, Mod.AltOpt)]: ctx => tryMoveOrCopyCurrentParagraph(ctx, 'ParagraphMoveDown'),
+  // 移动拷贝
+  [create(Key.ArrowUp, Mod.AltOpt | Mod.Shift)]: ctx => tryMoveOrCopyCurrentParagraph(ctx, 'ParagraphCopyUp'),
+  [create(Key.ArrowDown, Mod.AltOpt | Mod.Shift)]: ctx => tryMoveOrCopyCurrentParagraph(ctx, 'ParagraphCopyDown'),
   // 删除相关
   [create(Key.Backspace, Mod.None)]: 'deleteContentBackward',
   [create(Key.Backspace, Mod.Shift)]: 'deleteContentBackward',

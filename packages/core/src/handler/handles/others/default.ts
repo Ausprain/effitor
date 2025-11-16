@@ -1,4 +1,5 @@
 import { cr } from '../../../selection'
+import { dom } from '../../../utils'
 import { cmd } from '../../command'
 import { createEffectHandle } from '../../utils'
 
@@ -20,7 +21,6 @@ export const insertParagraphAtParagraphStart = createEffectHandle('InsertParagra
   }))
   return true
 })
-
 export const insertParagraphAtParagraphEnd = createEffectHandle('InsertParagraphAtParagraphEnd', (ctx, tc) => {
   const newP = tc.anchorParagraph.createForInsertParagraph(ctx, 1)
   if (newP === null) {
@@ -49,7 +49,6 @@ export const paragraphMoveUp = createEffectHandle('ParagraphMoveUp', (ctx, tr) =
     return ctx.commonHandler.moveNode(prevP, cr.caretOutEnd(prevP))
   })
 })
-
 export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, tr) => {
   const nextP = tr.anchorParagraph.nextSibling
   if (!nextP) {
@@ -59,4 +58,12 @@ export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, t
     ctx.commandManager.pushHandleCallback(() => ctx.selection.scrollIntoViewSync())
     return ctx.commonHandler.moveNode(nextP, cr.caretOutStart(nextP).moved(-1))
   })
+})
+export const paragraphCopyUp = createEffectHandle('ParagraphCopyUp', (ctx, tr) => {
+  const cloneP = dom.cloneEtElement(tr.anchorParagraph, true)
+  return ctx.commonHandler.insertNode(cloneP, cr.caretOutEnd(tr.anchorParagraph), null)
+})
+export const paragraphCopyDown = createEffectHandle('ParagraphCopyDown', (ctx, tr) => {
+  const cloneP = dom.cloneEtElement(tr.anchorParagraph, true)
+  return ctx.commonHandler.insertNode(cloneP, cr.caretOutStart(tr.anchorParagraph), null)
 })
