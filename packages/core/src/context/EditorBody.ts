@@ -28,13 +28,20 @@ interface EditorBodyEventListener<K extends keyof EditorBodyEventMap> {
  * 编辑器编辑区对象
  */
 export class EditorBody {
-  /** 获取编辑区所有文本 */
-  textContent = () => this.el.textContent ?? ''
-
   private _eventHandlersMap: { [k in keyof EditorBodyEventMap]?: EditorBodyEventListener<k>[] } = {}
 
   private _headingOb: IntersectionObserver
   private _updateHeadingChainIdle?: number
+
+  /** 获取编辑区所有文本 等于 et-body元素的 textContent值 */
+  get textContent() {
+    return this.el.textContent
+  }
+
+  /** 获取编辑区有意义的文本内容 等于 et-body元素的 contentText值 */
+  get contentText() {
+    return this.el.contentText
+  }
 
   constructor(
     /** 编辑区元素 */

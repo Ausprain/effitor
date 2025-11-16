@@ -29,6 +29,7 @@ import { useTablePlugin } from '@effitor/plugin-table'
 import md from '../../../README_zh.md?raw'
 import DOMPurify from 'dompurify'
 
+const countSpan = initTextCountSpan()
 const editor = new Effitor({
   // effectorInline: true,
   // shadow: false,
@@ -40,7 +41,11 @@ const editor = new Effitor({
     sanitizer: html => DOMPurify.sanitize(html),
   },
   assists: [
-    useCounterAssist(),
+    useCounterAssist({
+      onUpdated: (count) => {
+        countSpan.textContent = JSON.stringify(count)
+      },
+    }),
     useDialogAssist(),
     useDropdownAssist(),
     useMessageAssist(),
@@ -94,20 +99,42 @@ window.ctx = editor.context
 // @ts-ignore
 window.sel = editor.context.selection
 
-const iconsHost = document.createElement('div')
-iconsHost.style.cssText = `
+const iconGlances = () => {
+  const iconsHost = document.createElement('div')
+  iconsHost.style.cssText = `
 display: flex;
 flex-wrap: wrap;`
-Object.keys(icons).forEach((key) => {
-  if (key.endsWith('Icon')) {
-    const span = document.createElement('span')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    span.appendChild((icons[key as keyof typeof icons] as any)())
-    span.setAttribute(HtmlAttrEnum.HintTitle, key)
-    span.style.margin = '8px'
-    iconsHost.appendChild(span)
-  }
-})
-editor.root.appendChild(iconsHost)
+  Object.keys(icons).forEach((key) => {
+    if (key.endsWith('Icon')) {
+      const span = document.createElement('span')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      span.appendChild((icons[key as keyof typeof icons] as any)())
+      span.setAttribute(HtmlAttrEnum.HintTitle, key)
+      span.style.margin = '8px'
+      iconsHost.appendChild(span)
+    }
+  })
+  editor.root.appendChild(iconsHost)
 
-editor.fromMarkdown(md, false)
+  editor.fromMarkdown(md, false)
+}
+iconGlances()
+
+function initTextCountSpan() {
+  const div = document.createElement('div')
+  Object.assign(div.style, {
+    position: 'fixed',
+    top: '8px',
+    right: '8px',
+    padding: '16px',
+    whiteSpace: 'pre',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    backgroundColor: 'wheat',
+  } as CSSStyleDeclaration)
+
+  const span = document.createElement('span')
+  div.appendChild(span)
+  document.body.appendChild(div)
+  return span
+}

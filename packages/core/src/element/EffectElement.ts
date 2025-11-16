@@ -120,6 +120,52 @@ export abstract class EffectElement
     return this[NOT_IN_ETCODE]
   }
 
+  /**
+   * 此效应元素内有意义的文本内容; 如代码块效应元素该值应返回空串
+   * @default 效应元素后代的 contentText 和非效应元素后代的 textContent 拼接后的字符串, 且去除零宽字符
+   */
+  get contentText(): string {
+    // TODO 应该用数组 join('') 还是使用字符串拼接?
+    // jsperf 多种案例测试, 都是 += 更优(+50%), 真实情况是否如此?
+    let text = ''
+    const walker = document.createTreeWalker(this, 5 /** NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT */,
+      (node) => {
+        if (node.nodeType === 3) {
+          text += (node as Text).data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        if (node[ETCODE]) {
+          text += (node as EffectElement).contentText
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
+        return 3 /** NodeFilter.FILTER_SKIP */
+      },
+    )
+    while (walker.nextNode()) { /** 遍历所有节点 */ }
+    return text
+  }
+
+  /**
+   * contentText 异步版本
+   */
+  async contentTextAsync(): Promise<string> {
+    let text = ''
+    const walker = document.createTreeWalker(this, 5 /** NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT */)
+    let node = walker.nextNode()
+    while (node) {
+      if (node.nodeType === 3 /** Node.TEXT_NODE */) {
+        text += (node as Text).data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+      }
+      else if (node[ETCODE]) {
+        text += await (node as EffectElement).contentTextAsync()
+        node = walker.nextSibling()
+        continue
+      }
+      node = walker.nextNode()
+    }
+    return text
+  }
+
   constructor() {
     super()
 

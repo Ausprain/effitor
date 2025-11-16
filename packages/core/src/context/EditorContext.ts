@@ -142,15 +142,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   /** 热字符串管理器 */
   readonly hotstringManager: Et.hotstring.Manager
 
-  /**
-   * 获取编辑区所有文本, 可被插件(如 text-counter)重写
-   */
-  textContent = () => this.body.textContent()
-  /**
-   * 获取当前选区的文本, 可被插件(如 text-counter)重写
-   */
-  selectedTextContent = () => this.selection.selectedTextContent
-
   // 回调
   // TODO 加入 effector 中, 类似 onMounted 等
   private readonly __onEffectElementChanged?: OnEffectElementChanged

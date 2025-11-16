@@ -33,6 +33,15 @@ export class EtCodeElement extends EtComponent {
   static readonly etType = super.etType | CODE_ET_TYPE
   static readonly inEtType = EtTypeEnum.PlainText
 
+  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  get contentText() {
+    return ''
+  }
+
+  async contentTextAsync(): Promise<string> {
+    return ''
+  }
+
   declare codeCtx: CodeContext
 
   static create(): EtCodeElement {
