@@ -92,7 +92,7 @@ et-bq[data-type="pg"],et-bq[data-type="pg2"],et-bq[data-type="pg3"] {
   --et-bq-color-semantic: var(--et-color-theme);
 
   &:hover,
-  &.active {
+  &.Et--active {
     border-color: var(--et-bq-color-semantic);
   }
 

@@ -53,8 +53,8 @@ et-mark.marking::after {
   color: #ddddee
 }
 
-.selection-range et-mark::before,
-.selection-range et-mark::after {
+.Et--selection-range et-mark::before,
+.Et--selection-range et-mark::after {
   display: none;
 }
 

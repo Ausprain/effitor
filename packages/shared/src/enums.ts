@@ -57,35 +57,38 @@ export const enum HtmlAttrEnum {
 export const enum CssClassEnum {
   Et = 'et',
   Effitor = 'effitor',
-  /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */
-  Active = 'active',
-  /** 当前元素被选择 */
-  Selected = 'selected',
-  /** display: none; */
-  Hidden = 'hidden',
-
-  /** 当前被拖拽目标 */
-  Dragging = 'dragging',
-  /** 当前拖拽悬浮 */
-  Dragover = 'dragover',
-
-  /** 用于et-body 选区为Range是添加此 css 类 */
-  SelectionRange = 'selection-range',
-  /** 用于et-body 全选文档添加此 css 类 */
-  SelectionAll = 'selection-all',
   /** 段落类节点 */
   ParagraphLike = 'etp',
   /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
   CaretIn = 'caret-in',
 
+  /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */
+  Active = 'Et--active',
+  /** 当前元素被选择 */
+  Selected = 'Et--selected',
+  /** display: none; */
+  Hidden = 'Et--hidden',
+
+  /** 当前被拖拽目标 */
+  Dragging = 'Et--dragging',
+  /** 当前拖拽悬浮 */
+  Dragover = 'Et--dragover',
+
+  /** 用于et-body 选区为Range是添加此 css 类 */
+  SelectionRange = 'Et--selection-range',
+  /** 用于et-body 全选文档添加此 css 类 */
+  SelectionAll = 'Et--selection-all',
+  /** 用于节点, 表明当前选区正好覆盖该节点 */
+  SelectionNode = 'Et--selection-node',
+
   /** 卡片样式 */
-  Card = 'et-card',
+  Card = 'Et__card',
   /** 灰度背景按钮, 具有hover/active/selected状态灰度背景色交互 */
-  BgItem = 'bg-item',
+  BgItem = 'Et__bg-item',
   /** 主题背景按钮, 具有hover/active/selected状态主题背景色交互 */
-  ThemeItem = 'theme-item',
+  ThemeItem = 'Et__theme-item',
   /** 添加此类的元素在亮暗模式切换时，其背景色/文本颜色/边框颜色将拥有过渡效果 */
-  TransitionColorScheme = 'et-trans-cs',
+  TransitionColorScheme = 'Et__trans-cs',
 }
 
 /**

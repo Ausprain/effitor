@@ -83,7 +83,7 @@ et-tr {
     border-bottom-right-radius: var(--et-table-border-radius);
   }
 
-  .selection-all & {
+  .Et--selection-all & {
     background-color: transparent;
     transition: none;
   }

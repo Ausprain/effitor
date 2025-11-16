@@ -42,7 +42,7 @@
     - 何不直接用 keymap 的思想，keydown 中先计算 modkey，判断是否有对应的 keymap action，有则直接执行，返回 true 终止后续；这样插件直接实现 keymap 就好了，不用在额外做 ev.shift/altKey 等判断, 减少样板代码，开发效率更高，代码更简洁。
   - why not
     - keydownSolver 本身具有 keymap 功能, 如果独立一个 keymapSolver 出来, 还需要处理回退问题; 不如留给插件自己在效应元素专有 solver 上手动调用 ctx.hotkeyManager.listenEffect 来执行指定 keymap
-- [ ] 更新 CssClassEnum 的样式名, 统一格式
+- [x] 更新 CssClassEnum 的样式名, 统一格式
 - [ ] 选区增加选择节点case，即当选区 range，且 startOffset+1=endOffset时，视为选择节点
 - [x] blockquote新增 pgroup 类型
 - [ ] 热字符串判定允许 Backspace 回退游标

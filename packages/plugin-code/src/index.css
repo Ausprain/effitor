@@ -56,7 +56,7 @@ et-code {
   }
 }
 
-.selection-all .et-code__wrapper.shiki {
+.Et--selection-all .et-code__wrapper.shiki {
   background-color: unset !important;
 }
 .et-code__wrapper {

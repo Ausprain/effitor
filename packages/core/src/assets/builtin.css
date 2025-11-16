@@ -14,7 +14,7 @@ et-body {
   /* 容器查询, 仅关心宽度 */
   container-type: inline-size;
 }
-et-body.selection-all {
+et-body.Et--selection-all {
   background-color: var(--et-color-selection-all--blur);
   &:focus {
     background-color: var(--et-color-selection-all);
@@ -39,7 +39,7 @@ et-p.etp {
   line-height: 1.5;
 }
 
-.hidden {
+.Et--hidden {
   display: none !important;
 }
 
@@ -65,7 +65,7 @@ et-p.etp {
     box-shadow: var(--et-shadow-s);
   }
 
-  &.selected::before,
+  &.Et--selected::before,
   &:hover::before {
     display: block;
     animation: fade-in 0.3s ease-out;
@@ -87,35 +87,35 @@ et-p.etp {
 }
 
 /* 背景按钮 */
-.bg-item {
+.Et__bg-item {
   background-color: var(--et-color-bg__item);
   &:hover {
     background-color: var(--et-color-bg--hover);
   }
   &:active,
-  &.selected {
+  &.Et--selected {
     background-color: var(--et-color-bg--active);
   }
 }
 
 /* 主题按钮 */
-/* .theme-item {
+/* .Et__theme-item {
   &:hover {
     background-color: var(--et-theme-color--hover);
   }
   &:active,
-  &.selected {
+  &.Et--selected {
     background-color: var(--et-theme-color--active);
   }
 } */
 
-.et-card {
+.Et__card {
   background-color: var(--et-color-bg__card);
   box-shadow: var(--et-shadow-l);
   transition: var(--et-transition-color-scheme);
 }
 
-.et-trans-cs {
+.Et__trans-cs {
   transition: var(--et-transition-color-scheme);
 }
 
