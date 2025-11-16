@@ -49,6 +49,25 @@ export class EtHeadingElement extends EtHeading {
     return heading
   }
 
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    let level = this.headingLevel
+    if (level < 1 || level > 6) {
+      level = 1
+    }
+    const tag = `h${Math.floor(level)}`
+    return document.createElement(tag)
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    // 返回函数, 标题不处理后代
+    h1: el => () => EtHeadingElement.create(1, el.textContent),
+    h2: el => () => EtHeadingElement.create(2, el.textContent),
+    h3: el => () => EtHeadingElement.create(3, el.textContent),
+    h4: el => () => EtHeadingElement.create(4, el.textContent),
+    h5: el => () => EtHeadingElement.create(5, el.textContent),
+    h6: el => () => EtHeadingElement.create(6, el.textContent),
+  }
+
   toMdast(mdastNode: Et.CreateMdastNode): Nodes | Nodes[] | null {
     return mdastNode('heading', this.childNodes, {
       depth: this.headingLevel,

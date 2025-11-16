@@ -37,7 +37,7 @@ export const defaultOptions: Required<ShikiHighlighterOptions> = {
     dark: 'github-dark',
   },
   langs: [
-    'bat', 'powershell', 'ps1', 'shell', 'sh', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
+    'bat', 'powershell', 'ps1', 'shell', 'sh', 'zsh', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
     'json', 'javascript', 'js', 'jsx', 'typescript', 'ts', 'tsx', 'html', 'css', 'less', 'scss', 'sass',
     'latex', 'lua', 'matlab', 'markdown', 'md',
     'nginx', 'php', 'perl', 'python', 'py', 'r', 'ruby', 'rust', 'rs', 'sql', 'swift', 'yaml', 'toml',

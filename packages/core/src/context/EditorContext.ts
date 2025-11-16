@@ -5,7 +5,7 @@ import type { Options as TmOptions } from 'mdast-util-to-markdown'
 import type { Et } from '../@types'
 import { platform } from '../config'
 import type { OnEffectElementChanged, OnParagraphChanged } from '../editor'
-import { etcode, type EtParagraphElement } from '../element'
+import { etcode, EtParagraph, type EtParagraphElement } from '../element'
 import { CommandManager } from '../handler/command/CommandManager'
 import { CommonHandler } from '../handler/CommonHandler'
 import { effectInvoker } from '../handler/invoker'
@@ -530,7 +530,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    *    etcode的方法用于判断节点是否为paragraph效应类型元素
    * * 而该方法用于判断一个节点是否为当前编辑器配置的paragraph段落元素本身
    */
-  isPlainParagraph(node: Node | null): node is EtParagraphElement {
+  isPlainParagraph(node: EtParagraph | EtParagraphElement | Node | null): node is EtParagraphElement {
     return !!node && (node as HTMLElement).localName === this.schema.paragraph.elName
   }
 

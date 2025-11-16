@@ -4,6 +4,7 @@ import type { Et } from '../@types'
 import { cr } from '../selection'
 import { dom } from '../utils'
 import { ETCODE, EtCode, IN_ETCODE, NOT_IN_ETCODE } from './config'
+import { etcode } from './etcode'
 
 interface HTMLElementCallbacks {
   connectedCallback?(this: EffectElement): void
@@ -216,18 +217,8 @@ export abstract class EffectElement
    * @param codeOrNode 要校验的子节点效应码, 若为 0, 则视为不允许
    */
   checkIn(codeOrNode: number | Node) {
-    const code = typeof codeOrNode === 'number' ? codeOrNode : codeOrNode.etCode
     // 默认允许一切非效应元素, 子类可重写该方法, 即过滤一些不接受的 html 节点
-    if (code === void 0) {
-      return true
-    }
-    if (this.notInEtCode & code) {
-      return false
-    }
-    if (this.inEtCode & code) {
-      return true
-    }
-    return false
+    return etcode.checkIn(this.inEtCode, codeOrNode, this.notInEtCode)
   }
 
   /* -------------------------------------------------------------------------- */
@@ -336,7 +327,8 @@ export abstract class EffectElement
    * 然后以 `text/html` 写入剪切板, 以兼容带样式的跨应用粘贴;
    * 子类重写时, 最好根据效应元素的定义, 使用"硬编码"的方式构建对应的 html 元素的样式,
    * 而避免直接使用 window.getComputedStyle 以在复制大量内容时获取更好的性能.\
-   * // TODO 测试, 复制大量内容时, getComputedStyle是否会, 以及会如何影响性能
+   * * ⚠️注意: 该方法在两个地方被调用, 调用时的 this 可能是页面上的效应元素, 也可能会克隆的片段中的效应元素;
+   *          因此不要改变 this, 也不要返回 this 或其后代节点
    * @returns
    * - `null`, 该效应元素及其后代不会被复制到 `text/html` 中
    * - `HTMLElement`, 声明该效应元素以何种形式复制到 `text/html` 中; 即该函数
@@ -344,7 +336,8 @@ export abstract class EffectElement
    * - `() => HTMLElement`, 声明以该效应元素为根的子树, 将以何种形式被
    *   复制到 `text/html` 中; 即包括后代处理
    */
-  toNativeElement(this: EffectElement, _ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    // TODO 测试, 复制大量内容时, getComputedStyle是否会, 以及会如何影响性能
     // TODO 获取样式并记录到 style 属性中
     const cssValues = window.getComputedStyle(this)
     let el

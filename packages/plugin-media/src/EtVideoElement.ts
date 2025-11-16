@@ -1,4 +1,4 @@
-import type { CreateMdastNode, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
+import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
 import { EtEmbedment } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
@@ -82,6 +82,20 @@ export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
     }
 
     return el
+  }
+
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const video = this.firstElementChild
+    if (!video || video.nodeName !== 'VIDEO') {
+      return null
+    }
+    return video.cloneNode() as HTMLElement
+  }
+
+  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+    video: (el) => {
+      return EtVideoElement.create(el.src)
+    },
   }
 
   toMdast(mdastNode: CreateMdastNode): ToMdastResult {

@@ -1,4 +1,4 @@
-import type { CreateMdastNode, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
+import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
 import { EtRichText } from '@effitor/core'
 import { EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
 
@@ -66,6 +66,17 @@ export class EtLinkElement extends EtRichText {
       url = 'https://' + url
     }
     window.open(url, target, windowFeatures)
+  }
+
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const link = document.createElement('a')
+    link.href = this.linkUrl
+    link.title = this.linkTitle
+    return link
+  }
+
+  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+    a: el => EtLinkElement.create(el.href, el.title),
   }
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {

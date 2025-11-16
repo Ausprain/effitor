@@ -22,7 +22,7 @@ import cssText from './index.css?raw'
 
 export interface CodePluginOptions extends CodeBlockRenderOptions {
   /**
-   * Shiki 配置项, 未提供highlighter时有效
+   * Shiki 配置项; 由于 shiki 高亮必须指定已加载的语言或'', 因为未配置的语言默认以 '' 处理
    */
   shikiOptions?: ShikiHighlighterOptions
   /**

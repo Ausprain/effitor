@@ -15,11 +15,11 @@ export class EtMarkElement extends EtRichText {
   static readonly cssText: string = markCssText
 
   get markType() {
-    return this.dataset.markType as `${MarkType}` | ''
+    return this.dataset.type as `${MarkType}` | ''
   }
 
   set markType(value: `${MarkType}` | '') {
-    this.dataset.markType = value
+    this.dataset.type = value
   }
 
   static create(markType?: `${MarkType}`): EtMarkElement {
@@ -70,6 +70,37 @@ export class EtMarkElement extends EtRichText {
     this.removeCssClass(MarkStatus.HINTING)
     el.removeCssClass(MarkStatus.HINTING)
     return super.mergeWith(el, mergeHtmlNode)
+  }
+
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const tag = {
+      [MarkType.BOLD]: 'strong',
+      [MarkType.ITALIC]: 'em',
+      [MarkType.DELETE]: 'del',
+      [MarkType.HIGHLIGHT]: 'span',
+      [MarkType.CODE]: 'code',
+    } as Record<string, string>
+    const type = this.markType
+    const el = document.createElement(tag[type] ?? 'span')
+    if (type === MarkType.HIGHLIGHT || type === MarkType.CODE) {
+      el.style.backgroundColor = this.style.backgroundColor
+      el.style.color = this.style.color
+    }
+    return el
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    b: () => EtMarkElement.create(MarkType.BOLD),
+    strong: () => EtMarkElement.create(MarkType.BOLD),
+    i: () => EtMarkElement.create(MarkType.ITALIC),
+    em: () => EtMarkElement.create(MarkType.ITALIC),
+    del: () => EtMarkElement.create(MarkType.DELETE),
+    code: (el) => {
+      if (el.parentNode?.nodeName === 'PRE') {
+        return null
+      }
+      return () => EtMarkElement.create(MarkType.CODE)
+    },
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {

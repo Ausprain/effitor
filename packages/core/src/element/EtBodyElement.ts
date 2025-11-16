@@ -40,7 +40,7 @@ export class EtBodyElement extends EffectElement {
     ctx.commonHandler.initEditorContents(false)
   }
 
-  toNativeElement() {
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
     return document.createElement('div')
   }
 

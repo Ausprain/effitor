@@ -1,4 +1,4 @@
-import type { CreateMdastNode, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
+import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
 import { EtEmbedment } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
@@ -76,6 +76,22 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
     return el
   }
 
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const img = this.firstElementChild
+    if (!img || img.nodeName !== 'IMG') {
+      return null
+    }
+    return img.cloneNode() as HTMLElement
+  }
+
+  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+    img: (el) => {
+      return EtImageElement.create(el.src, {
+        alt: el.alt,
+      })
+    },
+  }
+
   toMdast(mdastNode: CreateMdastNode): ToMdastResult {
     const img = this.firstElementChild as unknown as HTMLImageElement
     return mdastNode({
@@ -96,6 +112,13 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
         alt: node.alt ?? '',
         title: node.title ?? '',
       })
+    },
+  }
+
+  // TODO url处理, 需要判断媒体类型
+  static toMarkdownTransformerMap: MdastNodeTransformerMap = {
+    image: (node, ctx) => {
+      node.url = ctx.pctx.$media_ctx.image.urlMapping?.toMarkdown?.(node.url) ?? node.url
     },
   }
 }

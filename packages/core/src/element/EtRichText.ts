@@ -15,7 +15,7 @@ export abstract class EtRichText extends EffectElement {
     | EtTypeEnum.Paragraph
     | EtTypeEnum.Embedment
 
-  toNativeElement(this: EffectElement, _ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
     const cssValues = getComputedStyle(this)
     const isBlock = cssValues.display === 'block'
     const cssStyle = {

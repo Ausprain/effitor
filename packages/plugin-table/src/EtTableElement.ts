@@ -64,6 +64,14 @@ export class EtTableElement extends EtComponent {
     return el
   }
 
+  toNativeElement(_ctx: EditorContext): HTMLDivElement {
+    const tb = document.createElement('table')
+    tb.align = this.tableAlign
+    // 不浮动
+    tb.style.float = 'none'
+    return tb
+  }
+
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     table: (el) => {
       const tb = this.create()
@@ -77,23 +85,17 @@ export class EtTableElement extends EtComponent {
     },
   }
 
-  toNativeElement(): HTMLDivElement {
-    const tb = document.createElement('table')
-    tb.align = this.tableAlign
-    return tb
+  toMdast(mdastNode: CreateMdastNode): ToMdastResult {
+    return mdastNode('table', this.childNodes, {
+      // TODO 暂不实现对齐，默认左对齐
+      // align: [],
+    })
   }
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     table: () => {
       return this.create()
     },
-  }
-
-  toMdast(mdastNode: CreateMdastNode): ToMdastResult {
-    return mdastNode('table', this.childNodes, {
-      // TODO 暂不实现对齐，默认左对齐
-      // align: [],
-    })
   }
 
   innerStartEditingBoundary(): EtCaret {

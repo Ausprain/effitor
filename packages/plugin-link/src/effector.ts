@@ -63,11 +63,11 @@ export const linkEffector: Et.EffectorSupportInline = {
 const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) => {
   const popupItems = [
     popup.createPopupItem<EtLinkElement>(gotoIcon(), '打开链接', (_ctx, _self, target) => {
-      console.log('跳转到链接', target.linkUrl)
+      _ctx.assists.logger?.logInfo('跳转到链接', target.linkUrl)
       target.openUrl()
     }),
     popup.createPopupItem<EtLinkElement>(copyIcon(), '复制链接', (_ctx, _self, target) => {
-      console.log('复制链接', target.linkUrl)
+      _ctx.assists.logger?.logInfo('复制链接', target.linkUrl)
       navigator.clipboard.writeText(target.linkUrl)
     }),
   ]

@@ -88,6 +88,23 @@ suite.each([
   [
     `<et-p>He12<b>bold<i>I123</i></b>|B12<b>ZZ</b></et-p>`,
     `
+      <et-bq>
+        <et-p>BB</et-p>
+      </et-bq>
+      <et-p>AA</et-p>
+    `,
+    `
+      <et-p>He12<b>bold<i>I123</i></b></et-p>
+      <et-bq>
+        <et-p>BB</et-p>
+      </et-bq>
+      <et-p>AA|B12<b>ZZ</b></et-p>
+    `,
+    'AAB12',
+  ],
+  [
+    `<et-p>He12<b>bold<i>I123</i></b>|B12<b>ZZ</b></et-p>`,
+    `
       <et-bq><et-p>AA</et-p></et-bq>
       <et-bq><et-p>BB</et-p></et-bq>
     `,

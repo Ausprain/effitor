@@ -16,9 +16,10 @@ export class CodeContext<L extends string = string> {
   //    div.wrapper <scroll>
   //      div.container
   //        pre
-  //          span.line
-  //          span.line
-  //          ...
+  //          code
+  //            span.line
+  //            span.line
+  //            ...
   //        textarea
   public readonly wrapper: HTMLDivElement
   private readonly _container: HTMLDivElement
@@ -39,8 +40,8 @@ export class CodeContext<L extends string = string> {
     this.area.spellcheck = false
     this.area.setAttribute('autocorrect', 'off')
     this.pre = document.createElement('pre')
-    this._lineWrapper = this.pre
-    // this._lineWrapper = document.createElement('code')
+    // this._lineWrapper = this.pre
+    this._lineWrapper = document.createElement('code')
     this.wrapper = document.createElement('div')
     this.wrapper.classList.add(CodeEnum.Class_Wrapper)
     this._container = document.createElement('div')
@@ -48,7 +49,7 @@ export class CodeContext<L extends string = string> {
     this._container.appendChild(this.pre)
     this._container.appendChild(this.area)
     this.wrapper.appendChild(this._container)
-    // this.pre.appendChild(this._lineWrapper)
+    this.pre.appendChild(this._lineWrapper)
     highlighter.onInit?.(this.wrapper, lang)
     // 代码块初始内容为空, 设置初始值为一个换行符, 否则代码块坍缩
     if (!value) {
@@ -422,15 +423,19 @@ export class CodeContext<L extends string = string> {
     }
   }
 
-  codeHTML() {
-    const pre = document.createElement('pre')
-    let html = '<code>'
+  clonePre() {
+    const pre = this.pre.cloneNode(true) as HTMLPreElement
     pre.className = this.wrapper.className
-    pre.style = this.wrapper.style.cssText
-    html += this._lineWrapper.innerHTML
-    html += '</code>'
-    pre.innerHTML = html
-    return pre.outerHTML
+    pre.classList.remove(CodeEnum.Class_Wrapper)
+    pre.style.cssText = this.wrapper.style.cssText
+    pre.style.display = 'block'
+    pre.style.width = '100%'
+    pre.style.overflow = 'auto'
+    return pre
+  }
+
+  codeHTML() {
+    return this.clonePre().outerHTML
   }
 
   async copy(ctx: Et.EditorContext) {

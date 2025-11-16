@@ -58,5 +58,13 @@ export const initCodePluginContext = (
     defaultTabSize,
     codeRenderer: _codeRenderer,
     renderCodeBlock,
+    parseLangFromNativeElement: (el) => {
+      for (const cls of el.classList) {
+        if (cls.startsWith('lang-') || cls.startsWith('language-')) {
+          return cls.split('-')[1]
+        }
+      }
+      return null
+    },
   })
 }

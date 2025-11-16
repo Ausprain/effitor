@@ -31,6 +31,10 @@
 
 ## Todo
 
+- [ ] 优化命令(CommandManager)与 handler (CommonHandler)之间的界限: 命令直接处理DOM 操作; 而 handler 在命令上层, 还要负责处理效应规则
+- [ ] code 渲染 html 应使用 iframe
+- [ ] 调和 htmlProcessor.parseRangingContentsToHtml 和 fragmentUtils.parseEtFragmentToNativeHTML
+  - 前者会对文档节点直接解析; 后者先克隆片段, 然后再解析; 因此 EffectElement.toNativeElement 被前者调用时, getComputedStyle 奏效, 而后者无效, 因为节点不在页面上, 无计算样式
 - [ ] 目录助手
 - [x] CommandManager 新增一个判断 keydown 是否需要 commit 的方法, 用于给插件的 beforekeydown 的效应元素特有处理函数使用
 - [x] 引用块/表格末尾连续两次 enter 插入空段落
@@ -363,7 +367,7 @@ Todos
   - [x] 布局: 左右浮动, 居中; 调整大小
   - [x] 全屏预览
 - [x] markdown互转
-- [ ] 原生 html 互转
+- [x] 原生 html 互转
 - [x] popup 调整布局, 删除
 - [x] dropdown 插入媒体
 
@@ -387,6 +391,7 @@ Todos
   - [x] 逐级全选
 - [x] 可渲染 html、latex
 - [x] markdown互转
+- [x] html 互转
 - [x] Dropdown item
 - [ ] Popup item (hover 工具栏)
   - [ ] 设置语言, tabSize 等
@@ -401,7 +406,7 @@ Todos
   - [x] 识别 `> ` | `> [!NOTE]` 并自动转换为引用块
 - [x] 使用热字符串快速插入 gfm 引用块 (note, tip, important, warning, caution)
 - [x] markdown互转
-- [ ] 原生 html 互转
+- [x] 原生 html 互转
 - [x] 新增 pgroup 类型
   - 起因：想要分栏，如果给 et-body 添加 column-count，则整个文档都分栏了；而如果给段落添加，则每个段落都要独立加；
   - 使用段落组（et-bq）是最佳方案，但缺乏相关 et-bq 类型；新增一个段落组类型（pgroup），给该类型的 et-bq 添加如下样式：column-count: x; column-gap: 1.6em; x 的取值为（1,2,3）；添加热字符串：pg.1, pg.2, pg.3 来快速插入分栏分别为 1 列、2 列、3 列的段落组。

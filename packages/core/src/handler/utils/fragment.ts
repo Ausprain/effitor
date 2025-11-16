@@ -247,6 +247,7 @@ const filterToClean = (node: Et.Node, nodesToRemove: ChildNode[]) => {
 
 /**
  * 检查片段是否包含段落, 若包含, 则标准化片段; 若不包含, 则不做处理
+ * * 标准化的片段的直接子节点, 要么都是段落, 要么都不是段落
  * @returns hasParagraph: 是否包含段落, allPlainParagraph: 是否所有段落都是普通段落
  */
 export const checkEtFragmentHasParagraphAndNormalize = (

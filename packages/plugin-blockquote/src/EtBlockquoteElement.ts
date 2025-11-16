@@ -37,6 +37,30 @@ export class EtBlockquoteElement extends EtBlockquote {
     }
   }
 
+  onAfterCopy(_ctx: Et.EditorContext): this | null {
+    if (!this.hasChildNodes()) {
+      return null
+    }
+    return this
+  }
+
+  onBeforePaste(_ctx: Et.EditorContext): this | null {
+    if (!this.hasChildNodes()) {
+      return null
+    }
+    return this
+  }
+
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    return document.createElement('blockquote')
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    blockquote: () => {
+      return EtBlockquoteElement.create()
+    },
+  }
+
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
     if (!this.hasChildNodes()) {
       return null

@@ -100,6 +100,32 @@ export class EtListElement extends EtParagraph {
     return EtListItemElement.create()
   }
 
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const list = document.createElement(this.ordered ? 'ol' : 'ul')
+    return list
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    ol: (el) => {
+      if (el.firstChild?.nodeName !== 'LI') {
+        return null
+      }
+      return EtListElement.create(
+        { ordered: true, styleType: ListEnum.Default_Ordered_Style_Type },
+        false,
+      )
+    },
+    ul: (el) => {
+      if (el.firstChild?.nodeName !== 'LI') {
+        return null
+      }
+      return EtListElement.create(
+        { ordered: false, styleType: ListEnum.Default_Unordered_Style_Type },
+        false,
+      )
+    },
+  }
+
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     list: (node) => {
       const firstLi = node.children[0]
@@ -211,6 +237,16 @@ export class EtListItemElement extends EtParagraphElement {
       li.appendChild(document.createElement('br'))
     }
     return li
+  }
+
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    return document.createElement('li')
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    li: () => {
+      return EtListItemElement.create(false)
+    },
   }
 
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {

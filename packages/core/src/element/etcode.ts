@@ -85,7 +85,8 @@ export const etcode = {
     // 就没办法为 et-my-body 添加对应允许的子效应
     // 因此为了更好的扩展性, 这里使用交集的方式判断允许子效应, 并引入 notInEtType 来进行细粒度控制
     if (typeof elOrInEtCode === 'object') {
-      return elOrInEtCode.checkIn(codeOrNode)
+      notInEtCode = elOrInEtCode.notInEtCode
+      elOrInEtCode = elOrInEtCode.inEtCode
     }
     const code = typeof codeOrNode === 'number' ? codeOrNode : codeOrNode.etCode
     if (code === void 0) {

@@ -6,7 +6,7 @@ import './assets/main.css'
 
 import * as icons from '../../../packages/shared/src/icons'
 
-import { Effitor } from '@effitor/core'
+import { Effitor, etcode } from '@effitor/core'
 import { HtmlAttrEnum } from '@effitor/shared'
 
 import { useMarkPlugin } from '@effitor/plugin-mark'
@@ -98,6 +98,9 @@ window.ctx = editor.context
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 window.sel = editor.context.selection
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.etcode = etcode
 
 const iconGlances = () => {
   const iconsHost = document.createElement('div')

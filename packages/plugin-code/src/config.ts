@@ -72,6 +72,7 @@ export interface CodePluginContext {
   readonly defaultTabSize: number
   readonly codeRenderer: CodeRenderer
   readonly renderCodeBlock: (ctx: Et.EditorContext, el: EtCodeElement) => void
+  readonly parseLangFromNativeElement: (el: HTMLElement) => string | null
 }
 
 export const CODE_ET_TYPE = etcode.get(CodeEnum.ElName)

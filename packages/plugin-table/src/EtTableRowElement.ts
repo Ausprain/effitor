@@ -1,7 +1,6 @@
 import type {
   CreateMdastNode,
   EditorContext,
-  EffectElement,
   EtCaret,
   HtmlToEtElementTransformerMap,
   MdastNodeHandlerMap,
@@ -41,27 +40,6 @@ export class EtTableRowElement extends EtParagraph {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
-    tr: (_el) => {
-      return this.create()
-    },
-  }
-
-  toNativeElement(this: EffectElement, _ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const tr = document.createElement('tr')
-    return tr
-  }
-
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
-    tableRow: () => {
-      return this.create()
-    },
-  }
-
-  toMdast(mdastNode: CreateMdastNode): ToMdastResult {
-    return mdastNode('tableRow', this.childNodes, {})
-  }
-
   innerStartEditingBoundary(): EtCaret {
     const firstCell = this.firstChild
     if (!firstCell) {
@@ -97,5 +75,26 @@ export class EtTableRowElement extends EtParagraph {
       return null
     }
     return this
+  }
+
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const tr = document.createElement('tr')
+    return tr
+  }
+
+  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+    tr: (_el) => {
+      return this.create()
+    },
+  }
+
+  toMdast(mdastNode: CreateMdastNode): ToMdastResult {
+    return mdastNode('tableRow', this.childNodes, {})
+  }
+
+  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+    tableRow: () => {
+      return this.create()
+    },
   }
 }

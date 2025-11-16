@@ -1,3 +1,5 @@
+import { HtmlCharEnum } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { EffectElement } from '../element'
 import { dom } from '../utils'
@@ -71,25 +73,24 @@ export class HtmlProcessor {
     }
     if (el instanceof HTMLElement) {
       const ts = this.transformersMap[el.localName]
-      if (!ts) {
-        // 无插件处理, 跳过, 继续处理后代
-        return this.#transformChildNodes(ctx, el.childNodes, parent)
+      if (ts) {
+        for (const t of ts) {
+          const res = t(el, ctx, parent)
+          if (!res) {
+            continue
+          }
+          if (typeof res === 'function') {
+            return res()
+          }
+          if (dom.isFragment(res)) {
+            return this.#transformChildNodes(ctx, el.childNodes, parent)
+          }
+          res.appendChild(this.#transformChildNodes(ctx, el.childNodes, res))
+          return res
+        }
       }
-      for (const t of ts) {
-        const res = t(el, ctx, parent)
-        if (!res) {
-          continue
-        }
-        if (typeof res === 'function') {
-          return res()
-        }
-        if (dom.isFragment(res)) {
-          return this.#transformChildNodes(ctx, el.childNodes, parent)
-        }
-        res.appendChild(this.#transformChildNodes(ctx, el.childNodes, res))
-        return res
-      }
-      return new Text(el.textContent ?? '')
+      // 无插件处理, 跳过, 继续处理后代
+      return this.#transformChildNodes(ctx, el.childNodes, parent)
     }
     return null
   }
@@ -130,8 +131,7 @@ export class HtmlProcessor {
    * 当前选区 collapsed, 则返回空串
    */
   toHtml(ctx: Et.EditorContext, targetRange: Et.StaticRange | null): string
-  toHtml(
-    ctx: Et.EditorContext, target?: Et.EtElement | Et.Fragment | Et.StaticRange | null): string {
+  toHtml(ctx: Et.EditorContext, target?: Et.EtElement | Et.Fragment | Et.StaticRange | null): string {
     let res
     if (target === void 0 || target instanceof EffectElement) {
       res = this.#parseEtElement(ctx, target ?? ctx.bodyEl)
@@ -148,7 +148,7 @@ export class HtmlProcessor {
     if (dom.isFragment(res)) {
       return dom.fragmentToHTML(res)
     }
-    return res.outerHTML
+    return res.outerHTML.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
   }
 
   #parseElement(ctx: Et.EditorContext, el: Element) {

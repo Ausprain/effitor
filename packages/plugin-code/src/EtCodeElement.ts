@@ -96,19 +96,6 @@ export class EtCodeElement extends EtComponent {
     }
   }
 
-  onAfterCopy(_ctx: Et.EditorContext): this | null {
-    this.setAttribute(CodeAttr.Code_Value, this.querySelector('textarea')?.value || '')
-    this.textContent = ''
-    return this
-  }
-
-  onBeforePaste(ctx: Et.EditorContext): this | null {
-    const newEl = EtCodeElement.withDefaultDecoration(ctx, this.getAttribute(CodeAttr.Code_Value) || '', this.lang)
-    newEl.meta = this.meta
-    newEl.wrapping = this.wrapping
-    return newEl as this
-  }
-
   /**
    * 装饰代码块并初始化代码块上下文
    * * 新元素使用 el.prepend 方法添加; 代码块结构如下
@@ -166,6 +153,67 @@ export class EtCodeElement extends EtComponent {
     return null
   }
 
+  onAfterCopy(_ctx: Et.EditorContext): this | null {
+    this.setAttribute(CodeAttr.Code_Value, this.querySelector('textarea')?.value || '')
+    this.textContent = ''
+    return this
+  }
+
+  onBeforePaste(ctx: Et.EditorContext): this | null {
+    const newEl = EtCodeElement.withDefaultDecoration(ctx, this.getAttribute(CodeAttr.Code_Value) || '', this.lang)
+    newEl.meta = this.meta
+    newEl.wrapping = this.wrapping
+    return newEl as this
+  }
+
+  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
+    if (this.codeCtx) {
+      return () => this.codeCtx.clonePre()
+    }
+    return null
+  }
+
+  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+    div: (el, ctx) => {
+      let lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(el)
+      if (!lang) {
+        return null
+      }
+      const pre = el.querySelector('pre')
+      if (!pre) {
+        return null
+      }
+      const value = pre.textContent
+      if (!value) {
+        return null
+      }
+      if (lang === 'template') {
+        lang = 'html'
+      }
+      return () => EtCodeElement.withDefaultDecoration(
+        ctx,
+        value,
+        ctx.pctx.$code_ctx.highlighter.langs.includes(lang) ? lang : '',
+      )
+    },
+    pre: (el, ctx) => {
+      const code = el.querySelector('code')
+      if (!code) {
+        return null
+      }
+      const value = code.textContent
+      if (!value) {
+        return null
+      }
+      let lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(el)
+      if (!lang) {
+        lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(code)
+      }
+      lang = lang && ctx.pctx.$code_ctx.highlighter.langs.includes(lang) ? lang : ''
+      return () => EtCodeElement.withDefaultDecoration(ctx, value, lang)
+    },
+  }
+
   toMdast(mdastNode: CreateMdastNode): ToMdastResult {
     const meta = this.meta
     return mdastNode({
@@ -178,7 +226,7 @@ export class EtCodeElement extends EtComponent {
 
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     code: (node, ctx) => {
-      const el = EtCodeElement.withDefaultDecoration(ctx, node.value, node.lang ?? 'js')
+      const el = EtCodeElement.withDefaultDecoration(ctx, node.value, node.lang ?? '')
       return el
     },
     html: (node, ctx) => {

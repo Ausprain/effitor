@@ -1,4 +1,4 @@
-import type { CreateMdastNode, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
+import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
 import { EtEmbedment } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
@@ -66,6 +66,20 @@ export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
     }
 
     return el
+  }
+
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+    const audio = this.firstElementChild
+    if (!audio || audio.nodeName !== 'AUDIO') {
+      return null
+    }
+    return audio.cloneNode() as HTMLElement
+  }
+
+  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+    audio: (el) => {
+      return EtAudioElement.create(el.src)
+    },
   }
 
   toMdast(mdastNode: CreateMdastNode): ToMdastResult {

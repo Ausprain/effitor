@@ -1,7 +1,6 @@
 import type {
   CreateMdastNode,
   EditorContext,
-  EffectElement,
   HtmlToEtElementTransformerMap,
   MdastNodeHandlerMap,
   ToMdastResult,
@@ -31,7 +30,7 @@ export class EtTableCellElement extends EtRichText {
     },
   }
 
-  toNativeElement(this: EffectElement, _ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
+  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
     return document.createElement('td')
   }
 
