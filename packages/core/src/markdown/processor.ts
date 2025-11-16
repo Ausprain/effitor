@@ -78,7 +78,7 @@ export const getMdProcessor = ({
         }
       })
       if (import.meta.env.DEV) {
-        console.error('to md root: ', root)
+        console.warn('to md root: ', root)
       }
       const handlers = { ...toMdHandlerMap, ...options?.handlers }
       return mdParser.toMarkdown(root, { ...options, handlers })
@@ -87,7 +87,7 @@ export const getMdProcessor = ({
     fromMarkdown(ctx: Et.EditorContext, mdText: string, options?: FmOptions) {
       const root = mdParser.fromMarkdown(mdText, options)
       if (import.meta.env.DEV) {
-        console.error('fm md root: ', root)
+        console.warn('fm md root: ', root)
       }
       const df = handleMdastRoot(ctx, root, fromMdHandlersMap)
       fragmentUtils.normalizeEtFragment(fragmentUtils.normalizeToEtFragment(df, ctx))

@@ -1,5 +1,5 @@
 import type { Et } from '@effitor/core'
-import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
+import { HtmlAttrEnum } from '@effitor/shared'
 
 import { initPopup, type PopupAssistOptions } from './popup'
 
@@ -60,18 +60,19 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
           ctx.assists.popup.hide()
         }
       },
-      mouseup: (_, ctx) => {
-        setTimeout(() => {
-          if (ctx.selection.isCollapsed) {
-            return
-          }
-          const selectedText = ctx.selection.selectedTextContent
-          if (!selectedText || selectedText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === '') {
-            return
-          }
-          ctx.assists.popup.showSelectionRangePopup()
-        }, 10)
-      },
+      // TODO 鼠标划选 popup
+      // mouseup: (_, ctx) => {
+      //   setTimeout(() => {
+      //     if (ctx.selection.isCollapsed) {
+      //       return
+      //     }
+      //     const selectedText = ctx.selection.selectedTextContent
+      //     if (!selectedText || selectedText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === '') {
+      //       return
+      //     }
+      //     ctx.assists.popup.showSelectionRangePopup()
+      //   }, 10)
+      // },
       mouseover: (ev, ctx) => {
         // 有任意鼠标按键按下, 禁止popup
         if (ev.buttons !== 0) {
@@ -87,7 +88,6 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
         }
         else if (etel.hasAttribute(HtmlAttrEnum.Popup_Key)) {
           const key = etel.getAttribute(HtmlAttrEnum.Popup_Key) as string
-          console.warn('popupkey', key)
           ctx.assists.popup?.showHoverPopup(key, etel)
         }
       },

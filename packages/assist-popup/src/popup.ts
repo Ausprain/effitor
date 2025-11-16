@@ -506,11 +506,11 @@ export class Popup {
 }
 
 const defaultOptions = {
-  /** 清除格式 */
+  /** // TODO 清除格式 */
   selectionRangePopupItem_ClearFormat: true,
-  /** 复制选中内容 */
+  /** // TODO 复制选中内容 */
   selectionRangePopupItem_Copy: true,
-  /** 复制选中内容为Markdown格式 */
+  /** // TODO 复制选中内容为Markdown格式 */
   selectionRangePopupItem_CopyAsMarkdown: true,
 }
 export type PopupAssistOptions = Partial<typeof defaultOptions>

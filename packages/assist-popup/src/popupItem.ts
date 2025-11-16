@@ -37,7 +37,7 @@ export const clearFormatItem = createPopupItem(
   clearFormatIcon(),
   '清除格式',
   (_ctx) => {
-    // todo ctx.builtinHandler
+    // TODO ctx.builtinHandler
     console.warn('clearFormat')
   },
   {
@@ -49,7 +49,7 @@ export const copyItem = createPopupItem(
   copyDocIcon(),
   '复制',
   (_ctx) => {
-    // todo ctx.builtinHandler
+    // TODO ctx.builtinHandler
     console.warn('copy')
   },
 )
@@ -57,7 +57,7 @@ export const copyAsMarkdownItem = createPopupItem(
   markdownIcon(),
   '复制为Markdown',
   (_ctx) => {
-    // todo ctx.builtinHandler
+    // TODO ctx.builtinHandler
     console.warn('copyAsMarkdown')
   },
 )
