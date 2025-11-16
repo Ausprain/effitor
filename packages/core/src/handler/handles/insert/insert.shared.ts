@@ -379,13 +379,15 @@ const splitParagraphToInsertParagraphContents = (
   /** 光标位置在 splitParagraph 下的最外层祖先节点 */
   partialNode: Et.NodeOrNull,
 ) => {
+  // 名义上拆 splitParagraph, 实际上并不移除该节点, 只是克隆一个, 然后将光标后边的内容移入克隆段落
+  // 然后插入当前段落外末尾, 再将剩余段落插入这俩中间
   const currParagraph = splitParagraph
-  const paragraphEtParent = ctx.body.findInclusiveEtParent(currParagraph)
+  const paragraphEtParent = ctx.body.findInclusiveEtParent(currParagraph.parentNode)
   let isCurrPlainParagraph = true
   // 当前段落不是普通段落, 规范插入内容以适应当前段落类别
   if (!ctx.isPlainParagraph(currParagraph)) {
-    isCurrPlainParagraph = false
     // 当前段落不是普通段落, 根据效应父节点类型适应为当前段落类别
+    isCurrPlainParagraph = false
     if (!paragraphEtParent || !etcode.checkIn(paragraphEtParent, ctx.schema.paragraph.etType)) {
       // 当前(目标光标位置)段落无效应父节点(不应该发生), 或效应父节点不接受普通段落效应,
       // 将普通段落转为当前段落类型
@@ -415,11 +417,12 @@ const splitParagraphToInsertParagraphContents = (
   if (!firstParagraph) {
     return true
   }
-  // 与当前段落相同类别, 合并内容
   let firstContents
+  // 与当前段落相同类别, 合并内容
   if (currParagraph.isEqualTo(firstParagraph as Et.Paragraph)) {
     firstParagraph.remove()
     firstContents = fragmentUtils.extractNodeContentsToEtFragment(firstParagraph)
+    // TODO 这里效应元素已经判定他俩 equal 了, 是否还有必要检查效应规则?
     if (!isCurrPlainParagraph && currParagraph.localName !== firstParagraph.localName) {
       // 当前非普通段落, 按效应父节点清理片段
       fragmentUtils.normalizeAndCleanEtFragment(
@@ -428,13 +431,13 @@ const splitParagraphToInsertParagraphContents = (
   }
   else {
     firstContents = document.createDocumentFragment() as Et.Fragment
-    // 当前段落的父效应元素节点接受插入内容的第一个段落, 则将整个段落加入合并
-    if (paragraphEtParent && etcode.checkIn(paragraphEtParent, firstParagraph)) {
+    // 当前段落节点接受插入内容的第一个段落, 则将整个段落加入合并; 即 contents 的第一个段落未来成为 当前段落的子节点
+    if (currParagraph && etcode.checkIn(currParagraph, firstParagraph)) {
       firstParagraph.remove()
       firstContents.appendChild(firstParagraph)
     }
   }
-  if (!partialNode || dom.isBrElement(partialNode)) {
+  if (!partialNode || (dom.isBrElement(partialNode) && partialNode === currParagraph.lastChild)) {
     // 当前光标在段落内末尾, 直接插入第一个段落的内容到当前段落末尾
     const lastChild = firstContents.lastChild
     if (lastChild) {
@@ -506,7 +509,7 @@ const splitParagraphToInsertParagraphContents = (
     }
     else {
       lastContents = document.createDocumentFragment() as Et.Fragment
-      if (paragraphEtParent && etcode.checkIn(paragraphEtParent, lastParagraph)) {
+      if (currParagraph && etcode.checkIn(currParagraph, lastParagraph)) {
         lastParagraph.remove()
         lastContents.appendChild(lastParagraph)
       }
@@ -533,9 +536,9 @@ const splitParagraphToInsertParagraphContents = (
   }
   // 插入新段落
   if (isEmptyNewP) {
-    // 新段落为空, 插入一个br
-    newP.appendChild(document.createElement('br'))
-    destCaretRange = cr.caretInStart(newP)
+    // 新段落为空, 插入一个'br'
+    ctx.createElementWithBr(newP)
+    destCaretRange = cr.caretInAuto(newP)
   }
   else {
     destCaretRange = undefined
