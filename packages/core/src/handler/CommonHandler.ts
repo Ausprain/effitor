@@ -1,7 +1,6 @@
 // /**
 //  * 通用效应处理器, 这是对十个命令的封装, 自带效应元素校验, 以保证文档结构的规范性
 //  * todo
-//  * - [ ] insertNodeAtCaret 添加一个etCode参数, 若node是效应元素则为node.etCode, 否则为其下最外层效应元素的etCode的或; 无效应元素则为0
 //  * - [ ] duplicateParagraph 克隆一份当前光标所在段落(的空节点), 并插入当前段落前/后; 不局限于纯段落, 只要etcode验证为段落
 //  *
 //  */
@@ -59,6 +58,9 @@ import { insertContentsAtCaret, insertElementAtCaret, insertElementAtCaretTempor
 
 /**
  * 通用效应处理器, 不依赖 effectInvoker, 可直接调用处理
+ * * 与 CommandManager 的区别:
+ *   - CommandManager 直接执行命令, 更底层, 不考虑效应规则;
+ *   - CommonHandler 考虑效应规则, 更复杂, 根据效应规则添加相应命令
  */
 export class CommonHandler {
   private readonly _ctx: Et.EditorContext
@@ -213,58 +215,6 @@ export class CommonHandler {
   }
 
   /**
-   * 在文本节点中插入文本
-   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用插入文本后的位置; 若为 false, 则不设置光标位置也不更新上下文和选区
-   */
-  insertInTextNode(
-    textNode: Text,
-    offset: number,
-    data: string,
-    destCaretRange: Et.CaretRange | boolean = true,
-  ) {
-    this.commander.push(cmd.insertText({
-      text: textNode as Et.Text,
-      offset,
-      data,
-      setCaret: destCaretRange === true,
-    }))
-    if (destCaretRange) {
-      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
-    }
-    return this.commander.handle()
-  }
-
-  /**
-   * 删除文本节点中的文本, 该方法不会判断删除后文本节点是否为空;
-   * * 此方法使用 backward 方向删除
-   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用删除文本后的位置; 若为 false, 则不设置光标位置也不更新上下文和选区
-   */
-  deleteInTextNode(
-    textNode: Text,
-    offset: number,
-    delDataOrLen: string | number,
-    destCaretRange: Et.CaretRange | boolean = true,
-  ) {
-    if (typeof delDataOrLen === 'number') {
-      delDataOrLen = textNode.data.slice(offset, offset + delDataOrLen)
-    }
-    if (!delDataOrLen) {
-      return false
-    }
-    this.commander.push(cmd.deleteText({
-      text: textNode as Et.Text,
-      data: delDataOrLen,
-      offset,
-      isBackward: true,
-      setCaret: destCaretRange === true,
-    }))
-    if (destCaretRange) {
-      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
-    }
-    return this.commander.handle()
-  }
-
-  /**
    * 在光标位置插入一个元素, 仅允许<br>和效应元素
    * @param el 要插入的元素, 仅允许<br>和效应元素
    * @param insertAt 插入位置 可以是一个光标位置(EtCaret) 或目标光标(TargetCaret);
@@ -304,61 +254,6 @@ export class CommonHandler {
   }
 
   /**
-   * 插入一个节点; 这是一个执行 cmd.insertNode 命令的快捷方法; 自动 commit
-   * * 这是一个底层方法, 直接添加命令并执行, 不检查效应规则
-   * * 若插入位置在文本节点内, 则拒绝插入
-   * @param node 要插入的节点
-   * @param insertAt 插入位置
-   * @param destCaretRange 命令结束后光标位置, 若未提供, 则使用插入节点内开头
-   * @returns 插入成功返回 true, 否则返回 false
-   */
-  insertNode(node: Et.Node, insertAt: Et.EtCaret, destCaretRange?: Et.CaretRange | null) {
-    if (insertAt.isSurroundText) {
-      return false
-    }
-    this.commander.commitNextHandle(true)
-    this.commander.push(cmd.insertNode({ node, execAt: insertAt, setCaret: destCaretRange === void 0 }))
-    if (destCaretRange === null) {
-      return this.commander.handle()
-    }
-    return this.commander.handleAndUpdate(destCaretRange)
-  }
-
-  /**
-   * 移动节点
-   * @param node 要移动的节点
-   * @param moveTo 移动到的位置
-   * @param destCaretRange 命令执行后光标位置; 若缺省, 则不设置光标位置也不更新上下文和选区
-   */
-  moveNode(node: Et.Node, moveTo: Et.EtCaret, destCaretRange?: Et.CaretRange) {
-    this.commander.push(
-      cmd.removeNode({ node }),
-      cmd.insertNode({ node, execAt: moveTo, destCaretRange }),
-    )
-    if (destCaretRange) {
-      return this.commander.handleAndUpdate()
-    }
-    return this.commander.handle()
-  }
-
-  /**
-   * 替换节点
-   * @param oldNode 旧节点
-   * @param newNode 新节点
-   * @param destCaretRange 命令执行后光标位置;
-   *                       若为 true, 则使用新节点内开头位置;
-   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
-   * @returns 命令执行成功返回 true, 否则返回 false
-   */
-  replaceNode(oldNode: Et.Node, newNode: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
-    this.commander.push(cmd.replaceNode({ oldNode, newNode, setCaret: destCaretRange === true }))
-    if (destCaretRange) {
-      return this.commander.handleAndUpdate(typeof destCaretRange === 'object' ? destCaretRange : undefined)
-    }
-    return this.commander.handle()
-  }
-
-  /**
    * 用一个普通段落替换指定"段落"
    * @param original 被替换的段落 (必须有父节点)
    * @param checkEtCode 是否检查效应规则; 当为 true 时, 如果 original 的父节点不接受普通段落, 则插入取消插入
@@ -374,24 +269,7 @@ export class CommonHandler {
     }
     const plain = this._ctx.createPlainParagraph()
     this.commander.commitNextHandle(true)
-    return this.replaceNode(original, plain, cr.caretInAuto(plain))
-  }
-
-  /**
-   * 删除节点, 节点不在页面上, 返回 false
-   * * 该方法只删除目标节点, 不会连带删除空祖先
-   * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;
-   *    若为 false, 命令执行后不更新选区和上下文; 默认为 true
-   */
-  removeNode(node: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
-    if (!node.isConnected) {
-      return false
-    }
-    this.commander.push(cmd.removeNode({ node, setCaret: destCaretRange === true }))
-    if (destCaretRange) {
-      return this.commander.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
-    }
-    return this.commander.handle()
+    return this.commander.handleReplaceNode(original, plain, cr.caretInAuto(plain))
   }
 
   /**
@@ -473,7 +351,7 @@ export class CommonHandler {
       this._ctx.selection.collapseTo(textNode, 1)
       return true
     }
-    return this.insertInTextNode(textNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
+    return this.commander.handleInsertText(textNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
   }
 
   /**

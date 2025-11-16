@@ -7,7 +7,7 @@ import type { EtTableRowElement } from '../EtTableRowElement'
 
 export const replaceTableWithPlainParagraph = (ctx: Et.EditorContext, table: EtTableElement) => {
   const p = ctx.createPlainParagraph()
-  return ctx.commonHandler.replaceNode(table, p, cr.caretInAuto(p))
+  return ctx.commandManager.handleReplaceNode(table, p, cr.caretInAuto(p))
 }
 
 export const addCmdsToEmptyTableCell = (cmds: Et.CommandQueue, cell: EtTableCellElement) => {

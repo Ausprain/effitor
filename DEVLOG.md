@@ -31,7 +31,7 @@
 
 ## Todo
 
-- [ ] 优化命令(CommandManager)与 handler (CommonHandler)之间的界限: 命令直接处理DOM 操作; 而 handler 在命令上层, 还要负责处理效应规则
+- [x] 优化命令(CommandManager)与 handler (CommonHandler)之间的界限: 命令直接处理DOM 操作; 而 handler 在命令上层, 还要负责处理效应规则
 - [ ] code 渲染 html 应使用 iframe
 - [ ] 调和 htmlProcessor.parseRangingContentsToHtml 和 fragmentUtils.parseEtFragmentToNativeHTML
   - 前者会对文档节点直接解析; 后者先克隆片段, 然后再解析; 因此 EffectElement.toNativeElement 被前者调用时, getComputedStyle 奏效, 而后者无效, 因为节点不在页面上, 无计算样式

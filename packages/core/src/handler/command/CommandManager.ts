@@ -375,4 +375,144 @@ export class CommandManager implements CommandQueue {
     this._prepareUndoRedo()
     this._undoStack.redo(this._ctx)
   }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  立即执行命令                                */
+  /* -------------------------------------------------------------------------- */
+
+  /**
+   * 在文本节点中插入文本, 不自动 commit
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   */
+  handleInsertText(
+    textNode: Text,
+    offset: number,
+    data: string,
+    destCaretRange: Et.CaretRange | boolean = false,
+  ) {
+    this.push(cmd.insertText({
+      text: textNode as Et.Text,
+      offset,
+      data,
+      setCaret: destCaretRange === true,
+    }))
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 删除文本节点中的文本, 不自动 commit
+   * * ⚠️ 该方法不会判断删除后文本节点是否为空;
+   * * 此方法使用 backward 方向删除
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   */
+  handleDeleteText(
+    textNode: Text,
+    offset: number,
+    delDataOrLen: string | number,
+    destCaretRange: Et.CaretRange | boolean = false,
+  ) {
+    if (typeof delDataOrLen === 'number') {
+      delDataOrLen = textNode.data.slice(offset, offset + delDataOrLen)
+    }
+    if (!delDataOrLen) {
+      return false
+    }
+    this.push(cmd.deleteText({
+      text: textNode as Et.Text,
+      data: delDataOrLen,
+      offset,
+      isBackward: true,
+      setCaret: destCaretRange === true,
+    }))
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 插入一个节点; 这是一个执行 cmd.insertNode 命令的快捷方法; 自动 commit
+   * * 这是一个底层方法, 直接添加命令并执行, 不检查效应规则
+   * * 若插入位置在文本节点内, 则拒绝插入
+   * @param node 要插入的节点
+   * @param insertAt 插入位置
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   * @returns 插入成功返回 true, 否则返回 false
+   */
+  handleInsertNode(node: Et.Node, insertAt: Et.EtCaret, destCaretRange: Et.CaretRange | boolean = false) {
+    if (insertAt.isSurroundText) {
+      return false
+    }
+    this.commitNextHandle(true)
+    this.push(cmd.insertNode({ node, execAt: insertAt, setCaret: destCaretRange === true }))
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 移动节点
+   * @param node 要移动的节点
+   * @param moveTo 移动到的位置
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   */
+  handleMoveNode(node: Et.Node, moveTo: Et.EtCaret, destCaretRange: Et.CaretRange | boolean = false) {
+    this.push(
+      cmd.removeNode({ node }),
+      cmd.insertNode({ node, execAt: moveTo, setCaret: destCaretRange === true }),
+    )
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 删除节点, 节点不在页面上, 返回 false; 自动 commit
+   * * 该方法只删除目标节点, 不会连带删除空祖先
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   */
+  handleRemoveNode(node: Et.Node, destCaretRange: Et.CaretRange | boolean = false) {
+    if (!node.isConnected) {
+      return false
+    }
+    this.commitNextHandle(true)
+    this.push(cmd.removeNode({ node, setCaret: destCaretRange === true }))
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 替换节点, 自动 commit
+   * @param oldNode 旧节点
+   * @param newNode 新节点
+   * @param destCaretRange 命令执行后光标位置;
+   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
+   * @returns 命令执行成功返回 true, 否则返回 false
+   */
+  handleReplaceNode(oldNode: Et.Node, newNode: Et.Node, destCaretRange: Et.CaretRange | boolean = false) {
+    this.commitNextHandle(true)
+    this.push(cmd.replaceNode({ oldNode, newNode, setCaret: destCaretRange === true }))
+    if (!destCaretRange) {
+      return this.handle()
+    }
+    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
 }

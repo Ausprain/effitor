@@ -24,7 +24,7 @@ const ectx = useEffectorContext('$blockquote_ctx', {
         ).handleAndUpdate(cr.caretInAuto(currP))
       }
       else {
-        ctx.commonHandler.moveNode(currP, cr.caretOutEnd(bq), cr.caretInAuto(currP))
+        ctx.commandManager.handleMoveNode(currP, cr.caretOutEnd(bq), cr.caretInAuto(currP))
       }
       return true
     }

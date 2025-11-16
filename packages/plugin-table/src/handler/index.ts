@@ -57,7 +57,7 @@ export const tableHandler: Et.EffectHandler = {
       data = ''
     }
     const { table, destCaretRange } = careteTable(ctx, data)
-    return ctx.commonHandler.replaceNode(paragraph, table, destCaretRange)
+    return ctx.commandManager.handleReplaceNode(paragraph, table, destCaretRange)
   },
   insertTableAfterParagraph: (ctx, { paragraph }) => {
     const { table, destCaretRange } = careteTable(ctx, '')

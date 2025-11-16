@@ -274,7 +274,7 @@ export class Composition {
     if (data) {
       const anchorText = this._ctx.selection.anchorText
       if (anchorText && anchorText.data[this._ctx.selection.anchorOffset - 1] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
-        this._ctx.commonHandler.deleteInTextNode(anchorText, this._ctx.selection.anchorOffset - 1, 1, false)
+        this._ctx.commandManager.handleDeleteText(anchorText, this._ctx.selection.anchorOffset - 1, 1, false)
       }
       if (this._ctx.focusEtElement) {
         this._ctx.getEtHandler(this._ctx.focusEtElement).InsertCompositionTextSuccess?.(this._ctx, data)

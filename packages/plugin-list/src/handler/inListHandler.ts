@@ -330,7 +330,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
     if (prevEl) {
       // 有前兄弟li 将前兄弟移动到当前 li 后边
       // ps. 无论前兄弟是 list 还是li, 都是如此, 如果想让当前 li 移入前兄弟 list, 应使用tab
-      return ctx.commonHandler.moveNode(prevEl, cr.caretOutEndFuture(currLi))
+      return ctx.commandManager.handleMoveNode(prevEl, cr.caretOutEndFuture(currLi))
     }
     // 无前兄弟li, 判断是否有前 list
     const currList = currLi.parentElement as EtListElement | null
@@ -347,7 +347,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
       ctx.commandManager.push(cmd.removeNode({ node: currList }))
     }
     // 有前 list, 将当前 li 移动到前 list 的最后; 否则移动到当前 list 的前 li 后边
-    return ctx.commonHandler.moveNode(
+    return ctx.commandManager.handleMoveNode(
       currLi,
       EtListElement.is(prevP) ? cr.caretInEnd(prevP) : cr.caretOutEndFuture(prevP),
       // 命令执行后用当前光标位置定位;
@@ -362,7 +362,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
     const nextEl = currLi.nextSibling as EtListElement | EtListItemElement | null
     if (nextEl) {
       // 有后兄弟li 将后兄弟移动到当前 li 前边
-      return ctx.commonHandler.moveNode(nextEl, cr.caretOutStartFuture(currLi))
+      return ctx.commandManager.handleMoveNode(nextEl, cr.caretOutStartFuture(currLi))
     }
     // 无后兄弟li, 判断是否有后 list
     const currList = currLi.parentElement as EtListElement | null
@@ -379,7 +379,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
       ctx.commandManager.push(cmd.removeNode({ node: currList }))
     }
     // 有后 list, 将当前 li 移动到后 list 的最前; 否则移动到当前 list 的后 li 前边
-    return ctx.commonHandler.moveNode(
+    return ctx.commandManager.handleMoveNode(
       currLi,
       EtListElement.is(nextP) ? cr.caretInStart(nextP) : cr.caretOutStartFuture(nextP),
       // 命令执行后用当前光标位置定位

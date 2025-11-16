@@ -26,7 +26,7 @@ export const replaceParagraphWithHeading = createEffectHandle(
       }
     }
     ctx.commandManager.commitNextHandle(true)
-    return ctx.commonHandler.replaceNode(paragraph, heading, dest)
+    return ctx.commandManager.handleReplaceNode(paragraph, heading, dest)
   },
 )
 
@@ -39,6 +39,6 @@ export const inHeadingHandler: Et.EffectHandler & Pick<Required<Et.EffectHandler
   regressHeadingToParagraph: (ctx, { heading }) => {
     const newP = ctx.createPlainParagraph(false)
     newP.textContent = heading.textContent
-    return ctx.commonHandler.replaceNode(heading, newP, true)
+    return ctx.commandManager.handleReplaceNode(heading, newP, true)
   },
 }

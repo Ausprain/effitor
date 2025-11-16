@@ -412,7 +412,7 @@ export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
   replaceCodeWithParagraph(ctx, { codeEl }) {
     ctx.commandManager.commitNextHandle(true)
     const p = ctx.createPlainParagraph()
-    return ctx.commonHandler.replaceNode(codeEl, p, cr.caretInAuto(p))
+    return ctx.commandManager.handleReplaceNode(codeEl, p, cr.caretInAuto(p))
   },
   insertNewLineInCode(ctx, { codeCtx }) {
     const { selectionStart, selectionEnd, selectionDirection } = codeCtx.area

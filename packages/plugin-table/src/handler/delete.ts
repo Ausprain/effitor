@@ -26,7 +26,7 @@ export const backspaceToRemoveEmptyRowOrFocusToPrevRow = (ctx: Et.EditorContext,
     if (!lastCell) {
       return
     }
-    ctx.commonHandler.removeNode(anchorTr, cr.caretInEnd(lastCell))
+    ctx.commandManager.handleRemoveNode(anchorTr, cr.caretInEnd(lastCell))
     return
   }
   if (!lastCell) {
@@ -44,7 +44,7 @@ export const deleteToRemoveRowEmptyOrFocusToNextRow = (ctx: Et.EditorContext, an
     if (!firstCell) {
       return
     }
-    ctx.commonHandler.removeNode(anchorTr, cr.caretInStart(firstCell))
+    ctx.commandManager.handleRemoveNode(anchorTr, cr.caretInStart(firstCell))
     return
   }
   if (!firstCell) {
@@ -169,14 +169,14 @@ const checkDeleteEmptyCellInSingleRowTable = (
     if (!prevCell) {
       return false
     }
-    ctx.commonHandler.removeNode(emptyCell, cr.caretInEnd(prevCell))
+    ctx.commandManager.handleRemoveNode(emptyCell, cr.caretInEnd(prevCell))
   }
   else {
     const nextCell = emptyCell.nextSibling
     if (!nextCell) {
       return false
     }
-    ctx.commonHandler.removeNode(emptyCell, cr.caretInStart(nextCell))
+    ctx.commandManager.handleRemoveNode(emptyCell, cr.caretInStart(nextCell))
   }
   return true
 }
@@ -187,7 +187,7 @@ export const tryToRemoveNextRow = (ctx: Et.EditorContext, anchorTr?: EtTableRowE
     return
   }
   ctx.commandManager.commitNextHandle(true)
-  ctx.commonHandler.removeNode(nextRow, false)
+  ctx.commandManager.handleRemoveNode(nextRow, false)
 }
 export const tryToRemoveNextColumn = (ctx: Et.EditorContext, anchorTc?: EtTableCellElement) => {
   const nextCell = anchorTc?.nextSibling

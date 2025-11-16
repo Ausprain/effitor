@@ -117,7 +117,7 @@ const tryToMoveColLeft = (ctx: Et.EditorContext) => {
       if (!prev) {
         continue
       }
-      ctx.commonHandler.moveNode(prev, cr.caretOutEnd(curr).moved(-1))
+      ctx.commandManager.handleMoveNode(prev, cr.caretOutEnd(curr).moved(-1))
     }
     return true
   })
@@ -140,7 +140,7 @@ const tryToMoveColRight = (ctx: Et.EditorContext) => {
       if (!next) {
         continue
       }
-      ctx.commonHandler.moveNode(next, cr.caretOutStart(curr))
+      ctx.commandManager.handleMoveNode(next, cr.caretOutStart(curr))
     }
     return true
   })

@@ -46,7 +46,7 @@ export const paragraphMoveUp = createEffectHandle('ParagraphMoveUp', (ctx, tr) =
   // 记录当前滚动位置, 移动段落后, 恢复滚动位置; 避免移动时因增删节点导致页面跳动
   return ctx.commandManager.withRememberScrollTop(ctx, () => {
     ctx.commandManager.pushHandleCallback(() => ctx.selection.scrollIntoViewSync())
-    return ctx.commonHandler.moveNode(prevP, cr.caretOutEnd(prevP))
+    return ctx.commandManager.handleMoveNode(prevP, cr.caretOutEnd(prevP))
   })
 })
 export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, tr) => {
@@ -56,14 +56,14 @@ export const paragraphMoveDown = createEffectHandle('ParagraphMoveDown', (ctx, t
   }
   return ctx.commandManager.withRememberScrollTop(ctx, () => {
     ctx.commandManager.pushHandleCallback(() => ctx.selection.scrollIntoViewSync())
-    return ctx.commonHandler.moveNode(nextP, cr.caretOutStart(nextP).moved(-1))
+    return ctx.commandManager.handleMoveNode(nextP, cr.caretOutStart(nextP).moved(-1))
   })
 })
 export const paragraphCopyUp = createEffectHandle('ParagraphCopyUp', (ctx, tr) => {
   const cloneP = dom.cloneEtElement(tr.anchorParagraph, true)
-  return ctx.commonHandler.insertNode(cloneP, cr.caretOutEnd(tr.anchorParagraph), null)
+  return ctx.commandManager.handleInsertNode(cloneP, cr.caretOutEnd(tr.anchorParagraph))
 })
 export const paragraphCopyDown = createEffectHandle('ParagraphCopyDown', (ctx, tr) => {
   const cloneP = dom.cloneEtElement(tr.anchorParagraph, true)
-  return ctx.commonHandler.insertNode(cloneP, cr.caretOutStart(tr.anchorParagraph), null)
+  return ctx.commandManager.handleInsertNode(cloneP, cr.caretOutStart(tr.anchorParagraph))
 })

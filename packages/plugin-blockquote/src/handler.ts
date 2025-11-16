@@ -19,6 +19,6 @@ export const blockquoteHandler: Et.EffectHandler = {
     else {
       destCaretRange = cr.caret(bq, 0)
     }
-    return ctx.commonHandler.replaceNode(paragraph, bq, destCaretRange)
+    return ctx.commandManager.handleReplaceNode(paragraph, bq, destCaretRange)
   },
 }

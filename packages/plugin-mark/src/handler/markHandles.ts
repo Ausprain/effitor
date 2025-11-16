@@ -15,7 +15,7 @@ const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCar
   }
   if (tc.container.data === HtmlCharEnum.ZERO_WIDTH_SPACE) {
     const ret = cr.caretOutStart(tc.container)
-    ctx.commonHandler.removeNode(tc.container)
+    ctx.commandManager.handleRemoveNode(tc.container, true)
     return ret
   }
   if (!marker) {
@@ -30,12 +30,12 @@ const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCar
     ) {
       // 先记录位置, 再移除节点
       const ret = cr.caretOutStart(text)
-      ctx.commonHandler.removeNode(text, true)
+      ctx.commandManager.handleRemoveNode(text, true)
       return ret
     }
     else {
       offset = offset - marker.length
-      ctx.commonHandler.deleteInTextNode(text, offset, marker, true)
+      ctx.commandManager.handleDeleteText(text, offset, marker, true)
       if (tc.isAtEnd()) {
         return cr.caretOutEnd(text)
       }
@@ -152,11 +152,11 @@ export const markHandler: Et.EffectHandler = {
       let insertAt
       if (data.length === tr.commonAncestor.length) {
         insertAt = cr.caretOutStart(tr.commonAncestor)
-        ctx.commonHandler.removeNode(tr.commonAncestor, false)
+        ctx.commandManager.handleRemoveNode(tr.commonAncestor, false)
       }
       else {
         insertAt = cr.caret(tr.commonAncestor, tr.startOffset)
-        ctx.commonHandler.deleteInTextNode(tr.commonAncestor, tr.startOffset, data.length, false)
+        ctx.commandManager.handleDeleteText(tr.commonAncestor, tr.startOffset, data.length, false)
       }
       return insertMarkNodeAtCaret(ctx, insertAt, markType, data)
     })

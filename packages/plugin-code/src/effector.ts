@@ -17,7 +17,7 @@ const ectx = useEffectorContext('$code_ctx', {
     if (ctx.pctx.$code_ctx.highlighter.langs.includes(lang)) {
       const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
       codeEl.meta = metaStr
-      ctx.commonHandler.replaceNode(ctx.commonEtElement, codeEl, false)
+      ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)
       codeEl.focusToInnerEditable(ctx, true)
       return true
     }

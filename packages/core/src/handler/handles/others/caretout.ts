@@ -12,7 +12,7 @@ const caretToNextText = (node: Et.Node, ctx: Et.EditorContext) => {
   if (nextNode && dom.isText(nextNode)) {
     // 下一个文本节点不是零宽字符开头, 插入一个零宽字符, 否则光标无法定位到其开头
     if (!nextNode.data.startsWith(HtmlCharEnum.ZERO_WIDTH_SPACE)) {
-      if (ctx.commonHandler.insertInTextNode(nextNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, false)) {
+      if (ctx.commandManager.handleInsertText(nextNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, false)) {
         return ctx.setSelection(cr.caret(nextNode, 1))
       }
     }
@@ -73,7 +73,7 @@ export const dblSpace = createEffectHandle('dblSpace', (ctx, tc) => {
     const text = tc.container
     // 移除已经插入的两个空格
     if (text.data.slice(tc.offset - 2, tc.offset) === '  ') {
-      ctx.commonHandler.deleteInTextNode(text, tc.offset - 2, '  ', false)
+      ctx.commandManager.handleDeleteText(text, tc.offset - 2, '  ', false)
     }
   }
   const etGen = ctx.body.outerEtElements(tc.anchorEtElement)
