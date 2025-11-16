@@ -43,17 +43,7 @@ effitor是一个高性能插件化的web富文本编辑器，取名自*efficient
 
 ### 还可以的性能
 
-effitor 基于`contenteditable`实现，但能拥有基于`textarea`实现（如 CodeMirror）的编辑性能。
-
-| 编辑器      | 编辑 20 万字符 | 编辑 50 万字符 |
-| ----------- | -------------- | -------------- |
-| effitor     | 无卡顿         | 无卡顿         |
-| CodeMirror  | 卡顿           | 卡顿           |
-| ProseMirror | 无卡顿         | 无卡顿         |
-
-> ps.
-> ~~各浏览器对输入法行为的实现不一，chrome的输入法表现较差，编辑器内容超过 20 万字符时，输入法输入就会明显卡顿，几乎没有任何一个web编辑器能够幸免。从`blink`的源码中我们可以知道，chrome在处理输入法输入时，需要从根可编辑元素开始计算，所以随着内容的增加，输入法输入的性能必然下降。
-> 为此，effitor 计划实现一个“动态可编辑”策略，当用户使用输入法输入时，动态地将可编辑元素设置为当前光标位置的最小元素节点。不过编辑 20 万字符内容的情况很少见，这个需求不是很紧迫，于是我们尚未着手实现此策略~~
+性能与 tiptap 相当.
 
 ### 样式延续的问题（Format Continuation）
 
@@ -116,26 +106,34 @@ import {
   usePopupAssist,
 } from "effitor/assists";
 import {
-  useHeadingPlugin,
   useMarkPlugin,
+  useHeadingPlugin,
+  useBlockquotePlugin,
   useListPlugin,
-  useLinkPlugin,
   useCodePlugin,
+  useLinkPlugin,
+  useMediaPlugin,
+  useTablePlugin,
 } from "effitor/plugins";
 
 const host = document.getElementById("host") as HTMLDivElement | null;
 const editor = new Effitor({
-  plugins: [
+  assists: [
     useCounterAssist(),
     useDialogAssist(),
     useDropdownAssist(),
     useMessageAssist(),
     usePopupAssist(),
-    useHeadingPlugin(),
+  ],
+  plugins: [
     useMarkPlugin(),
+    useHeadingPlugin(),
+    useBlockquotePlugin(),
     useListPlugin(),
-    useLinkPlugin(),
     await useCodePlugin(),
+    useLinkPlugin(),
+    useMediaPlugin(),
+    useTablePlugin(),
   ],
 });
 if (host) {
@@ -203,9 +201,4 @@ bun dev
 
 ## 许可
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-
-### sdf
-
-sad sad asd sda
-aafjioew
+MIT
