@@ -335,7 +335,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
     // 无前兄弟li, 判断是否有前 list
     const currList = currLi.parentElement as EtListElement | null
     if (!currList) {
-      ctx.assists.logger?.error(`inListHandler.listItemMoveUp: listItem hasn't list parent`, '@plugin-list[Handler]')
+      ctx.assists.logger?.logError(`inListHandler.listItemMoveUp: listItem hasn't list parent`, '@plugin-list[Handler]')
       return true
     }
     const prevP = currList.previousSibling
@@ -367,7 +367,7 @@ export const inListHandler: Et.EffectHandlerWith<EtListItemElement, EtListItemEl
     // 无后兄弟li, 判断是否有后 list
     const currList = currLi.parentElement as EtListElement | null
     if (!currList) {
-      ctx.assists.logger?.error(`inListHandler.listItemMoveDown: listItem hasn't list parent`, '@plugin-list[Handler]')
+      ctx.assists.logger?.logError(`inListHandler.listItemMoveDown: listItem hasn't list parent`, '@plugin-list[Handler]')
       return true
     }
     const nextP = currList.nextSibling

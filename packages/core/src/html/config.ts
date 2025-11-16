@@ -3,7 +3,8 @@ import type { Et } from '../@types'
 export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement> {
   /**
    * 定义一个html元素如何转为效应元素; 若最终未处理, 则会转为纯文本
-   * @param parent 未来父节点(这是只读的), 当前父节点可通过 el.parentNode 取得
+   * @param parent 未来父节点(这是逻辑只读的, 不要改动该节点; 若为 null 说明正在处理顶层节点, 未来父节点尚未确定),
+   *               当前父节点可通过 el.parentNode 取得
    * @returns
    * - `null`, 处理"失败", 交由下一个插件
    * - `DocumentFragment`, 处理成功, 但该 html 元素不对应具体的效应元素, 仍需处理其后代; 即丢弃
@@ -16,7 +17,8 @@ export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement>
   (
     el: T,
     ctx: Et.EditorContext,
-    parent: Readonly<Element> | null): Et.EtElement | null | Et.Fragment | (() => Et.EtElement)
+    parent: Readonly<Element> | null
+  ): Et.EtElement | null | Et.Fragment | (() => Et.EtElement)
 }
 
 export type HtmlToEtElementTransformerMap = {

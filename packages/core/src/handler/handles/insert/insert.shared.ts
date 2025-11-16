@@ -126,7 +126,7 @@ export const insertElementAtCaret = (
   if (etcode.check(element)) {
     return insertElseEtElementAtCaret(ctx, element, targetCaret, destCaretRange)
   }
-  ctx.assists.logger?.warn('deny inserting element', 'handler')
+  ctx.assists.logger?.logWarn('deny inserting element', 'handler')
   return false
 }
 /**
@@ -237,7 +237,7 @@ const insertElseEtElementAtCaret = (
   if (etParent) {
     return splitPartialToInsertElementInEtElement(ctx, etel, etParent, targetCaret, destCaretRange)
   }
-  ctx.assists.logger?.warn('deny inserting effect element by etcode check', 'handler')
+  ctx.assists.logger?.logWarn('deny inserting effect element by etcode check', 'handler')
   return false
 }
 

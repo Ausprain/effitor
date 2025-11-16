@@ -581,7 +581,7 @@ export class CommonHandler {
     if (el.hasChildNodes()) {
       const removeRange = cr.spanRangeAllIn(el)
       if (!removeRange) {
-        this._ctx.assists.logger?.error('create SpanRange failed while an el has child nodes', 'CommonHandler.emptyAndInsert')
+        this._ctx.assists.logger?.logError('create SpanRange failed while an el has child nodes', 'CommonHandler.emptyAndInsert')
         return false
       }
       cmds.push(

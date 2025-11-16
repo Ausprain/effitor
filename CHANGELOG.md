@@ -1,6 +1,6 @@
 # 变更日志
 
-## 0.2.0-alpha.0
+## 0.2.0
 
 - monorepo重构
 - 编辑器对象使用class重构
@@ -15,7 +15,7 @@
 - 添加markdown互转，原生html互转
 - 编辑器亮暗模式切换
 - 分离主题样式到 @effitor/themes 子包
-- 插件分为助手插件和内容插件，简称助手和插件
+- 插件分为助手插件和内容插件，简称"助手"和"插件"
 - 内置助手
   - `assist-counter`：字数统计
   - `assist-dialog`：对话框
@@ -23,9 +23,11 @@
   - `assist-message`：消息
   - `assist-popup`：弹窗或悬浮菜单
 - 内置插件
-  - `plugin-heading`：标题
   - `plugin-mark`：高亮（加粗/斜体/删除线/内敛代码/高亮）
-  - `plugin-link`：链接
+  - `plugin-heading`：标题
   - `plugin-list`：列表
-  - `plugin-media`：媒体（图片/音/视频）
+  - `plugin-link`：链接
   - `plugin-code`：代码块
+  - `plugin-media`：媒体（图片/音/视频）
+  - `plugin-blockquote`：引用块(段落组)
+  - `plugin-table`：表格

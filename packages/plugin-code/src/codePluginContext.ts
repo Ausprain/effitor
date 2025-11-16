@@ -20,12 +20,12 @@ export const initCodePluginContext = (
   const renderCodeBlock = (ctx: Et.EditorContext, el: EtCodeElement) => {
     const codeRenderer = ctx.pctx.$code_ctx.codeRenderer
     if (!el.lang || !el.codeCtx) {
-      ctx.assists.logger?.error('code block render fail: no lang or codeCtx', 'et-code')
+      ctx.assists.logger?.logError('code block render fail: no lang or codeCtx', 'et-code')
       return
     }
     const parser = codeRenderer[el.lang]
     if (!parser) {
-      ctx.assists.logger?.error(`code block render fail: no parser for lang '${el.lang}'`, 'et-code')
+      ctx.assists.logger?.logError(`code block render fail: no parser for lang '${el.lang}'`, 'et-code')
       return
     }
     const cc = el.codeCtx

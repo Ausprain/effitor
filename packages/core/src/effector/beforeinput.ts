@@ -13,7 +13,7 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
       // chrome 会将未声明或不合法的inputType转为"", 判断是否设置在了 data 里
       if (!ev.data) {
         if (import.meta.env.DEV) {
-          ctx.assists.logger?.warn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
+          ctx.assists.logger?.logWarn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
         }
         return
       }
@@ -119,7 +119,7 @@ export const getBeforeinputListener = (
       // todo remove
       if (import.meta.env.DEV) {
         if (!['insertCompositionText', 'deleteCompositionText'].includes(ev.inputType)) {
-          ctx.assists.logger?.warn(`There's unhandled inputType: ${ev.inputType}`, `core[beforeinput]`)
+          ctx.assists.logger?.logWarn(`There's unhandled inputType: ${ev.inputType}`, `core[beforeinput]`)
         }
       }
       // 阻止所有beforeinput默认行为

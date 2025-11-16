@@ -846,7 +846,7 @@ const cmdHandler = {
           (recordCmds[i] as CmdWithExec).undo(ctx)
         }
         recordCmds.length = 0
-        ctx.assists.logger?.error(`cmdHandler.handle error, cmdType: ${cmd.type}`, 'cmdHandler')
+        ctx.assists.logger?.logError(`cmdHandler.handle error, cmdType: ${cmd.type}`, 'cmdHandler')
         return null
       }
     }

@@ -347,7 +347,7 @@ export class Popup {
     if (content.classList.contains(PopupEnum.Class_Popup_Item_Container)) {
       if (filterPopupItems.length === 0) {
         if (import.meta.env.DEV) {
-          this._ctx.assists.logger?.warn('popup没有可操作项, 不显示', 'Assist-Popup')
+          this._ctx.assists.logger?.logWarn('popup没有可操作项, 不显示', 'Assist-Popup')
           return
         }
       }

@@ -838,7 +838,7 @@ export class Dropdown {
 
     // 使用默认内置content 且无menu时, 直接退出
     if (this.currentContent && !this.currentContent.menus.length) {
-      this._ctx.assists.logger?.log('dropdown 无menu, 不显示', 'Assist-Dropdown')
+      this._ctx.assists.logger?.logInfo('dropdown 无menu, 不显示', 'Assist-Dropdown')
       return false
     }
 

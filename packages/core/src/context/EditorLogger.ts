@@ -1,21 +1,21 @@
 export class EditorLogger {
   private readonly _logs: string[] = []
 
-  log(data: string, scope = '') {
+  logInfo(data: string, scope = '') {
     this._logs.push(`[LOG]${scope}\u0000: ${data}`)
     if (import.meta.env.DEV) {
       console.log(this.tail(1)[0])
     }
   }
 
-  warn(data: string, scope = '') {
+  logWarn(data: string, scope = '') {
     this._logs.push(`[WARN]${scope}\u0000: ${data}`)
     if (import.meta.env.DEV) {
       console.warn(this.tail(1)[0])
     }
   }
 
-  error(data: string, scope = '') {
+  logError(data: string, scope = '') {
     this._logs.push(`[ERROR]${scope}\u0000: ${data}`)
     if (import.meta.env.DEV) {
       throw new Error(this.tail(1)[0])

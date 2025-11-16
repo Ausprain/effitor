@@ -201,7 +201,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     // topElement 非空, 则 paragraph 非空, 则 etElement 非空
     if (!this.selection.commonEffectElement) {
       // 更新上下文后, commonEffectElement 必须存在, 因为光标选区必须在 et-body 内, 而 et-body 是效应元素, 即兜底的最外层 commonEffectElement
-      this.assists.logger?.error('ctx update failed: common effect element not found. ', 'EditorContext')
+      this.assists.logger?.logError('ctx update failed: common effect element not found. ', 'EditorContext')
       this.editor.blur()
       return (this._updated = false)
     }

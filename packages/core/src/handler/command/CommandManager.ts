@@ -277,7 +277,7 @@ export class CommandManager implements CommandQueue {
     }
     catch (_) {
       this.discard()
-      this._ctx.assists.logger?.error('withTransaction error', 'CommandManager')
+      this._ctx.assists.logger?.logError('withTransaction error', 'CommandManager')
     }
     finally {
       this.closeTransaction()
@@ -303,7 +303,7 @@ export class CommandManager implements CommandQueue {
       }
     }
     catch (_) {
-      this._ctx.assists.logger?.error('withTransactionFn error', 'CommandManager')
+      this._ctx.assists.logger?.logError('withTransactionFn error', 'CommandManager')
       return false
     }
     finally {

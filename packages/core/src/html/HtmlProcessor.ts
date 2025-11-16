@@ -27,7 +27,7 @@ export class HtmlProcessor {
           arr.push(t as HtmlToEtElementTransformer)
         }
         else {
-          this.transformersMap[elName] = [t as HtmlToEtElementTransformer]
+          this.transformersMap[elName] = [t] as HtmlToEtElementTransformer[]
         }
       }
     }
@@ -72,7 +72,8 @@ export class HtmlProcessor {
     if (el instanceof HTMLElement) {
       const ts = this.transformersMap[el.localName]
       if (!ts) {
-        return new Text(el.textContent ?? '')
+        // 无插件处理, 跳过, 继续处理后代
+        return this.#transformChildNodes(ctx, el.childNodes, parent)
       }
       for (const t of ts) {
         const res = t(el, ctx, parent)

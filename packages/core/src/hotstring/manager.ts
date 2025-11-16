@@ -37,7 +37,7 @@ export const getHotstringManager = (ctx: Et.EditorContext, options?: Partial<Hot
    */
   const addHotString = (hs: Hotstring, update = true) => {
     if (hotstringMap.has(hs.hotstring)) {
-      ctx.assists.logger?.warn(`hotstring "${hs.hotstring}" is already exist`, 'Hotstring')
+      ctx.assists.logger?.logWarn(`hotstring "${hs.hotstring}" is already exist`, 'Hotstring')
     }
     hotstringMap.set(hs.hotstring, hs)
     if (update) {

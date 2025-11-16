@@ -31,9 +31,9 @@ export const linkEffector: Et.EffectorSupportInline = {
     if (!html) {
       return
     }
-    const df = ctx.createFragment(html)
-    const a = df.querySelector('a')
-    if (!a) {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const a = doc.body.firstElementChild as HTMLAnchorElement | null
+    if (a?.localName !== 'a') {
       return
     }
     const url = a.href, title = a.title ?? ''
