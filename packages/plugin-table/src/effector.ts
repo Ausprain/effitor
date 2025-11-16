@@ -194,10 +194,14 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     menus.forEach(menu => el.appendChild(menu.el))
 
     return dropdown.createContent(el, menus, {
-      onEnter() {
-        this.currentMenuOrItem()?.onchosen?.call(this, ctx)
-        return
-      },
+      // TODO 不可在 dropdown 打开期间执行命令并 commit, 必须先关闭 dropdown 再执行命令/commit
+      // 因为 dropdown 是插入到文档中的, 有副作用, 执行其他命令前必须撤回 dropdown 带来的副作用
+      // 这里希望在打开 dropdown 时可以点击多次 item, 连续插入多个行/列, 得通过 popup 来实现
+      // popup 节点在编辑区外, 悬浮在编辑区上, 对文档内容无副作用
+      // onEnter() {
+      //   this.currentMenuOrItem()?.onchosen?.call(this, ctx)
+      //   return
+      // },
       onopen(etel) {
         const table = etel.parentNode?.parentNode
         if (!ctx.schema.table.is(table)) {

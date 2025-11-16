@@ -11,6 +11,7 @@ export const insertTableRowOrEnterNewParagraph = (ctx: Et.EditorContext, anchorT
     if (!ctx.schema.table.is(table)) {
       return
     }
+    ctx.commandManager.commitNextHandle(true)
     const newP = ctx.createPlainParagraph()
     return ctx.commandManager.push(
       cmd.removeNode({ node: anchorTr }),
@@ -33,10 +34,10 @@ export const insertNewRow = (ctx: Et.EditorContext, anchorTr: EtTableRowElement,
   if (!firstCell) {
     return false
   }
-  return ctx.commandManager.push(cmd.insertNode({
-    node: tr,
-    execAt: to === 'top' ? cr.caretOutStart(anchorTr) : cr.caretOutEnd(anchorTr),
-  })).handleAndUpdate(setCaret ? cr.caretEndAuto(firstCell) : null)
+  return ctx.commandManager.handleInsertNode(tr,
+    to === 'top' ? cr.caretOutStart(anchorTr) : cr.caretOutEnd(anchorTr),
+    setCaret ? cr.caretEndAuto(firstCell) : false,
+  )
 }
 
 /**
