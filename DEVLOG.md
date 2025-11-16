@@ -303,7 +303,7 @@ Todos
 - [ ] 基础
   - [x] atx标题, 可通过 `### ` 或 `#3 ` 方式插入标题
 - [x] markdown互转
-- [ ] 原生 html 互转
+- [x] 原生 html 互转
 - [x] Dropdown item
 - [ ] 标题链功能(IntersectionObserver)从 EditorBody移植到标题插件
 
@@ -339,9 +339,8 @@ Todos
   - [x] 缩进处理
   - [x] alt+上/下 移动列表
 - [x] markdown互转
-- [ ] 原生 html 互转
+- [x] 原生 html 互转
 - [x] Dropdown item
-- [ ] 首段落插入列表报错(无效应元素) [FIXME](./packages/plugin-list/src/effector.ts#L16)
 
 #### plugin-link
 
@@ -352,7 +351,7 @@ Todos
 - [ ] 基础
   - [x] 识别 `[xxx](http://xxx.com)` 并自动转换为链接
 - [x] markdown互转
-- [ ] 原生 html 互转
+- [x] 原生 html 互转
 - [x] popup 更新, 跳转链接
 - [x] dropdown 插入链接
 
