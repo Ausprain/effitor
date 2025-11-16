@@ -1,7 +1,8 @@
 {
   "name": "@effitor/playground",
-  "version": "0.2.0-beta.1.0",
+  "version": "0.2.0",
   "description": "A web editor based on `Input Events Level 2`",
+  "private": true,
   "keywords": [
     "editor",
     "wysiwyg",
@@ -10,11 +11,10 @@
   "type": "module",
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https:/github.com/Ausprain/effitor.git/packages/playground#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ausprain/effitor.git",
-    "directory": "packages/playground"
+    "directory": "examples/playground"
   },
   "scripts": {
     "dev": "vite",
@@ -28,6 +28,5 @@
   },
   "devDependencies": {
     "vite": "^7.0.6"
-  },
-  "private": true
+  }
 }

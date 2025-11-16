@@ -1,6 +1,6 @@
 {
   "name": "effitor",
-  "version": "0.2.0-beta.1.0",
+  "version": "0.2.0",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "editor",
@@ -52,7 +52,7 @@
   },
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https:/github.com/Ausprain/effitor.git/main#readme",
+  "homepage": "https://github.com/Ausprain/effitor#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ausprain/effitor.git",

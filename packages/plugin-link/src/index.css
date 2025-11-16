@@ -26,10 +26,9 @@ et-link {
   text-decoration: underline;
   transition: var(--et-transition-color-scheme);
 
-  &::before {
-    /* unicode link */
-    content: "🔗";
-    font-size: 0.8em;
+  & > * {
+    pointer-events: none;
+    background-color: transparent;
   }
 
   &:hover {

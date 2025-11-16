@@ -1,7 +1,7 @@
 // @ts-check
 
 import fs from 'node:fs/promises'
-import { dirname, resolve, join } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import baseJson from '../package.json'
 import config from './config.js'
 
@@ -11,10 +11,11 @@ const updateConfigs = ([
   'keywords',
   'author',
   'license',
-  'homepage',
   'repository',
 ]// as (keyof typeof baseJson)[]
 ).reduce((config, key) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   config[key] = baseJson[key]
   return config
 }, {})
@@ -22,6 +23,7 @@ const keyOrdered = {
   name: undefined,
   version: undefined,
   description: undefined,
+  private: undefined,
   keywords: undefined,
   type: undefined,
   main: undefined,
@@ -69,7 +71,8 @@ packageJsonList.forEach(({ path, json }) => {
     pkgName = 'effitor'
   }
   else {
-    repositoryDir = `packages/${pkgName}`
+    repositoryDir = dirname(path).split('/').slice(-2).join('/')
+    // repositoryDir = `packages/${pkgName}`
     pkgName = `@effitor/${pkgName}`
   }
   const pkgJson = {
@@ -82,8 +85,6 @@ packageJsonList.forEach(({ path, json }) => {
     pkgJson.repository.type = 'git'
     pkgJson.repository.url = `git+${REPOSITORY_URL}`
     pkgJson.repository.directory = repositoryDir
-    // FIXME join不能拼接 url
-    pkgJson.homepage = `${join(REPOSITORY_URL, repositoryDir)}#readme`
   }
   // 保留原有 description
   if (json.description) {

@@ -1,6 +1,6 @@
 {
   "name": "@effitor/assist-counter",
-  "version": "0.2.0-beta.1.0",
+  "version": "0.2.0",
   "description": "A web editor based on `Input Events Level 2`",
   "keywords": [
     "editor",
@@ -22,7 +22,6 @@
   },
   "author": "Henvn Leaf",
   "license": "MIT",
-  "homepage": "https:/github.com/Ausprain/effitor.git/packages/assist-counter#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Ausprain/effitor.git",

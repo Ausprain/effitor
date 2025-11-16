@@ -23,13 +23,13 @@
 </svg>
 <!-- <p style="margin-bottom:0;text-align:center;font-style:italic;font-size:2.2em;"><span style="background: linear-gradient(79deg, #9921e7 0%, #6671e7 25%, #9921e7 50%, #6671e7 75%, #9921e7 100%);background-clip: text;text-shadow: none;padding:0 8px;animation: gradient-animation 2s ease-in-out infinite;"><span style="color: transparent;">effi</span>cient edi<span style="color: transparent;">tor</span><span></p> -->
 <p style="margin-bottom:2em;text-align:center;">
-  <a href="./README.md">English</a> | 
-  <a href="./README_zh.md">中文</a>
+  <a href="./README_en.md">English</a> | 
+  <a href="./README.md">中文</a>
 </p>
 
 # Effitor
 
-effitor是一个高性能插件化的web富文本编辑器框架（或库），取名自*efficient editor*，拥抱最新标准和技术，追求极致优雅的编辑体验。
+effitor是一个高性能插件化的web富文本编辑器，取名自*efficient editor*，拥抱最新标准和技术，追求极致优雅的编辑体验。
 
 > ⚠️ effitor 是一种尝试，它不是一个十分稳定的编辑器，尚有许多已知或未知的问题待解决和完善。目前仅适配桌面端现代浏览器（chrome，edge，firefox，safari），且不支持协同编辑。
 
@@ -41,7 +41,7 @@ effitor是一个高性能插件化的web富文本编辑器框架（或库），�
 
 此外，在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将持续进行。
 
-### 优秀的性能
+### 还可以的性能
 
 effitor 基于`contenteditable`实现，但能拥有基于`textarea`实现（如 CodeMirror）的编辑性能。
 
