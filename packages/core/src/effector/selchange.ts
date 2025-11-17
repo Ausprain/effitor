@@ -1,5 +1,3 @@
-import { CssClassEnum } from '@effitor/shared'
-
 import type { Et } from '../@types'
 
 export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.SelChangeAction) => {
@@ -28,16 +26,6 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
     //   return
     // }
     ctx.update()
-    if (ctx.selection.isCollapsed) {
-      if (ctx.bodyEl.classList.contains(CssClassEnum.SelectionRange)) {
-        ctx.bodyEl.classList.remove(CssClassEnum.SelectionRange)
-      }
-    }
-    else {
-      if (!ctx.bodyEl.classList.contains(CssClassEnum.SelectionRange)) {
-        ctx.bodyEl.classList.add(CssClassEnum.SelectionRange)
-      }
-    }
     callback?.(ev, ctx)
   }
 }

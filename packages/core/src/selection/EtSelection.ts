@@ -186,11 +186,14 @@ export class EtSelection {
       this._focusTopElement = void 0
     }
 
-    if (this.isRangingBody) {
-      this._body.el.classList.add(CssClassEnum.SelectionAll)
+    if (this._collapsed) {
+      this._body.el.classList.remove(CssClassEnum.SelectionRange, CssClassEnum.SelectionAll)
     }
     else {
-      this._body.el.classList.remove(CssClassEnum.SelectionAll)
+      this._body.el.classList.add(CssClassEnum.SelectionRange)
+      if (this.isRangingBody) {
+        this._body.el.classList.add(CssClassEnum.SelectionAll)
+      }
     }
     return true
   }
