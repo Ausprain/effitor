@@ -1,7 +1,7 @@
 {
   "name": "@effitor/plugin-link",
   "version": "0.2.0",
-  "description": "A web editor based on `Input Events Level 2`",
+  "description": "A link plugin for Effitor.",
   "keywords": [
     "editor",
     "wysiwyg",

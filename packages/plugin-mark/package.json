@@ -1,7 +1,7 @@
 {
   "name": "@effitor/plugin-mark",
   "version": "0.2.0",
-  "description": "A web editor based on `Input Events Level 2`",
+  "description": "A mark plugin for Effitor, supporting bold, italic, strikethrough, highlight, and inline code.",
   "keywords": [
     "editor",
     "wysiwyg",

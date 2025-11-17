@@ -1,7 +1,7 @@
 {
   "name": "@effitor/themes",
   "version": "0.2.0",
-  "description": "official themes of effitor",
+  "description": "Ready-to-use CSS themes for Effitor.",
   "keywords": [
     "editor",
     "wysiwyg",

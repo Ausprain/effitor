@@ -1,30 +1,7 @@
-<svg width="100%" height="50" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="textGradient" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#9921e7">
-        <animate 
-          attributeName="stop-color" 
-          values="#9921e7; #6671e7; #9921e7;"
-          keyTimes="0; 0.5; 1"
-          dur="2s" 
-          repeatCount="indefinite" />
-      </stop>
-      <stop offset="100%" stop-color="#6671e7">
-        <animate 
-          attributeName="stop-color" 
-          values="#6671e7; #9921e7; #6671e7;" 
-          keyTimes="0; 0.5; 1"
-          dur="2s" 
-          repeatCount="indefinite" />
-      </stop>
-    </linearGradient>
-  </defs>
-  <text x="50%" y="88%" text-anchor="middle" font-size="36" font-style="italic"><tspan fill="url(#textGradient)">effi</tspan><tspan fill="currentColor" font-size="33">cient edi</tspan><tspan fill="url(#textGradient)">tor</tspan></text>
-</svg>
-<!-- <p style="margin-bottom:0;text-align:center;font-style:italic;font-size:2.2em;"><span style="background: linear-gradient(79deg, #9921e7 0%, #6671e7 25%, #9921e7 50%, #6671e7 75%, #9921e7 100%);background-clip: text;text-shadow: none;padding:0 8px;animation: gradient-animation 2s ease-in-out infinite;"><span style="color: transparent;">effi</span>cient edi<span style="color: transparent;">tor</span><span></p> -->
-<p style="margin-bottom:2em;text-align:center;">
-  <a href="./README_en.md">English</a> | 
-  <a href="./README.md">中文</a>
+<p align="center"><a href="#"><img src="./docs/assets/title.webp" alt="efficient editor"></a></p>
+<p align="center">
+  <a href="./README.md">English</a> | 
+  <a href="#">中文</a>
 </p>
 
 # Effitor
@@ -37,17 +14,17 @@ effitor是一个高性能插件化的web富文本编辑器，取名自*efficient
 
 与其他编辑器不同，effitor 是一个以编辑效率和体验优先的富文本编辑器，正如它名字的由来：_efficient editor_。它基于`contenteditable`，使用最基础的 DOM 操作实现，并几乎接管了浏览器对 contenteditable 的所有默认行为（输入法除外），以实现编辑操作的高度定制化。
 
-如果你不需要拼写检查、自动补全等功能，也不需要特别严谨的文档结构，只是希望能以自己喜欢的编辑方式惬意地记录一些内容，那么 effitor 很适合你。因为它很简单，没有抽象的结构，你只需要熟悉基础的 DOM 操作，就可以很容易地通过 effitor 构建独属于你自己的编辑器。或者，你满意 effitor 的默认配置，可以直接“开箱即用”。
+如果你不需要协同编辑、拼写检查、自动补全等功能，也不需要特别严谨的文档结构，只是希望能以自己喜欢的编辑方式惬意地记录一些内容，那么 effitor 很适合你。因为它很简单，没有抽象的结构，你只需要熟悉基础的 DOM 操作，就可以很容易地通过 effitor 构建独属于你自己的编辑器。或者，你满意 effitor 的默认配置，可以直接“开箱即用”。
 
 此外，在 effitor 的核心`@effitor/core`中，我们做了很多优化编辑体验的工作，而且这些优化将持续进行。
 
 ### 还可以的性能
 
-性能与 tiptap 相当.
+// TODO benchmark
 
 ### 样式延续的问题（Format Continuation）
 
-大多数富文本编辑器的实现，像是一套摆放整齐的画笔，用户需要经常在不同画笔间切换。比如加粗，用户需要先按下`ctrl+b`，然后输入加粗文本，在用户完成加粗文本后，需要再次按下`ctrl+b`，才能取消加粗。同时，如果某段加粗（或其他高亮）文本在段落的末尾，那么用户在段落末尾继续编辑时，就会产生样式连带的问题——即继续输入的文本自然连带当前光标位置的样式。除非手动按一次 `ctrl+b`，如果是加粗斜体，还要额外按一次 `ctrl+i`。这似乎已经成了某种“潜在的规范”，几乎每一个编辑器都是这样的，但这并不是一个好的编辑体验。这也是我们喜欢 `Typora` 即时渲染的原因，它能自动为我们标注富文本的边界。
+大多数富文本编辑器的实现，像是一套摆放整齐的画笔，用户需要经常在不同画笔间切换。比如加粗，用户需要先按下`ctrl+b`，然后输入加粗文本，在用户完成加粗文本后，需要再次按下`ctrl+b`，才能取消加粗。同时，如果某段加粗（或其他高亮）文本在段落的末尾，那么用户在段落末尾继续编辑时，就会产生样式连带的问题——即继续输入的文本自然连带当前光标位置的样式。除非手动按一次 `ctrl+b`，如果是加粗斜体，还要额外按一次 `ctrl+i`。这似乎已经成了某种“潜在的规范”，几乎每一个编辑器都是这样的，但这并不是一个好的编辑体验。
 
 effitor 尝试解决这个问题，我们不希望用户频繁更换画笔，而是在意图做什么时编辑器即刻响应，即切换画笔的动作由编辑器完成，而不是用户。它有效应元素的概念，并且提供两个快捷键让光标跳出效应元素。加粗等样式节点也是效应元素，我们只需按下 Tab 键，就可以跳出当前样式节点。双击空格，则可直接跳出最外层样式节点。
 
@@ -60,9 +37,9 @@ effitor 内置了热字符串功能，你可以通过配置来定义自己的热
 
 ### 输入法标点符号的自动半角化
 
-我相信非英语母语开发者肯定遇到过这样的情况：在开启中文输入法编写 markdown 时，我想要高亮一个内行代码，于是我按下`` ` ``键，可得到的却是`·`。我们需要频繁切换中英键盘，或输入法，才能得到我们想要的输入。而 MacBook 的输入法切换，却又是那样的令人恼火。
+非英语母语开发者可能遇到过这样的情况：在开启输入法编写 markdown 时，我想要高亮一个内行代码，于是我按下`` ` ``键，可得到的却是`·`。我们需要频繁切换系统键盘，或输入法，才能得到我们想要的输入。而 MacBook 的输入法切换，却又是那样的令人恼火。
 
-或者，你需要捣鼓一下输入法的设置，最终可能也找不到合适的解决方案。在Windows 下，我们可以借助 [AutoHotkey](https://www.autohotkey.com/) 的`T*`模式的`hotstring`功能来实现（但这有一定概率产生副作用）。
+或者，你需要捣鼓一下输入法的设置，最终可能也找不到合适的解决方案。在Windows 下，我们可以借助 AutoHotkey 的`T*`模式的`hotstring`功能来实现（但这有一定概率产生副作用）。
 
 但在 effitor，我们提供了一个更优雅的解决方案，当你按下\`键时却输入了`·`时，你只需要再按一下空格，即可将`·`替换为\`。
 类似的还有其他字符，如`【`转为`[`，`！`转为`!`等，只需要追加一个空格就可以完成。
@@ -70,29 +47,19 @@ effitor 内置了热字符串功能，你可以通过配置来定义自己的热
 
 ### 适应语言的光标跳跃控制
 
-编辑文档时，我们可能经常使用 alt+左/右方向键来切换光标位置以跳过一个单词，但通常只能识别半角标点符号，且无法判断非拉丁语言的单词边界。浏览器底层帮我们实现了，即会根据当前浏览器语言来判断单词边界。而 effitor 将这一功能集成到了编辑器里，你可以在编辑器内设置指定语言，然后就可以在编辑器中畅快地跳过一个单词了。
+编辑文档时，我们可能经常使用 `Alt + ←/→` 来切换光标位置以跳过一个单词，但通常只能识别半角标点符号，且无法判断非拉丁语言的单词边界。浏览器底层帮我们实现了，即会根据当前浏览器语言来判断单词边界。而 effitor 将这一功能集成到了编辑器里，你可以在编辑器内设置指定语言，然后就可以在编辑器中畅快地跳过一个单词了。
 
-### 一些我们认为好的体验
-
-- 系统级光标选区控制能力
-  - cmd/ctrl+↑/↓ 光标跳到文档开头/末尾
-  - cmd/alt+←/→ 光标跳到行首/行尾
-  - opt/ctrl+←/→ 光标跳过一个单词
-  - 以上+shift 则变为扩展选区，而非移动光标
-- OneNote 的逐级全选
-- VS Code 的部分“编辑习惯”
-  - ctrl/cmd+x 剪切当前行
-  - alt/opt+↑/↓ 移动行（段落）
+同样的，还有`Alt + Backspace`删除单个语义单词。
 
 ## 安装
 
 使用npm安装
 
-```shell
+```sh
 npm install effitor
 ```
 
-## 快速开始
+## 使用
 
 只支持esm
 
@@ -163,27 +130,28 @@ bun dev
 - 编辑器亮/暗模式切换
 - 部分markdown互转
 - 内置助手
-  - 字数统计（assist-counter）
-  - 对话框（assist-dialog）
-  - 下拉菜单（assist-dropdown）
-  - 消息（assist-message）
-  - 弹窗和悬浮工具（aassist-popup）
+  - assist-counter：字数统计
+  - assist-dialog：对话框
+  - assist-dropdown：下拉菜单
+  - assist-message：消息
+  - aassist-popup：弹窗和悬浮工具
 - 内置插件
-  - 标题（plugin-heading）
-  - 高亮（plugin-mark）
-  - 链接（plugin-link）
-  - 列表（plugin-list）
-  - 媒体（图片/音/视频）（plugin-media）
-  - 代码块（plugin-code）
-  - 表格
-  - [ ] 数学公式（//TODO
-  - [ ] excalidraw（//Doing
+  - plugin-heading：标题
+  - plugin-mark：高亮
+  - plugin-link：链接
+  - plugin-list：列表
+  - plugin-media：媒体（图片/音/视频）
+  - plugin-code：代码块
+  - plugin-blockquote：引用块
+  - plugin-table：表格
+  - [ ] plugin-math：数学公式（//TODO, 目前可以在代码块中开启渲染 latex 功能，以获取块级数学公式）
+  - [ ] plugin-excalidraw：（//Doing
 
 ### 特点
 
 - 无抽象数据模型，编辑操作采用直接操作DOM方式进行交互
 - 基于`contenteditable`，但接管浏览器所有行为（除输入法输入和剪切板行为）
-- 基于最新web标准，如：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)等
+- 基于web标准，如：[`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)，[`Selection API`](https://www.w3.org/TR/selection-api/)，[`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)等
 
 ### 局限
 

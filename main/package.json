@@ -1,7 +1,7 @@
 {
   "name": "effitor",
   "version": "0.2.0",
-  "description": "A web editor based on `Input Events Level 2`",
+  "description": "An elegant and efficient editor.",
   "keywords": [
     "editor",
     "wysiwyg",

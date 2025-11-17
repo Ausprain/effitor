@@ -1,7 +1,7 @@
 {
   "name": "@effitor/assist-popup",
   "version": "0.2.0",
-  "description": "A web editor based on `Input Events Level 2`",
+  "description": "A popup assistant for Effitor.",
   "keywords": [
     "editor",
     "wysiwyg",

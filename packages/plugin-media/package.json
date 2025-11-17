@@ -1,7 +1,7 @@
 {
   "name": "@effitor/plugin-media",
   "version": "0.2.0",
-  "description": "A web editor based on `Input Events Level 2`",
+  "description": "A media plugin for Effitor, supporting image, audio, and video.",
   "keywords": [
     "editor",
     "wysiwyg",

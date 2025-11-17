@@ -7,7 +7,6 @@ import config from './config.js'
 
 const updateConfigs = ([
   'version',
-  'description',
   'keywords',
   'author',
   'license',

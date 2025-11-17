@@ -42,9 +42,22 @@
         "vitest": "^3.2.4",
       },
     },
+    "examples/benchmark": {
+      "name": "@effitor/benchmark",
+      "version": "0.2.0",
+      "dependencies": {
+        "@effitor/themes": "workspace:*",
+        "@excalidraw/excalidraw": "^0.18.0",
+        "dompurify": "^3.3.0",
+        "effitor": "workspace:*",
+      },
+      "devDependencies": {
+        "vite": "^7.0.6",
+      },
+    },
     "examples/playground": {
       "name": "@effitor/playground",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/themes": "workspace:*",
         "@excalidraw/excalidraw": "^0.18.0",
@@ -57,7 +70,7 @@
     },
     "main": {
       "name": "effitor",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/assist-counter": "workspace:*",
         "@effitor/assist-dialog": "workspace:*",
@@ -72,6 +85,7 @@
         "@effitor/plugin-list": "workspace:*",
         "@effitor/plugin-mark": "workspace:*",
         "@effitor/plugin-media": "workspace:*",
+        "@effitor/plugin-table": "workspace:*",
       },
       "devDependencies": {
         "fs-extra": "^11.3.1",
@@ -81,42 +95,42 @@
     },
     "packages/assist-counter": {
       "name": "@effitor/assist-counter",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-dialog": {
       "name": "@effitor/assist-dialog",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-dropdown": {
       "name": "@effitor/assist-dropdown",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-message": {
       "name": "@effitor/assist-message",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/assist-popup": {
       "name": "@effitor/assist-popup",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/core": {
       "name": "@effitor/core",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "mdast-util-from-markdown": "^2.0.2",
         "mdast-util-frontmatter": "^2.0.1",
@@ -130,14 +144,14 @@
     },
     "packages/plugin-blockquote": {
       "name": "@effitor/plugin-blockquote",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-code": {
       "name": "@effitor/plugin-code",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
         "dompurify": "^3.3.0",
@@ -150,7 +164,7 @@
     },
     "packages/plugin-excalidraw": {
       "name": "@effitor/plugin-excalidraw",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
         "@excalidraw/excalidraw": "^0.18.0",
@@ -162,58 +176,55 @@
     },
     "packages/plugin-heading": {
       "name": "@effitor/plugin-heading",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-link": {
       "name": "@effitor/plugin-link",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-list": {
       "name": "@effitor/plugin-list",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
       },
     },
     "packages/plugin-mark": {
       "name": "@effitor/plugin-mark",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
-      },
-    },
-    "packages/plugin-math": {
-      "name": "@effitor/plugin-math",
-      "version": "0.2.0-beta.1",
-      "dependencies": {
-        "@effitor/core": "workspace:*",
-        "@types/katex": "^0.16.7",
-        "katex": "^0.16.25",
       },
     },
     "packages/plugin-media": {
       "name": "@effitor/plugin-media",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@effitor/assist-popup": "workspace:*",
       },
     },
     "packages/plugin-table": {
       "name": "@effitor/plugin-table",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
       "dependencies": {
         "@effitor/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@effitor/assist-dropdown": "workspace:*",
       },
     },
     "packages/themes": {
       "name": "@effitor/themes",
-      "version": "0.2.0-beta.1",
+      "version": "0.2.0",
     },
   },
   "packages": {
@@ -291,6 +302,8 @@
 
     "@effitor/assist-popup": ["@effitor/assist-popup@workspace:packages/assist-popup"],
 
+    "@effitor/benchmark": ["@effitor/benchmark@workspace:examples/benchmark"],
+
     "@effitor/core": ["@effitor/core@workspace:packages/core"],
 
     "@effitor/playground": ["@effitor/playground@workspace:examples/playground"],
@@ -308,8 +321,6 @@
     "@effitor/plugin-list": ["@effitor/plugin-list@workspace:packages/plugin-list"],
 
     "@effitor/plugin-mark": ["@effitor/plugin-mark@workspace:packages/plugin-mark"],
-
-    "@effitor/plugin-math": ["@effitor/plugin-math@workspace:packages/plugin-math"],
 
     "@effitor/plugin-media": ["@effitor/plugin-media@workspace:packages/plugin-media"],
 
