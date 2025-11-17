@@ -29,30 +29,30 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
       },
     },
     keyupSolver: {
-      ArrowUp: (_, ctx) => {
-        if (ctx.composition.inSession || ctx.selection.isCollapsed) {
-          return
-        }
-        ctx.assists.popup.showSelectionRangePopup()
-      },
-      ArrowDown: (_, ctx) => {
-        if (ctx.composition.inSession || ctx.selection.isCollapsed) {
-          return
-        }
-        ctx.assists.popup.showSelectionRangePopup()
-      },
-      ArrowLeft: (_, ctx) => {
-        if (ctx.composition.inSession || ctx.selection.isCollapsed) {
-          return
-        }
-        ctx.assists.popup.showSelectionRangePopup()
-      },
-      ArrowRight: (_, ctx) => {
-        if (ctx.composition.inSession || ctx.selection.isCollapsed) {
-          return
-        }
-        ctx.assists.popup.showSelectionRangePopup()
-      },
+      // ArrowUp: (_, ctx) => {
+      //   if (ctx.composition.inSession || ctx.selection.isCollapsed) {
+      //     return
+      //   }
+      //   ctx.assists.popup.showSelectionRangePopup()
+      // },
+      // ArrowDown: (_, ctx) => {
+      //   if (ctx.composition.inSession || ctx.selection.isCollapsed) {
+      //     return
+      //   }
+      //   ctx.assists.popup.showSelectionRangePopup()
+      // },
+      // ArrowLeft: (_, ctx) => {
+      //   if (ctx.composition.inSession || ctx.selection.isCollapsed) {
+      //     return
+      //   }
+      //   ctx.assists.popup.showSelectionRangePopup()
+      // },
+      // ArrowRight: (_, ctx) => {
+      //   if (ctx.composition.inSession || ctx.selection.isCollapsed) {
+      //     return
+      //   }
+      //   ctx.assists.popup.showSelectionRangePopup()
+      // },
     },
     htmlEventSolver: {
       mousedown: (_, ctx) => {
@@ -74,7 +74,7 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
       //   }, 10)
       // },
       mouseover: (ev, ctx) => {
-        // 有任意鼠标按键按下, 禁止popup
+        // 有任意鼠标按键按下, 禁止hover popup
         if (ev.buttons !== 0) {
           return
         }
