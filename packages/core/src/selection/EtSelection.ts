@@ -1012,6 +1012,8 @@ export class EtSelection {
 
   /**
    * 渐进式全选: 光标 -> 当前行 -> 当前段落 -> 当前顶层节点 -> 文档
+   * * 若选区在元素编辑节点内, 则最多全选至其内容; 若 textarea 内全选, 不会超出textarea 边界
+   * @returns 是否产生了行为(动作)
    */
   selectAllGradually() {
     if (this._rawEl) {
@@ -1079,27 +1081,28 @@ export class EtSelection {
     const { selectionStart: start, selectionEnd: end, value } = el
     const len = value.length
     if (start === 0 && end === len) {
-      const r = document.createRange()
-      // rawEl在可编辑节点内部, 则选择 rawEl, 否则选择第一个可编辑效应父节点
-      if (el.isContentEditable) {
-        r.selectNode(el)
-        this.selectRange(r)
-        this.dispatchChange()
-        return true
-      }
-      else {
-        let etEl = this._body.findInclusiveEtParent(el)
-        while (etEl && !etEl.isContentEditable) {
-          etEl = this._body.findInclusiveEtParent(etEl)
-        }
-        if (etEl) {
-          r.selectNode(etEl)
-          this.selectRange(r)
-          this.dispatchChange()
-          return true
-        }
-        return false
-      }
+      return false
+      // const r = document.createRange()
+      // // rawEl在可编辑节点内部, 则选择 rawEl, 否则选择第一个可编辑效应父节点
+      // if (el.isContentEditable) {
+      //   r.selectNode(el)
+      //   this.selectRange(r)
+      //   this.dispatchChange()
+      //   return true
+      // }
+      // else {
+      //   let etEl = this._body.findInclusiveEtParent(el)
+      //   while (etEl && !etEl.isContentEditable) {
+      //     etEl = this._body.findInclusiveEtParent(etEl.parentNode)
+      //   }
+      //   if (etEl) {
+      //     r.selectNode(etEl)
+      //     this.selectRange(r)
+      //     this.dispatchChange()
+      //     return true
+      //   }
+      //   return false
+      // }
     }
     const selectedText = value.slice(start, end)
     if (selectedText.includes('\n')

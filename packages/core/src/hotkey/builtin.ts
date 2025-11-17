@@ -58,7 +58,7 @@ export const BuiltinHotkeyActionMap = {
 export const ModKeyDownBuiltinMap: ModKeyDownEffectMap = {
 
   // ctrl+a 逐级全选
-  [create(Key.A, CtrlCmd)]: ctx => ctx.selection.selectAllGradually(),
+  [create(Key.A, CtrlCmd)]: ctx => (ctx.selection.selectAllGradually(), true), // 始终返回 true, 禁止逃逸触发浏览器默认行为
 
   /* -------------------------------------------------------------------------- */
   /*                                 撤销 / 重做                                 */
