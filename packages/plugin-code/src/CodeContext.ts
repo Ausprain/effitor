@@ -399,9 +399,24 @@ export class CodeContext<L extends string = string> {
     r.setStart(pos.container, pos.offset)
 
     const scrollToCaretRect = () => {
-      const rect = r.getClientRects()[0] as DOMRect | undefined
+      let rect = r.getClientRects()[0] as DOMRect | undefined
       if (!rect) {
-        return true
+        // 光标处无文本, 无法获取矩形框; 获取对应行的矩形框, 并压缩宽度代替
+        const lineEl = this._lineWrapper.childNodes.item(this.getLineIndexByOffset(caretOffset)) as HTMLElement
+        rect = lineEl?.getBoundingClientRect()
+        if (!rect) {
+          return false
+        }
+        rect = {
+          x: rect.x,
+          y: rect.y,
+          top: rect.top,
+          bottom: rect.bottom,
+          left: rect.left,
+          right: rect.left + 1,
+          height: rect.height,
+          width: 1,
+        } as DOMRect
       }
       return ctx.body.scrollIntoView(rect, {
         toStart,

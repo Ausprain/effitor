@@ -232,11 +232,11 @@ export class EditorBody {
     else {
       const offsetRect = scrollContainer.getBoundingClientRect()
       // 即使滚动滚动容器也无法让 rect 在视口内, 直接返回 false
-      // 滚动容器在视口上方或下方, 30 是一般单行高度
-      if (offsetRect.bottom < 30) {
+      // 滚动容器在视口上方或下方
+      if (offsetRect.bottom < paddingY) {
         return -1
       }
-      else if (offsetRect.top > window.innerHeight - 30) {
+      else if (offsetRect.top > window.innerHeight - paddingY) {
         return 1
       }
       if ((toStart && rect.left > offsetRect.left && rect.left < offsetRect.right

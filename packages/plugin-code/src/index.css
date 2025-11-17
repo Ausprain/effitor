@@ -35,6 +35,7 @@ et-code {
   transition: var(--et-transition-color-scheme);
   /* 阻止代码块在分栏时被分割 */
   break-inside: avoid-column;
+  contain: content;
 
   /* lang */
   &::before {

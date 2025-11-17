@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import 'rect-visualizer'
+
 import '@effitor/themes/default.min.css'
 
 import './assets/main.css'
