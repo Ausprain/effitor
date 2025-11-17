@@ -11,7 +11,7 @@ import {
   tableIcon,
 } from '@effitor/shared'
 
-import { TABLE_ET_CODE, TableName } from './config'
+import { TableName } from './config'
 import { ectx } from './ectx'
 
 const beforeKeydownSolver: Et.KeyboardSolver = {
@@ -95,11 +95,6 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
         data: text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, ''),
         paragraph: currP,
       })
-    },
-    {
-      filter: {
-        etType: TABLE_ET_CODE,
-      },
     },
   ))
 
