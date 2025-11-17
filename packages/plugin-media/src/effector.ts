@@ -29,6 +29,27 @@ const ectx = useEffectorContext('$media_ctx', {
       return kind === media.type && media.exts.has(ext)
     })
   },
+  tryAlignMedia: (ctx: Et.EditorContext, anchorText: Et.Text, atEnd: boolean) => {
+    let mediaEl = atEnd ? traversal.treeNextNode(anchorText) : traversal.treePrevNode(anchorText)
+    if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
+      return false
+    }
+    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$media_ctx.MEDIA_ET_CODE)) {
+      const currState = mediaEl.mediaState
+      if (currState === MediaState.Failed) {
+        return false
+      }
+      mediaEl.mediaState = {
+        [MediaState.Expanded]: MediaState.Collapsed,
+        [MediaState.FloatLeft]: MediaState.Center,
+        [MediaState.Center]: MediaState.FloatRight,
+        [MediaState.FloatRight]: MediaState.Collapsed,
+        [MediaState.Collapsed]: MediaState.FloatLeft,
+      }[currState] ?? MediaState.Collapsed
+
+      return true
+    }
+  },
 })
 
 export const mediaEffector: Et.EffectorSupportInline = {
@@ -57,24 +78,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
         }
         atEnd = true
       }
-
-      let mediaEl = atEnd ? traversal.treeNextNode(text) : traversal.treePrevNode(text)
-      if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
-        return
-      }
-      if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$media_ctx.MEDIA_ET_CODE)) {
-        const currState = mediaEl.mediaState
-        if (currState === MediaState.Failed) {
-          return
-        }
-        mediaEl.mediaState = {
-          [MediaState.Expanded]: MediaState.Collapsed,
-          [MediaState.FloatLeft]: MediaState.Center,
-          [MediaState.Center]: MediaState.FloatRight,
-          [MediaState.FloatRight]: MediaState.Collapsed,
-          [MediaState.Collapsed]: MediaState.FloatLeft,
-        }[currState] ?? MediaState.Collapsed
-
+      if (ectx.$media_ctx.tryAlignMedia(ctx, text, atEnd)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },
