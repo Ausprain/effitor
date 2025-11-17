@@ -399,7 +399,7 @@ export class CodeContext<L extends string = string> {
     r.setStart(pos.container, pos.offset)
 
     const scrollToCaretRect = () => {
-      const rect = r.getClientRects()[0]
+      const rect = r.getClientRects()[0] as DOMRect | undefined
       if (!rect) {
         return true
       }
@@ -412,10 +412,12 @@ export class CodeContext<L extends string = string> {
       })
     }
 
-    const scrolled = scrollToCaretRect()
-    // wrapper 不在视口内, 使用 selection 将其滚动到视口内, 再将代码行滚动到视口内
-    if (!scrolled) {
-      ctx.selection.scrollIntoViewSync(toStart, 'instant', r)
+    const unscrolled = scrollToCaretRect()
+    // wrapper 不在视口内, 将其滚动到视口内, 再将代码行滚动到视口内
+    if (unscrolled) {
+      this.wrapper.parentElement?.scrollIntoView({
+        block: unscrolled === 1 ? 'end' : 'start',
+      })
       // 使用异步, 等待 selection 滚动完毕后, 再次滚动代码容器, 以获取新的 Range矩形框
       setTimeout(() => {
         scrollToCaretRect()

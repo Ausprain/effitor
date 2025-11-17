@@ -206,7 +206,8 @@ export class EditorBody {
    *  * `scrollBehavior`: 滚动行为
    *  * `scrollContainer`: 滚动容器, 默认为编辑区初始化时所指定的滚动容器; 可指定其他容器来将此方法应用于其他元素;
    *                       指定为其他容器时, 若该容器不在视口内, 则直接返回
-   * @param 当且仅当滚动容器不是`document.documentElement`且即使滚动之后rect也不在视口内时, 返回`false`
+   * @returns 若滚动容器不是`document.documentElement`, 滚动容器在视口上方, 返回-1, 在视口下方, 返回 1;
+   *          成功滚动或无需滚动, 返回 0
    */
   scrollIntoView(rect: DOMRect, {
     toStart = true,
@@ -220,7 +221,7 @@ export class EditorBody {
     paddingY?: number
     scrollBehavior?: ScrollBehavior
     scrollContainer?: Element
-  } = {}) {
+  } = {}): -1 | 0 | 1 {
     let offsetTop, offsetBottom, offsetLeft, offsetRight
     if (scrollContainer === document.documentElement) {
       offsetTop = 0
@@ -231,10 +232,12 @@ export class EditorBody {
     else {
       const offsetRect = scrollContainer.getBoundingClientRect()
       // 即使滚动滚动容器也无法让 rect 在视口内, 直接返回 false
-      if ((rect.top < offsetRect.top && offsetRect.bottom < 20)
-        || (rect.bottom > offsetRect.bottom && offsetRect.top > window.innerHeight - 20)
-      ) {
-        return false
+      // 滚动容器在视口上方或下方, 30 是一般单行高度
+      if (offsetRect.bottom < 30) {
+        return -1
+      }
+      else if (offsetRect.top > window.innerHeight - 30) {
+        return 1
       }
       if ((toStart && rect.left > offsetRect.left && rect.left < offsetRect.right
         && rect.top > offsetRect.top && rect.top < offsetRect.bottom)
@@ -250,10 +253,10 @@ export class EditorBody {
       }
       else {
         // rect不在滚动容器内, 需滚动滚动容器
-        offsetTop = offsetRect.top
-        offsetBottom = offsetRect.bottom
-        offsetLeft = offsetRect.left
-        offsetRight = offsetRect.right
+        offsetTop = Math.max(0, offsetRect.top)
+        offsetBottom = Math.min(window.innerHeight, offsetRect.bottom)
+        offsetLeft = Math.max(0, offsetRect.left)
+        offsetRight = Math.min(window.innerWidth, offsetRect.right)
       }
     }
     // 在视口内, 无需滚动
@@ -261,7 +264,7 @@ export class EditorBody {
       && rect.top > offsetTop && rect.top < offsetBottom
       && rect.bottom < offsetBottom && rect.bottom > offsetTop
     ) {
-      return true
+      return 0
     }
 
     const { clientHeight, clientWidth, scrollLeft, scrollTop } = scrollContainer
@@ -312,14 +315,14 @@ export class EditorBody {
       }
     }
     if (left === scrollLeft && top === scrollTop) {
-      return true
+      return 0
     }
     scrollContainer.scroll({
       left,
       top,
       behavior: scrollBehavior,
     })
-    return true
+    return 0
   }
 
   /* -------------------------------------------------------------------------- */
