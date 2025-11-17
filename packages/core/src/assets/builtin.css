@@ -11,8 +11,8 @@ et-body {
   border: none;
   hyphens: auto;  /* 末尾单词自动连接符 */
   white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
-  /* 容器查询, 仅关心宽度 */
-  container-type: inline-size;
+  /* 容器查询, 仅关心宽度; 该属性会隐式设置 contain: style, 导致嵌套有序列表无法重新计数 */
+  container: et-body / inline-size;
 }
 et-body.Et--selection-all {
   background-color: var(--et-color-selection-all--blur);

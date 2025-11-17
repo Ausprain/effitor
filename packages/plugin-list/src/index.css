@@ -50,6 +50,10 @@ et-list[style-type="upper-roman"] {
   list-style-type: upper-roman;
 }
 
+et-list > et-list {
+  contain: style;
+}
+
 et-list {
   display: block;
   margin: 4px 0;
