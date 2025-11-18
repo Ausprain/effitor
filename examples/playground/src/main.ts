@@ -21,7 +21,7 @@ import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
 import { useCodePlugin } from '@effitor/plugin-code'
 import { useLinkPlugin } from '@effitor/plugin-link'
-import { useMediaPlugin } from '@effitor/plugin-media'
+import { CreateImageOptions, useMediaPlugin } from '@effitor/plugin-media'
 import { useBlockquotePlugin } from '@effitor/plugin-blockquote'
 import { useTablePlugin } from '@effitor/plugin-table'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
@@ -64,7 +64,40 @@ const editor = new Effitor({
       allowSMIL: true,
     }),
     useLinkPlugin(),
-    useMediaPlugin(),
+    useMediaPlugin({
+      image: {
+        onfileselected(files) {
+          const opts: CreateImageOptions[] = []
+          for (const file of files) {
+            const reader = new FileReader()
+            reader.readAsDataURL(file)
+            opts.push({
+              alt: file.name,
+              url: new Promise((resolve) => {
+                reader.onloadend = async () => {
+                  const start = Date.now()
+                  await (async () => {
+                    return new Promise<void>((resolve) => {
+                      const it = setInterval(() => {
+                        // 添加一个延迟，模拟加载大文件效果
+                        if (Date.now() - start > 1000) {
+                          resolve()
+                          clearInterval(it)
+                        }
+                      }, 500)
+                    })
+                  })()
+                  resolve(reader.result as string)
+                }
+              }),
+            })
+          }
+          return opts
+        },
+      },
+      audio: true,
+      video: true,
+    }),
     useTablePlugin(),
 
     // {

@@ -25,7 +25,8 @@ const editor = new Effitor({
                   await (async () => {
                     return new Promise<void>((resolve) => {
                       const it = setInterval(() => {
-                        if (Date.now() - start > 1025000) {
+                        // 添加一个延迟，模拟加载大文件效果
+                        if (Date.now() - start > 2000) {
                           resolve()
                           clearInterval(it)
                         }

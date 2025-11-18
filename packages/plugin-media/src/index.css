@@ -200,7 +200,7 @@
     border-radius: 4px;
 
     &:hover {
-      border: 1px solid var(--et-color-hinting);
+      outline: 1px solid var(--et-color-hinting);
     }
   }
   & > video {
