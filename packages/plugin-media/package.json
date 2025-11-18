@@ -35,6 +35,7 @@
     "@effitor/core": "workspace:*"
   },
   "devDependencies": {
-    "@effitor/assist-popup": "workspace:*"
+    "@effitor/assist-popup": "workspace:*",
+    "@effitor/assist-dropdown": "workspace:*"
   }
 }

@@ -1,3 +1,4 @@
+import type { DropdownMenuItemOptions } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
 import { etcode, traversal, useEffectorContext } from '@effitor/core'
 import {
@@ -191,10 +192,13 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
       return ctx.assists.dialog && showMediaUploadDialog(ctx.assists.dialog, ctx, type)
     }
   }
-  const options = {
-    filter: {
-      etType: MEDIA_ET_CODE,
-    },
+  const getItemOpts = (prefix: string): DropdownMenuItemOptions => {
+    return {
+      filter: {
+        etType: MEDIA_ET_CODE,
+      },
+      prefixes: ['media', prefix],
+    }
   }
   // 判断是否有配置相应的媒体类型
   const { image, audio, video } = ctx.pctx.$media_ctx
@@ -202,21 +206,21 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       imageFileIcon(),
       onchosen(MediaType.Image),
-      options,
+      getItemOpts('image'),
     ))
   }
   if (audio) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       audioFileIcon(),
       onchosen(MediaType.Audio),
-      options,
+      getItemOpts('audio'),
     ))
   }
   if (video) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       videoFileIcon(),
       onchosen(MediaType.Video),
-      options,
+      getItemOpts('video'),
     ))
   }
 }
@@ -256,8 +260,10 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
     dropArea.appendChild(fileInput)
     dropArea.appendChild(icon)
     container.appendChild(dropArea)
-    // * focus要放在最后(插入节点之后), 否则无效
-    fileInput.focus()
+    // 延迟聚焦，避免因上一个焦点未完全移除，而被浏览器拒绝焦点转移
+    setTimeout(() => {
+      fileInput.focus()
+    }, 0)
   }).then((files) => {
     ctx.editor.focus()
     const targetCaret = ctx.selection.getTargetCaret()

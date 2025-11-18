@@ -23,6 +23,10 @@ export interface DialogRender<T> {
 
 const defaultOptions = {
   /**
+   * 是否模态对话框，现阶段都是模态的
+   */
+  modal: true as const,
+  /**
    * // TODO
    * 遮罩层定位, 目前仅支持 fixed;\
    * absolute定位时, 需要判断当前编辑器所在滚动容器; 而不可仅仅根据编辑器定位, 否则随内容增长,
@@ -44,10 +48,26 @@ export class DialogManager {
     readonly container: HTMLDivElement
   }
 
+  private globalKeydownListener: (ev: KeyboardEvent) => void
+  /**
+   * open函数返回一个 promise，该 promise 的 reject 回调会赋值给该变量；
+   * 若 dialog 关闭时没有 fullfilled，则会调用此 reject
+   */
+  private _reject?: () => void
+
   constructor(private _ctx: Et.EditorContext, options?: DialogAssistOptions) {
     this._options = {
       ...defaultOptions,
       ...options ? Object.fromEntries(Object.entries(options).filter(([_, v]) => v !== undefined)) : void 0,
+    }
+    this.globalKeydownListener = (ev) => {
+      if (ev.key === 'Escape') {
+        this.close()
+      }
+      // 禁止一切修饰性按键（放行复制/剪切/粘贴）
+      if ((ev.ctrlKey || ev.altKey || ev.metaKey) && !['x', 'c', 'v'].includes(ev.key)) {
+        ev.preventDefault()
+      }
     }
     this.__init()
   }
@@ -80,19 +100,8 @@ export class DialogManager {
     }
   }
 
-  private globalKeydownListener?: (ev: KeyboardEvent) => void
-  private _reject?: () => void
-
   private __open() {
     this._dialog.backdrop.classList.add(DialogEnum.Class_Show)
-    this.globalKeydownListener = (ev) => {
-      if (ev.key === 'Escape') {
-        this.close()
-      }
-      if ((ev.ctrlKey || ev.altKey || ev.metaKey) && !['x', 'c', 'v'].includes(ev.key)) {
-        ev.preventDefault()
-      }
-    }
     document.addEventListener('keydown', this.globalKeydownListener, true)
   }
 
@@ -102,10 +111,7 @@ export class DialogManager {
       this._reject = void 0
     }
     this._dialog.container.textContent = ''
-    if (this.globalKeydownListener) {
-      document.removeEventListener('keydown', this.globalKeydownListener, true)
-      this.globalKeydownListener = void 0
-    }
+    document.removeEventListener('keydown', this.globalKeydownListener, true)
   }
 
   /**
@@ -115,6 +121,7 @@ export class DialogManager {
    *          当 dialog 不是通过resolve 关闭的, 则该 promise 会被 reject, 并返回 undefined
    */
   open<T>(render: DialogRender<T>): Promise<T> {
+    this._ctx.editor.blur()
     return new Promise<T>((resolve, reject) => {
       this._reject = reject
       this.__checkInitialized()
@@ -129,6 +136,7 @@ export class DialogManager {
   }
 
   close() {
+    this._ctx.editor.focus()
     this.__close()
     this._dialog?.backdrop.classList.remove(DialogEnum.Class_Show)
   }
