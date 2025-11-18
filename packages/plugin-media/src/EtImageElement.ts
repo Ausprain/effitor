@@ -4,7 +4,7 @@ import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { IEtMediaElement, ImageUrlMetadata } from './config'
 import { MEDIA_ET_CODE, MediaEnum, MediaState, MediaType } from './config'
-import { initMediaElementSrc } from './utils'
+import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 图片效应元素
@@ -104,8 +104,8 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
-      const ext = node.url.split('.').pop()
-      if (!ext || !ctx.pctx.$media_ctx.image.exts.has(ext)) {
+      const meta = parseMediaUrl(node.url)
+      if (!ctx.pctx.$media_ctx.image.exts.has(meta.ext)) {
         return null
       }
       return EtImageElement.create(node.url, {

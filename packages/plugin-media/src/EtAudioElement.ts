@@ -4,7 +4,7 @@ import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { AudioUrlMetadata, IEtMediaElement } from './config'
 import { MEDIA_ET_CODE, MediaEnum, MediaState, MediaType } from './config'
-import { initMediaElementSrc } from './utils'
+import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 音频效应元素
@@ -93,8 +93,8 @@ export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
-      const ext = node.url.split('.').pop()
-      if (!ext || !ctx.pctx.$media_ctx.audio?.exts.has(ext)) {
+      const meta = parseMediaUrl(node.url)
+      if (!ctx.pctx.$media_ctx.audio?.exts.has(meta.ext)) {
         return null
       }
       return EtAudioElement.create(node.url, {

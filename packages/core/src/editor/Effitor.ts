@@ -378,6 +378,9 @@ export class Effitor {
    * 让编辑区获取焦点, 若没有记录的光标位置, 则光标聚焦到编辑器末尾
    */
   focus() {
+    if (this._isFocused) {
+      return
+    }
     this._markFocused()
     const ctx = this.context
     this.bodyEl.focus()

@@ -32,6 +32,34 @@ import { useTablePlugin } from '@effitor/plugin-table'
 import md from '../demo.md?raw'
 import DOMPurify from 'dompurify'
 
+const onMediaFileSelected = (files: File[]) => {
+  const opts: CreateImageOptions[] = []
+  for (const file of files) {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    opts.push({
+      alt: file.name,
+      url: new Promise((resolve) => {
+        reader.onloadend = async () => {
+          const start = Date.now()
+          await (async () => {
+            return new Promise<void>((resolve) => {
+              const it = setInterval(() => {
+                // 添加一个延迟，模拟加载大文件效果
+                if (Date.now() - start > 1000) {
+                  resolve()
+                  clearInterval(it)
+                }
+              }, 500)
+            })
+          })()
+          resolve(reader.result as string)
+        }
+      }),
+    })
+  }
+  return opts
+}
 const countSpan = initTextCountSpan()
 const editor = new Effitor({
   // effectorInline: true,
@@ -66,37 +94,15 @@ const editor = new Effitor({
     useLinkPlugin(),
     useMediaPlugin({
       image: {
-        onfileselected(files) {
-          const opts: CreateImageOptions[] = []
-          for (const file of files) {
-            const reader = new FileReader()
-            reader.readAsDataURL(file)
-            opts.push({
-              alt: file.name,
-              url: new Promise((resolve) => {
-                reader.onloadend = async () => {
-                  const start = Date.now()
-                  await (async () => {
-                    return new Promise<void>((resolve) => {
-                      const it = setInterval(() => {
-                        // 添加一个延迟，模拟加载大文件效果
-                        if (Date.now() - start > 1000) {
-                          resolve()
-                          clearInterval(it)
-                        }
-                      }, 500)
-                    })
-                  })()
-                  resolve(reader.result as string)
-                }
-              }),
-            })
-          }
-          return opts
-        },
+        onfileselected: onMediaFileSelected,
       },
-      audio: true,
-      video: true,
+      audio: {
+        onfileselected: onMediaFileSelected,
+      },
+      video: {
+        onfileselected: onMediaFileSelected,
+        maxSize: 20 * 1024 * 1024,
+      },
     }),
     useTablePlugin(),
 

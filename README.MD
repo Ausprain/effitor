@@ -134,7 +134,7 @@ _(To be documented)_
 - Built-in keyboard shortcuts & hotstrings
 - Light/dark mode toggle
 - Partial Markdown and HTML conversion
-- Built-in assists:
+- Built-in assistants:
   - `assist-counter`: character count
   - `assist-dialog`: modal dialogs
   - `assist-dropdown`: dropdown menus

@@ -4,7 +4,7 @@ import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { IEtMediaElement, VideoUrlMetadata } from './config'
 import { MEDIA_ET_CODE, MediaEnum, MediaState, MediaType } from './config'
-import { initMediaElementSrc } from './utils'
+import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 视频效应元素
@@ -109,8 +109,8 @@ export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
-      const ext = node.url.split('.').pop()
-      if (!ext || !ctx.pctx.$media_ctx.video?.exts.has(ext)) {
+      const meta = parseMediaUrl(node.url)
+      if (!ctx.pctx.$media_ctx.video?.exts.has(meta.ext)) {
         return null
       }
       return EtVideoElement.create(node.url, {
