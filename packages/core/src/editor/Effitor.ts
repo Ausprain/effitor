@@ -174,9 +174,10 @@ export class Effitor {
     htmlOptions = undefined,
   }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM以及ShadowDOM内选区, 则强制不使用 ShadowDOM
-    if (shadow) {
-      shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
-    }
+    // if (shadow) {
+    //   shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
+    // }
+    shadow = false
     this.isShadow = shadow
     this.theme = theme
     this.configManager = configManager

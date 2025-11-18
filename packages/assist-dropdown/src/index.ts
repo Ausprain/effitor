@@ -15,6 +15,8 @@ export interface DropdownAssistOptions extends DropdownTrigger {}
 export type {
   DropdownCallbacks,
   DropdownContent,
+  DropdownContentRender,
+  DropdownFilter,
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuItemOptions,
@@ -22,10 +24,10 @@ export type {
 } from './config'
 export type { Dropdown } from './dropdown'
 
-const defaultOptions = {
+const defaultOptions: DropdownTrigger = {
   triggerKey: '/',
   triggerMod: true,
-} as const
+}
 
 export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPluginSupportInline => {
   options = {

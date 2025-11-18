@@ -60,6 +60,7 @@
     "lint-staged": "^16.1.2",
     "playwright": "^1.54.2",
     "prettier": "^3.6.2",
+    "rect-visualizer": "^1.0.1",
     "stylelint": "^16.23.0",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",

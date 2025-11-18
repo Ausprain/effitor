@@ -19,10 +19,11 @@ export interface DropdownContent {
   callbacks?: DropdownCallbacks
 }
 
-interface DropdownFilter {
+export interface DropdownFilter {
   /**
    * * `tldr:`此次 dropdown 可能往当前效应元素插入的元素的效应类型,
-   *          若不插入元素到当前效应元素内, 即对当前效应元素无效应副作用, 可设置为 0 或 -1
+   *          若不插入效应元素到当前效应元素内, 或对当前效应元素无效应副作用, 可设置为 0；
+   *          若设置为-1，则该项会被永远忽略
    *
    * 对应操作可能产生的效应类型, 判断该etType是否是ctx.focusEtElement.inEtCode的子集,
    * 即当前效应元素下是否允许此效应, 以筛选过滤menu/item \
@@ -98,7 +99,7 @@ export interface DropdownCallbacks {
    * @returns 是否禁止dropdown打开
    */
   onopen?: (this: Dropdown, etel: Et.EtElement) => TrueOrVoid
-  /** 在dropdown.close开始时执行 */
+  /** 在dropdown.close开始时(撤销 dropdown 副作用后)执行 */
   onclose?: (this: Dropdown) => void
 }
 export interface DropdownTrigger {

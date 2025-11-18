@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { type Et, etcode } from '@effitor/core'
 import {
   chevronRightIcon,
   CssClassEnum,
@@ -11,6 +11,7 @@ import type {
   DropdownCallbacks,
   DropdownContent,
   DropdownContentRender,
+  DropdownFilter,
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuItemOptions,
@@ -97,14 +98,14 @@ export class Dropdown {
   private currentContent: DropdownContent | null | undefined = void 0
   /** 前一个dropdown内容 */
   private prevContent: DropdownContent | null = null
-  /** 当前open永久匹配的菜单项: 经过匹配当前ctx.effectElement的菜单项, 用于让prefix二次过滤 */
+  /** 当前open永久匹配的菜单项及其items: 经过匹配当前ctx.effectElement的菜单项, 用于让prefix二次过滤 */
   private readonly menuItemsOnCurrentOpen: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
-  /** 当前open临时匹配的菜单项: 当前经过filter和prefix过滤的菜单项; 用于切换当前可选择的菜单项 */
+  /** 当前open临时匹配的菜单项及其items: 当前经过filter和prefix过滤的菜单项; 用于切换当前可选择的菜单项 */
   private readonly menuItemsOnCurrentInput: { menu: DropdownMenu, items?: DropdownMenuItem[] }[] = []
-  /** 当前open永久隐藏的菜单项的元素节点: 经etType过滤掉的菜单项的元素 */
-  private readonly hiddenMenuItemElsOnCurrentOpen = new Set<Element>()
-  /** 当前open临时隐藏的菜单项的元素节点: 经prefix过滤掉的菜单项的元素 */
-  private readonly hiddenMenuItemElsOnCurrentInput = new Set<Element>()
+  /** 当前open永久隐藏的菜单项或item的元素节点: 经etType过滤掉的菜单项的元素 */
+  private readonly hiddenMenuAndItemElsOnCurrentOpen = new Set<Element>()
+  /** 当前open临时隐藏的菜单项或item的元素节点: 经prefix过滤掉的菜单项的元素 */
+  private readonly hiddenMenuAndItemElsOnCurrentInput = new Set<Element>()
   private currentMenuIndex = 0
   private currentItemIndex = 0
   /** 当前选择的menu/item的元素, 用于快速解除selected样式 */
@@ -118,7 +119,11 @@ export class Dropdown {
   private _capturedSelChangeListener: (ev: Event) => void
   private _capturedMouseDownListener: (ev: MouseEvent) => void
 
-  isOpened = false
+  private _isOpened = false
+
+  get isOpened() {
+    return this._isOpened
+  }
 
   /** 当前dropdown输入的文本 */
   get currentValue() {
@@ -159,7 +164,7 @@ export class Dropdown {
       onArrowUp: () => this.selectPrevMenuOrItem(6),
       onArrowDown: () => this.selectNextMenuOrItem(6),
       onArrowLeft: () => {
-        if (this.prevContent) this.updateCurrentContent(this.prevContent)
+        if (this.prevContent) this.#updateCurrentContent(this.prevContent)
         else this.selectPrevMenuOrItem()
       },
       onArrowRight: () => this.selectNextItemOrContent(),
@@ -402,7 +407,7 @@ export class Dropdown {
     }
   }
 
-  updateCurrentContent(content: DropdownContent) {
+  #updateCurrentContent(content: DropdownContent) {
     this.container.replaceChildren(content.el)
     this.currentContent = content
     this.currentMenuIndex = 0
@@ -538,10 +543,13 @@ export class Dropdown {
       this.selectNextMenuOrItem()
     }
     else if (menu.nextContent) {
-      this.updateCurrentContent(menu.nextContent)
+      this.#updateCurrentContent(menu.nextContent)
     }
   }
 
+  /**
+   * 在过滤后立即尝试选择第一个菜单项
+   */
   #selectMenuItemAfterFilter() {
     this.currentMenuIndex = 0
     this.currentItemIndex = 0
@@ -568,9 +576,11 @@ export class Dropdown {
   #filterMenuItemsOnContentChanged() {
     // currentContent !== null | undefined
     if (!this.currentContent || !this._ctx.focusEtElement) {
+      this.close(false)
       return
     }
-    const needHideElSet = this.hiddenMenuItemElsOnCurrentOpen
+    const focusEtElement = this._ctx.focusEtElement
+    const needHideElSet = this.hiddenMenuAndItemElsOnCurrentOpen
     for (const el of needHideElSet.values()) {
       // 取消上一次 open 隐藏了的menu或item
       el.classList.remove(CssClassEnum.Hidden)
@@ -579,24 +589,18 @@ export class Dropdown {
 
     const filteredMenuItems = this.menuItemsOnCurrentOpen
     filteredMenuItems.length = 0
-    const { etCode, inEtCode } = this._ctx.focusEtElement
     const menus = this.currentContent.menus
     for (const menu of menus) {
       if (!menu.filter) {
-        filterPassedMenuItems(menu, etCode, inEtCode)
+        filterPassedMenuItems(menu)
         continue
       }
-      const { etType, matchEtType, unmatchEtType } = menu.filter
       // 判断当前etel下是否允许该etType
-      if ((etType && !(etType & inEtCode))
-        // 判断当前etCode是否匹配
-        || (matchEtType && !(matchEtType & etCode))
-        || (unmatchEtType && (unmatchEtType & etCode))
-      ) {
+      if (checkFilter(menu.filter)) {
         needHideElSet.add(menu.el)
         continue
       }
-      filterPassedMenuItems(menu, etCode, inEtCode)
+      filterPassedMenuItems(menu)
     }
     for (const el of needHideElSet.values()) {
       el.classList.add(CssClassEnum.Hidden)
@@ -604,7 +608,24 @@ export class Dropdown {
     this.#filterMenuItemsOnInput()
     this.#selectMenuItemAfterFilter()
 
-    function filterPassedMenuItems(menu: DropdownMenu, etCode: number, inEtCode: number) {
+    /**
+     * 使用菜单项的 filter，判断其是否在指定效应元素下被过滤掉
+     * @returns true：此项应隐藏； false：此项应允许
+     */
+    function checkFilter(filter: DropdownFilter) {
+      const { etType, matchEtType, unmatchEtType } = filter
+      // 判断当前etel下是否允许该etType
+      if ((etType && !etcode.checkIn(focusEtElement, etType))
+      // 判断当前etCode是否匹配
+        || (matchEtType && !(matchEtType & focusEtElement.etCode))
+        || (unmatchEtType && (unmatchEtType & focusEtElement.etCode))
+      ) {
+        return true
+      }
+      return false
+    }
+
+    function filterPassedMenuItems(menu: DropdownMenu) {
       const items = menu.items
       if (!items || items.length === 0) {
         filteredMenuItems.push({ menu })
@@ -616,11 +637,7 @@ export class Dropdown {
           showItems.push(item)
           continue
         }
-        const { etType, matchEtType, unmatchEtType } = item.filter
-        if ((etType && !(etType & inEtCode))
-          || (matchEtType && !(matchEtType & etCode))
-          || (unmatchEtType && (unmatchEtType & etCode))
-        ) {
+        if (menu.filter && checkFilter(menu.filter)) {
           needHideElSet.add(item.el)
           continue
         }
@@ -649,7 +666,7 @@ export class Dropdown {
     }
 
     const filteredMenuItems = this.menuItemsOnCurrentInput
-    const needHideEls = this.hiddenMenuItemElsOnCurrentInput
+    const needHideEls = this.hiddenMenuAndItemElsOnCurrentInput
     for (const { menu, items } of this.menuItemsOnCurrentOpen) {
       if (menu.prefixes) {
         let menuMatch = false
@@ -724,18 +741,24 @@ export class Dropdown {
     }
   }
 
+  /**
+   * 根据输入内容过滤前，将取消上一次 hidden 的 item
+   */
   #beforeFilterOnInput() {
-    if (this.hiddenMenuItemElsOnCurrentInput.size) {
-      for (const el of this.hiddenMenuItemElsOnCurrentInput.values()) {
+    if (this.hiddenMenuAndItemElsOnCurrentInput.size) {
+      for (const el of this.hiddenMenuAndItemElsOnCurrentInput.values()) {
         el.classList.remove(CssClassEnum.Hidden)
       }
-      this.hiddenMenuItemElsOnCurrentInput.clear()
+      this.hiddenMenuAndItemElsOnCurrentInput.clear()
     }
     this.menuItemsOnCurrentInput.length = 0
   }
 
+  /**
+   * 根据输入内容过滤后，给本次要过滤的 item 添加 hidden
+   */
   #afterFilterOnInput() {
-    for (const el of this.hiddenMenuItemElsOnCurrentInput.values()) {
+    for (const el of this.hiddenMenuAndItemElsOnCurrentInput.values()) {
       el.classList.add(CssClassEnum.Hidden)
     }
     this.#selectMenuItemAfterFilter()
@@ -795,20 +818,20 @@ export class Dropdown {
         ...this.defaultCallbacks,
         ...(renderOrContent.callbacks || {}),
       }
-      this.updateCurrentContent(renderOrContent)
+      this.#updateCurrentContent(renderOrContent)
     }
     else {
       this.currentCallbacks = this.defaultCallbacks
-      this.updateCurrentContent(this.defaultContent)
+      this.#updateCurrentContent(this.defaultContent)
     }
     return this
   }
 
   /**
    * 打开dropdown; 若先前未adopt, 则使用默认内容渲染dropdown; 若光标非collapsed, 则不会open
-   * @param char dropdown展开后光标位置的初始字符, 如使用`/`激活dropdown, 则该值可用`/`; 默认是一个零宽字符
+   * @param char dropdown展开后光标位置的初始字符, 如使用`/`激活dropdown, 则该值可用`/`; 如果为空串或缺省，则使用零宽字符
    */
-  open(char = HtmlCharEnum.ZERO_WIDTH_SPACE) {
+  open(char?: string) {
     if (!this._ctx.selection.isCollapsed || !this._ctx.isUpdated()) {
       return false
     }
@@ -831,8 +854,8 @@ export class Dropdown {
       this.adopt(content)
     }
 
-    this.isOpened = true
-    const text = new Text(char) as Et.Text
+    this._isOpened = true
+    const text = new Text(char || HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
     this.inputSpan.textContent = ''
     this.inputSpan.appendChild(text)
 
@@ -859,12 +882,16 @@ export class Dropdown {
    * @param insertText 是否将dropdown中输入的文本插入光标所在位置
    */
   close(insertText = false) {
+    if (!this._isOpened) {
+      return
+    }
     // close时撤销dropdown给编辑区带来的副作用
     this.#removeCaptureListener()
-    this.currentCallbacks.onclose?.call(this)
     this._ctx.commandManager.discard()
+    this.currentCallbacks.onclose?.call(this)
 
-    this.isOpened = false
+    this._isOpened = false
+    this.inputSpan.textContent = ''
     this.currentContent = void 0
     this.currentMenuIndex = 0
     this.currentItemIndex = 0
