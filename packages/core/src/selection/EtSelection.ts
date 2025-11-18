@@ -179,7 +179,7 @@ export class EtSelection {
     this._validTargetRange = void 0
 
     this._isForward = void 0
-    if (!oldText || oldText !== this.anchorText) {
+    if (!oldText || oldText !== this.anchorText || !this._focusEtElement?.isConnected) {
       this._commonEtElement = void 0
       this._focusEtElement = void 0
       this._focusParagraph = void 0

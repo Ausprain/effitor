@@ -84,7 +84,10 @@ export interface EditorConfig {
   UNDO_LENGTH: number
   /** 允许挂载后不unmount而直接mount其他host; 默认 false */
   ALLOW_MOUNT_WHILE_MOUNTED?: boolean
-  /** 自动创建第一个段落, 默认 true */
+  /**
+   * 自动创建第一个段落, 默认 true
+   * 怎么创建第一个段落，可通过编辑器初始化参数的 callbacks.firstInsertedParagraph 配置
+   */
   AUTO_CREATE_FIRST_PARAGRAPH?: boolean
   /** 使用编辑器默认样式; 默认 true */
   // WITH_EDITOR_DEFAULT_STYLE: boolean

@@ -83,6 +83,8 @@ export const addListenersToEditorBody = (
     // body无段落, 清空并初始化
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
+      ctx.editor._markFocused()
+      return
     }
     if (dom.isRawEditElement(ev.target as Node)) {
       ctx.selection.setInRaw(ev.target as Et.HTMLRawEditElement)
@@ -93,19 +95,21 @@ export const addListenersToEditorBody = (
       ctx.editor._markFocused()
       // fixed. HMR热更新时 旧的selection对象可能丢失
       // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
-      requestAnimationFrame(() => {
+      // fixed. requestAnimationFrame 和 setTimeout(0) 都太快，Selection 对象依旧未更新，
+      // 这取决于 focus 瞬间 浏览器事件循环的进度
+      setTimeout(() => {
         if (!ctx.editor.isFocused) {
           // 编辑器又立马失去焦点, 直接返回
           return
         }
-        ctx.editor._markFocused()
         // 手动更新上下文和选区, 再绑定sel监听器
-        // fixed. 由于绑定 sel 监听器在 requestAnimationFrame 回调中, 则此处 focusin 所导致的 selectionchange 事件
-        // 不会被监听到, 因此此处应使用 ctx.update 而不是 forceUpdate; 否则其中的 skipNextSelChange 会导致下一次 selchange 事件被跳过
         ctx.update()
-        document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
+        // fixed. 延迟绑定selectionchange监听器，避免间接再次调用 ctx.update
+        requestAnimationFrame(() => {
+          document.addEventListener('selectionchange', listeners.selectionchange, { signal: ac.signal })
+        })
         listeners.focusin(ev)
-      })
+      }, 10)
     }
   }, { signal: ac.signal })
   body.addEventListener('focusout', (ev) => {
@@ -118,7 +122,7 @@ export const addListenersToEditorBody = (
     // 即焦点转移到编辑区(et-body)外 时
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
       ctx.editor._markBlurred()
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         if (ctx.editor.isFocused) {
           // fixed. 编辑器又马上重新获得了焦点, 直接返回
           // 在命令 discard 时经常发生, 即光标在某个命令新插入的节点中, 而执行 discard 时,
@@ -134,7 +138,7 @@ export const addListenersToEditorBody = (
           return
         }
         ctx.blurCallback()
-      })
+      }, 10)
     }
   }, { signal: ac.signal })
 

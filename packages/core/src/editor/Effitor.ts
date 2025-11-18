@@ -501,7 +501,7 @@ export class Effitor {
   }
 
   clearBody() {
-    return this.context.commonHandler.clearEditorContents()
+    return this.context.commonHandler.clearEditorContents(true)
   }
 
   /**

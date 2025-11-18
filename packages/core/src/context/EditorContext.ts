@@ -89,6 +89,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   private _skipNextKeydown = false
   /** 是否跳过下一次selectionchange事件 */
   private _skipSelChange = false
+  /** 本次更新时，选区类型是否发生改变：Range->Caret 或 Caret->Range */
+  private _selectionTypeChanged = false
 
   /**
    * 当前按下的按键, 在keydown结束时赋值当前按键; \
@@ -187,13 +189,14 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 更新编辑器上下文
    */
   update() {
+    const prevSelType = this.selection.isCollapsed
     if (!this.selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
       return (this._updated = false)
     }
     // 文本节点没有变更新, 说明效应元素/段落都没变, 可结束更新
-    if (this._oldNode && this._oldNode === this.selection.anchorText) {
+    if (this._oldNode && this._oldNode === this.selection.anchorText && this._focusEtElement?.isConnected) {
       return (this._updated = true)
     }
     this._oldNode = this.selection.anchorText
@@ -205,6 +208,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.editor.blur()
       return (this._updated = false)
     }
+    this._selectionTypeChanged = prevSelType === this.selection.isCollapsed
     // 更新上下文效应元素
     // 特别的, 若 focusEtElement === focusParagraph === focusTopElement, 则
     // focusinCallback 由 focusEtElement 调用
@@ -257,7 +261,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusEtElement(v) {
-    if (this._focusEtElement === v) return
+    if (this._focusEtElement === v && !this._selectionTypeChanged) return
     // fixed. 为防止focusoutCallback里用到context, 先更新this._focusEtElement, 再调用focusoutCallback;
     // 因为旧的节点直接就是回调函数的this, 可以直接拿到, 而新的节点需要ctx获得
     const old = this._focusEtElement
@@ -288,7 +292,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusParagraph(v) {
-    if (this._focusParagraph === v) return
+    if (this._focusParagraph === v && !this._selectionTypeChanged) return
     const old = this._focusParagraph
     this._focusParagraph = v
     if (this.__onParagraphChanged) {
@@ -313,7 +317,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   private set focusTopElement(v) {
-    if (this._focusTopElement === v) return
+    if (this._focusTopElement === v && !this._selectionTypeChanged) return
     const old = this._focusTopElement
     this._focusTopElement = v
     if (this.__onTopElementChanged) {

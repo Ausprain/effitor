@@ -67,6 +67,7 @@ const editor = new Effitor({
   // customStyleText: css,
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,
+    AUTO_CREATE_FIRST_PARAGRAPH: false,
   },
   htmlOptions: {
     sanitizer: html => DOMPurify.sanitize(html),

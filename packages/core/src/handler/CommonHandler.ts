@@ -127,11 +127,14 @@ export class CommonHandler {
   }
 
   /**
-   * 清空编辑器内容
+   * 清空编辑区内容（可撤回）
    * * 如果仅是简单的清空编辑器(至初始状态), 应优先使用 `initEditorContents(false)`
+   * @param setCaret 清空后是否定位光标位置，若为 true, 光标会定位到 et-body 内开头，这会触发
+   *                  EtBodyElement.focusinCallback 该回调会判断 et-body 是否为空，
+   *                  为空会默认插入一个段落(调用initEditorContents(false))
    * @returns 操作是否成功
    */
-  clearEditorContents() {
+  clearEditorContents(setCaret: boolean) {
     const ctx = this._ctx
     const bodyEl = ctx.bodyEl
     if (bodyEl.childNodes.length === 0) {
@@ -143,8 +146,10 @@ export class CommonHandler {
     }
     this.commander.push(
       cmd.removeContent({ removeRange }),
-    ).handleAndUpdate(cr.caretIn(bodyEl, 0))
-    return true
+    )
+    return setCaret
+      ? this.commander.handleAndUpdate(cr.caretIn(bodyEl, 0))
+      : this.commander.handle()
   }
 
   /** 使用 markdown 文本更新编辑器内容 */
