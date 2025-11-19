@@ -5,7 +5,7 @@
 import { EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
-import { etcode } from '../../element'
+import { etcode } from '../../element/etcode'
 import { cr } from '../../selection'
 import { dom, traversal } from '../../utils'
 
@@ -182,7 +182,7 @@ const filterToNormalize = (
     nodesToRegress.push(node)
     return 2 /** NodeFilter.FILTER_REJECT */
   }
-  if (inEtCode && dom.isEtElement(node)) {
+  if (inEtCode && etcode.check(node)) {
     let etP: Et.EtElement | number | null = dom.findEffectParent(node)
     if (!etP || etP === node) {
       etP = inEtCode
@@ -544,7 +544,7 @@ export const mergeHtmlElement = (
     // 不合并, 找最内层可编辑边缘节点, 定位光标
     return innermostMiddlePosition(former, latter)
   }
-  if (dom.isEtElement(former)) {
+  if (etcode.check(former)) {
     if (!former.isEqualTo(latter)) {
       // 非可合并et元素
       return innermostMiddlePosition(former, latter)

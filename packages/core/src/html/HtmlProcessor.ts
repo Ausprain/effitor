@@ -152,7 +152,7 @@ export class HtmlProcessor {
   }
 
   #parseElement(ctx: Et.EditorContext, el: Element) {
-    if (dom.isEtElement(el)) {
+    if (ctx.isEtElement(el)) {
       return this.#parseEtElement(ctx, el)
     }
     // TODO 过滤敏感节点

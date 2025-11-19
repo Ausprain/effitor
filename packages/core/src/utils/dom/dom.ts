@@ -6,6 +6,7 @@
 import { BuiltinElName, CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
+import { etcode } from '../../element/etcode'
 
 /* -------------------------------------------------------------------------- */
 /*                                  node utils                                */
@@ -54,7 +55,7 @@ export const cloneEtElement = <T extends Et.EtElement>(el: T, deep: boolean): T 
   const clone = el.cloneNode(deep) as T
   clone.removeAttribute('id')
   const walker = document.createTreeWalker(clone, 1, (el) => {
-    if (isEtElement(el)) {
+    if (etcode.check(el)) {
       el.removeAttribute('id')
       removeStatusClassForEl(el)
     }
@@ -112,11 +113,11 @@ export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instan
 export const isElementOrText = (node: Node): node is Element | Text => node.nodeType === 1 || node.nodeType === 3
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
 export const isBrElement = (node: Node): node is HTMLBRElement => (node as Et.Node).localName === 'br'
-/**
- * 判断一个节点是否为效应元素
- * * 这不是严格的检验方法, 严格的检验需使用 `etcode.check(node)` 方法
- */
-export const isEtElement = (node: Node): node is Et.EtElement => (node as Et.EtElement).etCode !== void 0
+// /**
+//  * 判断一个节点是否为效应元素
+//  * * 这不是严格的检验方法, 严格的检验需使用 `etcode.check(node)` 方法
+//  */
+// export const isEtElement = (node: Node): node is Et.EtElement => (node as Et.EtElement).etCode !== void 0
 /** 判断一个节点是否不可编辑 (光标无法落入其中) */
 export const isNotEditable = (node: Node): boolean => {
   if (['br', 'svg', 'img', 'audio', 'video'].includes((node as HTMLElement).localName)) {
@@ -227,7 +228,7 @@ export const isEqualNode = (one: Node, other: Node) => {
   if (isText(one)) {
     return true
   }
-  if (isEtElement(one)) {
+  if (etcode.check(one)) {
     return one.isEqualTo(other as Et.Element)
   }
   if (isElement(one)) {

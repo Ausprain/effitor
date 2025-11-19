@@ -35,7 +35,7 @@
 
 ## Todo
 
-- [ ] 去除 dom 导出的 isEtElement 方法，统一由 etcode 来判断
+- [x] 去除 dom 导出的 isEtElement 方法，统一由 etcode 来判断
 - [ ] mountEtHandler改为使用效应码扩展，而非使用效应元素
 - [x] 优化命令(CommandManager)与 handler (CommonHandler)之间的界限: 命令直接处理DOM 操作; 而 handler 在命令上层, 还要负责处理效应规则
 - [ ] code 渲染 html 应使用 iframe

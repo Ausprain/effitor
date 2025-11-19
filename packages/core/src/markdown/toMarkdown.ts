@@ -1,5 +1,6 @@
 import type * as mdast from 'mdast'
 
+import { etcode } from '../element/etcode'
 import { dom } from '../utils'
 
 type MdastNode<T extends mdast.Nodes['type']> = Extract<mdast.Nodes, { type: T }>
@@ -47,7 +48,7 @@ export const htmlChildNodes2Mdast = (childNodes: ChildNode[] | NodeListOf<ChildN
   let i = -1, lastBrIndex = -1
   for (const child of childNodes) {
     i++
-    if (dom.isEtElement(child)) {
+    if (etcode.check(child)) {
       const out = child.toMdast(mdastNode)
       if (!out) continue
       if (Array.isArray(out)) {
