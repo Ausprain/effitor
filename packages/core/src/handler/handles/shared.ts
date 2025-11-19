@@ -107,6 +107,7 @@ export const cloneRangeUnselectedContents = (
  * @param startNode 起始节点(包含)
  * @param endNode 结束节点(包含)
  * @param insertAt 插入位置(移动时), 或 null(移除时的)
+ * @returns 是否添加了移除/移动内容的命令
  */
 export const tryToMoveNodes = (
   cmds: Et.CommandQueue,
@@ -122,7 +123,9 @@ export const tryToMoveNodes = (
     else {
       cmds.push(cmd.removeContent({ removeRange }))
     }
+    return true
   }
+  return false
 }
 /**
  * 尝试添加一个命令, 删除俩节点之间的兄弟节点, 俩节点不同层或中间无兄弟, 则不添加命令

@@ -9,7 +9,7 @@ export const transformInsertContents = createEffectHandle('TransformInsertConten
 })
 
 export const insertParagraphAtParagraphStart = createEffectHandle('InsertParagraphAtParagraphStart', (ctx, tc) => {
-  const newP = tc.anchorParagraph.createForInsertParagraph(ctx, -1)
+  const newP = tc.anchorParagraph.createForInsertParagraph(ctx, -1, true)
   if (newP === null) {
     return true
   }
@@ -22,7 +22,7 @@ export const insertParagraphAtParagraphStart = createEffectHandle('InsertParagra
   return true
 })
 export const insertParagraphAtParagraphEnd = createEffectHandle('InsertParagraphAtParagraphEnd', (ctx, tc) => {
-  const newP = tc.anchorParagraph.createForInsertParagraph(ctx, 1)
+  const newP = tc.anchorParagraph.createForInsertParagraph(ctx, 1, true)
   if (newP === null) {
     return true
   }

@@ -24,9 +24,10 @@ export abstract class EtParagraph extends EffectElement {
    *   按下 enter 时插入怎样的段落, 返回 null 则不插入段落, 即 enter 操作无结果
    * * 未重写时, 返回使用 `ctx.cloneParagraph(this, true)` 克隆的段落
    * @param pos 光标位置, -1: 段落开头, 0: 段落中间, 1: 段落结尾
+   * @param withBr 是否在段落末尾插入一个 “换行符”，根据编辑器配置，是 br 或零宽字符
    */
-  createForInsertParagraph(ctx: Et.EditorContext, _pos: -1 | 0 | 1): EtParagraph | null {
-    return ctx.cloneParagraph(this, true)
+  createForInsertParagraph(ctx: Et.EditorContext, _pos: -1 | 0 | 1, withBr: boolean): EtParagraph | null {
+    return ctx.cloneParagraph(this, withBr)
   }
 
   /**

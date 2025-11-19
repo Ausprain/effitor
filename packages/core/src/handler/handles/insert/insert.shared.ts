@@ -537,7 +537,7 @@ const splitParagraphToInsertParagraphContents = (
   // 插入新段落
   if (isEmptyNewP) {
     // 新段落为空, 插入一个'br'
-    ctx.createElementWithBr(newP)
+    ctx.appendBrToElement(newP)
     destCaretRange = cr.caretInAuto(newP)
   }
   else {

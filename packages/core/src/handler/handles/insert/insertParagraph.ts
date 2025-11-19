@@ -58,13 +58,12 @@ export const insertParagraphAtRange = (
         return insertParagraphAtCaret(ctx, tc)
       }
       ctx.commandManager.push(cmd.removeNode({ node: textNode }))
-      const newP = ctx.cloneParagraph(currP, true)
+      const newP = ctx.cloneParagraph(currP, false)
       if (textNode.nextSibling) {
-        // 如果新段落有个尾 br, 则去掉不要, 避免从当前段落移入br 以致结尾 2 个 br
-        if (newP.lastChild && dom.isBrElement(newP.lastChild)) {
-          newP.lastChild.remove()
+        if (!tryToMoveNodes(ctx.commandManager, textNode.nextSibling, currP.lastChild, cr.caretInStart(newP))) {
+          // 没有移入内容，添加一个 br
+          ctx.appendBrToElement(newP)
         }
-        tryToMoveNodes(ctx.commandManager, textNode.nextSibling, currP.lastChild, cr.caretInStart(newP))
       }
       ctx.commandManager.push(cmd.insertNode({
         node: newP,
@@ -75,7 +74,7 @@ export const insertParagraphAtRange = (
     },
     (ctx, tr, currP) => {
       // 连同 partial 移除, 后续节点移动到新段落
-      const newP = ctx.cloneParagraph(currP, true)
+      const newP = ctx.cloneParagraph(currP, false)
       const startPartial = tr.getStartPartialNode('paragraph')
       const endPartial = tr.getEndPartialNode('paragraph')
       if (!startPartial && !endPartial) {
@@ -104,7 +103,7 @@ export const insertParagraphAtRange = (
       tryToMoveNodes(ctx.commandManager, startPartial, endPartial, null)
       // 插回未选择内容
       const [df1, df2] = cloneUnselectedContentsOfPartial(tr, startPartial, endPartial)
-      insertUnselectedPartialContents(
+      addCmdsToInsertUnselectedPartialContents(
         ctx.commandManager, df1, df2, cr.caretOutStart(startPartial), cr.caretInStart(newP),
       )
       let destCaretRange
@@ -184,7 +183,7 @@ export const insertParagraphAtCaret = (
   let moveNodeStart
   if (!partialNode || dom.isBrElement(partialNode)) {
     // 段落末尾, 直接插入新段落
-    const newP = currP.createForInsertParagraph(ctx, 1)
+    const newP = currP.createForInsertParagraph(ctx, 1, true)
     if (!newP) {
       return true
     }
@@ -196,7 +195,7 @@ export const insertParagraphAtCaret = (
     return true
   }
   // 段落中间, 处理节点拆分和转移
-  const newP = currP.createForInsertParagraph(ctx, 0)
+  const newP = currP.createForInsertParagraph(ctx, 0, false)
   if (!newP) {
     return true
   }
@@ -227,23 +226,22 @@ export const insertParagraphAtCaret = (
       needSplitPartial = true
     }
   }
-  if (moveNodeStart) {
-    // 有移动节点, 去掉尾br
-    if (newP.lastChild && dom.isBrElement(newP.lastChild)) {
-      newP.lastChild.remove()
-    }
-    tryToMoveNodes(ctx.commandManager, moveNodeStart, currP.lastChild, cr.caretInStart(newP))
-  }
+  let notEmptyNewP = tryToMoveNodes(ctx.commandManager, moveNodeStart, currP.lastChild, cr.caretInStart(newP))
   // 移动节点的插入位置用了 caretInStart 而不是 caretInEnd, 则插回未选择内容(到开头)要在移动节点之后进行
   if (needSplitPartial) {
     ctx.commandManager.push(cmd.removeNode({ node: partialNode }))
     const [df1, df2] = cloneUnselectedContentsOfPartial(tc, partialNode, partialNode)
-    insertUnselectedPartialContents(
+    addCmdsToInsertUnselectedPartialContents(
       ctx.commandManager, df1, df2, cr.caretOutStart(partialNode), cr.caretInStart(newP),
     )
     if (df2.firstChild) {
       destCaretRange = cr.caretStartAuto(df2.firstChild)
+      notEmptyNewP = true
     }
+  }
+  if (!notEmptyNewP) {
+    // newP 没有内容，追加一个 br
+    ctx.appendBrToElement(newP)
   }
   ctx.commandManager.push(cmd.insertNode({
     node: newP,
@@ -253,7 +251,7 @@ export const insertParagraphAtCaret = (
   return true
 }
 
-const insertUnselectedPartialContents = (
+const addCmdsToInsertUnselectedPartialContents = (
   cmds: Et.CommandQueue,
   df1: Et.Fragment,
   df2: Et.Fragment,

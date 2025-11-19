@@ -544,14 +544,15 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    */
   createPlainParagraph(withBr = true): Et.EtParagraphElement {
     const p = this.schema.paragraph.create()
-    return withBr ? this.createElementWithBr(p) : p
+    return withBr ? this.appendBrToElement(p) : p
   }
 
   /**
-   * 创建一个段落元素, 并根据编辑器配置 `INSERT_BR_FOR_LINE_BREAK` 决定是否在段落内插入一个 br 或零宽字符
-   * @param nameOrEl 元素标签名或元素本身
+   * 创建一个带“换行符”的元素，或为一个现有元素追加一个“换行符”
+   * * 根据编辑器配置： `INSERT_BR_FOR_LINE_BREAK` 决定“换行符”是 br 或零宽字符
+   * @param nameOrEl 元素标签名或需要添加 br 的元素
    */
-  createElementWithBr<T extends HTMLElement | string>(nameOrEl: T): T extends string
+  appendBrToElement<T extends HTMLElement | string>(nameOrEl: T): T extends string
     ? T extends keyof Et.DefinedEtElementMap ? Et.DefinedEtElementMap[T]
       : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
         : HTMLElement

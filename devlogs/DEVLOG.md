@@ -3,8 +3,10 @@
 ## Bugfix
 
 - [ ] core
+  - [ ] 逐级全选有时会失败，页面显示已经是全选当前行的状态，但实际的选区却定位到了文档末尾; 即页面上选区 Range，而实际选区 collapsed；这可能跟开发是 vite 代码缓存有关
+    - [x] 纯文本段落中间enter，变为两个段落，第二个段落出现两个文本节点，第二个是零宽字符；导致选区判断时对多个矩形框进行了误判
   - [x] 全选后ArrowRight, 光标显示在末段落内末尾, 但上下文光标定位到了末段落外末尾, 导致接下来输入文本时直接插入到了 et-body 内
-    - [ ] // TODO 需要优化 rel. [keydownArrow](./packages/core/src/effector/keydownArrow.ts#L15)
+    - [ ] // TODO 需要优化 rel. [keydownArrow](../packages/core/src/effector/keydownArrow.ts#L15)
   - [ ] 编辑器失去焦点后重新获取焦点，光标在末尾闪烁，但插入内容却在文档开头
     - [x] 页面上光标位置更新了, 而上下文信息还停留在上一次的光标位置
   - [x] 段落开头/末尾亲和位置判断需要考虑零宽字符
@@ -33,6 +35,7 @@
 
 ## Todo
 
+- [ ] 去除 dom 导出的 isEtElement 方法，统一由 etcode 来判断
 - [ ] mountEtHandler改为使用效应码扩展，而非使用效应元素
 - [x] 优化命令(CommandManager)与 handler (CommonHandler)之间的界限: 命令直接处理DOM 操作; 而 handler 在命令上层, 还要负责处理效应规则
 - [ ] code 渲染 html 应使用 iframe

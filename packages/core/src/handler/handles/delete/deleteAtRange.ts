@@ -320,7 +320,7 @@ const removeSpanningComplexParagraph = (
 }
 
 /**
- * 根据目标范围, 克隆部分选择节点中未被选择的内容
+ * 根据目标范围, 克隆部分选择节点中未被选择的内容（自动清理空节点，合并相邻文本节点，清除状态类名）
  * @param targetRange 目标选区
  * @param startPartial 开始位置所在段落下的部分选择节点
  * @param endPartial 结束位置所在段落下的部分选择节点

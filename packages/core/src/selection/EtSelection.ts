@@ -1035,6 +1035,11 @@ export class EtSelection {
         level = SelectAllLevel.No_Select_All
       }
     }
+    else if (tr.commonAncestor === tr.endParagraph
+      && tr.startOffset === 0 && tr.endOffset === tr.endParagraph.childNodes.length
+    ) {
+      level = SelectAllLevel.Select_Paragraph
+    }
     else {
       const startP = tr.startParagraph
       const endP = tr.endParagraph
