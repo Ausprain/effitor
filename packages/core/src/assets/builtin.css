@@ -16,6 +16,7 @@ et-body {
 }
 et-body.Et--selection-all {
   background-color: var(--et-color-selection-all--blur);
+  transition: none;
   &:focus {
     background-color: var(--et-color-selection-all);
   }

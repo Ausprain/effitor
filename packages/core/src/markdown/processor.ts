@@ -5,10 +5,11 @@ import { visit } from 'unist-util-visit'
 
 import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
-import type {
-  MdastNodeHandlerMap,
-  MdastNodeTransformerMap,
-  ToMarkdownHandlerMap,
+import {
+  type MdastNodeHandlerMap,
+  type MdastNodeTransformerMap,
+  PhraseNodeType,
+  type ToMarkdownHandlerMap,
 } from './config'
 import { handleMdastRoot, type MdastHandlersMap } from './fromMarkdown'
 import { mdParser } from './parser'
@@ -63,6 +64,7 @@ export const getMdProcessor = ({
   return {
     /**
      * 将el下的所有etelement转为markdown，过滤非etelement，没有etelement则返回空文本
+     * * 若解析得的 mdast 的 root 下有非块节点，会被移除
      */
     toMarkdown(ctx: Et.EditorContext, el: Et.EtElement, options?: TmOptions) {
       let root = el.toMdast(mdastNode)
@@ -70,13 +72,26 @@ export const getMdProcessor = ({
       if (Array.isArray(root) || root.type !== 'root') {
         root = buildMdastRoot(root)
       }
-      visit(root, (node, index, parent) => {
-        const trs = toMdTransformersMap[node.type]
-        if (!trs) return
-        for (const tr of trs) {
-          if (tr(node, ctx, index, parent)) break
+      const childs = []
+      for (const topChild of root.children) {
+        if (PhraseNodeType[topChild.type]) {
+          if (import.meta.env.DEV) {
+            throw Error(`toMarkdown error: [mdast top level has inline node]\ntype: ${topChild.type}, index: ${root.children.indexOf(topChild)}`)
+          }
+          continue
         }
-      })
+        childs.push(topChild)
+      }
+      root.children = childs
+      if (Object.keys(toMdTransformersMap).length) {
+        visit(root, (node, index, parent) => {
+          const trs = toMdTransformersMap[node.type]
+          if (!trs) return
+          for (const tr of trs) {
+            if (tr(node, ctx, index, parent)) break
+          }
+        })
+      }
       if (import.meta.env.DEV) {
         console.warn('to md root: ', root)
       }
@@ -90,39 +105,44 @@ export const getMdProcessor = ({
         console.warn('fm md root: ', root)
       }
       const df = handleMdastRoot(ctx, root, fromMdHandlersMap)
-      fragmentUtils.normalizeEtFragment(fragmentUtils.normalizeToEtFragment(df, ctx))
+      fragmentUtils.normalizeToEtFragment(df, ctx)
       return df
     },
 
     /* -------------------------------------------------------------------------- */
     /*                                just for dev                                */
     /* -------------------------------------------------------------------------- */
-    /**
-     * @internal
-     * 一个仅用于开发的方法, 解析一个EtElement, 返回mdast节点树
-     */
-    __toMarkdownMdastTree(ctx: Et.EditorContext, el: Et.EtElement) {
-      let root = el.toMdast(mdastNode)
-      if (!root) return
-      if (Array.isArray(root) || root.type !== 'root') {
-        root = buildMdastRoot(root)
-      }
-      visit(root, (node, index, parent) => {
-        const trs = toMdTransformersMap[node.type]
-        if (!trs) return
-        for (const tr of trs) {
-          if (tr(node, ctx, index, parent)) break
+    ...(!import.meta.env.DEV
+      ? {}
+      : {
+          /**
+           * @internal
+           * 一个仅用于开发的方法, 解析一个EtElement, 返回mdast节点树
+           */
+          __toMarkdownMdastTree(ctx: Et.EditorContext, el: Et.EtElement) {
+            let root = el.toMdast(mdastNode)
+            if (!root) return
+            if (Array.isArray(root) || root.type !== 'root') {
+              root = buildMdastRoot(root)
+            }
+            visit(root, (node, index, parent) => {
+              const trs = toMdTransformersMap[node.type]
+              if (!trs) return
+              for (const tr of trs) {
+                if (tr(node, ctx, index, parent)) break
+              }
+            })
+            return root
+          },
+          /**
+           * @internal
+           * 一个仅用于开发的方法, 解析一个md文本, 返回mdast节点树
+           */
+          __fromMarkdownMdastTree: (_ctx: Et.EditorContext, mdText: string, options?: FmOptions) => {
+            const root = mdParser.fromMarkdown(mdText, options)
+            return root
+          },
         }
-      })
-      return root
-    },
-    /**
-     * @internal
-     * 一个仅用于开发的方法, 解析一个md文本, 返回mdast节点树
-     */
-    __fromMarkdownMdastTree: (_ctx: Et.EditorContext, mdText: string, options?: FmOptions) => {
-      const root = mdParser.fromMarkdown(mdText, options)
-      return root
-    },
+    ),
   }
 }

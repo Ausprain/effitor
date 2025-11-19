@@ -67,3 +67,21 @@ export interface MdUrlMapping {
    */
   fromMarkdown: (url: string) => string
 }
+
+/**
+ * {@link mdast.PhrasingContent}
+ */
+export const PhraseNodeType: Record<string, true> = {
+  break: true,
+  delete: true,
+  emphasis: true,
+  footnoteReference: true,
+  // html: true,
+  image: true,
+  imageReference: true,
+  inlineCode: true,
+  link: true,
+  linkReference: true,
+  strong: true,
+  text: true,
+}

@@ -1,3 +1,7 @@
+/**
+ * TODO 需要优化，现在有多个 normalize 操作，每个操作都要遍历一次片段，效率低，尽量合并，一次遍历搞定
+ */
+
 import { EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
@@ -27,7 +31,7 @@ export const extractNodeContentsToEtFragment = (node: Node) => {
 }
 /**
  * 规范化节点内容(即childNodes), 并返回包含规范化内容的片段
- * @param node 待规范内容(后代)的节点
+ * @param node 待规范内容(后代)的父节点
  * @param normalizeFor 规范化目标效应元素(可视为规范化内容的未来父节点), 将使用其配置的效应规则对内容进行规范化
  * @param clone 是否克隆节点, 默认为false
  * @returns 规范化后的节点内容片段
@@ -76,31 +80,79 @@ export const normalizeAndCleanEtFragment = (
   }
 }
 /**
- * 规范化Et片段, 删除不符合效应规则的子节点, 替换为纯文本; 合并相邻#text, 并可选删除非开头零宽字符
+ *
+ * 将片段原地标准化为一个符合 Effitor 内容规范的片段;
+ *
+ * 标准:
+ * 1. 若片段内含有段落, 则片段的所有直接子节点只能是段落, 若子节点不是段落, 将会转为纯文本并替换为一个新的普通段落
+ * 2. 删除不符合效应规则的子节点, 替换为纯文本; （etElement非空时启用）
+ * 3. 合并相邻文本节点并去除空节点, 可选删除非开头零宽字符
+ *
  * @param df 待规范片段
  * @param etElement 规范目标效应元素(可视为规范内容的未来父节点), 将使用其配置的效应规则(inEtCode, notInEtCode)对内容进行规范化;
  *                  若缺省, 则默认所有效应都符合规范
  * @param cleanZWS 是否清除非开头零宽字符, 默认true
- * @returns 规范化后的片段, 返回 df 本身
+ * @returns hasParagraph 片段内是否含et 段落, allPlainParagraph 所有段落是否都是普通段落
  */
-export const normalizeEtFragment = (
-  df: Et.Fragment, etElement?: Et.EtElement | null, cleanZWS = true,
+export const normalizeToEtFragment = (
+  df: DocumentFragment, ctx: Et.EditorContext,
+  etElement?: Et.EtElement | null, cleanZWS = true,
 ) => {
-  const { inEtCode, notInEtCode } = etElement ? etElement : { inEtCode: -1, notInEtCode: 0 }
-  const regressEls: Et.EtElement[] = []
-  traversal.traverseNode(df, void 0, {
-    filter: (node) => {
-      return filterToNormalize(node, regressEls, inEtCode, notInEtCode, cleanZWS)
-    },
+  // 清除空文本节点并合并相邻文本节点
+  df.normalize()
+  let hasParagraph = false, allPlainParagraph = true
+  traversal.traverseNode(df, (el) => {
+    if (ctx.isEtParagraph(el)) {
+      hasParagraph = true
+      return true
+    }
+    return false
+  }, {
+    whatToShow: 1, /** NodeFilter.SHOW_ELEMENT */
   })
+  // 若片段内含有段落, 则片段的所有直接子节点只能是段落
+  if (hasParagraph) {
+    const nodeToRemove = []
+    for (const node of df.childNodes) {
+      if (!ctx.isEtParagraph(node)) {
+        const data = ctx.isEtElement(node) ? node.contentText : node.textContent
+        if (!data) {
+          // 删除空节点; 迭代器内不可删除节点, 延迟删除
+          nodeToRemove.push(node)
+        }
+        else {
+          const newP = ctx.createPlainParagraph(false)
+          newP.textContent = data
+          node.replaceWith(newP)
+        }
+        continue
+      }
+      if (allPlainParagraph && !ctx.isPlainParagraph(node)) {
+        allPlainParagraph = false
+      }
+    }
+    for (const node of nodeToRemove) {
+      node.remove()
+    }
+  }
+  // 不符合效应规范的节点，回退为纯文本
+  const regressEls: Et.EtElement[] = []
+  if (etElement) {
+    const { inEtCode, notInEtCode } = etElement
+    traversal.traverseNode(df, void 0, {
+      filter: (node) => {
+        return filterToNormalize(node, regressEls, inEtCode, notInEtCode, cleanZWS)
+      },
+    })
+  }
   for (const el of regressEls) {
     const data = el.textContent
+    // 替换为纯文本，保留开头第一个零宽字符
     el.replaceWith((data[0] === '\u200B' ? '\u200B' : '') + (data.replaceAll('\u200B', '')))
   }
-  // 清除空文本节点并合并相邻文本节点
-  // TODO 将该操作并入上述遍历过程
-  df.normalize()
-  return df
+  return {
+    hasParagraph, allPlainParagraph,
+  }
 }
 const filterToNormalize = (
   node: Et.Node, nodesToRegress: Et.Node[],
@@ -129,46 +181,6 @@ const filterToNormalize = (
     }
   }
   return 3 /** NodeFilter.FILTER_SKIP */
-}
-/**
- * 将片段标准化为一个符合 Effitor 内容规范的片段;
- * 目前的标准是:
- * 1. 若片段内含有段落, 则片段的所有直接子节点只能是段落, 若子节点不是段落, 将会转为纯文本并替换为一个新的普通段落
- * @param df 待规范片段
- * @param ctx 编辑器上下文
- * @returns 标准化后的 df 本身
- */
-export const normalizeToEtFragment = (df: DocumentFragment, ctx: Et.EditorContext) => {
-  let hasParagraph = false
-  traversal.traverseNode(df, (node) => {
-    if (ctx.isEtParagraph(node)) {
-      hasParagraph = true
-      return true
-    }
-    return false
-  })
-  if (hasParagraph) {
-    // 若片段内含有段落, 则片段的所有直接子节点只能是段落
-    const nodeToRemove = []
-    for (const node of df.childNodes) {
-      if (!ctx.isEtParagraph(node)) {
-        if (!node.textContent) {
-          // 删除空节点
-          // 迭代器内不可删除节点, 延迟删除
-          nodeToRemove.push(node)
-        }
-        else {
-          const newP = ctx.createPlainParagraph(false)
-          newP.textContent = node.textContent
-          node.replaceWith(newP)
-        }
-      }
-    }
-    for (const node of nodeToRemove) {
-      node.remove()
-    }
-  }
-  return df as Et.Fragment
 }
 /**
  * 清洗片段,
@@ -243,47 +255,6 @@ const filterToClean = (node: Et.Node, nodesToRemove: ChildNode[]) => {
   }
   // 其他节点跳过walk, 但继续遍历其后代
   return 3 /** NodeFilter.FILTER_SKIP */
-}
-
-/**
- * 检查片段是否包含段落, 若包含, 则标准化片段; 若不包含, 则不做处理
- * * 标准化的片段的直接子节点, 要么都是段落, 要么都不是段落
- * @returns hasParagraph: 是否包含段落, allPlainParagraph: 是否所有段落都是普通段落
- */
-export const checkEtFragmentHasParagraphAndNormalize = (
-  df: Et.Fragment, ctx: Et.EditorContext, clean: boolean,
-) => {
-  let hasParagraph = false, allPlainParagraph
-  traversal.traverseNode(df, (el) => {
-    if (ctx.isEtParagraph(el)) {
-      hasParagraph = true
-      return true
-    }
-    return false
-  }, {
-    whatToShow: 1, /** NodeFilter.SHOW_ELEMENT */
-  })
-  if (hasParagraph) {
-    allPlainParagraph = true
-    let needToNorm = false
-    for (const node of df.childNodes) {
-      if (!ctx.isPlainParagraph(node)) {
-        allPlainParagraph = false
-        break
-      }
-      if (!needToNorm && !ctx.isEtParagraph(node)) {
-        // 有不是段落直接子节点, 需要规范化
-        needToNorm = true
-      }
-    }
-    if (needToNorm) {
-      normalizeEtFragment(normalizeToEtFragment(df, ctx))
-    }
-  }
-  if (clean) {
-    cleanEtFragment(df)
-  }
-  return { hasParagraph, allPlainParagraph }
 }
 
 /* -------------------------------------------------------------------------- */

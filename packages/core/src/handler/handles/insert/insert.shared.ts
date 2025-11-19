@@ -268,7 +268,7 @@ export const insertContentsAtCaret = (
   // 含段落, 拆分整个段落, 合并插入
   const {
     hasParagraph, allPlainParagraph,
-  } = fragmentUtils.checkEtFragmentHasParagraphAndNormalize(contents, ctx, true)
+  } = fragmentUtils.normalizeToEtFragment(contents, ctx)
 
   if (!hasParagraph) {
     return insertNoParagraphContentsAtCaret(ctx, contents, targetCaret)

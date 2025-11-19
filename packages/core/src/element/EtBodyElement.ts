@@ -30,6 +30,7 @@ export class EtBodyElement extends EffectElement {
 
   focusinCallback(ctx: Et.EditorContext): void {
     // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落, 否则聚焦到首段落
+    console.log('focusin et-body')
     if (!ctx.isCaretIn(this)) {
       return
     }
