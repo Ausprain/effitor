@@ -17,3 +17,8 @@ export interface EtPosition<T extends Et.Node = Et.Node> {
  * ```
  */
 export type AnchorOffset = number
+
+export const enum CrEnum {
+  /** 定位于锚点节点内末尾 */
+  ANCHOR_IN_END = 999999999,
+}

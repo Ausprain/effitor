@@ -1,6 +1,7 @@
 import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { cr } from '../selection'
 import { EffectElement } from './EffectElement'
 
 /**
@@ -32,12 +33,34 @@ export class EtBodyElement extends EffectElement {
     if (!ctx.isCaretIn(this)) {
       return
     }
-    if (ctx.bodyEl.childNodes.length > 0 && ctx.isEtParagraph(ctx.bodyEl.firstChild)) {
-      ctx.setCaretToAParagraph(ctx.bodyEl.firstChild as Et.Paragraph, true)
+    let focusNode = ctx.selection.focusNode
+    let toStart = true
+    if (!focusNode) {
+      focusNode = ctx.bodyEl.lastChild
+      toStart = false
+    }
+    if (focusNode && ctx.isEtParagraph(focusNode) && focusNode.isContentEditable) {
+      ctx.setCaretToAParagraph(focusNode, toStart)
       return
     }
-    // 编辑区为空，插入一个段落
-    ctx.commonHandler.initEditorContents(false)
+    // 没找到合适落点，在对应位置插入一个空段落
+    const newP = ctx.createPlainParagraph()
+    if (focusNode) {
+      ctx.commandManager.handleInsertNode(
+        newP,
+        toStart ? cr.caretOutStart(focusNode) : cr.caretOutEnd(focusNode),
+        cr.caretInAuto(newP),
+      )
+    }
+    // 否则，在编辑区末尾插入段落
+    else {
+      ctx.commandManager.handleInsertNode(
+        newP,
+        this.lastChild ? cr.caretOutEnd(this.lastChild) : cr.caretInStart(this),
+        cr.caretInAuto(newP),
+      )
+      ctx.selection.scrollIntoView()
+    }
   }
 
   toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {

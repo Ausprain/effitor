@@ -8,7 +8,7 @@ import { HtmlCharEnum } from '@effitor/shared'
 import type { Et } from '../@types'
 import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
-import type { AnchorOffset } from './config'
+import { type AnchorOffset } from './config'
 import type { EtRange } from './EtRange'
 
 /**
@@ -334,9 +334,9 @@ export class EtCaret extends CaretRange {
       }
     }
     // 基于可编辑 html元素, 向内查找
+    let anchor, offset = 0
     if (dom.isHTMLElement(this.anchor) && this.anchor.isContentEditable) {
       const len = dom.nodeLength(this.anchor)
-      let anchor, offset
       if (this.anchor.hasChildNodes()) {
         if (this.offset <= 0) {
           anchor = traversal.innermostEditableFirstChild(this.anchor)
@@ -386,9 +386,36 @@ export class EtCaret extends CaretRange {
       }
       return new EtCaret(anchor, offset === 0 ? -Infinity : Infinity, true)
     }
-    // 不可编辑, 向外查找
-    const outer = traversal.closestEditableAncestor(this.anchor)
-    return new EtCaret(outer, this.offset >= 0 ? 0 : -Infinity, true)
+    // 不可编辑, 按文档树顺序找最近可编辑的文本节点
+    if (this._offset > 0) {
+      anchor = traversal.treeNextEditableText(this._anchor)
+      if (anchor) {
+        offset = 0
+      }
+      else {
+        anchor = traversal.treePrevEditableText(this._anchor)
+        if (anchor) {
+          offset = anchor.length
+        }
+      }
+    }
+    else {
+      anchor = traversal.treePrevEditableText(this._anchor)
+      if (anchor) {
+        offset = anchor.length
+      }
+      else {
+        anchor = traversal.treeNextEditableText(this._anchor)
+        if (anchor) {
+          offset = 0
+        }
+      }
+    }
+    // TODO 这里需要优化，如果找不到可编辑的文本节点，说明整个编辑区都不可编辑，这种极端情况尚未处理
+    if (!anchor) {
+      return this
+    }
+    return new EtCaret(anchor, offset, true)
   }
 
   /**

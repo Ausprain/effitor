@@ -7,6 +7,7 @@ import { HtmlCharEnum } from '@effitor/shared'
 import type { Et } from '../@types'
 import { dom } from '../utils'
 import type { CaretRange } from './CaretRange'
+import { CrEnum } from './config'
 import { EtCaret } from './EtCaret'
 import { EtRange } from './EtRange'
 import { SpanRange } from './SpanRange'
@@ -20,7 +21,7 @@ export const cr = {
   /** 定位于锚点节点外末尾 */
   AFTER_ANCHOR: Infinity,
   /** 定位于锚点节点内末尾 */
-  ANCHOR_IN_END: 999999999,
+  ANCHOR_IN_END: CrEnum.ANCHOR_IN_END,
 
   /**
    * 使用一个 range对象创建 EtCaret, EtRange 实例

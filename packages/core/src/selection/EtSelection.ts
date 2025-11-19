@@ -523,7 +523,7 @@ export class EtSelection {
    * 检查插入位置是否合法, 并执行相应的回调函数
    * @param insertAt 插入位置 可以是一个光标位置(EtCaret) 或目标选区(TargetCaret | TargetRange);
    *                 若为 null, 则使用当前选区位置
-   * @param fn 回调函数, 接收一个参数: 合法的目标选区
+   * @param fn 回调函数, 接收一个参数: 合法的目标选区 (ValidTargetCaret | ValidTargetRange)
    * @returns 若检查通过, 返回 true; 否则, 返回 false
    */
   checkInsertAt(

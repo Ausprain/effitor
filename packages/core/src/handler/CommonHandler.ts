@@ -390,6 +390,15 @@ export class CommonHandler {
     const ctx = this._ctx
     return ctx.selection.checkInsertAt(caretAt, (tc) => {
       if (!tc.anchorParagraph || !tc.anchorTopElement) {
+        // 没有段落和顶层节点，说明光标直接在 et-body 下
+        tc = tc.toTargetCaret(false)
+        if (tc.anchorEtElement === ctx.bodyEl) {
+          newP = newP || ctx.createPlainParagraph()
+          if (destCaretRange === true) {
+            destCaretRange = cr.caretInAuto(newP)
+          }
+          return this.commander.handleInsertNode(newP, tc.etCaret, destCaretRange)
+        }
         return false
       }
       if (!newP) {

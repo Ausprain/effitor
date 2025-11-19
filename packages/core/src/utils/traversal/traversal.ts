@@ -297,29 +297,26 @@ export const textPositionOf = (root: Node, textOffset: number): Et.Position<Et.T
 /* -------------------------------------------------------------------------- */
 
 /**
- * 获取文档树顺序下的下一个节点
+ * 获取文档树顺序(先序遍历)的下一个节点
  */
 export const treeNextNode = (node: Et.Node): Et.Node | null => {
-  let next = node.firstChild
-  if (next) {
-    return next
+  if (node.firstChild) {
+    return node.firstChild
   }
-  next = node.nextSibling
-  if (next) {
-    return next
+  if (node.nextSibling) {
+    return node.nextSibling
   }
   let nextParent = node.parentNode
   while (nextParent) {
-    next = nextParent.nextSibling
-    if (next) {
-      return next
+    if (nextParent.nextSibling) {
+      return nextParent.nextSibling
     }
     nextParent = nextParent.parentNode
   }
   return null
 }
 /**
- * 获取文档树顺序下的上一个节点
+ * 获取文档树顺序(先序遍历)的上一个节点
  */
 export const treePrevNode = (node: Et.Node): Et.Node | null => {
   let prev = node.previousSibling
@@ -369,6 +366,31 @@ export const treePrevSibling = (node: Et.Node): Et.Node | null => {
   }
   return null
 }
+/**
+ * 获取文档树顺序的下一个可编辑的文本节点
+ */
+export const treeNextEditableText = (node: Et.NodeOrNull, stopTag = BuiltinElName.ET_BODY): Et.Text | null => {
+  while (node && node.localName !== stopTag) {
+    if (node.nodeType === 3 && node.parentElement?.isContentEditable) {
+      return node as Et.Text
+    }
+    node = treeNextNode(node)
+  }
+  return null
+}
+/**
+ * 获取文档树顺序的上一个可编辑的文本节点
+ */
+export const treePrevEditableText = (node: Et.NodeOrNull, stopTag = BuiltinElName.ET_BODY): Et.Text | null => {
+  while (node && node.localName !== stopTag) {
+    if (node.nodeType === 3 && node.parentElement?.isContentEditable) {
+      return node as Et.Text
+    }
+    node = treePrevNode(node)
+  }
+  return null
+}
+
 /**
  * 判断某个位置是否在指定根元素的第一行
  * * 根元素或位置不在页面上, 或位置不在根元素内, 返回 false
@@ -510,7 +532,7 @@ export const outermostAncestorWithSelfAsOnlyChildButUnder = (
  * @param stopTag 小写元素标签名, 默认为`et-body`
  * @returns 可编辑祖先节点, 若不存在则返回自身
  */
-export const closestEditableAncestor = (node: Et.Node, stopTag = BuiltinElName.ET_BODY) => {
+export const inclusiveClosestEditableAncestor = (node: Et.Node, stopTag = BuiltinElName.ET_BODY) => {
   if (dom.isHTMLElement(node) && node.isContentEditable) {
     return node
   }
@@ -595,7 +617,7 @@ export const innermostPosition = (node: Et.Node, offset: number): Et.Position =>
   return { container: innermostFirstChild(node.childNodes.item(offset)), offset: 0 }
 }
 /**
- * 找可编辑元素的最里层firstChild, 该 firstChild 可能不可编辑, 没有子节点或不可编辑则返回自身
+ * 递归找可编辑元素的最里层 firstChild, 没有子节点或不可编辑则返回自身
  */
 export const innermostEditableFirstChild = (node: Et.Node): Et.Node => {
   let next = node as Et.NodeOrNull
@@ -615,7 +637,7 @@ export const innermostEditableFirstChild = (node: Et.Node): Et.Node => {
   return node
 }
 /**
- * 找可编辑的最里层lastchild, 没有子节点或`contenteditable=false`则返回自身
+ * 递归找可编辑元素的最里层 lastChild, 没有子节点或不可编辑则返回自身
  */
 export const innermostEditableLastChild = (node: Et.Node): Et.Node => {
   let next = node as Et.NodeOrNull
