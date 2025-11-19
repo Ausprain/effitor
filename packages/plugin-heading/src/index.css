@@ -20,13 +20,13 @@ et-heading {
     transition: opacity 0.2s ease-out;
   }
   &::before {
-    content: "#";
+    content: "H";
     translate: -100% -50%;
     font-size: 1rem;
   }
   &::after {
     content: attr(data-level);
-    translate: 0 -70%;
+    translate: 0 -30%;
     font-size: 0.6rem;
   }
   &.caret-in::before,&.caret-in::after,

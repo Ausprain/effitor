@@ -35,7 +35,6 @@ et-code {
   transition: var(--et-transition-color-scheme);
   /* 阻止代码块在分栏时被分割 */
   break-inside: avoid-column;
-  contain: content;
 
   /* lang */
   &::before {
@@ -67,6 +66,7 @@ et-code {
   max-height: var(--et-code-max-height);
   border-radius: inherit;
   overflow: auto;
+  contain: content;
   transition: var(--et-transition-color-scheme);
 }
 .et-code__container {
@@ -222,8 +222,12 @@ et-code {
 /* 渲染后的代码块, 不显示边框和语言 */
 et-code.et-code--rendered {
   border: none;
+  min-height: 48px;
   &::before {
     display: none;
+  }
+  &:hover {
+    outline: 1px solid var(--et-color-border-1);
   }
 }
 

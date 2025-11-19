@@ -84,16 +84,17 @@ et-bq[data-type="pg"],et-bq[data-type="pg2"],et-bq[data-type="pg3"] {
   column-gap: 1.6em;
   margin-inline: -8px;
   padding: 8px;
+  border: none;
   border-radius: 8px;
-  border-width: 1px;
-  border-style: dashed;
-  border-color: transparent;
-  transition: border-color 0.15s ease-out;
+  outline-width: 1px;
+  outline-style: dashed;
+  outline-color: transparent;
+  transition: outline-color 0.15s ease-out;
   --et-bq-color-semantic: var(--et-color-theme);
 
   &:hover,
   &.Et--active {
-    border-color: var(--et-bq-color-semantic);
+    outline-color: var(--et-bq-color-semantic);
   }
 
   &:has(> et-bq[data-type="pg2"]),
