@@ -1,5 +1,5 @@
 import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
-import { EtRichText } from '@effitor/core'
+import { EtRichText, trimAndCleanZWS } from '@effitor/core'
 import { EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
 
 import { LINK_ET_CODE, LinkEnum } from './config'
@@ -76,11 +76,20 @@ export class EtLinkElement extends EtRichText {
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
-    a: el => EtLinkElement.create(el.href, el.title),
+    a: (el) => {
+      // 去除空文本链接
+      if (!trimAndCleanZWS(el.textContent)) {
+        return null
+      }
+      return EtLinkElement.create(el.href, el.title)
+    },
   }
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     link: (node, ctx) => {
+      if (!node.url || !node.children.length) {
+        return null
+      }
       const url = ctx.pctx.$link_ctx.mdUrlMapping.fromMarkdown?.(node.url) ?? node.url
       const link = EtLinkElement.create(url, node.title)
       return link

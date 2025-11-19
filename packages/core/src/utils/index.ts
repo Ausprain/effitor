@@ -2,6 +2,10 @@
 export { dom } from './dom'
 export { traversal } from './traversal'
 
+export const trimAndCleanZWS = (data: string) => {
+  return data.trim().replaceAll('\u200b', '')
+}
+
 export const debounce = <F extends (...args: any[]) => void>(
   fn: F, delay: number, immediate = true,
 ) => {
