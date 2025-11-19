@@ -135,20 +135,33 @@ export const normalizeToEtFragment = (
       node.remove()
     }
   }
-  // 不符合效应规范的节点，回退为纯文本
-  const regressEls: Et.EtElement[] = []
   if (etElement) {
+    // 不符合效应规范的节点，回退为纯文本
+    const regressEls: Et.EtElement[] = []
     const { inEtCode, notInEtCode } = etElement
     traversal.traverseNode(df, void 0, {
       filter: (node) => {
+        if (ctx.isPlainParagraph(node) && !node.textContent) {
+          // 空内容段落，插入一个换行
+          ctx.appendBrToElement(node)
+          return 2 /** NodeFilter.FILTER_REJECT */
+        }
         return filterToNormalize(node, regressEls, inEtCode, notInEtCode, cleanZWS)
       },
     })
+    for (const el of regressEls) {
+      const data = el.textContent
+      // 替换为纯文本，保留开头第一个零宽字符
+      el.replaceWith((data[0] === '\u200B' ? '\u200B' : '') + (data.replaceAll('\u200B', '')))
+    }
   }
-  for (const el of regressEls) {
-    const data = el.textContent
-    // 替换为纯文本，保留开头第一个零宽字符
-    el.replaceWith((data[0] === '\u200B' ? '\u200B' : '') + (data.replaceAll('\u200B', '')))
+  else {
+    df.querySelectorAll(ctx.schema.paragraph.elName).forEach((p) => {
+      if (!p.textContent) {
+        // 空内容段落，插入一个换行
+        ctx.appendBrToElement(p as Et.EtParagraph)
+      }
+    })
   }
   return {
     hasParagraph, allPlainParagraph,
