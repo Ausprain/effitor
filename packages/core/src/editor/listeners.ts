@@ -84,9 +84,8 @@ export const addListenersToEditorBody = (
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
       ctx.editor._markFocused()
-      return
     }
-    if (dom.isRawEditElement(ev.target as Node)) {
+    else if (dom.isRawEditElement(ev.target as Node)) {
       ctx.selection.setInRaw(ev.target as Et.HTMLRawEditElement)
       ctx.forceUpdate()
     }

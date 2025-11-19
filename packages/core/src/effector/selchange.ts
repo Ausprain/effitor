@@ -15,6 +15,7 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
       // 编辑器失去焦点, 跳过
       || !ctx.editor.isFocused
     ) {
+      // console.warn('skip selchange')
       return
     }
 
