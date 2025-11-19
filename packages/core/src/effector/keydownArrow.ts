@@ -21,7 +21,8 @@ import { dom, traversal } from '../utils'
 const moveToDocumentEnd = (ctx: Et.EditorContext) => {
   const lastParagraph = ctx.bodyEl.lastChild as HTMLElement | null
   if (!lastParagraph || !lastParagraph.isContentEditable || !ctx.isEtParagraph(lastParagraph)) {
-    ctx.editor.blur()
+    ctx.commandManager.handleInsertParagraphToBodyEnd()
+    ctx.selection.scrollIntoView()
     return true
   }
   ctx.setCaretToAParagraph(lastParagraph, false, true)
@@ -32,7 +33,8 @@ const moveToDocumentEnd = (ctx: Et.EditorContext) => {
 const moveToDocumentStart = (ctx: Et.EditorContext) => {
   const firstParagraph = ctx.bodyEl.firstChild as HTMLElement | null
   if (!firstParagraph || !firstParagraph.isContentEditable || !ctx.isEtParagraph(firstParagraph)) {
-    ctx.editor.blur()
+    ctx.commandManager.handleInsertParagraphToBodyStart()
+    ctx.selection.scrollIntoView()
     return true
   }
   ctx.setCaretToAParagraph(firstParagraph, true, true)

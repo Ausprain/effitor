@@ -56,7 +56,7 @@ export class EtBodyElement extends EffectElement {
     else {
       ctx.commandManager.handleInsertNode(
         newP,
-        this.lastChild ? cr.caretOutEnd(this.lastChild) : cr.caretInStart(this),
+        cr.caretInEnd(this),
         cr.caretInAuto(newP),
       )
       ctx.selection.scrollIntoView()

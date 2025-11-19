@@ -1,4 +1,5 @@
 import type { Et } from '../../@types'
+import { cr } from '../../selection'
 import { cmd, cmdHandler, CmdType, type Command, ExecutedCmd } from './cmds'
 import { UndoStack } from './UndoStack'
 
@@ -15,9 +16,8 @@ export class CommandManager implements CommandQueue {
   private _undoStack: UndoStack
   private _commitNext = false
 
-  private _afterHandleCallbacks: (() => void)[] = []
-
   private _lastCaretRange: Et.CaretRange | null = null
+  private _afterHandleCallbacks: (() => void)[] = []
 
   /**
    * 最近一次执行命令后设置的光标位置, 若获取前未执行 handle,
@@ -514,5 +514,21 @@ export class CommandManager implements CommandQueue {
       return this.handle()
     }
     return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
+  }
+
+  /**
+   * 在编辑区开头插入一个普通段落
+   */
+  handleInsertParagraphToBodyStart() {
+    const newP = this._ctx.createPlainParagraph()
+    this.handleInsertNode(newP, cr.caretInStart(this._ctx.bodyEl), cr.caretInAuto(newP))
+  }
+
+  /**
+   * 在编辑区末尾插入一个普通段落
+   */
+  handleInsertParagraphToBodyEnd() {
+    const newP = this._ctx.createPlainParagraph()
+    this.handleInsertNode(newP, cr.caretInEnd(this._ctx.bodyEl), cr.caretInAuto(newP))
   }
 }
