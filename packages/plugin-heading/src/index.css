@@ -29,7 +29,7 @@ et-heading {
     translate: 0 -30%;
     font-size: 0.6rem;
   }
-  &.caret-in::before,&.caret-in::after,
+  &.Et--caret-in::before,&.Et--caret-in::after,
   &:hover::before, &:hover::after {
     opacity: 1;
   }

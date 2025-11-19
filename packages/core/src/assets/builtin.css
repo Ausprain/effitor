@@ -119,6 +119,18 @@ et-p.etp {
   transition: var(--et-transition-color-scheme);
 }
 
+/* content-visibility */
+/* et-body > .etp {
+  content-visibility: auto;
+}
+et-body > :first-child,
+et-body > :last-child,
+et-body > .Et--active,
+et-body > .Et--caret-in {
+  content-visibility: visible !important;
+} */
+
+
 /* 动画 */
 @keyframes fade-in {
   from {

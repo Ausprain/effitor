@@ -23,7 +23,6 @@ export const insertFromPaste = createInputEffectHandle(function (ctx, pl) {
   }
   return ctx.commonHandler.checkRemoveTargetRange(pl.targetRange, (ctx, caret) => {
     const html = clipboardData.getData(MIMETypeEnum.TEXT_HTML)
-    ctx.assists.logger?.logInfo(`paste html: ${html}`, 'insertFromPaste')
     if (html) {
       let etFragment = ctx.editor.htmlProcessor.fromHtml(ctx, html)
       if (this.TransformInsertContents) {

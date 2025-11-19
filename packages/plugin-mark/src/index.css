@@ -24,7 +24,7 @@ et-mark {
   word-break: break-all;
 }
 
-et-mark.caret-in {
+et-mark.Et--caret-in {
   padding: 0;
 }
 
@@ -41,8 +41,8 @@ et-mark::before {
   padding-left: 3px;
   padding-right: 1px;
 }
-et-mark.caret-in::after, et-mark:has(.caret-in)::after, 
-et-mark.caret-in::before, et-mark:has(.caret-in)::before {
+et-mark.Et--caret-in::after, et-mark:has(.Et--caret-in)::after, 
+et-mark.Et--caret-in::before, et-mark:has(.Et--caret-in)::before {
   display: inline;
 }
 .ET_cls-hinting_hidden et-mark::after, 
@@ -68,7 +68,7 @@ et-mark.ET_cls-code {
   font-family: var(--et-mark-font__code), monospace ;
   transition: var(--et-transition-color-scheme);
 }
-et-mark.ET_cls-code.caret-in {
+et-mark.ET_cls-code.Et--caret-in {
   padding: 3px 0 2px;
 }
 et-mark.ET_cls-code::after, et-mark.ET_cls-code::before {

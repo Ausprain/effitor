@@ -67,7 +67,7 @@ et-list {
   }
 }
 
-et-list:has(> et-li.caret-in) {
+et-list:has(> et-li.Et--caret-in) {
   position: relative;
   &::before {
     border-color: var(--et-color-border-3);

@@ -59,9 +59,9 @@ export const enum CssClassEnum {
   Effitor = 'effitor',
   /** 段落类节点 */
   ParagraphLike = 'etp',
-  /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
-  CaretIn = 'caret-in',
 
+  /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
+  CaretIn = 'Et--caret-in',
   /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */
   Active = 'Et--active',
   /** 当前元素被选择 */
