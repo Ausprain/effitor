@@ -17,8 +17,8 @@ export abstract class EtEditorElement extends EffectElement {
 
   connectedCallback(this: EffectElement): void {
     // 插入一个标题
-    const h2 = document.createElement('h2')
-    h2.innerText = 'Effitor Edit Body'
-    this.appendChild(h2)
+    // const h2 = document.createElement('h2')
+    // h2.innerText = 'Effitor Edit Body'
+    // this.appendChild(h2)
   }
 }
