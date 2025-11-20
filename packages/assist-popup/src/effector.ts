@@ -92,12 +92,12 @@ export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSuppo
         }
       },
       mouseout: (ev, ctx) => {
-        // 查找最近的效应父元素, 判断是否有popupKey属性
-        const etel = ctx.body.findInclusiveEtParent(ev.target as Et.Node)
-        if (!etel) {
+        if (!ctx.assists.popup.isShowing) {
           return
         }
-        if (ctx.assists.popup.isShowing && etel.hasAttribute(HtmlAttrEnum.Popup_Key)) {
+        // 查找最近的效应父元素, 判断是否有popupKey属性
+        const etel = ctx.body.findInclusiveEtParent(ev.target as Et.Node)
+        if (etel?.hasAttribute(HtmlAttrEnum.Popup_Key)) {
           ctx.assists.popup.delayHide()
         }
       },
