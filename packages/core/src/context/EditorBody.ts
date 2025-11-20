@@ -429,7 +429,7 @@ export class EditorBody {
   }
 
   /**
-   * 向上查找最近一个`Et.ParagraphElement`, `etCode`匹配段落 EtType, 则视为段落效应元素
+   * 向上查找最近一个`Et.Paragraph`效应元素, `etCode`匹配段落 EtType, 则视为段落效应元素
    */
   findInclusiveParagraph(node: Et.NodeOrNull): Et.Paragraph | null {
     while (node) {
@@ -527,17 +527,24 @@ export class EditorBody {
    * @param filter 筛选函数, 默认为 Boolean, 即返回所有节点
    */
   * outerEtElements(anchor: Et.Node, filter: (el: Et.EtElement) => boolean = Boolean) {
-    let p = anchor.parentElement as Et.EtElement | null
-    if (!p) {
-      return
-    }
-    p = this.findInclusiveEtParent(p)
+    let p = this.findInclusiveEtParent(anchor.parentElement)
     while (p && p !== this.el) {
       if (filter(p)) {
         yield p
       }
-      p = p.parentElement as Et.EtElement
-      p = this.findInclusiveEtParent(p)
+      p = this.findInclusiveEtParent(p.parentElement)
+    }
+  }
+
+  /**
+   * 返回一个生成器, 递归获取外层段落, 直到编辑区根节点
+   * @param currP 当前段落, 返回结果不包含该段落
+   */
+  * outerParagraphs(currP: Et.Paragraph) {
+    let p = this.findInclusiveParagraph(currP.parentElement)
+    while (p && p !== this.el) {
+      yield p
+      p = this.findInclusiveParagraph(p.parentElement)
     }
   }
 }

@@ -73,10 +73,6 @@ import { removeByTargetRange } from './deleteAtRange'
  * 处理在段落开头 Backspace
  */
 export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackwardAtParagraphStart', (ctx, targetCaret) => {
-  // if (targetCaret.isCaretAtBodyStart) {
-  //   // 编辑区开头 Backspace
-  //   return true
-  // }
   const currP = targetCaret.anchorParagraph
   if (!currP) {
     return false
@@ -84,7 +80,7 @@ export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackward
   const isEmpty = currP.isEmpty()
   let prevPT = currP.previousSibling as Et.Paragraph | null
 
-  // 当前段落有前兄弟
+  /* ------------------------------- // 当前段落有前兄弟 ------------------------------ */
   if (prevPT) {
     // 当前为空, 删除当前, 光标置于前兄弟结尾
     if (isEmpty) {
@@ -131,13 +127,15 @@ export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackward
     return removeParagraphAndMergeCloneContentsToOther(ctx, prevPT, currP)
   }
   // 当前段落无前兄弟, 判断顶层节点
-  const topEl = targetCaret.anchorTopElement
+  // const topEl = targetCaret.anchorTopElement
+  // fixed. 处理类似引用块嵌套的情况
+  const topEl = ctx.body.outerParagraphs(currP).next().value
   if (!topEl) {
     return false
   }
   prevPT = topEl.previousSibling as Et.Paragraph | null
 
-  // 段落和顶层节点均无前兄弟
+  /* ----------------------------- // 段落和顶层节点均无前兄弟 ---------------------------- */
   if (!prevPT) {
     if (!isEmpty) {
       // 首段落开头, 非空段落, 不处理
@@ -173,7 +171,7 @@ export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackward
     return false
   }
 
-  // 顶层节点有前兄弟
+  /* ------------------------------- // 顶层节点有前兄弟 ------------------------------ */
   if (!isEmpty) {
     // 当前段落非空, 判断顶层节点合并
     if (prevPT.isEqualTo(topEl)) {
@@ -209,10 +207,6 @@ export const deleteBackwardAtParagraphStart = createEffectHandle('DeleteBackward
  * 处理在段落末尾 Delete
  */
 export const deleteForwardAtParagraphEnd = createEffectHandle('DeleteForwardAtParagraphEnd', (ctx, targetCaret) => {
-  // if (targetCaret.isCaretAtBodyEnd) {
-  //   // 编辑区结尾 Delete
-  //   return true
-  // }
   const currP = targetCaret.anchorParagraph
   if (!currP) {
     return false
@@ -220,7 +214,7 @@ export const deleteForwardAtParagraphEnd = createEffectHandle('DeleteForwardAtPa
   const isEmpty = currP.isEmpty()
   let nextPT = currP.nextSibling as Et.Paragraph | null
 
-  // 当前段落有后兄弟
+  /* ------------------------------- // 当前段落有后兄弟 ------------------------------ */
   if (nextPT) {
     // 这里不同于 Backspace, Delete时优先删除空的后兄弟, 其次才是空自身
     // 后兄弟为空, 删除后兄弟, 光标不变, true
@@ -265,14 +259,16 @@ export const deleteForwardAtParagraphEnd = createEffectHandle('DeleteForwardAtPa
     return removeParagraphAndMergeCloneContentsToOther(ctx, currP, nextPT)
   }
 
-  // 当前段落无后兄弟
-  const topEl = targetCaret.anchorTopElement
+  /* ------------------------------- // 当前段落无后兄弟 ------------------------------ */
+  // const topEl = targetCaret.anchorTopElement
+  // fixed. 处理类似引用块嵌套的情况
+  const topEl = ctx.body.outerParagraphs(currP).next().value
   if (!topEl) {
     return false
   }
   nextPT = topEl.nextSibling as Et.Paragraph | null
 
-  // 顶层节点无后兄弟
+  /* ------------------------------- // 顶层节点无后兄弟 ------------------------------ */
   if (!nextPT) {
     if (!isEmpty) {
       return true
@@ -303,7 +299,7 @@ export const deleteForwardAtParagraphEnd = createEffectHandle('DeleteForwardAtPa
     return false
   }
 
-  // 顶层节点有后兄弟
+  /* ------------------------------- // 顶层节点有后兄弟 ------------------------------ */
   // 后兄弟是普通段落, 考虑合并
   if (ctx.isPlainParagraph(nextPT)) {
     if (checkEqualParagraphSmartRemoveAndMerge(ctx, currP, nextPT)) {
