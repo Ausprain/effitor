@@ -21,7 +21,7 @@ export const deleteEntireSoftLine = createInputEffectHandle((ctx) => {
 })
 export const deleteSoftLineBackward = createInputEffectHandle((ctx) => {
   if (ctx.selection.isCaretAtParagraphStart) {
-    return false
+    return true
   }
   ctx.selection.modify('extend', 'backward', 'lineboundary', false)
   ctx.forceUpdate()
@@ -33,7 +33,7 @@ export const deleteSoftLineBackward = createInputEffectHandle((ctx) => {
 })
 export const deleteSoftLineForward = createInputEffectHandle((ctx) => {
   if (ctx.selection.isCaretAtParagraphEnd) {
-    return false
+    return true
   }
   ctx.selection.modify('extend', 'forward', 'lineboundary', false)
   ctx.forceUpdate()
