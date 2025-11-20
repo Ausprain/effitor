@@ -701,7 +701,7 @@ const formatEffitorStructure = (
   host.innerHTML = ''
   host.append(editorEl)
   host.classList.add(CssClassEnum.Effitor)
-  host.style.position = 'relative'
+  // host.style.position = 'relative'  // host 定位会让 dropdown 的锚点定位不基于视口判断
   if (editor.theme) {
     editorEl.setAttribute(BuiltinConfig.THEME_ATTR, editor.theme)
   }

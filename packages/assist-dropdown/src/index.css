@@ -17,7 +17,7 @@
   position: absolute;
   position-anchor: --et-dd-wrapper;
   position-area: bottom span-right;
-  position-try-fallbacks: flip-inline, flip-block;
+  position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
 
   margin: 3px 0;
   border-radius: 4px;
