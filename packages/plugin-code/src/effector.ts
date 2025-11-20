@@ -4,7 +4,7 @@ import { codeBlockIcon } from '@effitor/shared'
 
 import { CodeEnum } from './config'
 
-const _ectx = useEffectorContext('$code_ctx', {
+const _ectx = useEffectorContext('$codeEx', {
   checkMarkCode: (ctx: Et.EditorContext) => {
     if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.commonEtElement)) {
       return false
@@ -14,7 +14,7 @@ const _ectx = useEffectorContext('$code_ctx', {
       return false
     }
     const [lang, metaStr] = data.slice(3).split(' ')
-    if (ctx.pctx.$code_ctx.highlighter.langs.includes(lang)) {
+    if (ctx.pctx.$codePx.highlighter.langs.includes(lang)) {
       const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
       codeEl.meta = metaStr
       ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)
@@ -69,8 +69,8 @@ export const codeEffector: Et.EffectorSupportInline<typeof _ectx> = {
           break
       }
     },
-    Enter: (ev, ctx, { $code_ctx }) => {
-      if ($code_ctx.checkMarkCode(ctx)) {
+    Enter: (ev, ctx, { $codeEx }) => {
+      if ($codeEx.checkMarkCode(ctx)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },

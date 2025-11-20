@@ -249,7 +249,7 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 > import { useEffectorContext } from "@effitor/core";
 > // 变量名必须使用 `ectx`，否则在内联效应器中找不到该变量
 > // useEffectorContext 每次返回的都是同一个只读对象， 但 ts 会根据传入的参数推导其返回值的类型
-> export const ectx = useEffectorContext("$table_ctx", {
+> export const ectx = useEffectorContext("$tableEx", {
 >   tabToNextCellOrInsertNewColumn(ctx, anchorTc) {
 >     // snippet
 >   },
@@ -267,8 +267,8 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 >         return false;
 >       }
 >       const doTab = ev.shiftKey
->         ? ectx.$table_ctx.shiftTabToNextCellOrInsertNewColumn
->         : ectx.$table_ctx.tabToNextCellOrInsertNewColumn;
+>         ? ectx.$tableEx.shiftTabToNextCellOrInsertNewColumn
+>         : ectx.$tableEx.tabToNextCellOrInsertNewColumn;
 >       doTab(ctx, ctx.commonEtElement);
 >       return true;
 >     },

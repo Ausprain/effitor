@@ -54,8 +54,12 @@ export const runKeyboardSolver = (
     fn = solver[ctx.commonEtElement.localName as keyof Et.DefinedEtElementMap]
       || solver[key as keyof typeof solver] || solver.default
     if (typeof fn === 'function') {
-      // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
-      fn(ev, ctx)
+      fn(
+        ev,
+        // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
+        ctx,
+        effectorContext,
+      )
     }
   }
   // ctx标记skipDefault跳过默认effector

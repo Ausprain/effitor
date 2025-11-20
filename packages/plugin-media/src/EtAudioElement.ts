@@ -94,7 +94,7 @@ export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
-      if (!ctx.pctx.$media_ctx.audio?.exts.has(meta.ext)) {
+      if (!ctx.pctx.$mediaPx.audio?.exts.has(meta.ext)) {
         return null
       }
       return EtAudioElement.create(node.url, {

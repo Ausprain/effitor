@@ -4,7 +4,7 @@ import { HtmlCharEnum } from '@effitor/shared'
 import { BlockquoteMeta } from './config'
 import { blockquoteMetaParser } from './util'
 
-const _ectx = useEffectorContext('$blockquote_ctx', {
+const _ectx = useEffectorContext('$bqEx', {
   bqMetaParser: blockquoteMetaParser,
   checkQuitBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
     if (!currP.nextSibling && dom.isEmptyContentNode(currP)) {
@@ -48,7 +48,7 @@ const _ectx = useEffectorContext('$blockquote_ctx', {
     if (!pText.startsWith('> ')) {
       return false
     }
-    const meta = blockquoteMetaParser.fromText(pText.slice(2), ctx.pctx.$blockquote_ctx)
+    const meta = blockquoteMetaParser.fromText(pText.slice(2), ctx.pctx.$bqPx)
     if (!meta) {
       return false
     }
@@ -63,13 +63,13 @@ const _ectx = useEffectorContext('$blockquote_ctx', {
 export const blockquoteEffector: Et.EffectorSupportInline<typeof _ectx> = {
   inline: true,
   keydownSolver: {
-    Enter: (ev, ctx, { $blockquote_ctx }) => {
+    Enter: (ev, ctx, { $bqEx }) => {
       const currP = ctx.focusParagraph
       if (!currP || !ctx.isPlainParagraph(currP)) {
         return
       }
-      if ($blockquote_ctx.checkQuitBlockquote(ctx, currP)
-        || $blockquote_ctx.checkInsertBlockquote(ctx, currP)
+      if ($bqEx.checkQuitBlockquote(ctx, currP)
+        || $bqEx.checkInsertBlockquote(ctx, currP)
       ) {
         return ctx.preventAndSkipDefault(ev)
       }
@@ -79,7 +79,7 @@ export const blockquoteEffector: Et.EffectorSupportInline<typeof _ectx> = {
   onMounted(ctx) {
     // 注册热字符串
     const hsm = ctx.hotstringManager
-    const metaMap = ctx.pctx.$blockquote_ctx.metaMap
+    const metaMap = ctx.pctx.$bqPx.metaMap
     for (const meta of Object.values(metaMap)) {
       hsm.create(meta.abbr, (ctx) => {
         checkAbbrToBlockquote(ctx, meta)

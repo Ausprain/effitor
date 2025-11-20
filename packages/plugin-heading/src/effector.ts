@@ -5,7 +5,7 @@ import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
 import { HeadingEnum } from './config'
 import { headingHandler, inHeadingHandler, replaceParagraphWithHeading } from './handler'
 
-const _ectx = useEffectorContext('$heading_ctx', {
+const _ectx = useEffectorContext('$hEx', {
   // 标题 handler 比较少, 直接挂到 ectx 上调用, 不注册到效应元素
   headingHandler,
   inHeadingHandler,
@@ -33,8 +33,8 @@ const _ectx = useEffectorContext('$heading_ctx', {
 })
 
 const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
-  ' ': (_ev, ctx, ectx) => ectx.$heading_ctx.checkAtxToHeading(ctx),
-  'Enter': (_ev, ctx, ectx) => ectx.$heading_ctx.checkAtxToHeading(ctx),
+  ' ': (_ev, ctx, ectx) => ectx.$hEx.checkAtxToHeading(ctx),
+  'Enter': (_ev, ctx, ectx) => ectx.$hEx.checkAtxToHeading(ctx),
   'Tab': (_ev, ctx) => {
     if (ctx.focusEtElement.localName === HeadingEnum.ElName) {
       return true
@@ -49,7 +49,7 @@ const keydownSolver: Et.KeyboardSolver<typeof _ectx> = {
       && ctx.selection.isCollapsed
       && ctx.selection.anchorOffset === 0
     ) {
-      ectx.$heading_ctx.inHeadingHandler.regressHeadingToParagraph(ctx, {
+      ectx.$hEx.inHeadingHandler.regressHeadingToParagraph(ctx, {
         heading: ctx.commonEtElement,
       })
       return ctx.skipDefault()

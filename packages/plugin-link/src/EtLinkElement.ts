@@ -90,7 +90,7 @@ export class EtLinkElement extends EtRichText {
       if (!node.url || !node.children.length) {
         return null
       }
-      const url = ctx.pctx.$link_ctx.mdUrlMapping.fromMarkdown?.(node.url) ?? node.url
+      const url = ctx.pctx.$linkPx.mdUrlMapping.fromMarkdown?.(node.url) ?? node.url
       const link = EtLinkElement.create(url, node.title)
       return link
     },
@@ -98,7 +98,7 @@ export class EtLinkElement extends EtRichText {
 
   static toMarkdownTransformerMap: MdastNodeTransformerMap = {
     link: (node, ctx) => {
-      node.url = ctx.pctx.$link_ctx.mdUrlMapping.toMarkdown?.(node.url) ?? node.url
+      node.url = ctx.pctx.$linkPx.mdUrlMapping.toMarkdown?.(node.url) ?? node.url
     },
   }
 

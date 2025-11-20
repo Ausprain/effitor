@@ -59,7 +59,7 @@ const editor = new Effitor({
               targetCaret: tc,
               type: MediaType.Video,
               url: `/tmp/media.mp4`,
-              meta: ctx.pctx.$media_ctx.video ?? {},
+              meta: ctx.pctx.$mediaPx.video ?? {},
             })) {
               ctx.preventAndSkipDefault(ev)
             }

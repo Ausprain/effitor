@@ -190,7 +190,7 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.L, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'left'),
 }
 
-export const ectx = useEffectorContext('$table_ctx', {
+export const ectx = useEffectorContext('$tableEx', {
   tableCellKeyMap,
   insertNewRow,
   insertNewColumn,

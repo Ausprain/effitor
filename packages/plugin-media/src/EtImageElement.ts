@@ -105,7 +105,7 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
-      if (!ctx.pctx.$media_ctx.image.exts.has(meta.ext)) {
+      if (!ctx.pctx.$mediaPx.image.exts.has(meta.ext)) {
         return null
       }
       return EtImageElement.create(node.url, {
@@ -118,7 +118,7 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
   // TODO url处理, 需要判断媒体类型
   static toMarkdownTransformerMap: MdastNodeTransformerMap = {
     image: (node, ctx) => {
-      node.url = ctx.pctx.$media_ctx.image.urlMapping?.toMarkdown?.(node.url) ?? node.url
+      node.url = ctx.pctx.$mediaPx.image.urlMapping?.toMarkdown?.(node.url) ?? node.url
     },
   }
 }

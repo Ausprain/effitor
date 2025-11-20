@@ -23,14 +23,14 @@ export const codeHeader = (ctx: Et.EditorContext, el: EtCodeElement, cbs: CodeDe
     }, 2000)
   }
 
-  if (ctx.pctx.$code_ctx.codeRenderer[el.lang]) {
+  if (ctx.pctx.$codePx.codeRenderer[el.lang]) {
     const renderBtn = document.createElement('button')
     renderBtn.classList.add(CodeEnum.Class_Btn_Render, CssClassEnum.BgItem)
     renderBtn.setAttribute(HtmlAttrEnum.HintTitle, 'Render Code')
     header.appendChild(renderBtn)
 
     renderBtn.onclick = () => {
-      const render = ctx.pctx.$code_ctx.renderCodeBlock
+      const render = ctx.pctx.$codePx.renderCodeBlock
       if (!render) {
         return
       }

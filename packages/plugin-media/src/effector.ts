@@ -17,7 +17,7 @@ import {
 
 import { type IEtMediaElement, MEDIA_ET_TYPE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
 
-const _ectx = useEffectorContext('$media_ctx', {
+const _ectx = useEffectorContext('$mediaEx', {
   filterFiles: (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
     if (!media) {
       return []
@@ -35,7 +35,7 @@ const _ectx = useEffectorContext('$media_ctx', {
     if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
       return false
     }
-    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$media_ctx.MEDIA_ET_TYPE)) {
+    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$mediaPx.MEDIA_ET_TYPE)) {
       const currState = mediaEl.mediaState
       if (currState === MediaState.Failed) {
         return false
@@ -79,7 +79,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
         }
         atEnd = true
       }
-      if (ectx.$media_ctx.tryAlignMedia(ctx, text, atEnd)) {
+      if (ectx.$mediaEx.tryAlignMedia(ctx, text, atEnd)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },
@@ -149,7 +149,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
     if (!handler.insertMediaChunk) {
       return
     }
-    const mediaCtx = ctx.pctx.$media_ctx
+    const mediaCtx = ctx.pctx.$mediaPx
     const fileGroup = {} as Record<MediaType, File[]>
     for (const file of ev.clipboardData.files) {
       const type = file.type.split('/')[0] as MediaType
@@ -161,7 +161,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
     }
     for (const type in fileGroup) {
       const media = mediaCtx[type as MediaType]
-      const files = ectx.$media_ctx.filterFiles(media, fileGroup[type as MediaType])
+      const files = ectx.$mediaEx.filterFiles(media, fileGroup[type as MediaType])
       if (!media || !files.length) {
         continue
       }
@@ -201,7 +201,7 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
     }
   }
   // 判断是否有配置相应的媒体类型
-  const { image, audio, video } = ctx.pctx.$media_ctx
+  const { image, audio, video } = ctx.pctx.$mediaPx
   if (image) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       imageFileIcon(),
@@ -270,11 +270,11 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
     if (!targetCaret) {
       return
     }
-    const media = ctx.pctx.$media_ctx[type]
+    const media = ctx.pctx.$mediaPx[type]
     if (!media || !media.onfileselected || !files || !files.length) {
       return
     }
-    const chunk = media.onfileselected(_ectx.$media_ctx.filterFiles(media, [...files]))
+    const chunk = media.onfileselected(_ectx.$mediaEx.filterFiles(media, [...files]))
     if (chunk.length) {
       ctx.effectInvoker.invoke(targetCaret.anchorEtElement, 'insertMediaChunk', ctx, {
         targetCaret,
@@ -360,7 +360,7 @@ const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
       if (targetEl.mediaType === MediaType.Audio) {
         items?.shift()
       }
-      if (ctx.pctx.$media_ctx.popupOptions?.beforeShow?.(ctx, targetEl, contentEl, items)) {
+      if (ctx.pctx.$mediaPx.popupOptions?.beforeShow?.(ctx, targetEl, contentEl, items)) {
         return true
       }
     },

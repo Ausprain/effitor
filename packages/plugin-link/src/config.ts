@@ -26,7 +26,7 @@ declare module '@effitor/core' {
     link: typeof EtLinkElement
   }
   interface EditorPluginContext {
-    readonly $link_ctx: {
+    readonly $linkPx: {
       readonly mdUrlMapping: Partial<Et.MdUrlMapping>
       readonly urlReg: RegExp
       /** 链接元素的名称最大长度, 默认 128 */
@@ -82,7 +82,7 @@ export const initLinkPluginContext = (meta: Et.EditorContextMeta, options?: Link
   const schemes = [...new Set([...urlSchemeList, ...(options?.urlSchemes || [])])].join('|')
   const urlReg = new RegExp(`^(${schemes})[^\\s]+\\.[^\\s]+$`)
   // @ts-expect-error first assign
-  meta.pctx.$link_ctx = {
+  meta.pctx.$linkPx = {
     mdUrlMapping: { ...options?.mdUrlMapping },
     urlReg,
     maxNameLength: options?.maxNameLength || LinkEnum.Name_Max_Length,

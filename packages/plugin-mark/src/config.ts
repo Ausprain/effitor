@@ -80,7 +80,7 @@ export const createMarkState = () => ({
 
 export const initMarkPluginContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
   // @ts-expect-error first assign
-  meta.pctx.$mark_ctx = {
+  meta.pctx.$markEx = {
     markState: createMarkState(),
     enableHinting,
   }

@@ -51,7 +51,7 @@ const insertMarkNodeAtCaret = (ctx: Et.EditorContext, insertAt: Et.EtCaret, mark
     return false
   }
   const [markEl, zws] = createMarkNode(markType, data)
-  ctx.pctx.$mark_ctx.markState.startMarking(markEl)
+  ctx.pctx.$markEx.markState.startMarking(markEl)
   return handlerUtils.insertElementAtCaret(ctx, markEl, tc, cr.caretInEndFuture(zws))
 }
 
@@ -121,7 +121,7 @@ export const markHandler: Et.EffectHandler = {
       return ctx.commandManager.handleAndUpdate()
     }
     else {
-      ctx.pctx.$mark_ctx.markState.endMarking()
+      ctx.pctx.$markEx.markState.endMarking()
       ctx.commandManager.closeTransaction()
       return false
     }

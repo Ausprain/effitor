@@ -36,7 +36,7 @@ export interface MediaOptions {
   /** 通用资源url映射; 若图片/音/视频的url映射规则不同, 应单独配置 */
   urlMapping?: Et.MdUrlMapping
   /** hover media效应元素时会显示popup选项, 可通过此配置对popup的功能进行自定义 */
-  popupOptions?: Required<Et.EditorPluginContext>['$media_ctx']['popupOptions']
+  popupOptions?: Required<Et.EditorPluginContext>['$mediaPx']['popupOptions']
   image: ImageOptions | true
   audio?: AudioOptions | true
   video?: VideoOptions | true
@@ -118,7 +118,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
         }
       }
       // @ts-expect-error first assign
-      ctxMeta.pctx.$media_ctx = media
+      ctxMeta.pctx.$mediaPx = media
       setSchema(schemaInit)
       mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, MEDIA_ET_TYPE)
     },

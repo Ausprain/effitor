@@ -18,7 +18,7 @@ export const checkFormatMark = (ctx: Et.EditorContext, markType: MarkType) => {
   )
 }
 
-export const ectx = useEffectorContext('$mark_ctx', {
+export const ectx = useEffectorContext('$markEx', {
   checkInsertMark,
   checkFormatMark,
 

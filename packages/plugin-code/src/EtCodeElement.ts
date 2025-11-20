@@ -54,8 +54,8 @@ export class EtCodeElement extends EtComponent {
     el.decorate({
       value,
       lang: el.lang,
-      tabSize: ctx.pctx.$code_ctx.defaultTabSize,
-      highlighter: ctx.pctx.$code_ctx.highlighter,
+      tabSize: ctx.pctx.$codePx.defaultTabSize,
+      highlighter: ctx.pctx.$codePx.highlighter,
     }, (el, cbs) => {
       el.prepend(codeHeader(ctx, el, cbs))
     })
@@ -175,7 +175,7 @@ export class EtCodeElement extends EtComponent {
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     div: (el, ctx) => {
-      let lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(el)
+      let lang = ctx.pctx.$codePx.parseLangFromNativeElement(el)
       if (!lang) {
         return null
       }
@@ -193,7 +193,7 @@ export class EtCodeElement extends EtComponent {
       return () => EtCodeElement.withDefaultDecoration(
         ctx,
         value,
-        ctx.pctx.$code_ctx.highlighter.langs.includes(lang) ? lang : '',
+        ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : '',
       )
     },
     pre: (el, ctx) => {
@@ -205,11 +205,11 @@ export class EtCodeElement extends EtComponent {
       if (!value) {
         return null
       }
-      let lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(el)
+      let lang = ctx.pctx.$codePx.parseLangFromNativeElement(el)
       if (!lang) {
-        lang = ctx.pctx.$code_ctx.parseLangFromNativeElement(code)
+        lang = ctx.pctx.$codePx.parseLangFromNativeElement(code)
       }
-      lang = lang && ctx.pctx.$code_ctx.highlighter.langs.includes(lang) ? lang : ''
+      lang = lang && ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : ''
       return () => EtCodeElement.withDefaultDecoration(ctx, value, lang)
     },
   }
@@ -230,11 +230,11 @@ export class EtCodeElement extends EtComponent {
       return el
     },
     html: (node, ctx) => {
-      if (!ctx.pctx.$code_ctx.codeRenderer['html']) {
+      if (!ctx.pctx.$codePx.codeRenderer['html']) {
         return null
       }
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value, 'html')
-      ctx.pctx.$code_ctx.renderCodeBlock(ctx, el)
+      ctx.pctx.$codePx.renderCodeBlock(ctx, el)
       return el
     },
   }

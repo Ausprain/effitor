@@ -9,12 +9,12 @@ export const checkInsertLink = (
   if (!url) {
     return
   }
-  const linkCtx = ctx.pctx.$link_ctx
-  if (url && url.length > linkCtx.maxUrlLength) {
+  const linkPx = ctx.pctx.$linkPx
+  if (url && url.length > linkPx.maxUrlLength) {
     ctx.assists.msg?.warn('链接超出最大允许长度.')
     return
   }
-  if (!linkCtx.urlReg.test(url)) {
+  if (!linkPx.urlReg.test(url)) {
     ctx.assists.msg?.error('链接格式错误.')
     return
   }
@@ -24,7 +24,7 @@ export const checkInsertLink = (
   }
   const title = link.title || ''
   let text = link.text || url
-  text = text.slice(0, linkCtx.maxNameLength).trim()
+  text = text.slice(0, linkPx.maxNameLength).trim()
   const linkEl = ctx.schema.link.create(url, title, text)
   // 插入链接后, 使用 tabout 将光标移出链接节点
   ctx.commandManager.pushHandleCallback(() => {

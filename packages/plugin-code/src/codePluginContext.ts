@@ -18,7 +18,7 @@ export const initCodePluginContext = (
 ) => {
   const _codeRenderer = createCodeRenderer(renderOptions)
   const renderCodeBlock = (ctx: Et.EditorContext, el: EtCodeElement) => {
-    const codeRenderer = ctx.pctx.$code_ctx.codeRenderer
+    const codeRenderer = ctx.pctx.$codePx.codeRenderer
     if (!el.lang || !el.codeCtx) {
       ctx.assists.logger?.logError('code block render fail: no lang or codeCtx', 'et-code')
       return
@@ -52,8 +52,8 @@ export const initCodePluginContext = (
   }
 
   // @ts-expect-error first assign
-  ctxMeta.pctx.$code_ctx = {}
-  Object.assign<CodePluginContext, CodePluginContext>(ctxMeta.pctx.$code_ctx, {
+  ctxMeta.pctx.$codePx = {}
+  Object.assign<CodePluginContext, CodePluginContext>(ctxMeta.pctx.$codePx, {
     highlighter,
     defaultTabSize,
     codeRenderer: _codeRenderer,

@@ -17,7 +17,7 @@ import { ectx as _ectx } from './ectx'
 const beforeKeydownSolver: Et.KeyboardSolver<typeof _ectx> = {
   [TableName.TableCell]: (ev, ctx, ectx) => {
     ctx.commandManager.checkKeydownNeedCommit(ev, ctx)
-    if (ctx.hotkeyManager.listenEffect(ectx.$table_ctx.tableCellKeyMap) === false) {
+    if (ctx.hotkeyManager.listenEffect(ectx.$tableEx.tableCellKeyMap) === false) {
       return
     }
     return ctx.preventAndSkipDefault(ev)
@@ -107,22 +107,22 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const insertItems = ([
       [rowInsertTopIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
+          _ectx.$tableEx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
         }
       }],
       [rowInsertBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
+          _ectx.$tableEx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
         }
       }],
       [colInsertLeftIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
+          _ectx.$tableEx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
         }
       }],
       [colInsertRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
+          _ectx.$tableEx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
@@ -131,12 +131,12 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const deleteItems = ([
       [rowDeleteBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$table_ctx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
+          _ectx.$tableEx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
         }
       }],
       [colDeleteRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$table_ctx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
+          _ectx.$tableEx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(

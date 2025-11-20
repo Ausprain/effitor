@@ -26,7 +26,7 @@ declare module '@effitor/core' {
     [BlockquoteEnum.ElName]: EtBlockquoteElement
   }
   interface EditorPluginContext {
-    readonly $blockquote_ctx: BlockquotePluginContext
+    readonly $bqPx: BlockquotePluginContext
   }
   interface EffectHandleDeclaration {
     /** 替换段落为引用块 */
@@ -97,10 +97,12 @@ export const initBlockquotePluginContext = (
     withBuiltinMetas?: boolean
   } = {},
 ) => {
+  // @ts-expect-error no error, first init
+  ctxMeta.pctx.$bqPx = {}
   if (withBuiltinMetas) {
     Object.assign(metaMap, buildinMetaMap)
   }
-  const _ctx: BlockquotePluginContext = { metaMap }
-  // @ts-expect-error: first init
-  ctxMeta.pctx.$blockquote_ctx = _ctx
+  Object.assign(ctxMeta.pctx.$bqPx, {
+    metaMap,
+  } as BlockquotePluginContext)
 }

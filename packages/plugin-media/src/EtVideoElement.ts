@@ -110,7 +110,7 @@ export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
-      if (!ctx.pctx.$media_ctx.video?.exts.has(meta.ext)) {
+      if (!ctx.pctx.$mediaPx.video?.exts.has(meta.ext)) {
         return null
       }
       return EtVideoElement.create(node.url, {

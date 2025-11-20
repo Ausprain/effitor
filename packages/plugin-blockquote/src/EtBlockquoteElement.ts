@@ -100,7 +100,7 @@ export class EtBlockquoteElement extends EtBlockquote {
         return null
       }
       // 检查 blockquote 的首个段落是否用于存储元信息
-      const meta = checkBlockquoteMeta(node, ctx.pctx.$blockquote_ctx)
+      const meta = checkBlockquoteMeta(node, ctx.pctx.$bqPx)
       let type
       if (meta) {
         type = meta.type

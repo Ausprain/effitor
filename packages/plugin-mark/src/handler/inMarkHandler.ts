@@ -14,8 +14,8 @@ export const inMarkHandler: Et.EffectHandler = {
     if (this.superHandler.EinsertText) {
       if (payload.data === ' ') {
         // 临时 mark 节点内空格撤回节点
-        const markType = ctx.pctx.$mark_ctx.markState.markEl?.markType
-        if (ctx.pctx.$mark_ctx.markState.checkAndEndMarking(false)
+        const markType = ctx.pctx.$markEx.markState.markEl?.markType
+        if (ctx.pctx.$markEx.markState.checkAndEndMarking(false)
           && ctx.commandManager.discard()
         ) {
           // 插回marker, bold是从italic 转化来的, 要插回**
@@ -37,7 +37,7 @@ export const inMarkHandler: Et.EffectHandler = {
         const tc = payload.targetRange.toTargetCaret()
         const markEl = tc.anchorEtElement
         if (ctx.schema.mark.is(markEl) && checkAllowNested(tc.anchorEtElement, MarkType.BOLD)) {
-          if (ctx.pctx.$mark_ctx.markState.isMarking) {
+          if (ctx.pctx.$markEx.markState.isMarking) {
             markEl.changeMarkType(MarkType.BOLD)
           }
           if (tc.isAtText()) {
@@ -75,7 +75,7 @@ export const inMarkHandler: Et.EffectHandler = {
       }
       if (this.superHandler.EinsertText(ctx, payload)) {
         // 插入文本, 更改临时节点状态
-        if (ctx.pctx.$mark_ctx.markState.checkAndEndMarking(true)) {
+        if (ctx.pctx.$markEx.markState.checkAndEndMarking(true)) {
           ctx.commandManager.closeTransaction()
         }
         return true
@@ -85,7 +85,7 @@ export const inMarkHandler: Et.EffectHandler = {
   },
   InsertCompositionTextSuccess(ctx) {
     // 输入法成功插入文本, 更改临时节点状态
-    if (ctx.pctx.$mark_ctx.markState.checkAndEndMarking(true)) {
+    if (ctx.pctx.$markEx.markState.checkAndEndMarking(true)) {
       ctx.commandManager.closeTransaction()
     }
   },

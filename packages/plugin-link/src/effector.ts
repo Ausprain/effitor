@@ -106,7 +106,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
       const inputDiv = content.firstElementChild as HTMLInputElement
       // 关闭popup时, 若链接不同, 则更新
       const newUrl = inputDiv.value.replaceAll(/\s/g, '')
-      const linkCtx = _ctx.pctx.$link_ctx
+      const linkCtx = _ctx.pctx.$linkPx
       if (linkEl.linkUrl !== newUrl) {
         if (!linkCtx.urlReg.test(newUrl)) {
           _ctx.assists.msg?.error('链接格式错误')
@@ -181,7 +181,7 @@ const initLinkDialog = (
       close(...args)
     }, 0)
   }
-  const linkCtx = ctx.pctx.$link_ctx
+  const linkCtx = ctx.pctx.$linkPx
   if (linkDialog) {
     el.appendChild(linkDialog)
     // 延迟 focus, 否则无法获取到焦点

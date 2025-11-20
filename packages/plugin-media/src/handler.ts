@@ -17,7 +17,7 @@ export const markMediaHandler: Et.EffectHandler = {
       title,
       alt: '',
     }
-    const media = ctx.pctx.$media_ctx
+    const media = ctx.pctx.$mediaPx
     let type: MediaType | undefined = void 0
     if (media.image.exts.has(data.ext)) {
       type = MediaType.Image
