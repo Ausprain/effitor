@@ -56,7 +56,7 @@
 - [x] 更新 CssClassEnum 的样式名, 统一格式
 - [ ] 选区增加选择节点case，即当选区 range，且 startOffset+1=endOffset时，视为选择节点
 - [x] blockquote新增 pgroup 类型
-- [ ] 热字符串判定允许 Backspace 回退游标
+- [x] 热字符串判定允许 Backspace 回退游标; (当游标未走完时, 即热字符串正在匹配中, 允许 Backspace 回退游标)
 - [ ] 大文档性能优化，看看标题高度是否影响性能；以及 css 颜色方案 oklch 是否影响样式计算的性能
 - [ ] 插件需暴露一个接口给外部
   > - 现在的助手如 dropdown，popup 等，都必须在插件注册前挂载到 ctx.assists 上，才能被插件使用；如果未来新增助手如 toolbar，则没办法将插件的指定功能添加到 toolbar 上。

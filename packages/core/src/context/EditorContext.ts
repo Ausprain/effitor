@@ -507,7 +507,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
-   * 检查光标是否直接在指定效应元素内；当且仅当选区 collapsed 且 focusEtElement 等于 el 时返回 true
+   * 检查光标是否***直接***在指定效应元素内；当且仅当选区 collapsed 且 focusEtElement 等于 el 时返回 true
    */
   isCaretIn(el: Et.EtElement) {
     return this.selection.isCollapsed && this._focusEtElement === el

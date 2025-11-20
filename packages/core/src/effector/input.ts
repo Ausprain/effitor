@@ -29,9 +29,15 @@ export const getInputListener = (
       return
     }
 
-    // TODO 热字符串功能仅在段落下有效?
-    if (ev.data && ev.inputType === 'insertText' && ctx.isPlainParagraph(ctx.focusEtElement)) {
-      ctx.hotstringManager.listen(ev.data)
+    if (ev.data && ev.inputType === 'insertText') {
+      // TODO 热字符串功能仅在段落下有效?
+      if (ctx.isPlainParagraph(ctx.focusEtElement)) {
+        ctx.hotstringManager.listen(ev.data)
+      }
+    }
+    else if (ev.inputType === 'deleteContentBackward') {
+      // 回退热字符串游标
+      ctx.hotstringManager.backflow(1)
     }
     else {
       ctx.hotstringManager.needResetBeforeJudge()

@@ -60,6 +60,7 @@ const insertTextAtCaretByTyping = (
       }))
       return true
     }
+    // TODO 这里可以加一个判断, 后续是否有相邻兄弟文本节点, 有的话合并为一个文本节点
     // 光标右边是零宽字符, 全部替换
     // 避免出现某个段落内容为: `xxx&ZeroWidthSpace;&ZeroWidthSpace;&ZeroWidthSpace;`的情况
     if (offset === 0 && anchorText.data[offset] === HtmlCharEnum.ZERO_WIDTH_SPACE) {

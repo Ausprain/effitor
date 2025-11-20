@@ -87,6 +87,17 @@ export const getHotstringManager = (ctx: Et.EditorContext, options?: Partial<Hot
       return _resetNeeded && (_resetNeeded = false)
     },
     /**
+     * 回退监听字符
+     * @param count 回退字符数
+     */
+    backflow(count: number) {
+      if (count > 0) {
+        for (const hs of hsArray) {
+          hs.backflow(count)
+        }
+      }
+    },
+    /**
      * 创建并添加一组热字符串, 已存在则覆盖
      * @param ha 热字符串 -> 触发函数
      */

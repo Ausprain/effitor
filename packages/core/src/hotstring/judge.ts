@@ -53,6 +53,18 @@ export class Hotstring {
     }
     return false
   }
+
+  /**
+   * 回退字符
+   * @param count 回退字符数, 默认1
+   */
+  backflow(count = 1) {
+    if (!this.__pos) {
+      return
+    }
+    this.__pos = Math.max(0, this.__pos - count)
+  }
+
   // reset() {
   //     this.__pos = 0
   // }
