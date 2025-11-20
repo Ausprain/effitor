@@ -4,7 +4,7 @@ import { HtmlCharEnum } from '@effitor/shared'
 import { BlockquoteMeta } from './config'
 import { blockquoteMetaParser } from './util'
 
-const ectx = useEffectorContext('$blockquote_ctx', {
+const _ectx = useEffectorContext('$blockquote_ctx', {
   bqMetaParser: blockquoteMetaParser,
   checkQuitBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
     if (!currP.nextSibling && dom.isEmptyContentNode(currP)) {
@@ -48,7 +48,7 @@ const ectx = useEffectorContext('$blockquote_ctx', {
     if (!pText.startsWith('> ')) {
       return false
     }
-    const meta = ectx.$blockquote_ctx.bqMetaParser.fromText(pText.slice(2), ctx.pctx.$blockquote_ctx)
+    const meta = blockquoteMetaParser.fromText(pText.slice(2), ctx.pctx.$blockquote_ctx)
     if (!meta) {
       return false
     }
@@ -60,16 +60,16 @@ const ectx = useEffectorContext('$blockquote_ctx', {
   },
 })
 
-export const blockquoteEffector: Et.EffectorSupportInline = {
+export const blockquoteEffector: Et.EffectorSupportInline<typeof _ectx> = {
   inline: true,
   keydownSolver: {
-    Enter: (ev, ctx) => {
+    Enter: (ev, ctx, { $blockquote_ctx }) => {
       const currP = ctx.focusParagraph
       if (!currP || !ctx.isPlainParagraph(currP)) {
         return
       }
-      if (ectx.$blockquote_ctx.checkQuitBlockquote(ctx, currP)
-        || ectx.$blockquote_ctx.checkInsertBlockquote(ctx, currP)
+      if ($blockquote_ctx.checkQuitBlockquote(ctx, currP)
+        || $blockquote_ctx.checkInsertBlockquote(ctx, currP)
       ) {
         return ctx.preventAndSkipDefault(ev)
       }

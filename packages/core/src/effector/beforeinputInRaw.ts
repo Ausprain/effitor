@@ -1,4 +1,5 @@
 import type { Et } from '../@types'
+import { effectorContext } from './ectx'
 
 export const solveInputInRawEl = (
   ev: Et.InputEvent, ctx: Et.UpdatedContext, rawEl: Et.HTMLRawEditElement, solver?: Et.InputSolver,
@@ -92,7 +93,7 @@ export const solveInputInRawEl = (
       break
     case 'historyRedo':
     case 'historyUndo': {
-      solver?.[ev.inputType]?.(ev, ctx)
+      solver?.[ev.inputType]?.(ev, ctx, effectorContext)
       break
     }
 

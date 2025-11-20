@@ -8,6 +8,7 @@ import { BuiltinConfig, HtmlCharEnum, MIMETypeEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
+import { effectorContext } from './ectx'
 
 type NotEmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: DataTransfer }
 type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
@@ -19,7 +20,7 @@ export const getCopyListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAc
     if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
     ev.preventDefault() // preventDefault 以更改clipboardData的内容
 
-    callback?.(ev, ctx)
+    callback?.(ev, ctx, effectorContext)
     if (ctx.defaultSkipped) return false
 
     copySelectionToClipboard(ctx, ev.clipboardData)
@@ -38,7 +39,7 @@ export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAct
         ctx.forceUpdate()
       }
     }
-    callback?.(ev, ctx)
+    callback?.(ev, ctx, effectorContext)
     if (ctx.defaultSkipped) return false
 
     copySelectionToClipboard(ctx, ev.clipboardData)
@@ -73,7 +74,7 @@ export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardA
       return
     }
     // 否则尝试调用插件回调
-    callback?.(ev, ctx)
+    callback?.(ev, ctx, effectorContext)
     if (ctx.defaultSkipped) return false
     // 接管默认粘贴行为
     ctx.body.dispatchInputEvent('beforeinput', {

@@ -3,44 +3,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { Et } from '../@types'
-import { etcode } from '../element/etcode'
-import { cr } from '../selection/cr'
-import { dom } from '../utils/dom'
+import { dom, traversal } from '../utils'
 
 /**
  * 为keydown/keyup事件创建一个按键处理映射器 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
- * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcode}, {@link dom}, {@link cr} \
+ * 其中所有执行器(函数) 均不可直接引用外部变量/函数 \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createKeyboardKeySolver = (solver: Et.KeyboardKeySolver) => solver
 /**
  * 为beforeinput/input事件创建一个输入处理映射器 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
- * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcode}, {@link dom}, {@link cr} \
+ * 其中所有执行器(函数) 均不可直接引用外部变量/函数 \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createInputTypeSolver = (solver: Et.InputTypeSolver) => solver
 /**
  * 创建自定义的html事件监听器表, 在effector中, 这些监听器会在编辑器默认监听器注册之后注册 \
  * 如果其所处的效应器effector是支持inline内联的, 则 \
- * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcode}, {@link dom}, {@link cr} \
+ * 其中所有执行器(函数) 均不可直接引用外部变量/函数 \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createHtmlEventSolver = (solver: Et.HTMLEventSolver) => solver
 /**
  * 创建一个effector \
  * 若该effector是支持内联的(inline设置为true) 则 \
- * 其中所有执行器(函数) 均不可直接引用外部变量/函数, (除了从effitor导出的全局工具: `etcode, dom, cr`), \
- * {@link etcode}, {@link dom}, {@link cr} \
+ * 其中所有执行器(函数) 均不可直接引用外部变量/函数 \
  * 如需引用其他变量, 需使用 useEffectorContext 或 withEffectorContext 为其添加上下文
  */
 export const createEffector = (effector: Et.Effector) => effector
 
 export const effectorContext = {
+  /** dom 工具 {@link dom} */
+  dom,
+  /** dom 树遍历工具 {@link traversal} */
+  traversal,
   createKeyboardKeySolver,
   createInputTypeSolver,
   createHtmlEventSolver,
@@ -49,11 +47,11 @@ export const effectorContext = {
   ): Et.EffectorSupportInline => Object.assign(effector, { inline: true as const }),
 }
 
-type EffectorContext<K extends string, V extends object> = Readonly<Record<K, V>> & typeof effectorContext
+export type IEctx<K extends string, V> = Readonly<Record<K, V>>
+export type EffectorContext<E extends IEctx<string, any>> = E & typeof effectorContext
 
 /**
- * 获取携带相关信息的effector上下文对象, 该对象可在effector的solver和callback
- * 中引用, 但必须使用`ectx`作为其标识符, 使用其他名字将导致异常
+ * 获取携带相关信息的effector上下文对象, 该对象会在effector的solver处理函数和callback中通过第三个参数传入
  * * 仅支持内联的效应器需要此上下文
  * * 效应器上下文(ectx)和插件上下文(ctx.pctx)的区别是, 效应器上下文是全局的(所有编辑器实例共享),
  *   而插件上下文是局部的(每个编辑器实例的上下文 ctx 独有)
@@ -62,11 +60,15 @@ type EffectorContext<K extends string, V extends object> = Readonly<Record<K, V>
     // case: mark effector
     import { markState } from './config'
     import { etcode } from '@/effitor/element';
-    const ectx = useEffectorContext('mark', { markState })
-    const markEffector: Et.Effector = {
+    // _ectx 背后指向的是一个编辑器全局对象
+    const _ectx = useEffectorContext('mark', { markState })
+    // 通过指定泛型, 让 ts 推断回调函数中参数 ectx 的类型
+    const markEffector: Et.EffectorSupportInline<typeof _ectx> = {
+        inline: true,
         keydownSolver: {
-            Enter: (ev, ctx) => {
-                // 此处若调用除此作用域以及ectx外的变量, 将导致异常
+            Enter: (ev, ctx, ectx) => {
+                // 注意此 ectx 是参数列表里的，不要引用当前函数作用域外的 _ectx
+                // 此处若调用除此作用域以外的变量, 将导致异常
                 // if (markState.temp) {  // error
                 if (ectx.mark.markState.temp) {
                     ... // delete this temp mark element
@@ -75,15 +77,13 @@ type EffectorContext<K extends string, V extends object> = Readonly<Record<K, V>
         }
     }
     ```
-    * 多个useEffectorContext获取的上下文对象不相关联, 且后来者相同作用域内的同路径内容会将前者覆盖
+    * 多个useEffectorContext获取的上下文对象是同一个对象, 后来者相同作用域内的同路径内容会将前者覆盖
     ```ts
     // file1.ts
-    const ectx = useEffectorContext('some', { foo })
+    const ectx = useEffectorContext('some', { foo, gnn })
     // file2.ts
-    const ectx = useEffectorContext('some', { bar })
-    ectx.some.foo  // error, no foo in ectx;
-    // 但实际上只要file1.ts执行了, 那么foo是存在于ectx的some作用域内的
-    // 在确定情况下, 可禁用其ts警告; 或者在init对象中重新指定 foo
+    const ectx = useEffectorContext('some', { bar, gnn })  // here 'gnn' will override 'gnn' in file1.ts
+    ectx.some.foo  // exists, but ts doesn't think so.
     ```
  * @param scope 上下文作用域名
  * @param init 上下文内容
@@ -92,14 +92,14 @@ type EffectorContext<K extends string, V extends object> = Readonly<Record<K, V>
 export const useEffectorContext = <
   N extends string,
   T extends object,
->(scope: N, init: T): EffectorContext<N, T> => {
-  const ectx = effectorContext as EffectorContext<N, T>
+>(scope: N, init: T): EffectorContext<IEctx<N, T>> => {
+  const ectx = effectorContext as EffectorContext<IEctx<N, T>>
   const namespace = ectx[scope]
   if (namespace) {
     Object.assign(namespace, init)
   }
   else {
-    ectx[scope] = init as EffectorContext<N, T>[N]
+    ectx[scope] = init as EffectorContext<IEctx<N, T>>[N]
   }
 
   return ectx
@@ -117,7 +117,7 @@ export const withEffectorContext = <
   N extends string,
   T extends object,
   R extends Et.Effector | Et.Solver,
->(name: N, init: T, caretor: (ectx: EffectorContext<N, T>) => R): R => {
+>(name: N, init: T, caretor: (ectx: EffectorContext<IEctx<N, T>>) => R): R => {
   return caretor(useEffectorContext(name, init))
 }
 
@@ -128,7 +128,6 @@ export const withEffectorContext = <
  * @returns 一个合并之后的Effector
  */
 export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Effector {
-  const ectx = effectorContext
   let solversMap = {} as Record<string, {
     solvers: any[]
     keys: Set<string>
@@ -159,17 +158,14 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
   }
   // 处理 callback 合并
   for (const [name, cbs] of Object.entries(singleEffector)) {
-    // 启用内联时, 使用 new Function 构造内敛函数, 并提供环境参数 ectx, cr, dom, etcode
+    // 启用内联时, 使用 new Function 构造内敛函数
     if (inline) {
       try {
         // 使用 new Function 构造内敛函数
-        const fnstr = name.startsWith('on')
-          // onMounted, onBeforeUnmount 没有返回 true终止后续的特性
-          ? `(...args)=>{${(cbs as Function[]).map(f => `(${f.toString()})(...args);`).join('\n')}}`
-          // 其他 callback 返回 true 终止后续插件的同类行为
-          : `(...args)=>{${(cbs as Function[]).map(f => `if((${f.toString()})(...args)) return true;`).join('\n')}}`
+        // callback 返回 true 终止后续插件的同类行为
+        const fnstr = `(...A)=>{${(cbs as Function[]).map(f => `if((${f.toString()})(...A)) return true;`).join('\n')}}`
         // singleEffector[name] = eval(fnstr)
-        singleEffector[name] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
+        singleEffector[name] = new Function(`return ${fnstr}`)()
       }
       catch (e) {
         throw Error(`启用Effector内联时 其Callback只能使用箭头函数, 并禁止使用 import.meta . ${e}`)
@@ -177,9 +173,7 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
     }
     // 不启用内联, 则使用数组局部变量存储相关回调
     else {
-      singleEffector[name] = name.startsWith('on')
-        ? (...args: any) => { for (const cb of (cbs as Function[])) { cb(...args) } }
-        : (...args: any) => { for (const cb of (cbs as Function[])) { if (cb(...args)) return true } }
+      singleEffector[name] = (...A: any) => { for (const cb of (cbs as Function[])) { if (cb(...A)) return true } }
     }
   }
   // 处理 solver 合并
@@ -210,30 +204,30 @@ export function solveEffectors(effectors: Et.Effector[], inline: boolean): Et.Ef
         const funs = solverFunsMap[k] as Function[]
         try {
           // 返回 true, 终止后续solver
-          const fnstr = `(...args)=>{${funs.map(f => `if((${f.toString()})(...args)) return true;`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
+          const fnstr = `(...A)=>{${funs.map(f => `if((${f.toString()})(...A)) return true;`).join('\n')}}` // jsperf in chrome 多次测试, 此种写法性能最优
           // pre[k] = eval(fnstr)
-          pre[k] = new Function(`return (ectx, cr, dom, etcode) => ${fnstr}`)()(ectx, cr, dom, etcode)
+          pre[k] = new Function(`return ${fnstr}`)()
         }
         catch (e) {
-          // console.log(name, k, funs.map(f => `if((${f.toString()})(...args)) return`).join('\n'))
+          // console.log(name, k, funs.map(f => `if((${f.toString()})(...A)) return`).join('\n'))
           // console.error(e)
           throw Error(`启用Effector内联时 其Solver只能使用箭头函数, 并禁止使用 import.meta . ${e}`)
         }
         return pre
-      }, {} as Record<string, (...args: any[]) => any>)
+      }, {} as Record<string, (...A: any[]) => any>)
     }
     else {
       singleEffector[name] = Object.keys(solverFunsMap).reduce((pre, k) => {
         const funs = solverFunsMap[k] as Function[]
-        pre[k] = (...args: any) => {
+        pre[k] = (...A: any) => {
           for (const fn of funs) {
-            if (fn(...args)) {
+            if (fn(...A)) {
               return true
             }
           }
         }
         return pre
-      }, {} as Record<string, (...args: any[]) => any>)
+      }, {} as Record<string, (...A: any[]) => any>)
     }
   }
 

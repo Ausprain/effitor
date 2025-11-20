@@ -199,7 +199,7 @@ interface _CreateEditorOptions {
   /**
    * 是否将插件效应器内联, 默认false, 设置为true时, 只能使用支持effector内联的插件 \
    * 启用时, 插件 effector 将内联到编辑器核心, 在插件数量较多时能拥有更好的性能 \
-   * 内联的效应器将不可引用外部变量 (`ectx, dom, cr, etcode` 除外), 且相应函数必须是箭头函数, 也不可使用import.meta \
+   * 内联的效应器将不可引用外部变量, 且相应函数必须是箭头函数, 也不可使用import.meta \
    * 具体见{@link EffectorSupportInline}
    */
   effectorInline?: boolean

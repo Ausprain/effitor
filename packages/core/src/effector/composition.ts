@@ -3,6 +3,7 @@ import type { Et } from '../@types'
 export const getCompositionStart = (ctx: Et.EditorContext) => {
   return () => {
     // 输入法开始时必须强制更新上下文获取最新的光标位置
+    // fixme 删除选区
     // ctx.forceUpdate()
     ctx.commandManager.commit()
     ctx.composition.onStart()

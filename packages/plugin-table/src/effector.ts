@@ -1,5 +1,5 @@
 import type { DropdownContent } from '@effitor/assist-dropdown'
-import { dom, type Et } from '@effitor/core'
+import type { Et } from '@effitor/core'
 import {
   colDeleteRightIcon,
   colInsertLeftIcon,
@@ -12,10 +12,10 @@ import {
 } from '@effitor/shared'
 
 import { TableName } from './config'
-import { ectx } from './ectx'
+import { ectx as _ectx } from './ectx'
 
-const beforeKeydownSolver: Et.KeyboardSolver = {
-  [TableName.TableCell]: (ev, ctx) => {
+const beforeKeydownSolver: Et.KeyboardSolver<typeof _ectx> = {
+  [TableName.TableCell]: (ev, ctx, ectx) => {
     ctx.commandManager.checkKeydownNeedCommit(ev, ctx)
     if (ctx.hotkeyManager.listenEffect(ectx.$table_ctx.tableCellKeyMap) === false) {
       return
@@ -48,10 +48,10 @@ export const tableEffector: Et.EffectorSupportInline = {
 /**
  * OneNote 风格插入表格
  */
-export const tabToTableEffector: Et.EffectorSupportInline = {
+export const tabToTableEffector: Et.EffectorSupportInline<typeof _ectx> = {
   inline: true,
   keydownSolver: {
-    Tab: (ev, ctx) => {
+    Tab: (ev, ctx, ectx) => {
       if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.focusParagraph)
         || !ctx.selection.anchorText || ctx.focusParagraph.childElementCount > 0
       ) {
@@ -59,7 +59,7 @@ export const tabToTableEffector: Et.EffectorSupportInline = {
       }
       const data = ctx.focusParagraph.textContent
       if (data.length > 20 || data.includes('\t') || data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
-        || (data.length !== ctx.selection.anchorOffset && !dom.isTrailingZWS(data, ctx.selection.anchorOffset))
+        || (data.length !== ctx.selection.anchorOffset && !ectx.dom.isTrailingZWS(data, ctx.selection.anchorOffset))
       ) {
         return
       }
@@ -107,22 +107,22 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const insertItems = ([
       [rowInsertTopIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
+          _ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
         }
       }],
       [rowInsertBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
+          _ectx.$table_ctx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
         }
       }],
       [colInsertLeftIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
+          _ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
         }
       }],
       [colInsertRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
+          _ectx.$table_ctx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
@@ -131,12 +131,12 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const deleteItems = ([
       [rowDeleteBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          ectx.$table_ctx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
+          _ectx.$table_ctx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
         }
       }],
       [colDeleteRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          ectx.$table_ctx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
+          _ectx.$table_ctx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(

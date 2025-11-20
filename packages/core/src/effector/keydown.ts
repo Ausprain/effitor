@@ -1,4 +1,5 @@
 import type { Et } from '../@types'
+import { effectorContext } from './ectx'
 import { solveKeydownArrow } from './keydownArrow'
 
 export type MainKeyboardSolver = {
@@ -64,7 +65,7 @@ export const runKeyboardSolver = (
   // 如果先执行, 就会先执行beforeinput再执行其他keydownSolver
   fn = main[key as keyof typeof main] || main.default
   if (typeof fn === 'function') {
-    fn(ev, ctx)
+    fn(ev, ctx, effectorContext)
   }
   return true
 }
@@ -142,6 +143,7 @@ export const getKeydownCaptureListener = (
         ev,
         // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
         ctx,
+        effectorContext,
       )
       if (!ret) {
         fn = solver[key as keyof typeof solver] || solver.default
@@ -149,6 +151,7 @@ export const getKeydownCaptureListener = (
           ev,
           // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
           ctx,
+          effectorContext,
         )
       }
       if (ret) {

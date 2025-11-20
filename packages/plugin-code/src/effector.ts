@@ -4,7 +4,7 @@ import { codeBlockIcon } from '@effitor/shared'
 
 import { CodeEnum } from './config'
 
-const ectx = useEffectorContext('$code_ctx', {
+const _ectx = useEffectorContext('$code_ctx', {
   checkMarkCode: (ctx: Et.EditorContext) => {
     if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.commonEtElement)) {
       return false
@@ -25,7 +25,7 @@ const ectx = useEffectorContext('$code_ctx', {
   },
 })
 
-export const codeEffector: Et.EffectorSupportInline = {
+export const codeEffector: Et.EffectorSupportInline<typeof _ectx> = {
   inline: true,
   keydownSolver: {
     [CodeEnum.ElName]: (ev, ctx) => {
@@ -69,8 +69,8 @@ export const codeEffector: Et.EffectorSupportInline = {
           break
       }
     },
-    Enter: (ev, ctx) => {
-      if (ectx.$code_ctx.checkMarkCode(ctx)) {
+    Enter: (ev, ctx, { $code_ctx }) => {
+      if ($code_ctx.checkMarkCode(ctx)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },

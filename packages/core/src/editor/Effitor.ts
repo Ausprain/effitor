@@ -650,11 +650,7 @@ const reducePlugins = (
     }
     cur.register?.(ctx, setSchema, mountEtHandler)
   }
-  const pluginEffector = inline
-    ? solveEffectors(
-        [...preEffectors, ...effectors, ...postEffectors], true,
-      )
-    : solveEffectors([...preEffectors, ...effectors, ...postEffectors], false)
+  const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors], inline)
   return {
     cssText: cssTexts.join('\n'),
     onMounteds,

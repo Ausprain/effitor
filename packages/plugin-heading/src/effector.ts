@@ -5,7 +5,7 @@ import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
 import { HeadingEnum } from './config'
 import { headingHandler, inHeadingHandler, replaceParagraphWithHeading } from './handler'
 
-const ectx = useEffectorContext('_et_$heading', {
+const _ectx = useEffectorContext('$heading_ctx', {
   // 标题 handler 比较少, 直接挂到 ectx 上调用, 不注册到效应元素
   headingHandler,
   inHeadingHandler,
@@ -32,9 +32,9 @@ const ectx = useEffectorContext('_et_$heading', {
 
 })
 
-const beforeKeydownSolver: Et.KeyboardKeySolver = {
-  ' ': (_ev, ctx) => ectx._et_$heading.checkAtxToHeading(ctx),
-  'Enter': (_ev, ctx) => ectx._et_$heading.checkAtxToHeading(ctx),
+const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
+  ' ': (_ev, ctx, ectx) => ectx.$heading_ctx.checkAtxToHeading(ctx),
+  'Enter': (_ev, ctx, ectx) => ectx.$heading_ctx.checkAtxToHeading(ctx),
   'Tab': (_ev, ctx) => {
     if (ctx.focusEtElement.localName === HeadingEnum.ElName) {
       return true
@@ -42,14 +42,14 @@ const beforeKeydownSolver: Et.KeyboardKeySolver = {
   },
 }
 
-const keydownSolver: Et.KeyboardSolver = {
+const keydownSolver: Et.KeyboardSolver<typeof _ectx> = {
   // heading 专有 keydown solver
-  [HeadingEnum.ElName]: (ev, ctx) => {
+  [HeadingEnum.ElName]: (ev, ctx, ectx) => {
     if (ev.key === 'Backspace'
       && ctx.selection.isCollapsed
       && ctx.selection.anchorOffset === 0
     ) {
-      ectx._et_$heading.inHeadingHandler.regressHeadingToParagraph(ctx, {
+      ectx.$heading_ctx.inHeadingHandler.regressHeadingToParagraph(ctx, {
         heading: ctx.commonEtElement,
       })
       return ctx.skipDefault()

@@ -17,7 +17,7 @@ import {
 
 import { type IEtMediaElement, MEDIA_ET_CODE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
 
-const ectx = useEffectorContext('$media_ctx', {
+const _ectx = useEffectorContext('$media_ctx', {
   filterFiles: (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
     if (!media) {
       return []
@@ -58,7 +58,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
 
   keydownSolver: {
     // 光标在媒体元素左右时, 按下tab调整媒体元素浮动位置
-    Tab: (ev, ctx) => {
+    Tab: (ev, ctx, ectx) => {
       if (ev.repeat) {
         return
       }
@@ -140,7 +140,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
       document.onmousemove = null
     },
   },
-  pasteCallback: (ev, ctx) => {
+  pasteCallback: (ev, ctx, ectx) => {
     const tc = ctx.selection.getTargetCaret()
     if (!tc || !ev.clipboardData.files.length) {
       return
@@ -274,7 +274,7 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
     if (!media || !media.onfileselected || !files || !files.length) {
       return
     }
-    const chunk = media.onfileselected(ectx.$media_ctx.filterFiles(media, [...files]))
+    const chunk = media.onfileselected(_ectx.$media_ctx.filterFiles(media, [...files]))
     if (chunk.length) {
       ctx.effectInvoker.invoke(targetCaret.anchorEtElement, 'insertMediaChunk', ctx, {
         targetCaret,

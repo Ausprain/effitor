@@ -2,7 +2,7 @@ import type { Et } from '@effitor/core'
 import { copyIcon, CssClassEnum, gotoIcon, linkIcon, MIMETypeEnum } from '@effitor/shared'
 
 import { LinkEnum } from './config'
-import { EtLinkElement } from './EtLinkElement'
+import type { EtLinkElement } from './EtLinkElement'
 import { checkInsertLink } from './handler'
 
 export const linkEffector: Et.EffectorSupportInline = {
