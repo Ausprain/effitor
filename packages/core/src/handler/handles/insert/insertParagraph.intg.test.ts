@@ -12,7 +12,7 @@ import { initContentsAndSetSelection } from '../__tests__/shared.test'
  * [
  *    `插入段落前编辑区内容及光标位置`,
  *    `插入段落后编辑区内容及光标位置`,
- *    `插入段落后光标所在节点的textContent, 用于判断一些合并情况是否按预期合并`
+ *    `插入段落后光标所在节点的textContent, 用于判断一些合并情况是否按预期合并, 以及光标落点位置是否正确`
  * ]
  */
 suite.each([
@@ -44,7 +44,7 @@ suite.each([
     '',
   ],
   [
-    `<et-p>Hello A78<b>bold</b>B12|<br></et-p>`,
+    `<et-p>Hello A78<b>bold</b>B12|<br></et-p>`, // 此处判断为段落末尾, 该 br 被保留原位, 而不是被 enter 进新段落
     `
       <et-p>Hello A78<b>bold</b>B12<br></et-p>
       <et-p>|<br></et-p>
@@ -175,7 +175,7 @@ suite.each([
  * [
  *    `插入段落前编辑区内容及选区位置`,
  *    `插入段落后编辑区内容及光标位置`,
- *    `插入段落后光标所在节点的textContent, 用于判断一些合并情况是否按预期合并`
+ *    `插入段落后光标所在节点的textContent, 用于判断一些合并情况是否按预期合并, 以及光标落点位置是否正确`
  * ]
  */
 suite.each([
@@ -189,47 +189,48 @@ suite.each([
     '78',
   ],
   [
-    `<et-p>Hello A78<b>^bold|<i>I123</i></b>B12</et-p>`,
-    // `<et-p>Hello A78<b><i>|I123</i></b>B12</et-p>`,
+    `<et-p>1.Hello A78<b>^bold|<i>I123</i></b>B12</et-p>`,
+    // `<et-p>1.Hello A78<b><i>|I123</i></b>B12</et-p>`,
     `
-      <et-p>Hello A78</et-p>
+      <et-p>1.Hello A78</et-p>
       <et-p><b><i>|I123</i></b>B12</et-p>
     `,
     'I123',
   ],
   // 1.1 删除文本节点, 连带删除祖先
   [
-    `<et-p>Hello A78<b>bold<i>^I123|</i></b>B12</et-p>`,
-    // `<et-p>Hello A78<b>bold|</b>B12</et-p>`,
+    `<et-p>1.1.1 A78<b>bold<i>^I123|</i></b>B12</et-p>`,
+    // `<et-p>1.1.1 A78<b>bold|</b>B12</et-p>`,
     `
-      <et-p>Hello A78<b>bold</b></et-p>
+      <et-p>1.1.1 A78<b>bold</b></et-p>
       <et-p>|B12</et-p>
     `,
     'B12',
   ],
   [
-    `<et-p>Hello A78<b><i>^I123|</i></b>B13<br></et-p>`,
-    // `<et-p>Hello A78|B13<br></et-p>`,
+    `<et-p>1.1.2 A78<b><i>^I123|</i></b>B13<br></et-p>`,
+    // `<et-p>1.1.2 A78|B13<br></et-p>`,
     `
-      <et-p>Hello A78</et-p>
+      <et-p>1.1.2 A78</et-p>
       <et-p>|B13<br></et-p>
     `,
     `B13`,
   ],
   // 自动添加尾 br
   [
-    `<et-p>Hello A78<b><i>^I123|</i></b>B13</et-p>`,
-    // `<et-p>Hello A78|B13</et-p>`,
+    `<et-p>1.1.3 A78<b><i>^I123|</i></b>B13</et-p>`,
+    // `<et-p>1.1.3 A78|B13</et-p>`,
     `
-      <et-p>Hello A78</et-p>
-      <et-p>|B13<br></et-p>
+      <et-p>1.1.3 A78</et-p>
+      <et-p>|B13</et-p>
     `,
     `B13`,
   ],
   // 1.2 不应连带删除段落
   [
-    `<et-p>^Hello A78|</et-p>`,
+    `<et-p>^1.2 A78|</et-p>`,
     // `<et-p>|</et-p>`,
+    // 这里空段落更合理地, 应插回一个 br
     `
       <et-p></et-p>
       <et-p>|<br></et-p>
@@ -238,53 +239,54 @@ suite.each([
   ],
   // 2. 选区范围在同段落内跨节点
   [
-    `<et-p>Hello A78<b>bo^ld<i>I123</i>|D12</b>B12</et-p>`,
-    // `<et-p>Hello A78<b>bo|D12</b>B12</et-p>`,
+    `<et-p>2.1 A78<b>bo^ld<i>I123</i>|D12</b>B12</et-p>`,
+    // `<et-p>2.1 A78<b>bo|D12</b>B12</et-p>`,
     `
-      <et-p>Hello A78<b>bo</b></et-p>
+      <et-p>2.1 A78<b>bo</b></et-p>
       <et-p><b>|D12</b>B12</et-p>
     `,
     `D12`,
   ],
   [
-    `<et-p>Hello A78<b>^bold<i>I1|23</i>D12</b>B12</et-p>`,
-    //   `<et-p>Hello A78<b><i>|23</i>D12</b>B12</et-p>`,
+    `<et-p>2.2 A78<b>^bold<i>I1|23</i>D12</b>B12</et-p>`,
+    //   `<et-p>2.2 A78<b><i>|23</i>D12</b>B12</et-p>`,
     `
-      <et-p>Hello A78</et-p>
+      <et-p>2.2 A78</et-p>
       <et-p><b><i>|23</i>D12</b>B12</et-p>
     `,
     `23`,
   ],
   [
-    `<et-p>Hello A78<b>^bold<i>I123</i>D12|</b>B12</et-p>`,
-    //   `<et-p>Hello A78|B12</et-p>`,
+    `<et-p>2.3 A78<b>^bold<i>I123</i>D12|</b>B2.3</et-p>`,
+    //   `<et-p>2.3 A78|B2.3</et-p>`,
     `
-      <et-p>Hello A78</et-p>
+      <et-p>2.3 A78</et-p>
+      <et-p>|B2.3</et-p>
+    `,
+    `B2.3`,
+  ],
+  [
+    `<et-p>2.4 A78<b>^<i>I123</i>|</b>B12</et-p>`,
+    //   `<et-p>2.4 A78|B12</et-p>`,
+    `
+      <et-p>2.4 A78</et-p>
       <et-p>|B12</et-p>
     `,
     `B12`,
   ],
   [
-    `<et-p>Hello A78<b>^<i>I123</i>|</b>B12</et-p>`,
-    //   `<et-p>Hello A78|B12</et-p>`,
+    `<et-p>2.5^A78<b>bold<i>I123</i>D12</b>B1|2</et-p>`,
+    //   `<et-p>2.5|2</et-p>`,
     `
-      <et-p>Hello A78</et-p>
-      <et-p>|B12</et-p>
-    `,
-    `B12`,
-  ],
-  [
-    `<et-p>Hello^A78<b>bold<i>I123</i>D12</b>B1|2</et-p>`,
-    //   `<et-p>Hello|2</et-p>`,
-    `
-      <et-p>Hello</et-p>
-      <et-p>|2<br></et-p>
+      <et-p>2.5</et-p>
+      <et-p>|2</et-p>
     `,
     `2`,
   ],
   [
-    `<et-p>^Hello A78<b>bold<i>I123</i>D12</b>B12|</et-p>`,
+    `<et-p>^2.6 A78<b>bold<i>I123</i>D12</b>B12|</et-p>`,
     //   `<et-p>|</et-p>`,
+    // 这里空段落更合理地, 应插回一个 br
     `
       <et-p></et-p>
       <et-p>|<br></et-p>
@@ -294,52 +296,52 @@ suite.each([
   // // 3. 选区范围跨同层段落
   [
     `
-    <et-p>Hello A78<b>bold<i>I123</i></b>B^12</et-p>
-    <et-p>Hello A78<b>bold<i>I123</i></b>B1|2</et-p>
+    <et-p>3.1 A78<b>bold<i>I123</i></b>B^12</et-p>
+    <et-p>3.1 A78<b>bold<i>I123</i></b>B1|2</et-p>
     `,
-    //     <et-p>Hello A78<b>bold<i>I123</i></b>B|2</et-p>
+    //     <et-p>3.1 A78<b>bold<i>I123</i></b>B|2</et-p>
     `
-      <et-p>Hello A78<b>bold<i>I123</i></b>B</et-p>
+      <et-p>3.1 A78<b>bold<i>I123</i></b>B</et-p>
       <et-p>|2</et-p>
     `,
     `2`,
   ],
   [
     `
-    <et-p>Hello^A78<b>bold<i>I123</i></b>B12</et-p>
+    <et-p>3.2^A78<b>bold<i>I123</i></b>B12</et-p>
     <et-p>He|llo A781<b>bold<i>I123</i></b>B12</et-p>
     `,
-    //     <et-p>Hello |llo A781<b>bold<i>I123</i></b>B12</et-p>
+    //     <et-p>3.2 |llo A781<b>bold<i>I123</i></b>B12</et-p>
     `
-      <et-p>Hello</et-p>
+      <et-p>3.2</et-p>
       <et-p>|llo A781<b>bold<i>I123</i></b>B12</et-p>
     `,
     `llo A781`,
   ],
   [
     `
-    <et-p>Hello A78<b>bo^ld<i>I123</i></b>B12</et-p>
+    <et-p>3.3 A78<b>bo^ld<i>I123</i></b>B12</et-p>
     <et-p>He|llo A782<b>bold<i>I123</i></b>B12</et-p>
     `,
-    //     <et-p>Hello A78<b>bo|</b>llo A78<b>bold<i>I123</i></b>B12</et-p>
+    //     <et-p>3.3 A78<b>bo|</b>llo A78<b>bold<i>I123</i></b>B12</et-p>
     `
-      <et-p>Hello A78<b>bo</b></et-p>
+      <et-p>3.3 A78<b>bo</b></et-p>
       <et-p>|llo A782<b>bold<i>I123</i></b>B12</et-p>
     `,
     `llo A782`,
   ],
   [
     `
-    <et-p>Hello A78<b>bold<i>I^123</i></b>B12</et-p>
-    <et-p>Hello A78<b>bold<i>I|456</i></b>B12</et-p>
-    <et-p>Hello A78<b>bold</b>B12</et-p>
+    <et-p>3.4 A78<b>bold<i>I^123</i></b>B12</et-p>
+    <et-p>3.4 A78<b>bold<i>I|456</i></b>B12</et-p>
+    <et-p>3.4 A78<b>bold</b>B12</et-p>
     `,
-    //     <et-p>Hello A78<b>bold<i>I|456</i></b>B12</et-p>
-    //     <et-p>Hello A78<b>bold</b>B12</et-p>
+    //     <et-p>3.4 A78<b>bold<i>I|456</i></b>B12</et-p>
+    //     <et-p>3.4 A78<b>bold</b>B12</et-p>
     `
-      <et-p>Hello A78<b>bold<i>I</i></b></et-p>
+      <et-p>3.4 A78<b>bold<i>I</i></b></et-p>
       <et-p><b><i>|456</i></b>B12</et-p>
-      <et-p>Hello A78<b>bold</b>B12</et-p>
+      <et-p>3.4 A78<b>bold</b>B12</et-p>
     `,
     `456`,
   ],
@@ -348,21 +350,21 @@ suite.each([
   [
     `
     <et-bq>
-      <et-p>Hello^ A78<b>bold<i>I123</i></b>B12</et-p>
+      <et-p>4.1^ A78<b>bold<i>I123</i></b>B12</et-p>
       <list>
-        <et-p>Hello A78<b>bold</b>B|12</et-p>
+        <et-p>4.1 A78<b>bold</b>B|12</et-p>
       </list>
     </et-bq>
     `,
     //     <et-bq>
-    //       <et-p>Hello|</et-p>
+    //       <et-p>4.1|</et-p>
     //       <list>
     //         <et-p>12</et-p>
     //       </list>
     //     </et-bq>
     `
       <et-bq>
-        <et-p>Hello</et-p>
+        <et-p>4.1</et-p>
         <list>
           <et-p>|12</et-p>
         </list>
@@ -375,21 +377,21 @@ suite.each([
     `
     <et-bq>
       <list>
-        <et-p>Hello^ A78<b>bold</b>B12</et-p>
+        <et-p>4.2.1^ A78<b>bold</b>B12</et-p>
         <et-p>World B78</et-p>
       </list>
-      <et-p>Hello A78<b>bold<i>I123</i></b>B12|</et-p>
+      <et-p>4.2.1 A78<b>bold<i>I123</i></b>B12|</et-p>
     </et-bq>
     `,
     //     <et-bq>
     //       <list>
-    //         <et-p>Hello|</et-p>
+    //         <et-p>4.2.1|</et-p>
     //       </list>
     //     </et-bq>
     `
       <et-bq>
         <list>
-          <et-p>Hello</et-p>
+          <et-p>4.2.1</et-p>
           <et-p>|<br></et-p>
         </list>
       </et-bq>
@@ -399,18 +401,18 @@ suite.each([
   [
     `
     <et-bq>
-      <et-p>Hello^ A78<b>bold<i>I123</i></b>B12</et-p>
+      <et-p>4.2.2^ A78<b>bold<i>I123</i></b>B12</et-p>
       <list>
-        <et-p>Hello A78<b>bold</b>B12|</et-p>
+        <et-p>4.2.2 A78<b>bold</b>B12|</et-p>
       </list>
     </et-bq>
     `,
     //     <et-bq>
-    //       <et-p>Hello|</et-p>
+    //       <et-p>4.2.2|</et-p>
     //     </et-bq>
     `
       <et-bq>
-        <et-p>Hello</et-p>
+        <et-p>4.2.2</et-p>
         <et-p>|<br></et-p>
       </et-bq>
     `,
@@ -421,16 +423,16 @@ suite.each([
     `
       <et-bq>
         <list>
-          <et-p>Hello^ A78<b>bold</b>B12</et-p>
+          <et-p>4.3.1^ A78<b>bold</b>B12</et-p>
           <et-p>World B78</et-p>
         </list>
-        <et-p>Hello A78<b>bold<i>I123</i></b>B|12</et-p>
+        <et-p>4.3.1 A78<b>bold<i>I123</i></b>B|12</et-p>
       </et-bq>
     `,
     `
       <et-bq>
         <list>
-          <et-p>Hello</et-p>
+          <et-p>4.3.1</et-p>
         </list>
         <et-p>|12</et-p>
       </et-bq>
@@ -440,13 +442,13 @@ suite.each([
   [
     `
       <et-bq>
-        <et-p>Hello A78<b>bo^ld<i>I123</i></b>B12</et-p>
+        <et-p>4.3.2 A78<b>bo^ld<i>I123</i></b>B12</et-p>
       </et-bq>
       <et-p>He|llo A78<b>bold</b>B12</et-p>
     `,
     `
       <et-bq>
-        <et-p>Hello A78<b>bo</b></et-p>
+        <et-p>4.3.2 A78<b>bo</b></et-p>
       </et-bq>
       <et-p>|llo A78<b>bold</b>B12</et-p>
     `,
@@ -456,21 +458,21 @@ suite.each([
   [
     `
       <et-bq>
-        <et-p>Hello A78<b>bold^123<i>I123</i></b>B12</et-p>
-        <et-p>Hello p2</et-p>
+        <et-p>4.4 A78<b>bold^123<i>I123</i></b>B12</et-p>
+        <et-p>4.4 p2</et-p>
       </et-bq>
       <et-bq>
         <et-p><b>bold|789<i>I123</i></b>IJK</et-p>
-        <et-p>Hello A78<b>bold</b>B12</et-p>
+        <et-p>4.4 A78<b>bold</b>B12</et-p>
       </et-bq>
     `,
     `
       <et-bq>
-        <et-p>Hello A78<b>bold</b></et-p>
+        <et-p>4.4 A78<b>bold</b></et-p>
       </et-bq>
       <et-bq>
         <et-p><b>|789<i>I123</i></b>IJK</et-p>
-        <et-p>Hello A78<b>bold</b>B12</et-p>
+        <et-p>4.4 A78<b>bold</b>B12</et-p>
       </et-bq>
     `,
     `789`,
@@ -527,6 +529,7 @@ suite.each([
       })
       .restore((res) => {
         // expect(res.success).toBe(true)
+        expect(ctx.selection.range.collapsed).toBe(false) // 撤回后, 选区应恢复为 range 状态
         expect(res.bodyOriginalHtml).toBe(before)
       })
   })

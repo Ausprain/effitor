@@ -59,11 +59,9 @@ export const insertParagraphAtRange = (
       }
       ctx.commandManager.push(cmd.removeNode({ node: textNode }))
       const newP = ctx.cloneParagraph(currP, false)
-      if (textNode.nextSibling) {
-        if (!tryToMoveNodes(ctx.commandManager, textNode.nextSibling, currP.lastChild, cr.caretInStart(newP))) {
-          // 没有移入内容，添加一个 br
-          ctx.appendBrToElement(newP)
-        }
+      if (!tryToMoveNodes(ctx.commandManager, textNode.nextSibling, currP.lastChild, cr.caretInStart(newP))) {
+        // 没有移入内容，添加一个 br
+        ctx.appendBrToElement(newP)
       }
       ctx.commandManager.push(cmd.insertNode({
         node: newP,
@@ -79,7 +77,7 @@ export const insertParagraphAtRange = (
       const endPartial = tr.getEndPartialNode('paragraph')
       if (!startPartial && !endPartial) {
         // 都没有, 说明在空段落内, 直接插入新段落
-        newP.appendChild(document.createElement('br'))
+        ctx.appendBrToElement(newP)
         ctx.commandManager.push(cmd.insertNode({
           node: newP,
           execAt: cr.caretOutEnd(currP),
@@ -91,13 +89,10 @@ export const insertParagraphAtRange = (
         // 有一个没有, 理论上不会发生, 因为在段落内, 不存在一个非 collapsed 的范围开始在段落末尾而结束在段落开头
         return true
       }
+      let notEmptyNewP = false
       const moveStart = endPartial.nextSibling
       if (moveStart) {
-        // 如果新段落有个尾 br, 则去掉不要, 避免从当前段落移入br 以致结尾 2 个 br
-        if (newP.lastChild && dom.isBrElement(newP.lastChild)) {
-          newP.lastChild.remove()
-        }
-        tryToMoveNodes(ctx.commandManager, moveStart, currP.lastChild, cr.caretInStart(newP))
+        notEmptyNewP = tryToMoveNodes(ctx.commandManager, moveStart, currP.lastChild, cr.caretInStart(newP))
       }
       // 移除中间节点
       tryToMoveNodes(ctx.commandManager, startPartial, endPartial, null)
@@ -106,12 +101,14 @@ export const insertParagraphAtRange = (
       addCmdsToInsertUnselectedPartialContents(
         ctx.commandManager, df1, df2, cr.caretOutStart(startPartial), cr.caretInStart(newP),
       )
-      let destCaretRange
+      let destCaretRange = cr.caretInStart(newP)
       if (df2.firstChild) {
+        notEmptyNewP = true
         destCaretRange = cr.caretStartAuto(df2.firstChild)
       }
-      else {
-        destCaretRange = cr.caretInStart(newP)
+      if (!notEmptyNewP) {
+        ctx.appendBrToElement(newP)
+        destCaretRange = cr.caretInAuto(newP)
       }
       // 插入新段落
       ctx.commandManager.push(cmd.insertNode({
@@ -160,7 +157,7 @@ export const insertParagraphAtRange = (
         cmds.push(cmd.insertNode({
           node: newP,
           execAt: cr.caretOutEnd(startP),
-          destCaretRange: cr.caretInStart(newP),
+          destCaretRange: cr.caretInAuto(newP),
         }))
       }
       ctx.commandManager.push(...cmds)
@@ -190,7 +187,7 @@ export const insertParagraphAtCaret = (
     ctx.commandManager.push(cmd.insertNode({
       node: newP,
       execAt: cr.caretOutEnd(currP),
-      destCaretRange: cr.caretInStart(newP),
+      destCaretRange: cr.caretInAuto(newP),
     }))
     return true
   }
@@ -206,6 +203,7 @@ export const insertParagraphAtCaret = (
     moveNodeStart = partialNode
   }
   else {
+    // 在文本节点边缘, 且文本节点是段落 直接子节点, 直接从边缘拆分
     if (tc.isAtText() && tc.container.parentNode === currP
       && (tc.startOffset === 0 || tc.endOffset === tc.container.length)
     ) {
@@ -242,6 +240,7 @@ export const insertParagraphAtCaret = (
   if (!notEmptyNewP) {
     // newP 没有内容，追加一个 br
     ctx.appendBrToElement(newP)
+    destCaretRange = cr.caretInAuto(newP)
   }
   ctx.commandManager.push(cmd.insertNode({
     node: newP,

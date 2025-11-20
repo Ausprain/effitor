@@ -189,16 +189,25 @@ export const cr = {
   },
   /**
    * 光标定位到一个节点内的合适位置
+   * * 节点是文本节点, 定位到节点内末尾;
    * * 节点为空, 定位到节点内开头;
    * * 若节点末尾是文本, 定位到文本内末尾;
    * * 若节点末尾是 br, 定位到 br 外开头;
-   * * 其余情况依据 lastChild 自动定位.
-   * * 该方法类似于 caretEndAuto, 只是一开始就使用 node.lastChild 判断
+   * * 其余情况依据 lastChild 末尾自动定位.
    */
   caretInAuto(node: Et.Node) {
+    if (dom.isText(node)) {
+      return new EtCaret(node, node.length)
+    }
     const lastChild = node.lastChild
     if (!lastChild) {
       return this.caretInStart(node)
+    }
+    if (dom.isText(lastChild)) {
+      return new EtCaret(lastChild, lastChild.length)
+    }
+    if (dom.isBrElement(lastChild)) {
+      return this.caretOutStart(lastChild)
     }
     return this.caretEndAuto(lastChild)
   },

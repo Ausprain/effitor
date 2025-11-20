@@ -31,9 +31,7 @@ export const insertParagraphAtParagraphEnd = createEffectHandle('InsertParagraph
     node: newP,
     execAt: cr.caretOutEnd(tc.anchorParagraph),
     // 如果新段落有文本节点(通常是 zws), 则光标定位到文本节点结尾, 否则定位到新段落开头
-    destCaretRange: newP.firstChild && newP.firstChild.nodeType === 3 /** Node.TEXT_NODE */
-      ? cr.caretInEnd(newP.firstChild)
-      : cr.caretInStart(newP),
+    destCaretRange: cr.caretInAuto(newP),
   }))
   return true
 })
