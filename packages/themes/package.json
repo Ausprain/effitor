@@ -8,7 +8,7 @@
     "markdown"
   ],
   "type": "module",
-  "main": "dist/themes/default/index.css",
+  "main": "dist/themes/default.min.css",
   "files": [
     "dist"
   ],
