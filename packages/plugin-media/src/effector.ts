@@ -15,7 +15,7 @@ import {
   videoFileIcon,
 } from '@effitor/shared'
 
-import { type IEtMediaElement, MEDIA_ET_CODE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
+import { type IEtMediaElement, MEDIA_ET_TYPE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
 
 const _ectx = useEffectorContext('$media_ctx', {
   filterFiles: (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
@@ -35,7 +35,7 @@ const _ectx = useEffectorContext('$media_ctx', {
     if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
       return false
     }
-    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$media_ctx.MEDIA_ET_CODE)) {
+    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$media_ctx.MEDIA_ET_TYPE)) {
       const currState = mediaEl.mediaState
       if (currState === MediaState.Failed) {
         return false
@@ -195,7 +195,7 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
   const getItemOpts = (prefix: string): DropdownMenuItemOptions => {
     return {
       filter: {
-        etType: MEDIA_ET_CODE,
+        etType: MEDIA_ET_TYPE,
       },
       prefixes: ['media', prefix],
     }

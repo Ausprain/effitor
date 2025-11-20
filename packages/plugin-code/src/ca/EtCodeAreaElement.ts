@@ -6,7 +6,7 @@ const enum Enum {
 }
 
 const CODE_TYPE = etcode.get(Enum.CodeArea)
-const CODE_LINE_TYPE = etcode.get(Enum.CodeLine)
+export const CODE_LINE_TYPE = etcode.get(Enum.CodeLine)
 
 export class EtCodeAreaElement extends EtComponent {
   static elName: string = Enum.CodeArea

@@ -44,7 +44,7 @@ export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.Edito
         blockquote: EtBlockquoteElement,
       })
       initBlockquotePluginContext(ctxMeta, options)
-      mountEtHandler(ctxMeta.schema.paragraph, blockquoteHandler, [])
+      mountEtHandler(ctxMeta.schema.paragraph, blockquoteHandler)
     },
   }
 }

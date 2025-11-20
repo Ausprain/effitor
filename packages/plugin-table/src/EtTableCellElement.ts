@@ -8,12 +8,12 @@ import type {
 import { EtRichText } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'
 
-import { TABLE_CELL_ET_CODE, TableName } from './config'
+import { TABLE_CELL_ET_TYPE, TableName } from './config'
 
 export class EtTableCellElement extends EtRichText {
   static readonly elName = TableName.TableCell
   static readonly etType = super.etType
-    | TABLE_CELL_ET_CODE
+    | TABLE_CELL_ET_TYPE
     | EtTypeEnum.AllowEmpty /** etcode.Em.AllowEmpty */
 
   /**

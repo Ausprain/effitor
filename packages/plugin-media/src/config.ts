@@ -41,7 +41,7 @@ declare module '@effitor/core' {
 }
 
 export interface MediaPluginContext {
-  readonly MEDIA_ET_CODE: number
+  readonly MEDIA_ET_TYPE: number
   // 将popup暴露出去, 以供编辑器开发者自定义增删popup item
   readonly popupOptions?: {
     /**
@@ -183,4 +183,4 @@ export const enum MediaState {
   Collapsed = 'collapsed',
   Expanded = 'expanded',
 }
-export const MEDIA_ET_CODE = etcode.get(MediaEnum.Media)
+export const MEDIA_ET_TYPE = etcode.get(MediaEnum.Media)

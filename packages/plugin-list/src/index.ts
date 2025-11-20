@@ -53,7 +53,7 @@ export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPluginSupp
     elements: [EtListElement, EtListItemElement],
     register(_ctxMeta, setSchema, mountEtHandler) {
       setSchema({ list: EtListElement, listItem: EtListItemElement })
-      mountEtHandler(EtListItemElement, inListHandler, [])
+      mountEtHandler(EtListItemElement, inListHandler)
     },
   }
 }

@@ -12,7 +12,7 @@
 
 import type { Et } from '@effitor/core'
 
-import { initLinkPluginContext, type LinkPluginContextOptions } from './config'
+import { initLinkPluginContext, LINK_ET_TYPE, type LinkPluginContextOptions } from './config'
 import { linkEffector } from './effector'
 import { EtLinkElement } from './EtLinkElement'
 import { markLinkHandler } from './handler'
@@ -34,7 +34,7 @@ export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPluginSuppo
       // 注册link效应到段落上
       new Set(options?.needLinkEffectElementCtors ?? [])
         .add(ctx.schema.paragraph)
-        .forEach(ctor => mountEtHandler(ctor, markLinkHandler, [EtLinkElement]))
+        .forEach(ctor => mountEtHandler(ctor, markLinkHandler, LINK_ET_TYPE))
       initLinkPluginContext(ctx, options)
     },
   }

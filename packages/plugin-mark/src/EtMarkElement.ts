@@ -6,11 +6,11 @@ import type { PhrasingContent } from 'mdast'
 import { MarkEnum, MarkStatus, MarkType } from './config'
 import markCssText from './index.css?raw'
 
-export const ET_MARK_CODE = etcode.get(MarkEnum.ElName)
+export const MARK_ET_TYPE = etcode.get(MarkEnum.ElName)
 
 export class EtMarkElement extends EtRichText {
-  static readonly etType = super.etType | ET_MARK_CODE
-  static readonly inEtType = EtTypeEnum.PlainText | ET_MARK_CODE
+  static readonly etType = super.etType | MARK_ET_TYPE
+  static readonly inEtType = EtTypeEnum.PlainText | MARK_ET_TYPE
   static readonly elName = MarkEnum.ElName
   static readonly cssText: string = markCssText
 

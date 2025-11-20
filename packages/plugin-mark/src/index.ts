@@ -4,7 +4,7 @@ import type { Et } from '@effitor/core'
 
 import { initMarkPluginContext } from './config'
 import { markEffector } from './effector'
-import { EtMarkElement } from './EtMarkElement'
+import { EtMarkElement, MARK_ET_TYPE } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler } from './handler/markHandles'
 
@@ -23,11 +23,11 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSuppo
     register(ctxMeta, setSchema, mountEtHandler) {
       initMarkPluginContext(ctxMeta, options?.enableHinting)
       setSchema({ mark: EtMarkElement })
-      mountEtHandler(EtMarkElement, inMarkHandler, [])
-      mountEtHandler(EtMarkElement, markHandler, [])
+      mountEtHandler(EtMarkElement, inMarkHandler)
+      mountEtHandler(EtMarkElement, markHandler)
       // 注册接收markEffect的元素
       ;(options?.needMarkEffectElementCtors ?? [ctxMeta.schema.paragraph]).forEach((Ctor) => {
-        mountEtHandler(Ctor, markHandler, [EtMarkElement])
+        mountEtHandler(Ctor, markHandler, MARK_ET_TYPE)
       })
     },
   }

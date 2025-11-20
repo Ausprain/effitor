@@ -8,14 +8,14 @@ import type {
 } from '@effitor/core'
 import { cr, EtComponent } from '@effitor/core'
 
-import { TABLE_ET_CODE, TABLE_ROW_ET_CODE, TableName } from './config'
+import { TABLE_ET_TYPE, TABLE_ROW_ET_TYPE, TableName } from './config'
 import { EtTableRowElement } from './EtTableRowElement'
 
 // FIXME 现阶段范围删除算法尚未完善，选区不允许跨越表格选择，因此继承组件，使用嵌套可编辑
 export class EtTableElement extends EtComponent {
   static readonly elName = TableName.Talbe
-  static readonly etType = super.etType | TABLE_ET_CODE
-  static readonly inEtType = TABLE_ROW_ET_CODE
+  static readonly etType = super.etType | TABLE_ET_TYPE
+  static readonly inEtType = TABLE_ROW_ET_TYPE
 
   // 表格标题, 当设置为 'r'（首行）、'c'（首列）时，会加粗该行/列
   get tableHead() {

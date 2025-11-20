@@ -6,7 +6,7 @@ import type {
   MediaPluginContext,
   VideoOptions,
 } from './config'
-import { MEDIA_ET_CODE, MediaType } from './config'
+import { MEDIA_ET_TYPE, MediaType } from './config'
 import { mediaEffector } from './effector'
 import { EtAudioElement } from './EtAudioElement'
 import { EtImageElement } from './EtImageElement'
@@ -67,7 +67,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
     ],
 
     register(ctxMeta, setSchema, mountEtHandler) {
-      const media: Mutable<MediaPluginContext> = { MEDIA_ET_CODE: MEDIA_ET_CODE } as Mutable<MediaPluginContext>
+      const media: Mutable<MediaPluginContext> = { MEDIA_ET_TYPE } as Mutable<MediaPluginContext>
       const els = [], schemaInit = {} as Et.EditorSchema
       if (!options) {
         media.image = defaultOptions.image
@@ -120,7 +120,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
       // @ts-expect-error first assign
       ctxMeta.pctx.$media_ctx = media
       setSchema(schemaInit)
-      mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, els)
+      mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, MEDIA_ET_TYPE)
     },
   }
 }

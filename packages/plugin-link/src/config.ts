@@ -65,7 +65,7 @@ export const urlSchemeList = [
   // 'ms-excel:',
 ]
 
-export const LINK_ET_CODE = etcode.get(LinkEnum.ElName)
+export const LINK_ET_TYPE = etcode.get(LinkEnum.ElName)
 
 export interface LinkPluginContextOptions {
   /** 支持的url shceme 列表(即markdown链接中url的前缀), 默认支持 `https://`  和 `http://` `www.` */

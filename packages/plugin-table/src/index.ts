@@ -48,9 +48,9 @@ export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPluginSup
         tableRow: EtTableRowElement,
         tableCell: EtTableCellElement,
       })
-      mountEtHandler(ctxMeta.schema.paragraph, tableHandler, [])
-      mountEtHandler(ctxMeta.schema.tableRow, inTableRowHandler, [])
-      mountEtHandler(ctxMeta.schema.tableCell, inTableCellHandler, [])
+      mountEtHandler(ctxMeta.schema.paragraph, tableHandler)
+      mountEtHandler(ctxMeta.schema.tableRow, inTableRowHandler)
+      mountEtHandler(ctxMeta.schema.tableCell, inTableCellHandler)
     },
   }
 }

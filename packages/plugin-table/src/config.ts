@@ -34,6 +34,6 @@ declare module '@effitor/core' {
   }
 }
 
-export const TABLE_ET_CODE = etcode.get(TableName.Talbe)
-export const TABLE_ROW_ET_CODE = etcode.get(TableName.TableRow)
-export const TABLE_CELL_ET_CODE = etcode.get(TableName.TableCell)
+export const TABLE_ET_TYPE = etcode.get(TableName.Talbe)
+export const TABLE_ROW_ET_TYPE = etcode.get(TableName.TableRow)
+export const TABLE_CELL_ET_TYPE = etcode.get(TableName.TableCell)

@@ -3,7 +3,7 @@ import { EtEmbedment } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { AudioUrlMetadata, IEtMediaElement } from './config'
-import { MEDIA_ET_CODE, MediaEnum, MediaState, MediaType } from './config'
+import { MEDIA_ET_TYPE, MediaEnum, MediaState, MediaType } from './config'
 import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
@@ -11,7 +11,7 @@ import { initMediaElementSrc, parseMediaUrl } from './utils'
  */
 export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
   static readonly elName: string = MediaEnum.Audio
-  static readonly etType: number = super.etType | MEDIA_ET_CODE
+  static readonly etType: number = super.etType | MEDIA_ET_TYPE
   static readonly inEtType: number = 0
   mediaType = MediaType.Audio
 

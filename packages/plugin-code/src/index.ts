@@ -106,7 +106,7 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
       setSchema({
         code: EtCodeElement,
       })
-      mountEtHandler(EtCodeElement, codeHandler, [])
+      mountEtHandler(EtCodeElement, codeHandler)
     },
   }
 }

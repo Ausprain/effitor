@@ -8,13 +8,13 @@ import type {
 } from '@effitor/core'
 import { cr, EtParagraph } from '@effitor/core'
 
-import { TABLE_CELL_ET_CODE, TABLE_ROW_ET_CODE, TableName } from './config'
+import { TABLE_CELL_ET_TYPE, TABLE_ROW_ET_TYPE, TableName } from './config'
 import { EtTableCellElement } from './EtTableCellElement'
 
 export class EtTableRowElement extends EtParagraph {
   static readonly elName = TableName.TableRow
-  static readonly etType = super.etType | TABLE_ROW_ET_CODE
-  static readonly inEtType = TABLE_CELL_ET_CODE
+  static readonly etType = super.etType | TABLE_ROW_ET_TYPE
+  static readonly inEtType = TABLE_CELL_ET_TYPE
 
   connectedCallback(): void {
     this.setAttribute('contenteditable', '')

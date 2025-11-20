@@ -2,7 +2,7 @@ import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, Mda
 import { EtRichText, trimAndCleanZWS } from '@effitor/core'
 import { EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
 
-import { LINK_ET_CODE, LinkEnum } from './config'
+import { LINK_ET_TYPE, LinkEnum } from './config'
 
 /**
 
@@ -21,7 +21,7 @@ import { LINK_ET_CODE, LinkEnum } from './config'
 */
 export class EtLinkElement extends EtRichText {
   static readonly elName = LinkEnum.ElName
-  static readonly etType = super.etType | LINK_ET_CODE
+  static readonly etType = super.etType | LINK_ET_TYPE
   static readonly inEtType = EtTypeEnum.PlainText
 
   /**

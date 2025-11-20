@@ -30,8 +30,10 @@ export const registerEtElement = (
  * 挂载一个效应处理器到指定效应元素构造器上
  * @param ctor 被挂载的效应元素类对象
  * @param handler 挂载的效应处理器对象
- * @param subEtElements 子效应元素类对象列表, 用于扩展 ctor 的效应码（即将来哪些元素允许成为 ctor 对应效应元素的子节点）;
- *                      若仅挂载handler功能，则传入空数组
+ * @param subEtTypes 一个正整数, 用于扩展 ctor 的效应规则;
+ *                   即将来哪些类型的效应元素允许成为 ctor 对应效应元素的直接子节点;
+ *                   该值的每一个二进制位, 对应一个效应类型, 即当传入 5 (101) 时,
+ *                   将会为 ctor 添加 1/4 两种类型的效应元素允许为其子节点
  */
 export const mountEtHandler = <
   E extends EffectElement,
@@ -40,15 +42,15 @@ export const mountEtHandler = <
 >(
   ctor: EffectElementCtor,
   handler: Et.EffectHandler | Et.EffectHandlerWith<E, P, T>,
-  subEtElements: EffectElementCtor[],
+  subEtTypes?: number,
 ) => {
   // 将新的EffectHandle绑到构造函数上
   Object.assign(ctor, handler)
-  subEtElements?.forEach((ext) => {
+  if (subEtTypes) {
     // 扩充允许列表
-    ctor.inEtType |= ext.etType
+    ctor.inEtType |= subEtTypes
     // 从禁止列表中剔除
-    ctor.notInEtType -= ctor.notInEtType & ext.etType
-  })
+    ctor.notInEtType -= ctor.notInEtType & subEtTypes
+  }
 }
 export type MountEtHandler = typeof mountEtHandler
