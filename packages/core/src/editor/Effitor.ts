@@ -46,26 +46,26 @@ export type PluginConfigs = Omit<Et.Effector, 'inline' | 'enforce' | 'onMounted'
   onMounteds: Required<Et.Effector>['onMounted'][]
   onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][]
 }
-interface ObserveEditingInit<ParagraphType extends Node = Node> {
-  /**
-   * 编辑区内部文本变化
-   * @param ctx 编辑器上下文对象
-   * @param text 文本变化了的Text节点
-   */
-  onTextUpdated?: (ctx: Et.EditorContext, text: Text, paragraph: ParagraphType) => void
-  /**
-   * 编辑区顶层节点(“段落”)新增
-   */
-  onParagraphAdded?: (ctx: Et.EditorContext, addedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
-  /**
-   * 编辑区顶层节点(“段落”)删除
-   */
-  onParagraphRemoved?: (ctx: Et.EditorContext, removedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
-  /**
-   * 编辑器顶层节点(“段落”)更新
-   */
-  onParagraphUpdated?: (ctx: Et.EditorContext, paragraph: ParagraphType, target: HTMLElement) => void
-}
+// interface ObserveEditingInit<ParagraphType extends Node = Node> {
+//   /**
+//    * 编辑区内部文本变化
+//    * @param ctx 编辑器上下文对象
+//    * @param text 文本变化了的Text节点
+//    */
+//   onTextUpdated?: (ctx: Et.EditorContext, text: Text, paragraph: ParagraphType) => void
+//   /**
+//    * 编辑区顶层节点(“段落”)新增
+//    */
+//   onParagraphAdded?: (ctx: Et.EditorContext, addedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
+//   /**
+//    * 编辑区顶层节点(“段落”)删除
+//    */
+//   onParagraphRemoved?: (ctx: Et.EditorContext, removedNodes: NodeListOf<ParagraphType>, prevSibling: ParagraphType | null, nextSibling: ParagraphType | null) => void
+//   /**
+//    * 编辑器顶层节点(“段落”)更新
+//    */
+//   onParagraphUpdated?: (ctx: Et.EditorContext, paragraph: ParagraphType, target: HTMLElement) => void
+// }
 
 /**
  * Effitor编辑器
@@ -401,7 +401,7 @@ export class Effitor {
    * @internal
    * 标记编辑器获得焦点, 仅内部使用
    */
-  _markFocused() {
+  private _markFocused() {
     this._isFocused = true
   }
 
@@ -409,7 +409,7 @@ export class Effitor {
    * @internal
    * 标记编辑器失去焦点, 仅内部使用
    */
-  _markBlurred() {
+  private _markBlurred() {
     this._isFocused = false
   }
 
@@ -425,12 +425,12 @@ export class Effitor {
   /**
    * 导出`<et-body>`的outerHTML
    */
-  toEtHTML() {
-    if (!this.__root) {
-      throw new EffitorNotMountedError()
-    }
-    return this.__root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
-  }
+  // toEtHTML() {
+  //   if (!this.__root) {
+  //     throw new EffitorNotMountedError()
+  //   }
+  //   return this.__root.querySelector(BuiltinElName.ET_BODY)?.outerHTML ?? null
+  // }
 
   /**
    * 导入html为`<et-body>` 若非以下格式将报错
@@ -442,24 +442,24 @@ export class Effitor {
    * </et-body>
    * ```
    */
-  fromEtHTML(html: string) {
-    if (!this.__root) {
-      throw new EffitorNotMountedError()
-    }
-    const df = this.context.createFragment(html)
-    if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
-      throw new Error('Invalid html for Effitor')
-    }
-    for (const p of df.firstChild.childNodes) {
-      if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
-        throw new Error('Invalid html for Effitor')
-      }
-    }
-    const body = this.__root.querySelector(BuiltinElName.ET_BODY)
-    if (body) {
-      this.__root.replaceChild(df, body)
-    }
-  }
+  // fromEtHTML(html: string) {
+  //   if (!this.__root) {
+  //     throw new EffitorNotMountedError()
+  //   }
+  //   const df = this.context.createFragment(html)
+  //   if (df.childElementCount !== 1 || df.firstChild?.nodeName !== BuiltinElName.ET_BODY.toUpperCase()) {
+  //     throw new Error('Invalid html for Effitor')
+  //   }
+  //   for (const p of df.firstChild.childNodes) {
+  //     if (p.nodeName !== BuiltinElName.ET_PARAGRAPH.toUpperCase()) {
+  //       throw new Error('Invalid html for Effitor')
+  //     }
+  //   }
+  //   const body = this.__root.querySelector(BuiltinElName.ET_BODY)
+  //   if (body) {
+  //     this.__root.replaceChild(df, body)
+  //   }
+  // }
 
   /**
    * 将指定效应元素转为markdown文本
@@ -507,7 +507,7 @@ export class Effitor {
   /**
    * 观察编辑区body变化
    * @param options 默认只监听文本和子节点的变化
-   * @returns 终止观察(终止前会自动完成所有pending的变化)
+   * @returns 本次观察的 key 值, 用于cancelObserve 关闭
    */
   observeBody(fn: MutationCallback, options?: MutationObserverInit) {
     if (!this.__body) {
@@ -531,61 +531,61 @@ export class Effitor {
    * 观察编辑行为 (深度观察文本变化/节点增删) 更细粒度的行为请使用observeBody
    * @returns 终止观察(终止前会自动完成所有pending的变化)
    */
-  observeEditing<ParagraphType extends HTMLElement = HTMLElement>({
-    onTextUpdated,
-    onParagraphAdded,
-    onParagraphRemoved,
-    onParagraphUpdated,
-  }: ObserveEditingInit<ParagraphType>) {
-    const body = this.bodyEl
-    const ctx = this.context
-    // TODO 使用2个观察者,分别观察body子节点列表 和深度观察后代节点文本变化
-    // 与直接用一个深度观察者观察所有相比, 哪个性能更好 ?
+  // observeEditing<ParagraphType extends HTMLElement = HTMLElement>({
+  //   onTextUpdated,
+  //   onParagraphAdded,
+  //   onParagraphRemoved,
+  //   onParagraphUpdated,
+  // }: ObserveEditingInit<ParagraphType>) {
+  //   const body = this.bodyEl
+  //   const ctx = this.context
+  //   // TODO 使用2个观察者,分别观察body子节点列表 和深度观察后代节点文本变化
+  //   // 与直接用一个深度观察者观察所有相比, 哪个性能更好 ?
 
-    const fb: MutationCallback = (mrs) => {
-      for (const mr of mrs) {
-        switch (mr.type) {
-          case 'characterData':
-            if (onTextUpdated) {
-              onTextUpdated(ctx, mr.target as Text, ctx.focusTopElement as unknown as ParagraphType)
-            }
-            break
-          case 'childList':
-            if (mr.target === this.__body) {
-              if (onParagraphAdded && mr.addedNodes.length) {
-                onParagraphAdded(ctx, mr.addedNodes as NodeListOf<ParagraphType>, mr.previousSibling as ParagraphType, mr.nextSibling as ParagraphType)
-              }
-              if (onParagraphRemoved && mr.removedNodes.length) {
-                onParagraphRemoved(ctx, mr.removedNodes as NodeListOf<ParagraphType>, mr.previousSibling as ParagraphType, mr.nextSibling as ParagraphType)
-              }
-            }
-            else if (onParagraphUpdated) {
-              onParagraphUpdated(ctx, ctx.focusTopElement as unknown as ParagraphType, mr.target as HTMLElement)
-            }
-            break
-          default:
-            break
-        }
-      }
-    }
-    const ob = new MutationObserver(fb)
-    ob.observe(body, {
-      characterData: true,
-      childList: true,
-      subtree: true,
-    })
-    const key = Symbol()
-    this.__observerDisconnecters.set(key, (key: symbol) => {
-      const rs = ob.takeRecords()
-      if (rs.length) {
-        fb(rs, ob)
-      }
-      ob.disconnect()
-      this.__observerDisconnecters.delete(key)
-    })
+  //   const fb: MutationCallback = (mrs) => {
+  //     for (const mr of mrs) {
+  //       switch (mr.type) {
+  //         case 'characterData':
+  //           if (onTextUpdated) {
+  //             onTextUpdated(ctx, mr.target as Text, ctx.focusTopElement as unknown as ParagraphType)
+  //           }
+  //           break
+  //         case 'childList':
+  //           if (mr.target === this.__body) {
+  //             if (onParagraphAdded && mr.addedNodes.length) {
+  //               onParagraphAdded(ctx, mr.addedNodes as NodeListOf<ParagraphType>, mr.previousSibling as ParagraphType, mr.nextSibling as ParagraphType)
+  //             }
+  //             if (onParagraphRemoved && mr.removedNodes.length) {
+  //               onParagraphRemoved(ctx, mr.removedNodes as NodeListOf<ParagraphType>, mr.previousSibling as ParagraphType, mr.nextSibling as ParagraphType)
+  //             }
+  //           }
+  //           else if (onParagraphUpdated) {
+  //             onParagraphUpdated(ctx, ctx.focusTopElement as unknown as ParagraphType, mr.target as HTMLElement)
+  //           }
+  //           break
+  //         default:
+  //           break
+  //       }
+  //     }
+  //   }
+  //   const ob = new MutationObserver(fb)
+  //   ob.observe(body, {
+  //     characterData: true,
+  //     childList: true,
+  //     subtree: true,
+  //   })
+  //   const key = Symbol()
+  //   this.__observerDisconnecters.set(key, (key: symbol) => {
+  //     const rs = ob.takeRecords()
+  //     if (rs.length) {
+  //       fb(rs, ob)
+  //     }
+  //     ob.disconnect()
+  //     this.__observerDisconnecters.delete(key)
+  //   })
 
-    return key
-  }
+  //   return key
+  // }
 
   /**
    * 取消编辑区内容修改观察

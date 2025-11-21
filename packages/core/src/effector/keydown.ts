@@ -190,6 +190,7 @@ export const getKeydownListener = (
       }
 
       // 1. 处理普通输入, 并兼顾 MacOS 下输入法输入标点符号的情况
+      // 浏览器已经处理了按住 shift 大写的情况, 即按下 shift+a, ev.key 的值为 A; 我们无需判断
       if (ev.key.length === 1 && !ev.ctrlKey && !ev.altKey && !ev.metaKey) {
         // 监听热字符串
         if (ev.key === ctx.hotstringManager.trigger && ctx.hotstringManager.listen(ev.key)) {

@@ -84,7 +84,6 @@ export const addListenersToEditorBody = (
     // body无段落, 清空并初始化
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
-      ctx.editor._markFocused()
     }
     else if (dom.isRawEditElement(ev.target as Node)) {
       ctx.selection.setInRaw(ev.target as Et.HTMLRawEditElement)
@@ -92,6 +91,7 @@ export const addListenersToEditorBody = (
     }
     // 仅当焦点从编辑区外部移入时, 才执行相应逻辑; 因为编辑区内嵌套 contenteditable之间切换时也会触发 focusin/out
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
+      // @ts-expect-error, deliberate, internal api
       ctx.editor._markFocused()
       // fixed. HMR热更新时 旧的selection对象可能丢失
       // fixed. focus瞬间 还未获取光标位置(Selection对象未更新), 使用requestAnimationFrame延迟更新上下文
@@ -121,6 +121,7 @@ export const addListenersToEditorBody = (
     // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时
     // 即焦点转移到编辑区(et-body)外 时
     if (!ev.relatedTarget || !ctx.body.isNodeInBody(ev.relatedTarget as Node)) {
+      // @ts-expect-error, deliberate, internal api
       ctx.editor._markBlurred()
       setTimeout(() => {
         if (ctx.editor.isFocused) {
