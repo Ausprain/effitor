@@ -12,7 +12,6 @@ import { CreateEditorContextOptionsFields } from '../context/EditorContext'
 import { getMainEffector } from '../effector'
 import { solveEffectors } from '../effector/ectx'
 import {
-  EffectElement,
   EtBodyElement,
   EtEditorElement,
   EtParagraphElement,
@@ -461,33 +460,25 @@ export class Effitor {
   //   }
   // }
 
-  /**
-   * 将指定效应元素转为markdown文本
-   */
-  toMarkdown(el: Et.EtElement, options?: TmOptions): string
-  /**
-   * 将编辑区内容输出为markdown文本
-   */
-  toMarkdown(options?: TmOptions): string
-  toMarkdown(elOrOptions?: Et.EtElement | TmOptions, options?: TmOptions) {
-    if (elOrOptions instanceof EffectElement) {
-      return this.mdProcessor.toMarkdown(this.context, (elOrOptions as EffectElement), options)
-    }
-    return this.mdProcessor.toMarkdown(this.context, this.bodyEl, (elOrOptions as TmOptions))
+  toHTML() {
+    return this.htmlProcessor.toHtml(this.context)
+  }
+
+  fromHTML(html: string) {
+    this.context.commonHandler.updateEditorContentsFromHTML(html)
   }
 
   /**
-   * 解析markdown文本, 返回一个DocumentFragment
+   * 将编辑区内容输出为markdown文本
    */
-  fromMarkdown(mdText: string, parseOnly: true, options?: FmOptions): DocumentFragment
+  toMarkdown(options?: TmOptions): string {
+    return this.mdProcessor.toMarkdown(this.context, this.bodyEl, options)
+  }
+
   /**
-   * 解析markdown文本并覆盖编辑区内容
+   * 解析markdown文本并覆盖编辑区内容; 若仅解析不覆盖编辑区内容, 请使用 `Effitor.context.fromMarkdown`
    */
-  fromMarkdown(mdText: string, parseOnly: false, options?: FmOptions): void
-  fromMarkdown(mdText: string, parseOnly: boolean, options?: FmOptions): DocumentFragment | void {
-    if (parseOnly) {
-      return this.mdProcessor.fromMarkdown(this.context, mdText, options)
-    }
+  fromMarkdown(mdText: string, options?: FmOptions): void {
     this.context.commonHandler.updateEditorContentsFromMarkdown(mdText, options)
   }
 

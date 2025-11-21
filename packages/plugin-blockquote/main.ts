@@ -31,4 +31,4 @@ const md = `
 > 这是一条警告事项
 `
 
-editor.fromMarkdown(md, false)
+editor.fromMarkdown(md)

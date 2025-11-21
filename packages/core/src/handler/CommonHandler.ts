@@ -152,21 +152,17 @@ export class CommonHandler {
       : this.commander.handle()
   }
 
-  /** 使用 markdown 文本更新编辑器内容 */
-  updateEditorContentsFromMarkdown(mdText: string, options?: Et.FmOptions) {
+  #updateEditorContentsByFragment(df: Et.Fragment) {
     const ctx = this._ctx
-    const df = ctx.fromMarkdown(mdText, options)
-    const cm = ctx.commandManager
     const bodyEl = ctx.bodyEl
-
     // 刚刚初始化, 直接插入, 无需撤回支持
-    if (cm.stackLength === 0) {
+    if (ctx.commandManager.stackLength === 0) {
       bodyEl.textContent = ''
       bodyEl.appendChild(df)
       return true
     }
     if (bodyEl.hasChildNodes()) {
-      cm.withTransaction([
+      ctx.commandManager.withTransaction([
         cmd.removeContent({
         // body 必有子节点
           removeRange: cr.spanRangeAllIn(bodyEl) as Et.SpanRange,
@@ -178,7 +174,7 @@ export class CommonHandler {
       ])
     }
     else {
-      cm.withTransaction([
+      ctx.commandManager.withTransaction([
         cmd.insertContent({
           content: df,
           execAt: cr.caretInStart(bodyEl),
@@ -187,6 +183,20 @@ export class CommonHandler {
     }
 
     return true
+  }
+
+  /** 使用 markdown 文本更新编辑器内容 */
+  updateEditorContentsFromMarkdown(mdText: string, options?: Et.FmOptions) {
+    return this.#updateEditorContentsByFragment(
+      this._ctx.fromMarkdown(mdText, options),
+    )
+  }
+
+  /** 使用HTML更新编辑器内容 */
+  updateEditorContentsFromHTML(html: string) {
+    return this.#updateEditorContentsByFragment(
+      this._ctx.editor.htmlProcessor.fromHtml(this._ctx, html),
+    )
   }
 
   /**
