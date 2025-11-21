@@ -33,9 +33,11 @@ export const enum CodeEnum {
   Class_Container = 'et-code__container',
   Class_CodeLine = 'et-code__line',
   Class_Header = 'et-code__header',
-  Class_Btn_Copy = 'et-code__copy',
-  Class_Btn_Copied = 'et-code__copy--copied',
-  Class_Btn_Render = 'et-code__render',
+  Class_Btn_Group = 'et-code__btn-group',
+  Class_Btn_Copy = 'et-code__btn-copy',
+  Class_Btn_Copied = 'et-code__btn-copy--copied',
+  Class_Btn_Render = 'et-code__btn-render',
+  Class_Btn_CodeWrap = 'et-code__btn-codewrap',
 }
 export const enum CodeAttr {
   /** 代码语言 */

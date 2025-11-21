@@ -3,7 +3,7 @@ import { cr, CreateMdastNode, EtComponent, ToMdastResult } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'
 
 import { CodeContext, type CodeContextOptions } from './CodeContext'
-import { codeHeader } from './CodeHeader'
+import { CodeHeader } from './CodeHeader'
 import { CODE_ET_TYPE, CodeAttr, CodeEnum } from './config'
 
 // TODO
@@ -43,6 +43,7 @@ export class EtCodeElement extends EtComponent {
   }
 
   declare codeCtx: CodeContext
+  declare codeHeader: CodeHeader
 
   static create(): EtCodeElement {
     throw Error('EtCodeElement.create is not implemented')
@@ -57,7 +58,8 @@ export class EtCodeElement extends EtComponent {
       tabSize: ctx.pctx.$codePx.defaultTabSize,
       highlighter: ctx.pctx.$codePx.highlighter,
     }, (el, cbs) => {
-      el.prepend(codeHeader(ctx, el, cbs))
+      el.codeHeader = new CodeHeader(ctx, el, cbs)
+      el.prepend(el.codeHeader.el)
     })
     return el
   }
