@@ -1,9 +1,8 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, dom, hotkey, useEffectorContext } from '@effitor/core'
+import { cmd, cr, dom, hotkey } from '@effitor/core'
 
 import type { EtTableElement } from './EtTableElement'
-import { tryToRemoveNextColumn, tryToRemoveNextRow } from './handler/delete'
-import { insertNewColumn, insertNewRow } from './handler/insert'
+import { insertNewColumn } from './handler/insert'
 
 const tabToNextCellOrInsertNewColumn = (ctx: Et.EditorContext) => {
   if (!ctx.schema.tableCell.is(ctx.commonEtElement)) {
@@ -175,7 +174,7 @@ const setTableAlign = (ctx: Et.EditorContext, align: 'left' | 'center' | 'right'
 }
 
 // 当且仅当返回 false, 使用默认行为
-const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
+export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.Enter, hotkey.CtrlCmd)]: 'insertParagraph',
   [hotkey.create(hotkey.Key.Tab, 0)]: tabToNextCellOrInsertNewColumn,
   [hotkey.create(hotkey.Key.Tab, hotkey.Mod.Shift)]: shiftTabToPrevCellOrInsertNewColumn,
@@ -189,11 +188,3 @@ const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create(hotkey.Key.R, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'right'),
   [hotkey.create(hotkey.Key.L, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'left'),
 }
-
-export const ectx = useEffectorContext('$tableEx', {
-  tableCellKeyMap,
-  insertNewRow,
-  insertNewColumn,
-  tryToRemoveTableRow: tryToRemoveNextRow,
-  tryToRemoveTableColumn: tryToRemoveNextColumn,
-})

@@ -30,10 +30,12 @@ export const replaceParagraphWithHeading = createEffectHandle(
   },
 )
 
+// headingHandler 内容较少, 不挂载
 export const headingHandler: Et.EffectHandler & Pick<Required<Et.EffectHandler>, 'replaceParagraphWithHeading'> = {
   replaceParagraphWithHeading,
 }
 
+// inHeadingHandler 内容较少, 不挂载
 export const inHeadingHandler: Et.EffectHandler & Pick<Required<Et.EffectHandler>, 'regressHeadingToParagraph'> = {
   /** 触发前确保当前“段落”文本非空; 若为空，则应删除而非触发此effect */
   regressHeadingToParagraph: (ctx, { heading }) => {

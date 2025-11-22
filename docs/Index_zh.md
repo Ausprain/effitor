@@ -11,9 +11,6 @@
 >
 > 由于编辑操作本身要求“低延迟”，我们无法通过防抖、节流或批量延迟更新等通用优化手段来规避“短时间”这一约束。因此，优化的关键在于减少每次操作所涉及的 **DOM 更新量**。
 >
-> ~~当前主流的虚拟 DOM 方案（如 React 所采用）通过内存中的 diff 算法来最小化真实 DOM 的变更。然而，在富文本这类**结构敏感、高频局部更新**的场景中，虚拟 DOM 的优势可能受限：一方面，diff 算法本身存在计算开销；另一方面，若每次状态变更都导致整棵组件树重建，仍可能引发不必要的性能损耗。
-> 是否存在一种机制，能在编辑发生时**直接定位并更新最小受影响单元**？答案是肯定的。现代高性能富文本引擎（如 ProseMirror、Lexical）采用了一种**精细化的命令式更新策略**：基于对文档结构的精确建模，仅操作与用户意图直接相关的 DOM 节点。~~
->
 > 为实现这一目标，`effitor` 引入了`效应元素（EffectElement）` 的概念。每个`效应元素`，都是一个 [自定义元素（CustomElement）](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)。所有关键节点均由 `效应元素` 构成，其内部封装了数据状态与更新逻辑。用户的所有编辑行为，都由效应元素决定如何处理，这些行为统称为`效应（Effect）`。
 > 当用户操作发生时，由 `效应器（Effector）` 解析并`激活（invoke)`对应的 `效应`，再由挂载在 `效应元素` 上的 `效应处理器（EffectHandler）` 处理这些`效应`（执行具体的 DOM 操作）。这种设计确保了每次编辑仅触发**局部、精确、最小化**的 DOM 更新，从而在保证响应速度的同时，维持优异的运行时性能。
 
@@ -64,21 +61,7 @@ const effector: Et.Effector = {
 };
 ```
 
-在`v0.2.0`版本，多个插件的效应器会在编辑器初始化时被按顺序合并成一个插件效应器，最终编辑器只有两个效应器，主效应器以及插件效应器。并且开启`效应器内联`后，插件效应器的事件回调函数还会被内联为一个局部函数，从而提高性能。
-
-### 可内联效应器
-
-`效应器内联`是一个编辑器配置项，启用`效应器内联`后，应用的编辑器插件的效应器必须可内联，否则编辑器在初始化时将抛出一个异常。
-
-`可内联效应器`的事件回调函数有如下限制（`on`开头的钩子回调除外），不满足将在编辑器初始化时抛出一个异常：
-
-1. 只能使用箭头函数
-2. 不可使用`import.meta`
-3. 不可引用外部变量，除了特定的编辑器全局变量：
-   - `ectx`：效应器上下文
-   - `cr`：光标工具
-   - `dom`：DOM工具
-   - `etcode`：效应检测工具
+在`v0.2.0`版本，多个插件的效应器会在编辑器初始化时被按顺序合并成一个插件效应器，最终编辑器只有两个效应器，主效应器以及插件效应器。
 
 ## 效应元素（effectElement）
 
@@ -225,7 +208,7 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 
 ## 上下文
 
-上下文包括`编辑器上下文（EditorContext）`、`效应器上下文（EffectorContext）`和`插件上下文（PluginContext）`。
+上下文包括`编辑器上下文（EditorContext）`和`插件上下文（PluginContext）`。
 
 ### 编辑器上下文
 
@@ -236,45 +219,6 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 - `pctx`：插件上下文
 - `assists`：助手（插件）模块
 - `effectInvoker`：效应激活器
-
-### 效应器上下文
-
-效应器上下文`ectx`是一个编辑器全局对象，通常情况下，它只在可内联效应器内被需要使用。
-因为开启效应器内联后，插件效应器回调函数无法引用外部变量，需要将外部变量绑定到`ectx`上，通过`ectx[scope].xxx`访问。
-
-> [!TIP]
-> 「效应器上下文」起初只是为了解决开启效应器内联后无法引用外部变量的问题。现在你可以将其当做一个仓库，在插件的任何地方存储和访问数据。
->
-> ```ts
-> import { useEffectorContext } from "@effitor/core";
-> // 变量名必须使用 `ectx`，否则在内联效应器中找不到该变量
-> // useEffectorContext 每次返回的都是同一个只读对象， 但 ts 会根据传入的参数推导其返回值的类型
-> export const ectx = useEffectorContext("$tableEx", {
->   tabToNextCellOrInsertNewColumn(ctx, anchorTc) {
->     // snippet
->   },
->   shiftTabToNextCellOrInsertNewColumn(ctx, anchorTc) {
->     // snippet
->   },
-> });
->
-> export const tableEffector: Et.EffectorSupportInline = {
->   inline: true,
->   beforeKeydownSolver: {
->     // 可内联效应器的 Solver 必须使用箭头函数
->     Tab: (ev, ctx) => {
->       if (!ctx.schema.tableCell.is(ctx.commonEtElement)) {
->         return false;
->       }
->       const doTab = ev.shiftKey
->         ? ectx.$tableEx.shiftTabToNextCellOrInsertNewColumn
->         : ectx.$tableEx.tabToNextCellOrInsertNewColumn;
->       doTab(ctx, ctx.commonEtElement);
->       return true;
->     },
->   },
-> };
-> ```
 
 ### 插件上下文
 
@@ -289,10 +233,8 @@ interface EditorContext {
 }
 ```
 
-> [!NOTE] 与效应器上下文`ectx`的区别
-> `pctx`与`ectx`最大的区别在于，`ectx`是全局唯一的，而`pctx`在每个编辑器上下文实例上都有一份。
-> 效应器上下文在插件代码被执行时创建，而插件上下文仅在插件被注册时创建到指定编辑器上下文实例中。
-> 简言之，当你拥有多个Effitor编辑器实例时，每个实例使用的`ectx`指向内存里的同一个对象，而`pctx`则在每个实例上各有一份。
+> [!NOTE] `pctx`在每个编辑器上下文ctx实例上都有一份。
+> 插件上下文仅在插件被注册时创建到指定编辑器上下文ctx实例中。
 
 # 插件化
 

@@ -5,7 +5,7 @@ import { CODE_LINE_TYPE, EtCodeAreaElement, EtCodeLineElement } from './EtCodeAr
 import { codeAreaHandler, codeLineHandler } from './handler'
 import cssText from './index.css?raw'
 
-export const useCodeAreaPlugin = (): Et.EditorPluginSupportInline => {
+export const useCodeAreaPlugin = (): Et.EditorPlugin => {
   return {
     name: 'code-area',
     cssText,

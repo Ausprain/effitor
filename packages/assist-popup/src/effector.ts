@@ -3,10 +3,8 @@ import { HtmlAttrEnum } from '@effitor/shared'
 
 import { initPopup, type PopupAssistOptions } from './popup'
 
-export const getPopupEffector = (options?: PopupAssistOptions): Et.EffectorSupportInline => {
+export const getPopupEffector = (options?: PopupAssistOptions): Et.Effector => {
   return {
-    inline: true,
-
     beforeKeydownSolver: {
       default: (_, ctx) => {
         if (ctx.assists.popup.isShowing) {

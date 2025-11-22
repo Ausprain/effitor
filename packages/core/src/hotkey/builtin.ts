@@ -17,7 +17,8 @@ type InputTypeOrActionRun = Et.InputType | ActionRun['run']
 export type ModKeyDownEffectMap = Record<string, InputTypeOrActionRun>
 
 /**
- * 内置快捷键操作列表
+ * 内置快捷键操作列表 \
+ * // TODO 待完善
  */
 export const BuiltinHotkeyActionMap = {
   // /** 撤销 */

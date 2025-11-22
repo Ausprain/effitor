@@ -821,6 +821,8 @@ export class EtSelection {
     this._body.scrollIntoView(rect, {
       toStart,
       scrollBehavior,
+      paddingX: 50,
+      paddingY: 50,
     })
     // const scrollContainer = this._body.scrollContainer
     // const { scrollLeft, scrollTop } = scrollContainer

@@ -56,10 +56,8 @@ const getTriggerAction = (modType: DropdownTrigger['triggerMod']): Et.KeyboardAc
   }
 }
 
-export const getDropdownEffector = (options: Required<DropdownTrigger>): Et.EffectorSupportInline => {
+export const getDropdownEffector = (options: Required<DropdownTrigger>): Et.Effector => {
   return {
-    inline: true,
-
     beforeKeydownSolver: {
       [options.triggerKey]: getTriggerAction(options.triggerMod),
     },

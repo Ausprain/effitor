@@ -62,7 +62,6 @@ const onMediaFileSelected = (files: File[]) => {
 }
 const countSpan = initTextCountSpan()
 const editor = new Effitor({
-  // effectorInline: true,
   // shadow: false,
   // customStyleText: css,
   config: {

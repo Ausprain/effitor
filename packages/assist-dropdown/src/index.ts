@@ -29,7 +29,7 @@ const defaultOptions: DropdownTrigger = {
   triggerMod: true,
 }
 
-export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPluginSupportInline => {
+export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPlugin => {
   options = {
     ...defaultOptions,
     ...options,

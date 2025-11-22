@@ -1,7 +1,7 @@
 import type { Et } from '@effitor/core'
 
 import { createCodeRenderer, type RenderOptions } from './codeRenderer'
-import { CodeEnum, type CodePluginContext } from './config'
+import { CodeEnum } from './config'
 import type { EtCodeElement } from './EtCodeElement'
 import type { EtCodeHighlighter } from './highlighter'
 
@@ -51,9 +51,7 @@ export const initCodePluginContext = (
     }
   }
 
-  // @ts-expect-error first assign
-  ctxMeta.pctx.$codePx = {}
-  Object.assign<CodePluginContext, CodePluginContext>(ctxMeta.pctx.$codePx, {
+  ctxMeta.pctx.$codePx = {
     highlighter,
     defaultTabSize,
     codeRenderer: _codeRenderer,
@@ -66,5 +64,5 @@ export const initCodePluginContext = (
       }
       return null
     },
-  })
+  }
 }

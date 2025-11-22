@@ -8,11 +8,10 @@ import {
 } from '@effitor/shared'
 
 import { MarkStatus, MarkType } from '../config'
-import { checkFormatMark, checkInsertMark } from './ectx'
+import { checkFormatMark, checkInsertMark } from './check'
 import { markBeforeKeydownSolver } from './keydown'
 
-export const markEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const markEffector: Et.Effector = {
   enforce: 'pre',
   beforeKeydownSolver: markBeforeKeydownSolver,
   htmlEventSolver: {

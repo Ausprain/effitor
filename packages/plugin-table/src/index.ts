@@ -33,7 +33,7 @@ export interface TablePluginOptions {
   tabToTableAfterShortText?: boolean
 }
 export { EtTableCellElement, EtTableElement, EtTableRowElement }
-export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPluginSupportInline => {
+export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPlugin => {
   options = { ...defaultOptions, ...options }
   return {
     name: '@effitor/plugin-table',

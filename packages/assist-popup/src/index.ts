@@ -13,7 +13,7 @@ declare module '@effitor/core' {
 export type { HoverPopupOptions, PopupContent, PopupItem, PopupItemFilter, PopupRender } from './config'
 export type { Popup } from './popup'
 
-export const usePopupAssist = (options?: PopupAssistOptions): Et.EditorPluginSupportInline => {
+export const usePopupAssist = (options?: PopupAssistOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/assist-popup',
     cssText,

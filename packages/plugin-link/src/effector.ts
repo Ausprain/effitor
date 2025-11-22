@@ -5,8 +5,7 @@ import { LinkEnum } from './config'
 import type { EtLinkElement } from './EtLinkElement'
 import { checkInsertLink } from './handler'
 
-export const linkEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const linkEffector: Et.Effector = {
   afterInputSolver: {
     insertText: (ev, ctx) => {
       if (!ev.data || ev.data.length > 1) return

@@ -9,8 +9,8 @@ export class CodeHeader {
   private readonly _btnGroup: HTMLDivElement
   constructor(ctx: Et.EditorContext, el: EtCodeElement, cbs: CodeDecorateCallbacks) {
     this.el = document.createElement('div')
-    this.el.className = CodeEnum.Class_Header
     this._btnGroup = document.createElement('div')
+    this.el.className = CodeEnum.Class_Header
     this._btnGroup.className = CodeEnum.Class_Btn_Group
     this.el.appendChild(this._btnGroup)
 

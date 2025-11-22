@@ -39,7 +39,7 @@ export interface CodePluginOptions extends CodeBlockRenderOptions {
 }
 export { EtCodeElement }
 export type { EtCodeHighlighter } from './highlighter'
-export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPluginSupportInline> => {
+export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPlugin> => {
   const highlighter = await createShikiHighlighter(options?.shikiOptions)
 
   const renderOptions: RenderOptions = {}

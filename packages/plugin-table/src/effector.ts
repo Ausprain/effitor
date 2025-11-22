@@ -1,5 +1,5 @@
 import type { DropdownContent } from '@effitor/assist-dropdown'
-import type { Et } from '@effitor/core'
+import { dom, type Et } from '@effitor/core'
 import {
   colDeleteRightIcon,
   colInsertLeftIcon,
@@ -12,20 +12,21 @@ import {
 } from '@effitor/shared'
 
 import { TableName } from './config'
-import { ectx as _ectx } from './ectx'
+import { tableCellKeyMap } from './ectx'
+import { tryToRemoveNextColumn, tryToRemoveNextRow } from './handler/delete'
+import { insertNewColumn, insertNewRow } from './handler/insert'
 
-const beforeKeydownSolver: Et.KeyboardSolver<typeof _ectx> = {
-  [TableName.TableCell]: (ev, ctx, ectx) => {
+const beforeKeydownSolver: Et.KeyboardSolver = {
+  [TableName.TableCell]: (ev, ctx) => {
     ctx.commandManager.checkKeydownNeedCommit(ev, ctx)
-    if (ctx.hotkeyManager.listenEffect(ectx.$tableEx.tableCellKeyMap) === false) {
+    if (ctx.hotkeyManager.listenEffect(tableCellKeyMap) === false) {
       return
     }
     return ctx.preventAndSkipDefault(ev)
   },
 }
 
-export const tableEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const tableEffector: Et.Effector = {
   beforeKeydownSolver,
   htmlEventSolver: {
     // 提前让选区 collapse, 防止 core 中 compositionstart 的选区删除行为将单元格删除
@@ -48,10 +49,9 @@ export const tableEffector: Et.EffectorSupportInline = {
 /**
  * OneNote 风格插入表格
  */
-export const tabToTableEffector: Et.EffectorSupportInline<typeof _ectx> = {
-  inline: true,
+export const tabToTableEffector: Et.Effector = {
   keydownSolver: {
-    Tab: (ev, ctx, ectx) => {
+    Tab: (ev, ctx) => {
       if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.focusParagraph)
         || !ctx.selection.anchorText || ctx.focusParagraph.childElementCount > 0
       ) {
@@ -59,7 +59,7 @@ export const tabToTableEffector: Et.EffectorSupportInline<typeof _ectx> = {
       }
       const data = ctx.focusParagraph.textContent
       if (data.length > 20 || data.includes('\t') || data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
-        || (data.length !== ctx.selection.anchorOffset && !ectx.dom.isTrailingZWS(data, ctx.selection.anchorOffset))
+        || (data.length !== ctx.selection.anchorOffset && !dom.isTrailingZWS(data, ctx.selection.anchorOffset))
       ) {
         return
       }
@@ -107,22 +107,22 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const insertItems = ([
       [rowInsertTopIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$tableEx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
+          insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
         }
       }],
       [rowInsertBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$tableEx.insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
+          insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
         }
       }],
       [colInsertLeftIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$tableEx.insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
+          insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
         }
       }],
       [colInsertRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$tableEx.insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
+          insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
@@ -131,12 +131,12 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     const deleteItems = ([
       [rowDeleteBottomIcon(), (ctx) => {
         if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          _ectx.$tableEx.tryToRemoveTableRow(ctx, ctx.focusEtElement.parentNode)
+          tryToRemoveNextRow(ctx, ctx.focusEtElement.parentNode)
         }
       }],
       [colDeleteRightIcon(), (ctx) => {
         if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          _ectx.$tableEx.tryToRemoveTableColumn(ctx, ctx.focusEtElement)
+          tryToRemoveNextColumn(ctx, ctx.focusEtElement)
         }
       }],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(

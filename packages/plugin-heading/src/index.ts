@@ -12,12 +12,11 @@ export interface HeadingPluginOptions {
   hiddenHeadingLevelMarker?: boolean
 }
 export { EtHeadingElement }
-export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPluginSupportInline => {
+export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-heading',
     cssText,
     effector: [headingEffector, {
-      inline: true,
       onMounted(ctx) {
         if (options?.hiddenHeadingLevelMarker) {
           ctx.bodyEl.classList.add(HeadingEnum.Class_HiddenMarker)

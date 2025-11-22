@@ -19,7 +19,7 @@ declare module '@effitor/core' {
   }
   interface EditorPluginContext {
     /** 用于mediaPlugin的上下文 */
-    readonly $mediaPx: MediaPluginContext
+    $mediaPx: MediaPluginContext
   }
   interface EffectHandleDeclaration {
     /** 当前光标所在文本节点内容符合markdown图片语法时, 将文本转为media元素 */

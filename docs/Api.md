@@ -10,8 +10,6 @@
 
 # Effector
 
-## ectx
-
 # EffectElement
 
 # effect handler

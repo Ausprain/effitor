@@ -1,5 +1,4 @@
 import type { Et } from '../@types'
-import { effectorContext } from './ectx'
 
 export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.SelChangeAction) => {
   return (ev: Event) => {
@@ -28,6 +27,6 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
     //   return
     // }
     ctx.update()
-    callback?.(ev, ctx, effectorContext)
+    callback?.(ev, ctx)
   }
 }

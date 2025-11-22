@@ -23,7 +23,7 @@ export interface LinkPluginOptions extends LinkPluginContextOptions {
   needLinkEffectElementCtors?: Et.EtElementCtor[]
 }
 export { EtLinkElement }
-export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPluginSupportInline => {
+export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-link',
     cssText,

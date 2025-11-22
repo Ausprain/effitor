@@ -24,11 +24,10 @@ export type * from './DialogManager'
  * </et-editor>
  * ```
  */
-export const useDialogAssist = (options?: DialogAssistOptions): Et.EditorPluginSupportInline => ({
+export const useDialogAssist = (options?: DialogAssistOptions): Et.EditorPlugin => ({
   name: '@effitor/assist-dialog',
   cssText,
   effector: {
-    inline: true,
     onMounted(ctx) {
       if (ctx.assists.dialog) {
         return

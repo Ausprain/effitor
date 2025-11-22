@@ -1,40 +1,32 @@
 import type { Et } from '@effitor/core'
-import { useEffectorContext } from '@effitor/core'
 import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
 
 import { HeadingEnum } from './config'
-import { headingHandler, inHeadingHandler, replaceParagraphWithHeading } from './handler'
+import { inHeadingHandler, replaceParagraphWithHeading } from './handler'
 
-const _ectx = useEffectorContext('$hEx', {
-  // 标题 handler 比较少, 直接挂到 ectx 上调用, 不注册到效应元素
-  headingHandler,
-  inHeadingHandler,
-  checkAtxToHeading(ctx: Et.UpdatedContext) {
-    // import.meta.env.DEV && console.error('check heading start')
-    if (!ctx.selection.isCollapsed || !ctx.focusEtElement || !ctx.selection.anchorText) return false
-    // 只在纯段落内生效
-    if (!ctx.isPlainParagraph(ctx.focusParagraph) || ctx.focusParagraph.childNodes.length > 1) return false
-    const data = ctx.focusParagraph.textContent
-    if (data.length > 6) return false
-    let level = -1
-    if (/^#{1,6}$/.test(data)) {
-      level = data.length
-    }
-    else if (/^#[1-6]$/.test(data)) {
-      level = parseInt(data[1])
-    }
-    if (level === -1) return false
-    return this.headingHandler.replaceParagraphWithHeading(ctx, {
-      level: level as Et.HeadingLevel,
-      paragraph: ctx.focusParagraph,
-    })
-  },
-
-})
-
-const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
-  ' ': (_ev, ctx, ectx) => ectx.$hEx.checkAtxToHeading(ctx),
-  'Enter': (_ev, ctx, ectx) => ectx.$hEx.checkAtxToHeading(ctx),
+const checkAtxToHeading = (ctx: Et.UpdatedContext) => {
+  // import.meta.env.DEV && console.error('check heading start')
+  if (!ctx.selection.isCollapsed || !ctx.focusEtElement || !ctx.selection.anchorText) return false
+  // 只在纯段落内生效
+  if (!ctx.isPlainParagraph(ctx.focusParagraph) || ctx.focusParagraph.childNodes.length > 1) return false
+  const data = ctx.focusParagraph.textContent
+  if (data.length > 6) return false
+  let level = -1
+  if (/^#{1,6}$/.test(data)) {
+    level = data.length
+  }
+  else if (/^#[1-6]$/.test(data)) {
+    level = parseInt(data[1])
+  }
+  if (level === -1) return false
+  return replaceParagraphWithHeading(ctx, {
+    level: level as Et.HeadingLevel,
+    paragraph: ctx.focusParagraph,
+  })
+}
+const beforeKeydownSolver: Et.KeyboardKeySolver = {
+  ' ': (_ev, ctx) => checkAtxToHeading(ctx),
+  'Enter': (_ev, ctx) => checkAtxToHeading(ctx),
   'Tab': (_ev, ctx) => {
     if (ctx.focusEtElement.localName === HeadingEnum.ElName) {
       return true
@@ -42,14 +34,14 @@ const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
   },
 }
 
-const keydownSolver: Et.KeyboardSolver<typeof _ectx> = {
+const keydownSolver: Et.KeyboardSolver = {
   // heading 专有 keydown solver
-  [HeadingEnum.ElName]: (ev, ctx, ectx) => {
+  [HeadingEnum.ElName]: (ev, ctx) => {
     if (ev.key === 'Backspace'
       && ctx.selection.isCollapsed
       && ctx.selection.anchorOffset === 0
     ) {
-      ectx.$hEx.inHeadingHandler.regressHeadingToParagraph(ctx, {
+      inHeadingHandler.regressHeadingToParagraph(ctx, {
         heading: ctx.commonEtElement,
       })
       return ctx.skipDefault()
@@ -57,8 +49,7 @@ const keydownSolver: Et.KeyboardSolver<typeof _ectx> = {
   },
 }
 
-export const headingEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const headingEffector: Et.Effector = {
   beforeKeydownSolver,
   keydownSolver,
   onMounted(ctx) {

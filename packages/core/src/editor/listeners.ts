@@ -6,7 +6,6 @@ import {
   getCompositionStart,
   getCompositionUpdate,
 } from '../effector/composition'
-import { effectorContext } from '../effector/ectx'
 import { getInputListener } from '../effector/input'
 import { getKeydownCaptureListener, getKeydownListener } from '../effector/keydown'
 import { getKeyupListener } from '../effector/keyup'
@@ -59,8 +58,8 @@ export const initListeners = (
 
   selectionchange: getSelectionChangeListener(ctx, pluginEffector.selChangeCallback),
 
-  focusin: (ev: FocusEvent) => pluginEffector.focusinCallback?.(ev, ctx, effectorContext),
-  focusout: (ev: FocusEvent) => pluginEffector.focusoutCallback?.(ev, ctx, effectorContext),
+  focusin: (ev: FocusEvent) => pluginEffector.focusinCallback?.(ev, ctx),
+  focusout: (ev: FocusEvent) => pluginEffector.focusoutCallback?.(ev, ctx),
 })
 export const addListenersToEditorBody = (
   // root: Et.ShadowRoot,

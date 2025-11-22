@@ -1,75 +1,72 @@
-import { cmd, cr, dom, type Et, useEffectorContext } from '@effitor/core'
+import type { Et } from '@effitor/core'
+import { cmd, cr, dom } from '@effitor/core'
 import { HtmlCharEnum } from '@effitor/shared'
 
 import { BlockquoteMeta } from './config'
 import { blockquoteMetaParser } from './util'
 
-const _ectx = useEffectorContext('$bqEx', {
-  bqMetaParser: blockquoteMetaParser,
-  checkQuitBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
-    if (!currP.nextSibling && dom.isEmptyContentNode(currP)) {
-      const bq = currP.parentNode
-      if (!ctx.schema.blockquote.is(bq)) {
-        return false
-      }
-      if (bq.childNodes.length === 1) {
-        // bq 仅有一个空段落, 删除
-        ctx.commandManager.push(
-          cmd.removeNode({ node: currP }),
-          cmd.removeNode({ node: bq }),
-          cmd.insertNode({
-            node: currP,
-            execAt: cr.caretOutStart(bq),
-          }),
-        ).handleAndUpdate(cr.caretInAuto(currP))
-      }
-      else {
-        ctx.commandManager.handleMoveNode(currP, cr.caretOutEnd(bq), cr.caretInAuto(currP))
-      }
-      return true
+const checkQuitBlockquote = (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
+  if (!currP.nextSibling && dom.isEmptyContentNode(currP)) {
+    const bq = currP.parentNode
+    if (!ctx.schema.blockquote.is(bq)) {
+      return false
     }
+    if (bq.childNodes.length === 1) {
+      // bq 仅有一个空段落, 删除
+      ctx.commandManager.push(
+        cmd.removeNode({ node: currP }),
+        cmd.removeNode({ node: bq }),
+        cmd.insertNode({
+          node: currP,
+          execAt: cr.caretOutStart(bq),
+        }),
+      ).handleAndUpdate(cr.caretInAuto(currP))
+    }
+    else {
+      ctx.commandManager.handleMoveNode(currP, cr.caretOutEnd(bq), cr.caretInAuto(currP))
+    }
+    return true
+  }
+  return false
+}
+const checkInsertBlockquote = (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
+  let pText = currP.textContent
+  if (!pText || pText.length > 100) {
     return false
-  },
-  checkInsertBlockquote: (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {
-    let pText = currP.textContent
-    if (!pText || pText.length > 100) {
-      return false
-    }
-    pText = pText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
-    if (pText[0] !== '>') {
-      return false
-    }
-    if (pText.replaceAll(' ', '') === '>') {
-      ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
-        paragraph: currP,
-      })
-      return true
-    }
-    if (!pText.startsWith('> ')) {
-      return false
-    }
-    const meta = blockquoteMetaParser.fromText(pText.slice(2), ctx.pctx.$bqPx)
-    if (!meta) {
-      return false
-    }
+  }
+  pText = pText.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
+  if (pText[0] !== '>') {
+    return false
+  }
+  if (pText.replaceAll(' ', '') === '>') {
     ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
-      meta,
       paragraph: currP,
     })
     return true
-  },
-})
+  }
+  if (!pText.startsWith('> ')) {
+    return false
+  }
+  const meta = blockquoteMetaParser.fromText(pText.slice(2), ctx.pctx.$bqPx)
+  if (!meta) {
+    return false
+  }
+  ctx.effectInvoker.invoke(currP, 'replaceParagraphWithBlockquote', ctx, {
+    meta,
+    paragraph: currP,
+  })
+  return true
+}
 
-export const blockquoteEffector: Et.EffectorSupportInline<typeof _ectx> = {
-  inline: true,
+export const blockquoteEffector: Et.Effector = {
   keydownSolver: {
-    Enter: (ev, ctx, { $bqEx }) => {
+    Enter: (ev, ctx) => {
       const currP = ctx.focusParagraph
       if (!currP || !ctx.isPlainParagraph(currP)) {
         return
       }
-      if ($bqEx.checkQuitBlockquote(ctx, currP)
-        || $bqEx.checkInsertBlockquote(ctx, currP)
+      if (checkQuitBlockquote(ctx, currP)
+        || checkInsertBlockquote(ctx, currP)
       ) {
         return ctx.preventAndSkipDefault(ev)
       }

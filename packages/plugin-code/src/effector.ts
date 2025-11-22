@@ -1,32 +1,29 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, useEffectorContext } from '@effitor/core'
+import { cmd, cr } from '@effitor/core'
 import { codeBlockIcon } from '@effitor/shared'
 
 import { CodeEnum } from './config'
 
-const _ectx = useEffectorContext('$codeEx', {
-  checkMarkCode: (ctx: Et.EditorContext) => {
-    if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.commonEtElement)) {
-      return false
-    }
-    const data = ctx.commonEtElement.textContent
-    if (!data.startsWith('```')) {
-      return false
-    }
-    const [lang, metaStr] = data.slice(3).split(' ')
-    if (ctx.pctx.$codePx.highlighter.langs.includes(lang)) {
-      const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
-      codeEl.meta = metaStr
-      ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)
-      codeEl.focusToInnerEditable(ctx, true)
-      return true
-    }
+const checkMarkCode = (ctx: Et.EditorContext) => {
+  if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.commonEtElement)) {
     return false
-  },
-})
+  }
+  const data = ctx.commonEtElement.textContent
+  if (!data.startsWith('```')) {
+    return false
+  }
+  const [lang, metaStr] = data.slice(3).split(' ')
+  if (ctx.pctx.$codePx.highlighter.langs.includes(lang)) {
+    const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
+    codeEl.meta = metaStr
+    ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)
+    codeEl.focusToInnerEditable(ctx, true)
+    return true
+  }
+  return false
+}
 
-export const codeEffector: Et.EffectorSupportInline<typeof _ectx> = {
-  inline: true,
+export const codeEffector: Et.Effector = {
   keydownSolver: {
     [CodeEnum.ElName]: (ev, ctx) => {
       const cc = ctx.commonEtElement.codeCtx
@@ -69,8 +66,8 @@ export const codeEffector: Et.EffectorSupportInline<typeof _ectx> = {
           break
       }
     },
-    Enter: (ev, ctx, { $codeEx }) => {
-      if ($codeEx.checkMarkCode(ctx)) {
+    Enter: (ev, ctx) => {
+      if (checkMarkCode(ctx)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },

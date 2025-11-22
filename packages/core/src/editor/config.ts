@@ -1,5 +1,5 @@
 import type { EditorContext, EditorContextMeta } from '../context'
-import type { Effector, EffectorSupportInline, MainEffector } from '../effector'
+import type { Effector, MainEffector } from '../effector'
 import type {
   EffectElement,
   EffectElementCtor,
@@ -119,9 +119,6 @@ export interface EditorSchema extends IndexSchema {
 }
 export type EditorSchemaSetter = (init: Partial<OmitStringIndexSignature<EditorSchema>>) => void
 
-export interface EditorPluginSupportInline extends EditorPlugin {
-  readonly effector: EffectorSupportInline | EffectorSupportInline[]
-}
 /**
  * 编辑器插件
  */
@@ -132,8 +129,7 @@ export interface EditorPlugin {
    * 将注册在编辑器上的效应器列表 \
    * 按顺序绑定, 并按顺序触发响应, \
    * 对应handler返回true时将跳过后续插件的相同效应, \
-   * `ctx.skipDefault标记为true`时将跳过内置效应 \
-   * 当编辑器设置effectorInline=true时, 效应器应遵守内联规则 `rel.`{@link EffectorSupportInline}
+   * `ctx.skipDefault标记为true`时将跳过内置效应
    */
   readonly effector: Effector | Effector[]
   /**
@@ -172,17 +168,10 @@ export interface EditorPlugin {
   ) => void
 };
 
-export interface CreateEditorOptionsInline extends _CreateEditorOptions {
-  effectorInline: true
-  plugins?: EditorPluginSupportInline[]
-}
 /**
  * 编辑器初始化选项
  */
-export interface CreateEditorOptions extends _CreateEditorOptions {
-  effectorInline?: false
-}
-interface _CreateEditorOptions {
+export interface CreateEditorOptions {
   /**
    * @deprecated
    * 是否使用shadowDOM, 默认为false; 目前仅chromium (准确说是拥有ShadowRoot.getSelection方法的)支持设置为 true, 其他平台始终为false;
@@ -197,22 +186,13 @@ interface _CreateEditorOptions {
   /** 主效应器 */
   mainEffector?: Required<MainEffector>
   /**
-   * 是否将插件效应器内联, 默认false, 设置为true时, 只能使用支持effector内联的插件 \
-   * 启用时, 插件 effector 将内联到编辑器核心, 在插件数量较多时能拥有更好的性能 \
-   * 内联的效应器将不可引用外部变量, 且相应函数必须是箭头函数, 也不可使用import.meta \
-   * 具体见{@link EffectorSupportInline}
+   * 编辑器助手(插件)
    */
-  effectorInline?: boolean
+  assists?: EditorPlugin[] | EditorPlugin[]
   /**
-   * 编辑器助手(插件) \
-   * 若effectorInline设置为true, 则只能使用支持内联effector的插件
+   * 编辑器(内容)插件
    */
-  assists?: EditorPlugin[] | EditorPluginSupportInline[]
-  /**
-   * 编辑器(内容)插件 \
-   * 若effectorInline设置为true, 则只能使用支持内联effector的插件
-   */
-  plugins?: EditorPlugin[] | EditorPluginSupportInline[]
+  plugins?: EditorPlugin[] | EditorPlugin[]
   /** 编辑器配置项 */
   config?: Partial<EditorConfig>
   /** 自定义样式css文本, 该文本会连同自定义EffectElement的cssText和cssStyle一起插入到 shadowDOM的内置样式表中, 会在编辑器挂载前加载完毕 */

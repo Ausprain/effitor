@@ -5,7 +5,6 @@ import { MainKeydownKeySolver } from './keydown'
 import { MainKeyupKeySolver } from './keyup'
 
 export type * from './config'
-export { useEffectorContext, withEffectorContext } from './ectx'
 export {
   MainAfterInputTypeSolver,
   MainBeforeInputTypeSolver,

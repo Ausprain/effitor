@@ -33,7 +33,7 @@ export interface BlockquotePluginOptions {
 
 export { EtBlockquoteElement } from './EtBlockquoteElement'
 
-export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.EditorPluginSupportInline => {
+export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-blockquote',
     cssText: cssText,

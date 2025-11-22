@@ -30,7 +30,6 @@ export interface EditorContextMeta {
   readonly assists: EditorAssists
   /**
    * 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示
-   * * 不同于效应器上下文(ectx), 插件上下文是局部的(每个编辑器实例的上下文 ctx 独有)
    */
   readonly pctx: EditorPluginContext
   /**

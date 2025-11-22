@@ -1,19 +1,12 @@
 import type { Et } from '@effitor/core'
-import { useEffectorContext } from '@effitor/core'
 import { HtmlCharEnum, orderedListIcon, unorderedListIcon } from '@effitor/shared'
 
 import { ListEnum, styleTypeMapping, unOrderedListStyle } from './config'
 import type { EtListItemElement } from './EtListElement'
 import { listHandler } from './handler/listHandler'
 
-const _ectx = useEffectorContext('$listEx', {
-  styleTypeMapping,
-  unOrderedListStyle,
-  listHandler,
-})
-
-const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
-  ' ': (ev, ctx, { $listEx }) => {
+const beforeKeydownSolver: Et.KeyboardKeySolver = {
+  ' ': (ev, ctx) => {
     const currP = ctx.focusParagraph
     if (!ctx.isPlainParagraph(currP)) {
       // 不是schema段落, 跳过
@@ -23,14 +16,14 @@ const beforeKeydownSolver: Et.KeyboardKeySolver<typeof _ectx> = {
     if (!text || text.length > 3) {
       return
     }
-    const styleType = $listEx.styleTypeMapping[text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')]
+    const styleType = styleTypeMapping[text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')]
     if (!styleType) {
       return
     }
-    $listEx.listHandler.replaceParagraphWithList(ctx, {
+    listHandler.replaceParagraphWithList(ctx, {
       listType: {
         styleType,
-        ordered: !$listEx.unOrderedListStyle.includes(styleType),
+        ordered: !unOrderedListStyle.includes(styleType),
       },
       paragraph: currP,
     })
@@ -100,8 +93,7 @@ const keydownSolver: Et.KeyboardKeySolver = {
   },
 }
 
-export const listEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const listEffector: Et.Effector = {
   beforeKeydownSolver,
   keydownSolver,
 

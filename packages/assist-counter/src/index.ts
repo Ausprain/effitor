@@ -12,10 +12,9 @@ declare module '@effitor/core' {
 }
 
 export type * from './TextCounter'
-export const useCounterAssist = (options?: CounterAssistOptions): Et.EditorPluginSupportInline => ({
+export const useCounterAssist = (options?: CounterAssistOptions): Et.EditorPlugin => ({
   name: '@effitor/assist-counter',
   effector: {
-    inline: true,
     selChangeCallback: (_ev, ctx) => ctx.selection.isCollapsed || ctx.assists.textCounter?.forceUpdate(),
     onMounted(ctx) {
       if (ctx.assists.textCounter) {

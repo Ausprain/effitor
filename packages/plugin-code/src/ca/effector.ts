@@ -2,8 +2,7 @@ import { cmd, cr, type Et } from '@effitor/core'
 
 import { EtCodeAreaElement } from './EtCodeAreaElement'
 
-export const codeAreaEffector: Et.EffectorSupportInline = {
-  inline: true,
+export const codeAreaEffector: Et.Effector = {
   keydownSolver: {
     K: (ev, ctx) => {
       if (ev.metaKey && ctx.isPlainParagraph(ctx.focusParagraph)) {

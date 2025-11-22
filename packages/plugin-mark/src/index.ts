@@ -15,7 +15,7 @@ export interface MarkPluginOptions {
   needMarkEffectElementCtors?: Et.EtElementCtor[]
 }
 export { EtMarkElement }
-export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPluginSupportInline => {
+export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-mark',
     effector: markEffector,

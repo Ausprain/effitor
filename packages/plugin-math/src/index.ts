@@ -13,7 +13,7 @@ import type { Et } from '@effitor/core'
 
 // const html = renderToString('$x^2$')
 
-export const useMathPlugin = (): Et.EditorPluginSupportInline => {
+export const useMathPlugin = (): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-math',
     effector: [],

@@ -33,8 +33,8 @@
   },
   "scripts": {
     "check": "tsc --noEmit",
-    "build": "bun ./scripts/build.js",
-    "prebuild": "tsc --noEmit && bun run update:packages",
+    "build:main": "bun ./scripts/build.js",
+    "prebuild:main": "tsc --noEmit && bun eslint packages --quiet && bun run update:packages",
     "update:packages": "bun ./scripts/updatePackageJson.js",
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",

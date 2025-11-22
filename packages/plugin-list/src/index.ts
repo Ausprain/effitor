@@ -45,7 +45,7 @@ import listCss from './index.css?raw'
 
 export interface ListPluginOptions {}
 export { EtListElement, EtListItemElement }
-export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPluginSupportInline => {
+export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-list',
     cssText: listCss,

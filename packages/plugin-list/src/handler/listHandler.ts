@@ -4,7 +4,7 @@ import { cmd, cr } from '@effitor/core'
 import { ListAttr } from '../config'
 import { EtListElement, EtListItemElement } from '../EtListElement'
 
-// listHandler 内容较少, 不挂载, 添加到 ectx 直接调用
+// listHandler 内容较少, 不挂载
 export const listHandler: Et.EffectHandlerPick<'replaceParagraphWithList'> = {
   replaceParagraphWithList(ctx, {
     listType,

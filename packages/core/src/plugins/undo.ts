@@ -68,8 +68,7 @@ const htmlEventSolver: Et.HTMLEventSolver = {
   },
 }
 
-const undoEffector: Et.EffectorSupportInline = {
-  inline: true,
+const undoEffector: Et.Effector = {
   enforce: 'pre',
   beforeKeydownSolver,
   keyupSolver,
@@ -97,6 +96,6 @@ const undoEffector: Et.EffectorSupportInline = {
   },
 }
 
-export const useUndo = (): Et.EditorPluginSupportInline => {
+export const useUndo = (): Et.EditorPlugin => {
   return { name: BuiltinConfig.BUILTIN_UNDO_PLUGIN_NAME, effector: undoEffector }
 }

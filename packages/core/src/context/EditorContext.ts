@@ -16,7 +16,7 @@ import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
 import { traversal } from '../utils'
 import { Composition } from './Composition'
-import type { EditorContextMeta } from './config'
+import type { EditorContextMeta, EditorPluginContext } from './config'
 import { EditorBody } from './EditorBody'
 import { EditorLogger } from './EditorLogger'
 import { EditorMode } from './EditorMode'
@@ -67,9 +67,32 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   readonly root
   readonly schema
   readonly assists
-  readonly pctx
+  readonly pctx: Readonly<EditorPluginContext>
   readonly settings
   readonly keepDefaultModkeyMap: Readonly<EditorContextMeta['keepDefaultModkeyMap']>
+
+  /** 编辑区对象 */
+  readonly body: EditorBody
+  /** 编辑器模式转换器 // TODO */
+  readonly mode: EditorMode
+  /** 编辑器样式器 */
+  readonly styler: EditorStyler
+  /** 编辑器选区对象, 在 mount 之前为 null */
+  readonly selection: ContextSelection
+  /** 文本分词器 */
+  readonly segmenter: Segmenter
+  /** 编辑器输入法对象 */
+  readonly composition: Composition
+  /** 效应激活器 */
+  readonly effectInvoker: Et.EffectInvoker
+  /** 命令管理器 */
+  readonly commandManager: CommandManager
+  /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
+  readonly commonHandler: CommonHandler
+  /** 热键管理器 */
+  readonly hotkeyManager: Et.hotkey.Manager
+  /** 热字符串管理器 */
+  readonly hotstringManager: Et.hotstring.Manager
 
   /** 上一个`text node` 用于判断光标是否跳动 */
   private _oldNode: Et.TextOrNull = null
@@ -120,29 +143,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * * 每次 keyup 会重置为 undefined
    */
   affinityPreference?: boolean
-
-  /** 编辑区对象 */
-  readonly body: EditorBody
-  /** 编辑器模式转换器 // TODO */
-  readonly mode: EditorMode
-  /** 编辑器样式器 */
-  readonly styler: EditorStyler
-  /** 编辑器选区对象, 在 mount 之前为 null */
-  readonly selection: ContextSelection
-  /** 文本分词器 */
-  readonly segmenter: Segmenter
-  /** 编辑器输入法对象 */
-  readonly composition: Composition
-  /** 效应激活器 */
-  readonly effectInvoker: Et.EffectInvoker
-  /** 命令管理器 */
-  readonly commandManager: CommandManager
-  /** 通用效应处理器, 不依赖效应元素激活效应(跳过effectInvoker), 直接处理指定效应 */
-  readonly commonHandler: CommonHandler
-  /** 热键管理器 */
-  readonly hotkeyManager: Et.hotkey.Manager
-  /** 热字符串管理器 */
-  readonly hotstringManager: Et.hotstring.Manager
 
   // 回调
   // TODO 加入 effector 中, 类似 onMounted 等

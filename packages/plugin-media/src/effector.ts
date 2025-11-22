@@ -1,6 +1,6 @@
 import type { DropdownMenuItemOptions } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
-import { etcode, traversal, useEffectorContext } from '@effitor/core'
+import { etcode, traversal } from '@effitor/core'
 import {
   alignCenterIcon,
   alignLeftIcon,
@@ -17,48 +17,44 @@ import {
 
 import { type IEtMediaElement, MEDIA_ET_TYPE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
 
-const _ectx = useEffectorContext('$mediaEx', {
-  filterFiles: (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
-    if (!media) {
-      return []
-    }
-    return [...files].filter((file) => {
-      if (file.size <= 0 || file.size > media.maxSize) {
-        return false
-      }
-      const [kind, ext] = file.type.split('/')
-      return kind === media.type && media.exts.has(ext)
-    })
-  },
-  tryAlignMedia: (ctx: Et.EditorContext, anchorText: Et.Text, atEnd: boolean) => {
-    let mediaEl = atEnd ? traversal.treeNextNode(anchorText) : traversal.treePrevNode(anchorText)
-    if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
+const filterFiles = (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
+  if (!media) {
+    return []
+  }
+  return [...files].filter((file) => {
+    if (file.size <= 0 || file.size > media.maxSize) {
       return false
     }
-    if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$mediaPx.MEDIA_ET_TYPE)) {
-      const currState = mediaEl.mediaState
-      if (currState === MediaState.Failed) {
-        return false
-      }
-      mediaEl.mediaState = {
-        [MediaState.Expanded]: MediaState.Collapsed,
-        [MediaState.FloatLeft]: MediaState.Center,
-        [MediaState.Center]: MediaState.FloatRight,
-        [MediaState.FloatRight]: MediaState.Collapsed,
-        [MediaState.Collapsed]: MediaState.FloatLeft,
-      }[currState] ?? MediaState.Collapsed
-
-      return true
+    const [kind, ext] = file.type.split('/')
+    return kind === media.type && media.exts.has(ext)
+  })
+}
+const tryAlignMedia = (ctx: Et.EditorContext, anchorText: Et.Text, atEnd: boolean) => {
+  let mediaEl = atEnd ? traversal.treeNextNode(anchorText) : traversal.treePrevNode(anchorText)
+  if (!(mediaEl = ctx.body.findInclusiveEtParent(mediaEl))) {
+    return false
+  }
+  if (etcode.check<IEtMediaElement>(mediaEl, ctx.pctx.$mediaPx.MEDIA_ET_TYPE)) {
+    const currState = mediaEl.mediaState
+    if (currState === MediaState.Failed) {
+      return false
     }
-  },
-})
+    mediaEl.mediaState = {
+      [MediaState.Expanded]: MediaState.Collapsed,
+      [MediaState.FloatLeft]: MediaState.Center,
+      [MediaState.Center]: MediaState.FloatRight,
+      [MediaState.FloatRight]: MediaState.Collapsed,
+      [MediaState.Collapsed]: MediaState.FloatLeft,
+    }[currState] ?? MediaState.Collapsed
 
-export const mediaEffector: Et.EffectorSupportInline = {
-  inline: true,
+    return true
+  }
+}
+export const mediaEffector: Et.Effector = {
 
   keydownSolver: {
     // 光标在媒体元素左右时, 按下tab调整媒体元素浮动位置
-    Tab: (ev, ctx, ectx) => {
+    Tab: (ev, ctx) => {
       if (ev.repeat) {
         return
       }
@@ -79,7 +75,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
         }
         atEnd = true
       }
-      if (ectx.$mediaEx.tryAlignMedia(ctx, text, atEnd)) {
+      if (tryAlignMedia(ctx, text, atEnd)) {
         return ctx.preventAndSkipDefault(ev)
       }
     },
@@ -140,7 +136,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
       document.onmousemove = null
     },
   },
-  pasteCallback: (ev, ctx, ectx) => {
+  pasteCallback: (ev, ctx) => {
     const tc = ctx.selection.getTargetCaret()
     if (!tc || !ev.clipboardData.files.length) {
       return
@@ -161,7 +157,7 @@ export const mediaEffector: Et.EffectorSupportInline = {
     }
     for (const type in fileGroup) {
       const media = mediaCtx[type as MediaType]
-      const files = ectx.$mediaEx.filterFiles(media, fileGroup[type as MediaType])
+      const files = filterFiles(media, fileGroup[type as MediaType])
       if (!media || !files.length) {
         continue
       }
@@ -274,7 +270,7 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
     if (!media || !media.onfileselected || !files || !files.length) {
       return
     }
-    const chunk = media.onfileselected(_ectx.$mediaEx.filterFiles(media, [...files]))
+    const chunk = media.onfileselected(filterFiles(media, [...files]))
     if (chunk.length) {
       ctx.effectInvoker.invoke(targetCaret.anchorEtElement, 'insertMediaChunk', ctx, {
         targetCaret,

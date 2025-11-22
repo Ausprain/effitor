@@ -2,7 +2,6 @@ import { BuiltinConfig } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { solveInputInRawEl } from './beforeinputInRaw'
-import { effectorContext } from './ectx'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
   default: (ev, ctx) => {
@@ -66,7 +65,6 @@ export const runInputSolver = (
         ev,
         // @ts-expect-error 效应元素独占 solver 的 ctx 的 commonEtElement就是该效应元素类型
         ctx,
-        effectorContext,
       )
     }
   }
@@ -74,7 +72,7 @@ export const runInputSolver = (
 
   fn = main[ev.inputType] || main.default
   if (typeof fn === 'function') {
-    fn(ev, ctx, effectorContext)
+    fn(ev, ctx)
   }
   return true
 }

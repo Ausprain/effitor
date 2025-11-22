@@ -19,9 +19,7 @@ export const getInputListener = (
       // 插件未 skipDefault 时, 若光标不在视口内, 将其移动到视口中央
       ctx.selection.scrollIntoView(
         false,
-        ev.inputType.startsWith('insert') && ev.inputType !== 'insertFromPaste'
-          ? 'smooth'
-          : 'instant',
+        ev.inputType === 'insertText' ? 'smooth' : 'instant',
       )
     }
 

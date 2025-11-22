@@ -40,7 +40,7 @@ interface EditorMeta extends CreateEditorContextOptionsFields {
   readonly cssText: string
   readonly customStyleLinks: readonly Et.CustomStyleLink[]
 }
-export type PluginConfigs = Omit<Et.Effector, 'inline' | 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
+export type PluginConfigs = Omit<Et.Effector, 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
   cssText: string
   onMounteds: Required<Et.Effector>['onMounted'][]
   onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][]
@@ -161,7 +161,6 @@ export class Effitor {
     theme = 'default',
     schemaInit = {},
     mainEffector = getMainEffector(),
-    effectorInline = false,
     assists = [],
     plugins = [],
     config = {},
@@ -171,7 +170,7 @@ export class Effitor {
     callbacks = {},
     hotstringOptions = undefined,
     htmlOptions = undefined,
-  }: Et.CreateEditorOptions | Et.CreateEditorOptionsInline = {}) {
+  }: Et.CreateEditorOptions = {}) {
     // 若启用 ShadowDOM, 而平台环境不支持 ShadowDOM以及ShadowDOM内选区, 则强制不使用 ShadowDOM
     // if (shadow) {
     //   shadow = !!(document.createElement('div').attachShadow({ mode: 'open' }) as Et.ShadowRoot).getSelection
@@ -209,7 +208,7 @@ export class Effitor {
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
-    const pluginConfigs = reducePlugins(plugins, pluginElCtors, contextMeta, effectorInline)
+    const pluginConfigs = reducePlugins(plugins, pluginElCtors, contextMeta)
     // html相关处理器
     const htmlTransformerMaps: Et.HtmlToEtElementTransformerMap[] = []
     // mdast相关处理器
@@ -594,7 +593,7 @@ export class Effitor {
 }
 
 const reducePlugins = (
-  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta, inline = false,
+  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
 ): PluginConfigs => {
   const pNameSet = new Set<Et.EditorPlugin['name']>()
   const effectors = [],
@@ -641,7 +640,7 @@ const reducePlugins = (
     }
     cur.register?.(ctx, setSchema, mountEtHandler)
   }
-  const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors], inline)
+  const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
   return {
     cssText: cssTexts.join('\n'),
     onMounteds,

@@ -53,7 +53,7 @@ export { EtAudioElement, EtImageElement, EtVideoElement }
  * * 此插件在调整资源尺寸的过程中, 会对document.onmousedown/move/up属性赋值, 注意避免冲突
  * @param options 配置项, 缺省时只有图片
  */
-export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportInline => {
+export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/plugin-media',
     cssText,
@@ -117,7 +117,6 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPluginSupportIn
               }
         }
       }
-      // @ts-expect-error first assign
       ctxMeta.pctx.$mediaPx = media
       setSchema(schemaInit)
       mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, MEDIA_ET_TYPE)
