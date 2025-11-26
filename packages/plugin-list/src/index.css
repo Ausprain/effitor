@@ -79,6 +79,7 @@ et-li.etp {
   display: list-item;
   position: relative;
   margin: 2px 0;
+  padding-block: 2px;
 
   &[et-check] {
     /* safari部分不支持::marker，无法通过::marker将其设置为空 */

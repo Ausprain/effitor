@@ -53,17 +53,17 @@ export class HtmlProcessor {
     return df
   }
 
-  #transformText(text: Text, parent: HTMLElement | null): Text | null {
-    if (parent && parent.localName && (
-      parent.localName === 'span' || parent.localName === 'code' || parent.localName === 'pre')) {
-      return text
-    }
-    text.data = text.data.trim()
-    if (!text.data) {
-      return null
-    }
-    return text
-  }
+  // #transformText(text: Text, parent: HTMLElement | null): Text | null {
+  //   if (parent && parent.localName && (
+  //     parent.localName === 'span' || parent.localName === 'code' || parent.localName === 'pre')) {
+  //     return text
+  //   }
+  //   text.data = text.data.trim()
+  //   if (!text.data) {
+  //     return null
+  //   }
+  //   return text
+  // }
 
   #transformElement(ctx: Et.EditorContext, el: Element, parent: HTMLElement | null) {
     if (el.localName === 'svg') {
@@ -108,9 +108,8 @@ export class HtmlProcessor {
       // 复用节点
       next.remove()
       if (dom.isText(next)) {
-        const text = this.#transformText(next, parent)
-        if (text) {
-          df.appendChild(text)
+        if (next.data && next.data !== '\n') {
+          df.appendChild(next)
         }
       }
       else if (dom.isElement(next)) {
