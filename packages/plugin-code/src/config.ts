@@ -13,6 +13,8 @@ export const enum CodeEnum {
   Class_NoLineNumber = 'et-code--no',
   /** 已渲染的代码块 */
   Class_Rendered = 'et-code--rendered',
+  /** 加载中 */
+  Class_Loading = 'et-code--loading',
   /**
    * 代码块结构:
    * ```

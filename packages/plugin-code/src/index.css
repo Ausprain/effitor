@@ -3,6 +3,7 @@ et-editor,
   --et-code-radius: 8px;
   --et-code-max-height: 49vh;
   --et-code-font-family: monospace;
+  --et-code-pre-padding: 16px 16px 16px 48px;
 
   /* dataurl 里 currentColor 无效, 统一使用 rgba(128,128,128,1) 这样无论亮暗模式, 都比较可见 */
   --et-code-bg-copy: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' height='20' width='20' viewBox='0 0 24 24' fill='none' stroke='rgba(128,128,128,1)' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2'/></svg>");
@@ -75,17 +76,24 @@ et-code {
   height: fit-content;
   width: fit-content;
   min-width: 100%;
+  font-family: var(--et-code-font-family);
+  font-size: 13.5px;
+  line-height: 1.5em;
+  letter-spacing: 0;
+  word-spacing: 0;
+  white-space: pre;
+
   & > pre,
   & > textarea {
     margin: 0;
-    padding: 16px 16px 16px 40px;
+    padding: var(--et-code-pre-padding);
     background: none;
-    font-family: var(--et-code-font-family);
-    font-size: 13.5px;
-    line-height: 1.5em;
-    letter-spacing: 0;
-    word-spacing: 0;
-    white-space: pre;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    word-spacing: inherit;
+    white-space: inherit;
     transition: var(--et-transition-color-scheme);
   }
 }
@@ -131,8 +139,8 @@ et-code {
     left: 0;
     /* 使用一个很大的宽度, 加上继承的 background-color, 来实现代码行背景高亮, 为以后实现 diff ± 高亮功能做铺垫 */
     width: 4999px;
-    translate: -40px;
-    padding-right: 4967px;
+    translate: -48px;
+    padding-right: 4961px;
     background-color: inherit;
     color: var(--et-color-text-disabled);
     font-size: 0.9em;
@@ -150,8 +158,7 @@ et-code {
 
 /* 代码自动换行 */
 .et-code--wrap {
-  pre,
-  textarea {
+  .et-code__container {
     white-space: pre-wrap;
   }
   .et-code__line {
@@ -200,6 +207,7 @@ et-code {
     height: 32px;
     width: 32px;
     margin: 8px;
+    margin-left: 0;
     border: 1px solid var(--et-color-border-1);
     border-radius: 4px;
     background-position: center;
@@ -221,7 +229,7 @@ et-code {
     background-image: var(--et-code-bg-wordwrap);
   }
 }
-/* 渲染后的代码块, 不显示边框和语言 */
+/* 渲染后的代码块(html, latex), 不显示边框和语言 */
 et-code.et-code--rendered {
   border: none;
   min-height: 48px;
@@ -233,6 +241,23 @@ et-code.et-code--rendered {
   }
   .et-code__btn-copy,
   .et-code__btn-codewrap {
+    display: none;
+  }
+}
+
+/* 异步高亮 */
+et-code.et-code--loading {
+  .et-code__btn-group {
+    display: none;
+  }
+  .et-code__container {
+    padding: var(--et-code-pre-padding);
+    &::before {
+      content: attr(data-code);
+      user-select: none;
+    }
+  }
+  pre {
     display: none;
   }
 }

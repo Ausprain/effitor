@@ -2,6 +2,11 @@
 export { dom } from './dom'
 export { traversal } from './traversal'
 
+/** 去掉 html 字符串中 `>` 和 `<` 中间的空白符 */
+export const minifiedHtml = (html: string) => {
+  return html.trim().replaceAll(/(?<=>)\s+|\s+(?=<)/g, '')
+}
+
 export const trimAndCleanZWS = (data: string) => {
   return data.trim().replaceAll('\u200b', '')
 }

@@ -23,6 +23,10 @@ export interface CodeDecorateCallbacks {
 
 export interface CodeDecorateOptions<L extends string> extends CodeContextOptions<L> {
   wrapping?: boolean
+  /**
+   * 是否异步渲染, 默认为 false
+   */
+  async?: boolean
 }
 
 /**
@@ -49,7 +53,7 @@ export class EtCodeElement extends EtComponent {
     throw Error('EtCodeElement.create is not implemented')
   }
 
-  static withDefaultDecoration(ctx: Et.EditorContext, value = '', lang = '') {
+  static withDefaultDecoration(ctx: Et.EditorContext, value = '', lang = '', async = false) {
     const el = document.createElement(CodeEnum.ElName)
     el.lang = lang
     el.decorate({
@@ -57,6 +61,7 @@ export class EtCodeElement extends EtComponent {
       lang: el.lang,
       tabSize: ctx.pctx.$codePx.defaultTabSize,
       highlighter: ctx.pctx.$codePx.highlighter,
+      async,
     }, (el, cbs) => {
       el.codeHeader = new CodeHeader(ctx, el, cbs)
       el.prepend(el.codeHeader.el)
@@ -123,7 +128,7 @@ export class EtCodeElement extends EtComponent {
   ) {
     this.wrapping = !!options.wrapping
     this.codeCtx = new CodeContext(options)
-    this.codeCtx.mount(this)
+    this.codeCtx.mount(this, options.async || false)
     fn?.(this, {
       onCopy: async (ctx: Et.EditorContext) => {
         await this.codeCtx.copy(ctx)
@@ -185,7 +190,7 @@ export class EtCodeElement extends EtComponent {
       if (!pre) {
         return null
       }
-      const value = pre.textContent
+      const value = pre.textContent?.trim()
       if (!value) {
         return null
       }
@@ -196,6 +201,7 @@ export class EtCodeElement extends EtComponent {
         ctx,
         value,
         ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : '',
+        true,
       )
     },
     pre: (el, ctx) => {
@@ -203,7 +209,7 @@ export class EtCodeElement extends EtComponent {
       if (!code) {
         return null
       }
-      const value = code.textContent
+      const value = code.textContent?.trim()
       if (!value) {
         return null
       }
@@ -212,7 +218,7 @@ export class EtCodeElement extends EtComponent {
         lang = ctx.pctx.$codePx.parseLangFromNativeElement(code)
       }
       lang = lang && ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : ''
-      return () => EtCodeElement.withDefaultDecoration(ctx, value, lang)
+      return () => EtCodeElement.withDefaultDecoration(ctx, value, lang, true)
     },
   }
 
@@ -228,14 +234,14 @@ export class EtCodeElement extends EtComponent {
 
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     code: (node, ctx) => {
-      const el = EtCodeElement.withDefaultDecoration(ctx, node.value, node.lang ?? '')
+      const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), node.lang ?? '', true)
       return el
     },
     html: (node, ctx) => {
       if (!ctx.pctx.$codePx.codeRenderer['html']) {
         return null
       }
-      const el = EtCodeElement.withDefaultDecoration(ctx, node.value, 'html')
+      const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), 'html', true)
       ctx.pctx.$codePx.renderCodeBlock(ctx, el)
       return el
     },

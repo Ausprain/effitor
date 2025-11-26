@@ -35,29 +35,34 @@ export class HtmlProcessor {
     }
   }
 
+  /**
+   * 将 html 字符串转换为编辑器文档片段
+   * * 需执行清除 html 字符串中 `>` 和 `<` 中间的空白符; 否则会转换为文本节点, 导致内容不符合预期
+   */
   fromHtml(ctx: Et.EditorContext, html: string): Et.Fragment {
+    // 为什么不在这里清除 html 字符串中 `>` 和 `<` 中间的空白符?
+    // 因为这会同时去除 <pre> 包裹的代码中有意保留的换行和空格
+    // 所以留给调用者处理
     if (this.sanitizer) {
       html = this.sanitizer(html)
     }
     const df = document.createDocumentFragment() as Et.Fragment
     const div = document.createElement('div')
     div.innerHTML = html
-    let next = div.firstChild
-    while (next) {
-      // 复用节点
-      next.remove()
-      if (dom.isText(next)) {
-        df.appendChild(next)
-      }
-      else if (dom.isElement(next)) {
-        const res = this.#transformElement(ctx, next, null)
-        if (res) {
-          df.appendChild(res)
-        }
-      }
-      next = div.firstChild
-    }
+    this.#transformChildNodes(ctx, div.childNodes, null, df)
     return df
+  }
+
+  #transformText(text: Text, parent: HTMLElement | null): Text | null {
+    if (parent && parent.localName && (
+      parent.localName === 'span' || parent.localName === 'code' || parent.localName === 'pre')) {
+      return text
+    }
+    text.data = text.data.trim()
+    if (!text.data) {
+      return null
+    }
+    return text
   }
 
   #transformElement(ctx: Et.EditorContext, el: Element, parent: HTMLElement | null) {
@@ -96,13 +101,17 @@ export class HtmlProcessor {
   }
 
   #transformChildNodes(
-    ctx: Et.EditorContext, childNodes: NodeListOf<ChildNode>, parent: HTMLElement | null) {
-    const df = document.createDocumentFragment() as Et.Fragment
+    ctx: Et.EditorContext, childNodes: NodeListOf<ChildNode>, parent: HTMLElement | null, df?: DocumentFragment) {
+    df = df ?? document.createDocumentFragment() as Et.Fragment
     let next = childNodes.item(0)
     while (next) {
+      // 复用节点
       next.remove()
       if (dom.isText(next)) {
-        df.appendChild(next)
+        const text = this.#transformText(next, parent)
+        if (text) {
+          df.appendChild(text)
+        }
       }
       else if (dom.isElement(next)) {
         const res = this.#transformElement(ctx, next, parent)

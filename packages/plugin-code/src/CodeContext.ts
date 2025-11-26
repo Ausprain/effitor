@@ -57,9 +57,6 @@ export class CodeContext<L extends string = string> {
     }
     this.area.value = value
     this.disable()
-    // TODO 代码块初始化时若有大量代码, 如从 markdown 恢复时, 此处应逐步渲染, 避免阻塞
-    this.render()
-    this.enable()
   }
 
   get code() {
@@ -78,8 +75,23 @@ export class CodeContext<L extends string = string> {
     return this.area.value[this.area.selectionStart] || ''
   }
 
-  mount(el: HTMLElement) {
+  /**
+   * 渲染(高亮), 并挂载代码块到指定元素
+   * @param el 挂载元素
+   * @param async 是否异步渲染, 默认为 false
+   */
+  mount(el: HTMLElement, async: boolean) {
     el.appendChild(this.wrapper)
+    if (!async) {
+      this.render()
+      this.enable()
+      return
+    }
+    el.classList.add(CodeEnum.Class_Loading)
+    this.renderByLine().then(() => {
+      this.enable()
+      el.classList.remove(CodeEnum.Class_Loading)
+    })
   }
 
   /**
@@ -277,6 +289,9 @@ export class CodeContext<L extends string = string> {
         codeLines[0].style = el.style.cssText
         el.replaceWith(codeLines[0])
       }
+      else {
+        this._lineWrapper.appendChild(codeLines[0])
+      }
     }
   }
 
@@ -339,6 +354,18 @@ export class CodeContext<L extends string = string> {
   render() {
     this.removeCodeLines(0, -1)
     this.renderCodeLines(0, -1)
+  }
+
+  async renderByLine() {
+    this.removeCodeLines(0, -1)
+    this._container.dataset.code = this.code
+    const lineCount = this.code.split('\n').length
+    for (let i = 0; i < lineCount; i++) {
+      // await new Promise<void>(res => setTimeout(() => res(), 1000))
+      await Promise.resolve()
+      this.updateCodeLine(i)
+    }
+    this._container.removeAttribute('data-code')
   }
 
   shiftLine(index: number, shiftTo: number) {
