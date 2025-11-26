@@ -15,6 +15,7 @@ import { cmd } from './command'
 import { removeNodesAndChildlessAncestorAndMergeSiblings } from './handles'
 import { checkRemoveTargetRange, removeByTargetRange } from './handles/delete/deleteAtRange'
 import { insertContentsAtCaret, insertElementAtCaret, insertElementAtCaretTemporarily, insertTextAtCaret, insertTextAtRange } from './handles/insert'
+import { fragmentUtils } from './utils'
 
 //   /**
 //    * 使用片段替换当前节点, 并自动合并前后内容; 若希望使用节点替换, 则可先把节点插入片段中
@@ -194,9 +195,9 @@ export class CommonHandler {
 
   /** 使用HTML更新编辑器内容 */
   updateEditorContentsFromHTML(html: string) {
-    return this.#updateEditorContentsByFragment(
-      this._ctx.editor.htmlProcessor.fromHtml(this._ctx, html),
-    )
+    const df = this._ctx.editor.htmlProcessor.fromHtml(this._ctx, html)
+    fragmentUtils.normalizeToEtFragment(df, this._ctx)
+    return this.#updateEditorContentsByFragment(df)
   }
 
   /**

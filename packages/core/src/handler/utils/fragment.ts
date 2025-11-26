@@ -116,7 +116,7 @@ export const normalizeToEtFragment = (
     for (const node of df.childNodes) {
       if (!ctx.isEtParagraph(node)) {
         const data = ctx.isEtElement(node) ? node.contentText : node.textContent
-        if (!data) {
+        if (!data?.trim()) {
           // 删除空节点; 迭代器内不可删除节点, 延迟删除
           nodeToRemove.push(node)
         }

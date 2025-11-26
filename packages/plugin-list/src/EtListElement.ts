@@ -107,8 +107,8 @@ export class EtListElement extends EtParagraph {
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     ol: (el) => {
-      if (el.firstChild?.nodeName !== 'LI') {
-        return null
+      if (el.firstElementChild?.nodeName !== 'LI') {
+        return () => null
       }
       return EtListElement.create(
         { ordered: true, styleType: ListEnum.Default_Ordered_Style_Type },
@@ -116,8 +116,8 @@ export class EtListElement extends EtParagraph {
       )
     },
     ul: (el) => {
-      if (el.firstChild?.nodeName !== 'LI') {
-        return null
+      if (el.firstElementChild?.nodeName !== 'LI') {
+        return () => null
       }
       return EtListElement.create(
         { ordered: false, styleType: ListEnum.Default_Unordered_Style_Type },

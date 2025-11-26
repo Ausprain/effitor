@@ -18,7 +18,7 @@ export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement>
     el: T,
     ctx: Et.EditorContext,
     parent: Readonly<Element> | null
-  ): Et.EtElement | null | Et.Fragment | (() => Et.EtElement)
+  ): Et.EtElement | null | Et.Fragment | (() => Et.EtElement | null)
 }
 
 export type HtmlToEtElementTransformerMap = {
