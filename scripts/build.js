@@ -1,6 +1,6 @@
 import { exec } from 'child_process'
 import fs from 'fs-extra'
-import { resolve } from 'path'
+import { basename, resolve } from 'path'
 import { styleText } from 'util'
 
 import config from './config.js'
@@ -50,7 +50,7 @@ const tsupPkg = async (pkgDir, copyHelper = true) => {
     }
     logTsupResult(stdout)
   }).catch((err) => {
-    console.log(styleText('red', `build error ${err}`))
+    console.log(styleText('red', `build [${basename(pkgDir)}] error ${err}`))
     process.exit(1)
   })
 }
@@ -72,15 +72,21 @@ const buildMain = async () => {
 
 const buildElsePkgs = async () => {
   const pkgs = await fs.readdir(PACKAGES_DIR_PATH)
-  return Promise.all(pkgs.map(async (pkgName) => {
-    if (pkgName === 'core') {
-      return
+  const { assists, plugins } = pkgs.reduce((acc, pkgName) => {
+    if (pkgName === 'core' || pkgName === 'themes') {
+      return acc
     }
-    if (pkgName === 'themes') {
-      return buildThemes()
+    if (pkgName.startsWith('assist-')) {
+      acc.assists.push(pkgName)
     }
-    return tryToBuildSubPackage(pkgName)
-  }))
+    else {
+      acc.plugins.push(pkgName)
+    }
+    return acc
+  }, { assists: [], plugins: [] })
+
+  await Promise.all(assists.map(tryToBuildSubPackage))
+  await Promise.all(plugins.map(tryToBuildSubPackage))
 }
 
 const tryToBuildSubPackage = async (pkgName) => {
@@ -107,12 +113,13 @@ const tryToBuildSubPackage = async (pkgName) => {
 const build = async () => {
   console.log(styleText('cyan', `build start...`))
   await buildCore()
+  await buildThemes()
   await buildElsePkgs()
   await buildMain()
 }
 
 build().then(() => {
-  console.log(styleText('green', 'build success\n'))
+  console.log(styleText('green', 'build success!!\n'))
 }).catch((err) => {
   console.log(styleText('red', `build error ${err}`))
 })

@@ -1,4 +1,4 @@
-import '@effitor/themes/default.min.css'
+// import '@effitor/themes/default.min.css'
 
 import { Effitor } from '@effitor/core'
 

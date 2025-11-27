@@ -1,9 +1,15 @@
 // @ts-check
 
 import fs from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { basename, dirname, resolve } from 'node:path'
 import baseJson from '../package.json'
 import config from './config.js'
+
+/**
+ * get dirname in unix style
+ * @param {string} path
+ */
+const unixdirname = path => dirname(path).replaceAll('\\', '/')
 
 const updateConfigs = ([
   'version',
@@ -59,8 +65,8 @@ const packageJsonList = await Promise.all(pkgJsonPaths.map(async (path) => {
   }
 }))
 
-packageJsonList.forEach(({ path, json }) => {
-  let pkgName = dirname(path).split('/').at(-1)
+packageJsonList.forEach(({ path: jsonPath, json }) => {
+  let pkgName = basename(dirname(jsonPath))
   if (!pkgName) {
     return
   }
@@ -70,7 +76,7 @@ packageJsonList.forEach(({ path, json }) => {
     pkgName = 'effitor'
   }
   else {
-    repositoryDir = dirname(path).split('/').slice(-2).join('/')
+    repositoryDir = unixdirname(jsonPath).split('/').slice(-2).join('/')
     // repositoryDir = `packages/${pkgName}`
     pkgName = `@effitor/${pkgName}`
   }
@@ -97,7 +103,7 @@ packageJsonList.forEach(({ path, json }) => {
     pkgJson.scripts.build = 'tsup'
   }
   fs.writeFile(
-    resolve(path, '../package.json'),
+    resolve(jsonPath, '../package.json'),
     JSON.stringify(pkgJson, null, 2) + '\n',
   )
 })
