@@ -1,0 +1,2207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Rust RFC Book</title>
+  </head>
+
+  <body>
+    <h1>Full main content of https://rust-lang.github.io/rfcs/2094-nll.html</h1>
+    <ul>
+      <li>Feature Name: nll</li>
+      <li>Start Date: 2017-08-02</li>
+      <li>
+        RFC PR:
+        <a href="https://github.com/rust-lang/rfcs/pull/2094">rust-lang/rfcs#2094</a>
+      </li>
+      <li>
+        Rust Issue:
+        <a href="https://github.com/rust-lang/rust/issues/43234">rust-lang/rust#43234</a>
+      </li>
+    </ul>
+    <h1 id="summary"><a class="header" href="#summary">Summary</a></h1>
+    <p>
+      Extend Rust’s borrow system to support
+      <strong>non-lexical lifetimes</strong> – these are lifetimes that are based on the control-flow graph, rather than
+      lexical scopes. The RFC describes in detail how to infer these new, more flexible regions, and also describes how
+      to adjust our error messages. The RFC also describes a few other extensions to the borrow checker, the total
+      effect of which is to eliminate many common cases where small, function-local code modifications would be required
+      to pass the borrow check. (The appendix describes some of the remaining borrow-checker limitations that are not
+      addressed by this RFC.)
+    </p>
+    <h1 id="motivation"><a class="header" href="#motivation">Motivation</a></h1>
+    <h2 id="what-is-a-lifetime">
+      <a class="header" href="#what-is-a-lifetime">What is a lifetime?</a>
+    </h2>
+    <p>
+      The basic idea of the borrow checker is that values may not be mutated or moved while they are borrowed, but how
+      do we know whether a value is borrowed? The idea is quite simple: whenever you create a borrow, the compiler
+      assigns the resulting reference a <strong>lifetime</strong>. This lifetime corresponds to the span of the code
+      where the reference may be used. The compiler will infer this lifetime to be the smallest lifetime that it can
+      have that still encompasses all the uses of the reference.
+    </p>
+    <p>
+      Note that Rust uses the term lifetime in a very particular way. In everyday speech, the word lifetime can be used
+      in two distinct – but similar – ways:
+    </p>
+    <ol>
+      <li>
+        The lifetime of a <strong>reference</strong>, corresponding to the span of time in which that reference is
+        <strong>used</strong>.
+      </li>
+      <li>
+        The lifetime of a <strong>value</strong>, corresponding to the span of time before that value gets
+        <strong>freed</strong> (or, put another way, before the destructor for the value runs).
+      </li>
+    </ol>
+    <p>
+      This second span of time, which describes how long a value is valid, is very important. To distinguish the two, we
+      refer to that second span of time as the value’s <strong>scope</strong>. Naturally, lifetimes and scopes are
+      linked to one another. Specifically, if you make a reference to a value, the lifetime of that reference cannot
+      outlive the scope of that value. Otherwise, your reference would be pointing into freed memory.
+    </p>
+    <p>
+      To better see the distinction between lifetime and scope, let’s consider a simple example. In this example, the
+      vector
+      <code class="hljs">data</code> is borrowed (mutably) and the resulting reference is passed to a function
+      <code class="hljs">capitalize</code>. Since <code class="hljs">capitalize</code> does not return the reference
+      back, the <em>lifetime</em> of this borrow will be confined to just that call. The <em>scope</em> of data, in
+      contrast, is much larger, and corresponds to a suffix of the fn body, stretching from the
+      <code class="hljs">let</code> until the end of the enclosing scope.
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">foo</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-string">'a'</span>, <span class="hljs-string">'b'</span>, <span class="hljs-string">'c'</span>]; <span class="hljs-comment">// --+ 'scope</span>
+    capitalize(&amp;<span class="hljs-keyword">mut</span> data[..]);          <span class="hljs-comment">//   |</span>
+<span class="hljs-comment">//  ^~~~~~~~~~~~~~~~~~~~~~~~~ 'lifetime //   |</span>
+    data.push(<span class="hljs-string">'d'</span>);                     <span class="hljs-comment">//   |</span>
+    data.push(<span class="hljs-string">'e'</span>);                     <span class="hljs-comment">//   |</span>
+    data.push(<span class="hljs-string">'f'</span>);                     <span class="hljs-comment">//   |</span>
+} <span class="hljs-comment">// &lt;---------------------------------------+</span>
+
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">capitalize</span></span>(data: &amp;<span class="hljs-keyword">mut</span> [<span class="hljs-built_in">char</span>]) {
+    <span class="hljs-comment">// do something</span>
+}</code></pre>
+    <p>
+      This example also demonstrates something else. Lifetimes in Rust today are quite a bit more flexible than scopes
+      (if not as flexible as we might like, hence this RFC):
+    </p>
+    <ul>
+      <li>
+        A scope generally corresponds to some block (or, more specifically, a
+        <em>suffix</em> of a block that stretches from the <code class="hljs">let</code> until the end of the enclosing
+        block) [<a href="#temporaries">1</a>].
+      </li>
+      <li>
+        A lifetime, in contrast, can also span an individual expression, as this example demonstrates. The lifetime of
+        the borrow in the example is confined to just the call to <code class="hljs">capitalize</code>, and doesn’t
+        extend into the rest of the block. This is why the calls to <code class="hljs">data.push</code> that come below
+        are legal.
+      </li>
+    </ul>
+    <p>
+      So long as a reference is only used within one statement, today’s lifetimes are typically adequate. Problems arise
+      however when you have a reference that spans multiple statements. In that case, the compiler requires the lifetime
+      to be the innermost expression (which is often a block) that encloses both statements, and that is typically much
+      bigger than is really necessary or desired. Let’s look at some example problem cases. Later on, we’ll see how
+      non-lexical lifetimes fix these cases.
+    </p>
+    <h2 id="problem-case-1-references-assigned-into-a-variable">
+      <a class="header" href="#problem-case-1-references-assigned-into-a-variable"
+        >Problem case #1: references assigned into a variable</a
+      >
+    </h2>
+    <p>
+      One common problem case is when a reference is assigned into a variable. Consider this trivial variation of the
+      previous example, where the
+      <code class="hljs">&amp;mut data[..]</code> slice is not passed directly to <code class="hljs">capitalize</code>,
+      but is instead stored into a local variable:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">bar</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-string">'a'</span>, <span class="hljs-string">'b'</span>, <span class="hljs-string">'c'</span>];
+    <span class="hljs-keyword">let</span> slice = &amp;<span class="hljs-keyword">mut</span> data[..]; <span class="hljs-comment">// &lt;-+ 'lifetime</span>
+    capitalize(slice);         <span class="hljs-comment">//   |</span>
+    data.push(<span class="hljs-string">'d'</span>); <span class="hljs-comment">// ERROR!  //   |</span>
+    data.push(<span class="hljs-string">'e'</span>); <span class="hljs-comment">// ERROR!  //   |</span>
+    data.push(<span class="hljs-string">'f'</span>); <span class="hljs-comment">// ERROR!  //   |</span>
+} <span class="hljs-comment">// &lt;------------------------------+</span></code></pre>
+    <p>
+      The way that the compiler currently works, assigning a reference into a variable means that its lifetime must be
+      as large as the entire scope of that variable. In this case, that means the lifetime is now extended all the way
+      until the end of the block. This in turn means that the calls to
+      <code class="hljs">data.push</code> are now in error, because they occur during the lifetime of
+      <code class="hljs">slice</code>. It’s logical, but it’s annoying.
+    </p>
+    <p>
+      In this particular case, you could resolve the problem by putting
+      <code class="hljs">slice</code> into its own block:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">bar</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-string">'a'</span>, <span class="hljs-string">'b'</span>, <span class="hljs-string">'c'</span>];
+    {
+        <span class="hljs-keyword">let</span> slice = &amp;<span class="hljs-keyword">mut</span> data[..]; <span class="hljs-comment">// &lt;-+ 'lifetime</span>
+        capitalize(slice);         <span class="hljs-comment">//   |</span>
+    } <span class="hljs-comment">// &lt;------------------------------+</span>
+    data.push(<span class="hljs-string">'d'</span>); <span class="hljs-comment">// OK</span>
+    data.push(<span class="hljs-string">'e'</span>); <span class="hljs-comment">// OK</span>
+    data.push(<span class="hljs-string">'f'</span>); <span class="hljs-comment">// OK</span>
+}</code></pre>
+    <p>
+      Since we introduced a new block, the scope of
+      <code class="hljs">slice</code> is now smaller, and hence the resulting lifetime is smaller. Introducing a block
+      like this is kind of artificial and also not an entirely obvious solution.
+    </p>
+    <h2 id="problem-case-2-conditional-control-flow">
+      <a class="header" href="#problem-case-2-conditional-control-flow">Problem case #2: conditional control flow</a>
+    </h2>
+    <p>
+      Another common problem case is when references are used in only one given match arm (or, more generally, one
+      control-flow path). This most commonly arises around maps. Consider this function, which, given some
+      <code class="hljs">key</code>, processes the value found in <code class="hljs">map[key]</code> if it exists, or
+      else inserts a default value:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">process_or_default</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> map = ...;
+    <span class="hljs-keyword">let</span> key = ...;
+    <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// -------------+ 'lifetime</span>
+        <span class="hljs-literal">Some</span>(value) =&gt; process(value),     <span class="hljs-comment">// |</span>
+        <span class="hljs-literal">None</span> =&gt; {                          <span class="hljs-comment">// |</span>
+            map.insert(key, V::default()); <span class="hljs-comment">// |</span>
+            <span class="hljs-comment">//  ^~~~~~ ERROR.              // |</span>
+        }                                  <span class="hljs-comment">// |</span>
+    } <span class="hljs-comment">// &lt;------------------------------------+</span>
+}</code></pre>
+    <p>
+      This code will not compile today. The reason is that the
+      <code class="hljs">map</code> is borrowed as part of the call to <code class="hljs">get_mut</code>, and that
+      borrow must encompass not only the call to <code class="hljs">get_mut</code>, but also the
+      <code class="hljs">Some</code> branch of the match. The innermost expression that encloses both of these
+      expressions is the match itself (as depicted above), and hence the borrow is considered to extend until the end of
+      the match. Unfortunately, the match encloses not only the <code class="hljs">Some</code> branch, but also the
+      <code class="hljs">None</code> branch, and hence when we go to insert into the map in the
+      <code class="hljs">None</code> branch, we get an error that the <code class="hljs">map</code> is still borrowed.
+    </p>
+    <p>
+      This <em>particular</em> example is relatively easy to workaround. In many cases, one can move the code for
+      <code class="hljs">None</code> out from the <code class="hljs">match</code> like so:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">process_or_default1</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> map = ...;
+    <span class="hljs-keyword">let</span> key = ...;
+    <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// -------------+ 'lifetime</span>
+        <span class="hljs-literal">Some</span>(value) =&gt; {                   <span class="hljs-comment">// |</span>
+            process(value);                <span class="hljs-comment">// |</span>
+            <span class="hljs-keyword">return</span>;                        <span class="hljs-comment">// |</span>
+        }                                  <span class="hljs-comment">// |</span>
+        <span class="hljs-literal">None</span> =&gt; {                          <span class="hljs-comment">// |</span>
+        }                                  <span class="hljs-comment">// |</span>
+    } <span class="hljs-comment">// &lt;------------------------------------+</span>
+    map.insert(key, V::default());
+}</code></pre>
+    <p>
+      When the code is adjusted this way, the call to
+      <code class="hljs">map.insert</code> is not part of the match, and hence it is not part of the borrow. While this
+      works, it is unfortunate to require these sorts of manipulations, just as it was when we introduced an artificial
+      block in the previous example.
+    </p>
+    <h2 id="problem-case-3-conditional-control-flow-across-functions">
+      <a class="header" href="#problem-case-3-conditional-control-flow-across-functions"
+        >Problem case #3: conditional control flow across functions</a
+      >
+    </h2>
+    <p>
+      While we were able to work around problem case #2 in a relatively simple, if irritating, fashion, there are other
+      variations of conditional control flow that cannot be so easily resolved. This is particularly true when you are
+      returning a reference out of a function. Consider the following function, which returns the value for a key if it
+      exists, and inserts a new value otherwise (for the purposes of this section, assume that the
+      <code class="hljs">entry</code> API for maps does not exist):
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_default</span></span>&lt;<span class="hljs-symbol">'r</span>,K:Hash+<span class="hljs-built_in">Eq</span>+<span class="hljs-built_in">Copy</span>,V:<span class="hljs-built_in">Default</span>&gt;(map: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> HashMap&lt;K,V&gt;,
+                                            key: K)
+                                            -&gt; &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> V {
+    <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// -------------+ 'r</span>
+        <span class="hljs-literal">Some</span>(value) =&gt; value,              <span class="hljs-comment">// |</span>
+        <span class="hljs-literal">None</span> =&gt; {                          <span class="hljs-comment">// |</span>
+            map.insert(key, V::default()); <span class="hljs-comment">// |</span>
+            <span class="hljs-comment">//  ^~~~~~ ERROR               // |</span>
+            map.get_mut(&amp;key).unwrap()     <span class="hljs-comment">// |</span>
+        }                                  <span class="hljs-comment">// |</span>
+    }                                      <span class="hljs-comment">// |</span>
+}                                          <span class="hljs-comment">// v</span></code></pre>
+    <p>
+      At first glance, this code appears quite similar to the code we saw before, and indeed, just as before, it will
+      not compile. In fact, the lifetimes at play are quite different. The reason is that, in the
+      <code class="hljs">Some</code> branch, the value is being <strong>returned out</strong> to the caller. Since
+      <code class="hljs">value</code> is a reference into the map, this implies that the
+      <code class="hljs">map</code> will remain borrowed <strong>until some point in the caller</strong> (the point
+      <code class="hljs">'r</code>, to be exact). To get a better intuition for what this lifetime parameter
+      <code class="hljs">'r</code> represents, consider some hypothetical caller of
+      <code class="hljs">get_default</code>: the lifetime <code class="hljs">'r</code> then represents the span of code
+      in which that caller will use the resulting reference:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">caller</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> map = HashMap::new();
+    ...
+    {
+        <span class="hljs-keyword">let</span> v = get_default(&amp;<span class="hljs-keyword">mut</span> map, key); <span class="hljs-comment">// -+ 'r</span>
+          <span class="hljs-comment">// +-- get_default() -----------+ //  |</span>
+          <span class="hljs-comment">// | match map.get_mut(&amp;key) {  | //  |</span>
+          <span class="hljs-comment">// |   Some(value) =&gt; value,    | //  |</span>
+          <span class="hljs-comment">// |   None =&gt; {                | //  |</span>
+          <span class="hljs-comment">// |     ..                     | //  |</span>
+          <span class="hljs-comment">// |   }                        | //  |</span>
+          <span class="hljs-comment">// +----------------------------+ //  |</span>
+        process(v);                         <span class="hljs-comment">//  |</span>
+    } <span class="hljs-comment">// &lt;--------------------------------------+</span>
+    ...
+}</code></pre>
+    <p>
+      If we attempt the same workaround for this case that we tried in the previous example, we will find that it does
+      not work:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_default1</span></span>&lt;<span class="hljs-symbol">'r</span>,K:Hash+<span class="hljs-built_in">Eq</span>+<span class="hljs-built_in">Copy</span>,V:<span class="hljs-built_in">Default</span>&gt;(map: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> HashMap&lt;K,V&gt;,
+                                             key: K)
+                                             -&gt; &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> V {
+    <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// -------------+ 'r</span>
+        <span class="hljs-literal">Some</span>(value) =&gt; <span class="hljs-keyword">return</span> value,       <span class="hljs-comment">// |</span>
+        <span class="hljs-literal">None</span> =&gt; { }                        <span class="hljs-comment">// |</span>
+    }                                      <span class="hljs-comment">// |</span>
+    map.insert(key, V::default());         <span class="hljs-comment">// |</span>
+    <span class="hljs-comment">//  ^~~~~~ ERROR (still)                  |</span>
+    map.get_mut(&amp;key).unwrap()             <span class="hljs-comment">// |</span>
+}                                          <span class="hljs-comment">// v</span></code></pre>
+    <p>
+      Whereas before the lifetime of <code class="hljs">value</code> was confined to the match, this new lifetime
+      extends out into the caller, and therefore the borrow does not end just because we exited the match. Hence it is
+      still in scope when we attempt to call <code class="hljs">insert</code> after the match.
+    </p>
+    <p>
+      The workaround for this problem is a bit more involved. It relies on the fact that the borrow checker uses the
+      precise control-flow of the function to determine which borrows are in scope.
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_default2</span></span>&lt;<span class="hljs-symbol">'r</span>,K:Hash+<span class="hljs-built_in">Eq</span>+<span class="hljs-built_in">Copy</span>,V:<span class="hljs-built_in">Default</span>&gt;(map: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> HashMap&lt;K,V&gt;,
+                                             key: K)
+                                             -&gt; &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> V {
+    <span class="hljs-keyword">if</span> map.contains(&amp;key) {
+    <span class="hljs-comment">// ^~~~~~~~~~~~~~~~~~ 'n</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// + 'r</span>
+            <span class="hljs-literal">Some</span>(value) =&gt; value,        <span class="hljs-comment">// |</span>
+            <span class="hljs-literal">None</span> =&gt; <span class="hljs-built_in">unreachable!</span>()       <span class="hljs-comment">// |</span>
+        };                               <span class="hljs-comment">// v</span>
+    }
+
+    <span class="hljs-comment">// At this point, `map.get_mut` was never</span>
+    <span class="hljs-comment">// called! (As opposed to having been called,</span>
+    <span class="hljs-comment">// but its result no longer being in use.)</span>
+    map.insert(key, V::default()); <span class="hljs-comment">// OK now.</span>
+    map.get_mut(&amp;key).unwrap()
+}</code></pre>
+    <p>
+      What has changed here is that we moved the call to
+      <code class="hljs">map.get_mut</code> inside of an <code class="hljs">if</code>, and we have set things up so that
+      the if body unconditionally returns. What this means is that a borrow begins at the point of
+      <code class="hljs">get_mut</code>, and that borrow lasts until the point <code class="hljs">'r</code> in the
+      caller, but the borrow checker can see that this borrow <em>will not have even started</em> outside of the
+      <code class="hljs">if</code>. It does not consider the borrow in scope at the point where we call
+      <code class="hljs">map.insert</code>.
+    </p>
+    <p>
+      This workaround is more troublesome than the others, because the resulting code is actually less efficient at
+      runtime, since it must do multiple lookups.
+    </p>
+    <p>
+      It’s worth noting that Rust’s hashmaps include an
+      <code class="hljs">entry</code> API that one could use to implement this function today. The resulting code is
+      both nicer to read and more efficient even than the original version, since it avoids extra lookups on the “not
+      present” path as well:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_default3</span></span>&lt;<span class="hljs-symbol">'r</span>,K:Hash+<span class="hljs-built_in">Eq</span>,V:<span class="hljs-built_in">Default</span>&gt;(map: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> HashMap&lt;K,V&gt;,
+                                        key: K)
+                                        -&gt; &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> V {
+    map.entry(key)
+       .or_insert_with(|| V::default())
+}</code></pre>
+    <p>
+      Regardless, the problem exists for other data structures besides
+      <code class="hljs">HashMap</code>, so it would be nice if the original code passed the borrow checker, even if in
+      practice using the <code class="hljs">entry</code> API would be preferable. (Interestingly, the limitation of the
+      borrow checker here was one of the motivations for developing the <code class="hljs">entry</code> API in the first
+      place!)
+    </p>
+    <h2 id="problem-case-4-mutating-mut-references">
+      <a class="header" href="#problem-case-4-mutating-mut-references"
+        >Problem case #4: mutating <code>&amp;mut</code> references</a
+      >
+    </h2>
+    <p>
+      The current borrow checker forbids reassigning an
+      <code class="hljs">&amp;mut</code> variable <code class="hljs">x</code> when the referent (<code class="hljs"
+        >*x</code
+      >) has been borrowed. This most commonly arises when writing a loop that progressively “walks down” a data
+      structure. Consider this function, which converts a linked list
+      <code class="hljs">&amp;mut List&lt;T&gt;</code> into a <code class="hljs">Vec&lt;&amp;mut T&gt;</code>:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">List</span></span>&lt;T&gt; {
+    value: T,
+    next: <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">Box</span>&lt;List&lt;T&gt;&gt;&gt;,
+}
+
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">to_refs</span></span>&lt;T&gt;(<span class="hljs-keyword">mut</span> list: &amp;<span class="hljs-keyword">mut</span> List&lt;T&gt;) -&gt; <span class="hljs-built_in">Vec</span>&lt;&amp;<span class="hljs-keyword">mut</span> T&gt; {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> result = <span class="hljs-built_in">vec!</span>[];
+    <span class="hljs-keyword">loop</span> {
+        result.push(&amp;<span class="hljs-keyword">mut</span> list.value);
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(n) = list.next.as_mut() {
+            list = n;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> result;
+        }
+    }
+}</code></pre>
+    <p>If we attempt to compile this, we get an error (actually, we get multiple errors):</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot assign to `list` because it is borrowed
+  --&gt; /Users/nmatsakis/tmp/x.rs:11:13
+   |
+9  |         result.push(&amp;mut list.value);
+   |                          ---------- borrow of `list` occurs here
+10 |         if let Some(n) = list.next.as_mut() {
+11 |             list = n;
+   |             ^^^^^^^^ assignment to borrowed `list` occurs here
+</code></pre>
+    <p>
+      Specifically, what’s gone wrong is that we borrowed
+      <code class="hljs">list.value</code> (or, more explicitly, <code class="hljs">(*list).value</code>). The current
+      borrow checker enforces the rule that when you borrow a path, you cannot assign to that path or any prefix of that
+      path. In this case, that means you cannot assign to any of the following:
+    </p>
+    <ul>
+      <li><code class="hljs">(*list).value</code></li>
+      <li><code class="hljs">*list</code></li>
+      <li><code class="hljs">list</code></li>
+    </ul>
+    <p>
+      As a result, the <code class="hljs">list = n</code> assignment is forbidden. These rules make sense in some cases
+      (for example, if <code class="hljs">list</code> were of type <code class="hljs">List&lt;T&gt;</code>, and not
+      <code class="hljs">&amp;mut List&lt;T&gt;</code>, then overwriting <code class="hljs">list</code> would also
+      overwrite <code class="hljs">list.value</code>), but not in the case where we cross a mutable reference.
+    </p>
+    <p>
+      As described in
+      <a href="https://github.com/rust-lang/rust/issues/10520">Issue #10520</a>, there exist various workarounds for
+      this problem. One trick is to move the <code class="hljs">&amp;mut</code> reference into a temporary variable that
+      you won’t have to modify:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">to_refs</span></span>&lt;T&gt;(<span class="hljs-keyword">mut</span> list: &amp;<span class="hljs-keyword">mut</span> List&lt;T&gt;) -&gt; <span class="hljs-built_in">Vec</span>&lt;&amp;<span class="hljs-keyword">mut</span> T&gt; {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> result = <span class="hljs-built_in">vec!</span>[];
+    <span class="hljs-keyword">loop</span> {
+        <span class="hljs-keyword">let</span> list1 = list;
+        result.push(&amp;<span class="hljs-keyword">mut</span> list1.value);
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(n) = list1.next.as_mut() {
+            list = n;
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">return</span> result;
+        }
+    }
+}</code></pre>
+    <p>
+      When you frame the program this way, the borrow checker sees that
+      <code class="hljs">(*list1).value</code> is borrowed (not <code class="hljs">list</code>). This does not prevent
+      us from later assigning to <code class="hljs">list</code>.
+    </p>
+    <p>
+      Clearly this workaround is annoying. The problem here, it turns out, is not specific to non-lexical lifetimes per
+      se. Rather, it is that the rules which the borrow checker enforces when a path is borrowed are too strict and do
+      not account for the indirection inherent in a borrowed reference. This RFC proposes a tweak to address that.
+    </p>
+    <h2 id="the-rough-outline-of-our-solution">
+      <a class="header" href="#the-rough-outline-of-our-solution">The rough outline of our solution</a>
+    </h2>
+    <p>
+      This RFC proposes a more flexible model for lifetimes. Whereas previously lifetimes were based on the abstract
+      syntax tree, we now propose lifetimes that are defined via the control-flow graph. More specifically, lifetimes
+      will be derived based on the
+      <a href="https://blog.rust-lang.org/2016/04/19/MIR.html">MIR</a> used internally in the compiler.
+    </p>
+    <p>
+      Intuitively, in the new proposal, the lifetime of a reference lasts only for those portions of the function in
+      which the reference may later be used (where the reference is <strong>live</strong>, in compiler speak). This can
+      range from a few sequential statements (as in problem case #1) to something more complex, such as covering one arm
+      in a match but not the others (problem case #2).
+    </p>
+    <p>
+      However, in order to successfully type the full range of examples that we would like, we have to go a bit further
+      than just changing lifetimes to a portion of the control-flow graph.
+      <strong>We also have to take location into account when doing subtyping checks</strong>. This is in contrast to
+      how the compiler works today, where subtyping relations are “absolute”. That is, in the current compiler, the type
+      <code class="hljs">&amp;'a ()</code> is a subtype of the type <code class="hljs">&amp;'b ()</code> whenever
+      <code class="hljs">'a</code> outlives <code class="hljs">'b</code> (<code class="hljs">'a: 'b</code>), which means
+      that <code class="hljs">'a</code> corresponds to a bigger portion of the function. Under this proposal, subtyping
+      can instead be established <strong>at a particular point P</strong>. In that case, the lifetime
+      <code class="hljs">'a</code> must only outlive those portions of <code class="hljs">'b</code> that are reachable
+      from P.
+    </p>
+    <p>
+      The ideas in this RFC have been implemented in
+      <a href="https://github.com/nikomatsakis/nll">prototype form</a>. This prototype includes a simplified
+      control-flow graph that allows one to create the various kinds of region constraints that can arise and implements
+      the region inference algorithm which then solves those constraints.
+    </p>
+    <h1 id="detailed-design">
+      <a class="header" href="#detailed-design">Detailed design</a>
+    </h1>
+    <h2 id="layering-the-design">
+      <a class="header" href="#layering-the-design">Layering the design</a>
+    </h2>
+    <p>We describe the design in “layers”:</p>
+    <ol>
+      <li>Initially, we will describe a basic design focused on control-flow within one function.</li>
+      <li>Next, we extend the control-flow graph to better handle infinite loops.</li>
+      <li>
+        Next, we extend the design to handle dropck, and specifically the
+        <code class="hljs">#[may_dangle]</code> attribute introduced by RFC 1327.
+      </li>
+      <li>Next, we will extend the design to consider named lifetime parameters, like those in problem case 3.</li>
+      <li>Finally, we give a brief description of the borrow checker.</li>
+    </ol>
+    <h2 id="layer-0-definitions">
+      <a class="header" href="#layer-0-definitions">Layer 0: Definitions</a>
+    </h2>
+    <p>
+      Before we can describe the design, we have to define the terms that we will be using. The RFC is defined in terms
+      of a simplified version of MIR, eliding various details that don’t introduce fundamental complexity.
+    </p>
+    <p>
+      <strong>Lvalues</strong>. A MIR “lvalue” is a path that leads to a memory location. The full MIR Lvalues are
+      defined
+      <a
+        href="https://github.com/rust-lang/rust/blob/bf0a9e0b4d3a4dd09717960840798e2933ec7568/src/librustc/mir/mod.rs#L839-L851"
+        >via a Rust enum</a
+      >
+      and contain a number of knobs, most of which are not relevant for this RFC. We will present a simplified form of
+      lvalues for now:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">LV = x       // local variable
+   | LV.f    // field access
+   | *LV     // deref
+</code></pre>
+    <p>
+      The precedence of <code class="hljs">*</code> is low, so <code class="hljs">*a.b.c</code> will deref
+      <code class="hljs">a.b.c</code>; to deref just <code class="hljs">a</code>, one would write
+      <code class="hljs">(*a).b.c</code>.
+    </p>
+    <p>
+      <strong>Prefixes.</strong> We say that the prefixes of an lvalue are all the lvalues you get by stripping away
+      fields and derefs. The prefixes of <code class="hljs">*a.b</code> would be <code class="hljs">*a.b</code>,
+      <code class="hljs">a.b</code>, and <code class="hljs">a</code>.
+    </p>
+    <p>
+      <strong>Control-flow graph.</strong> MIR is organized into a
+      <a href="https://en.wikipedia.org/wiki/Control_flow_graph">control-flow graph</a>
+      rather than an abstract syntax tree. It is created in the compiler by transforming the “HIR” (high-level IR). The
+      MIR CFG consists of a set of
+      <a
+        href="https://github.com/rust-lang/rust/blob/bf0a9e0b4d3a4dd09717960840798e2933ec7568/src/librustc/mir/mod.rs#L443-L463"
+        >basic blocks</a
+      >. Each basic block has a series of
+      <a
+        href="https://github.com/rust-lang/rust/blob/bf0a9e0b4d3a4dd09717960840798e2933ec7568/src/librustc/mir/mod.rs#L774-L814"
+        >statements</a
+      >
+      and a
+      <a
+        href="https://github.com/rust-lang/rust/blob/bf0a9e0b4d3a4dd09717960840798e2933ec7568/src/librustc/mir/mod.rs#L465-L552"
+        >terminator</a
+      >. Statements that concern us in this RFC fall into three categories:
+    </p>
+    <ul>
+      <li>
+        assignments like <code class="hljs">x = y</code>; the RHS of such an assignment is called an
+        <a
+          href="https://github.com/rust-lang/rust/blob/bf0a9e0b4d3a4dd09717960840798e2933ec7568/src/librustc/mir/mod.rs#L1037-L1071"
+          >rvalue</a
+        >. There are no compound rvalues, and hence each statement is a discrete action that executes instantaneously.
+        For example, the Rust expression <code class="hljs">a = b + c + d</code> would be compiled into two MIR
+        instructions, like <code class="hljs">tmp0 = b + c; a = tmp0 + d;</code>.
+      </li>
+      <li>
+        <code class="hljs">drop(lvalue)</code> deallocates an lvalue, if there is a value in it; in the limit, this
+        requires runtime checks (a pass in mir, called elaborate drops, performs this transformation).
+      </li>
+      <li>
+        <code class="hljs">StorageDead(x)</code> deallocates the stack storage for <code class="hljs">x</code>. These
+        are used by LLVM to allow stack-allocated values to use the same stack slot (if their live storage ranges are
+        disjoint).
+        <a href="https://www.ralfj.de/blog/2017/06/06/MIR-semantics.html"
+          >Ralf Jung’s recent blog post has more details.</a
+        >
+      </li>
+    </ul>
+    <h2 id="layer-1-control-flow-within-a-function">
+      <a class="header" href="#layer-1-control-flow-within-a-function">Layer 1: Control-flow within a function</a>
+    </h2>
+    <h3 id="running-example">
+      <a class="header" href="#running-example">Running Example</a>
+    </h3>
+    <p>
+      We will explain the design with reference to a running example, called
+      <strong>Example 4</strong>. After presenting the design, we will apply it to the three problem cases, as well as a
+      number of other interesting examples.
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> bar: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> p: &amp;T;
+
+p = &amp;foo;
+<span class="hljs-comment">// (0)</span>
+<span class="hljs-keyword">if</span> condition {
+    print(*p);
+    <span class="hljs-comment">// (1)</span>
+    p = &amp;bar;
+    <span class="hljs-comment">// (2)</span>
+}
+<span class="hljs-comment">// (3)</span>
+print(*p);
+<span class="hljs-comment">// (4)</span></code></pre>
+    <p>
+      The key point of this example is that the variable
+      <code class="hljs">foo</code> should only be considered borrowed at points 0 and 3, but not point 1.
+      <code class="hljs">bar</code>, in contrast, should be considered borrowed at points 2 and 3. Neither of them need
+      to be considered borrowed at point 4, as the reference <code class="hljs">p</code> is not used there.
+    </p>
+    <p>
+      We can convert this example into the control-flow graph that follows. Recall that a control-flow graph in MIR
+      consists of basic blocks containing a list of discrete statements and a trailing terminator:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">// let mut foo: i32;
+// let mut bar: i32;
+// let mut p: &amp;i32;
+
+A
+[ p = &amp;foo     ]
+[ if condition ] ----\ (true)
+       |             |
+       |     B       v
+       |     [ print(*p)     ]
+       |     [ ...           ]
+       |     [ p = &amp;bar      ]
+       |     [ ...           ]
+       |     [ goto C        ]
+       |             |
+       +-------------/
+       |
+C      v
+[ print(*p)    ]
+[ return       ]
+</code></pre>
+    <p>
+      We will use a notation like <code class="hljs">Block/Index</code> to refer to a specific statement or terminator
+      in the control-flow graph. <code class="hljs">A/0</code> and <code class="hljs">B/4</code> refer to
+      <code class="hljs">p = &amp;foo</code> and <code class="hljs">goto C</code>, respectively.
+    </p>
+    <h3 id="what-is-a-lifetime-and-how-does-it-interact-with-the-borrow-checker">
+      <a class="header" href="#what-is-a-lifetime-and-how-does-it-interact-with-the-borrow-checker"
+        >What is a lifetime and how does it interact with the borrow checker</a
+      >
+    </h3>
+    <p>
+      To start with, we will consider lifetimes as a
+      <strong>set of points in the control-flow graph</strong>; later in the RFC we will extend the domain of these sets
+      to include “skolemized” lifetimes, which correspond to named lifetime parameters declared on a function. If a
+      lifetime contains the point P, that implies that references with that lifetime are valid on entry to P. Lifetimes
+      appear in various places in the MIR representation:
+    </p>
+    <ul>
+      <li>The types of variables (and temporaries, etc) may contain lifetimes.</li>
+      <li>Every borrow expression has a designated lifetime.</li>
+    </ul>
+    <p>
+      We can extend our example 4 to include explicit lifetime names. There are three lifetimes that result. We will
+      call them
+      <code class="hljs">'p</code>, <code class="hljs">'foo</code>, and <code class="hljs">'bar</code>:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> bar: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> p: &amp;<span class="hljs-symbol">'p</span> T;
+<span class="hljs-comment">//      --</span>
+p = &amp;<span class="hljs-symbol">'foo</span> foo;
+<span class="hljs-comment">//   ----</span>
+<span class="hljs-keyword">if</span> condition {
+    print(*p);
+    p = &amp;<span class="hljs-symbol">'bar</span> bar;
+    <span class="hljs-comment">//   ----</span>
+}
+print(*p);</code></pre>
+    <p>
+      As you can see, the lifetime <code class="hljs">'p</code> is part of the type of the variable
+      <code class="hljs">p</code>. It indicates the portions of the control-flow graph where
+      <code class="hljs">p</code> can safely be dereferenced. The lifetimes <code class="hljs">'foo</code> and
+      <code class="hljs">'bar</code> are different: they refer to the lifetimes for which
+      <code class="hljs">foo</code> and <code class="hljs">bar</code> are borrowed, respectively.
+    </p>
+    <p>
+      Lifetimes attached to a borrow expression, like
+      <code class="hljs">'foo</code> and <code class="hljs">'bar</code>, are important to the borrow checker. Those
+      correspond to the portions of the control-flow graph in which the borrow checker will enforce its restrictions. In
+      this case, since both borrows are shared borrows (<code class="hljs">&amp;</code>), the borrow checker will
+      prevent <code class="hljs">foo</code> from being modified during <code class="hljs">'foo</code> and it will
+      prevent <code class="hljs">bar</code> from being modified during <code class="hljs">'bar</code>. If these had been
+      mutable borrows (<code class="hljs">&amp;mut</code>), the borrow checker would have prevented
+      <strong>all</strong> access to <code class="hljs">foo</code> and <code class="hljs">bar</code> during those
+      lifetimes.
+    </p>
+    <p>
+      There are many valid choices one could make for
+      <code class="hljs">'foo</code> and <code class="hljs">'bar</code>. This RFC however describes an inference
+      algorithm that aims to pick the <strong>minimal</strong> lifetimes for each borrow which could possibly work. This
+      corresponds to imposing the fewest restrictions we can.
+    </p>
+    <p>
+      In the case of example 4, therefore, we wish our algorithm to compute that
+      <code class="hljs">'foo</code> is <code class="hljs">{A/1, B/0, C/0}</code>, which notably excludes the points B/1
+      through B/4. <code class="hljs">'bar</code> should be inferred to the set
+      <code class="hljs">{B/3, B/4, C/0}</code>. The lifetime <code class="hljs">'p</code> will be the union of
+      <code class="hljs">'foo</code> and <code class="hljs">'bar</code>, since it contains all the points where the
+      variable <code class="hljs">p</code> is valid.
+    </p>
+    <h3 id="lifetime-inference-constraints">
+      <a class="header" href="#lifetime-inference-constraints">Lifetime inference constraints</a>
+    </h3>
+    <p>
+      The inference algorithm works by analyzing the MIR and creating a series of <strong>constraints</strong>. These
+      constraints obey the following grammar:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">// A constraint set C:
+C = true
+  | C, (L1: L2) @ P    // Lifetime L1 outlives Lifetime L2 at point P
+
+// A lifetime L:
+L = 'a
+  | {P}
+</code></pre>
+    <p>
+      Here the terminal <code class="hljs">P</code> represents a point in the control-flow graph, and the notation
+      <code class="hljs">'a</code> refers to some named lifetime inference variable (e.g., <code class="hljs">'p</code>,
+      <code class="hljs">'foo</code> or <code class="hljs">'bar</code>).
+    </p>
+    <p>
+      Once the constraints are created, the
+      <strong>inference algorithm</strong> solves the constraints. This is done via fixed-point iteration: each lifetime
+      variable begins as an empty set and we iterate over the constraints, repeatedly growing the lifetimes until they
+      are big enough to satisfy all constraints.
+    </p>
+    <p>
+      (If you’d like to compare this to the prototype code, the file
+      <a href="https://github.com/nikomatsakis/nll/blob/master/nll/src/regionck.rs"
+        ><code class="hljs">regionck.rs</code></a
+      >
+      is responsible for creating the constraints, and
+      <a href="https://github.com/nikomatsakis/nll/blob/master/nll/src/infer.rs"><code class="hljs">infer.rs</code></a>
+      is responsible for solving them.)
+    </p>
+    <h3 id="liveness"><a class="header" href="#liveness">Liveness</a></h3>
+    <p>
+      One key ingredient to understanding how NLL should work is understanding
+      <strong>liveness</strong>. The term “liveness” derives from compiler analysis, but it’s fairly intuitive. We say
+      that <strong>a variable is live if the current value that it holds may be used later</strong>. This is very
+      important to Example 4:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> bar: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> p: &amp;<span class="hljs-symbol">'p</span> T = &amp;foo;
+<span class="hljs-comment">// `p` is live here: its value may be used on the next line.</span>
+<span class="hljs-keyword">if</span> condition {
+    <span class="hljs-comment">// `p` is live here: its value will be used on the next line.</span>
+    print(*p);
+    <span class="hljs-comment">// `p` is DEAD here: its value will not be used.</span>
+    p = &amp;bar;
+    <span class="hljs-comment">// `p` is live here: its value will be used later.</span>
+}
+<span class="hljs-comment">// `p` is live here: its value may be used on the next line.</span>
+print(*p);
+<span class="hljs-comment">// `p` is DEAD here: its value will not be used.</span></code></pre>
+    <p>
+      Here you see a variable <code class="hljs">p</code> that is assigned in the beginning of the program, and then
+      maybe re-assigned during the <code class="hljs">if</code>. The key point is that
+      <code class="hljs">p</code> becomes <strong>dead</strong> (not live) in the span before it is reassigned. This is
+      true even though the variable <code class="hljs">p</code> will be used again, because the
+      <strong>value</strong> that is in <code class="hljs">p</code> will not be used.
+    </p>
+    <p>
+      Traditional compiler compute liveness based on variables, but we wish to compute liveness for
+      <strong>lifetimes</strong>. We can extend a variable-based analysis to lifetimes by saying that a lifetime L is
+      live at a point P if there is some variable <code class="hljs">p</code> which is live at P, and L appears in the
+      type of <code class="hljs">p</code>. (Later on, when we cover the dropck, we will use a more selective notion of
+      liveness for lifetimes in which <em>some</em> of the lifetimes in a variable’s type may be live while others are
+      not.) So, in our running example, the lifetime <code class="hljs">'p</code> would be live at precisely the same
+      points that <code class="hljs">p</code> is live. The lifetimes <code class="hljs">'foo</code> and
+      <code class="hljs">'bar</code> have no points where they are (directly) live, since they do not appear in the
+      types of any variables.
+    </p>
+    <ul>
+      <li>
+        However, this does not mean these lifetimes are irrelevant; as shown below, subtyping constraints introduced by
+        subsequent analyses will eventually require <code class="hljs">'foo</code> and <code class="hljs">'bar</code> to
+        <em>outlive</em> <code class="hljs">'p</code>.
+      </li>
+    </ul>
+    <h4 id="liveness-based-constraints-for-lifetimes">
+      <a class="header" href="#liveness-based-constraints-for-lifetimes">Liveness-based constraints for lifetimes</a>
+    </h4>
+    <p>
+      The first set of constraints that we generate are derived from liveness. Specifically, if a lifetime L is live at
+      the point P, then we will introduce a constraint like:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">(L: {P}) @ P
+</code></pre>
+    <p>
+      (As we’ll see later when we cover solving constraints, this constraint effectively just inserts
+      <code class="hljs">P</code> into the set for <code class="hljs">L</code>. In fact, the prototype doesn’t bother to
+      materialize such constraints, instead just immediately inserting <code class="hljs">P</code> into
+      <code class="hljs">L</code>.)
+    </p>
+    <p>For our running example, this means that we would introduce the following liveness constraints:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('p: {A/1}) @ A/1
+('p: {B/0}) @ B/0
+('p: {B/3}) @ B/3
+('p: {B/4}) @ B/4
+('p: {C/0}) @ C/0
+</code></pre>
+    <h3 id="subtyping"><a class="header" href="#subtyping">Subtyping</a></h3>
+    <p>
+      Whenever references are copied from one location to another, the Rust subtyping rules require that the lifetime of
+      the source reference
+      <strong>outlives</strong> the lifetime of the target location. As discussed earlier, in this RFC, we extend the
+      notion of subtyping to be <strong>location-aware</strong>, meaning that we take into account the point where the
+      value is being copied.
+    </p>
+    <p>
+      For example, at the point A/0, our running example contains a borrow expression
+      <code class="hljs">p = &amp;'foo foo</code>. In this case, the borrow expression will produce a reference of type
+      <code class="hljs">&amp;'foo T</code>, where <code class="hljs">T</code> is the type of
+      <code class="hljs">foo</code>. This value is then assigned to <code class="hljs">p</code>, which has the type
+      <code class="hljs">&amp;'p T</code>. Therefore, we wish to require that <code class="hljs">&amp;'foo T</code> be a
+      subtype of <code class="hljs">&amp;'p T</code>. Moreover, this relation needs to hold at the point A/1 – the
+      <strong>successor</strong> of the point A/0 where the assignment occurs (this is because the new value of
+      <code class="hljs">p</code> is first visible in A/1). We write that subtyping constraint as follows:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">(&amp;'foo T &lt;: &amp;'p T) @ A/1
+</code></pre>
+    <p>
+      The standard Rust subtyping rules (two examples of which are given below) can then “break down” this subtyping
+      rule into the lifetime constraints we need for inference:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">(T_a &lt;: T_b) @ P
+('a: 'b) @ P      // &lt;-- a constraint for our inference algorithm
+------------------------
+(&amp;'a T_a &lt;: &amp;'b T_b) @ P
+
+(T_a &lt;: T_b) @ P
+(T_b &lt;: T_a) @ P  // (&amp;mut T is invariant)
+('a: 'b) @ P      // &lt;-- another constraint
+------------------------
+(&amp;'a mut T_a &lt;: &amp;'b mut T_b) @ P
+</code></pre>
+    <p>In the case of our running example, we generate the following subtyping constraints:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">(&amp;'foo T &lt;: &amp;'p T) @ A/1
+(&amp;'bar T &lt;: &amp;'p T) @ B/3
+</code></pre>
+    <p>These can be converted into the following lifetime constraints:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('foo: 'p) @ A/1
+('bar: 'p) @ B/3
+</code></pre>
+    <h3 id="reborrow-constraints">
+      <a class="header" href="#reborrow-constraints">Reborrow constraints</a>
+    </h3>
+    <p>
+      There is one final source of constraints. It frequently happens that we have a borrow expression that “reborrows”
+      the referent of an existing reference:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">let x: &amp;'x i32 = ...;
+let y: &amp;'y i32 = &amp;*x;
+</code></pre>
+    <p>
+      In such cases, there is a connection between the lifetime
+      <code class="hljs">'y</code> of the borrow and the lifetime <code class="hljs">'x</code> of the original
+      reference. In particular, <code class="hljs">'x</code> must outlive <code class="hljs">'y</code> (<code
+        class="hljs"
+        >'x: 'y</code
+      >). In simple cases like this, the relationship is the same regardless of whether the original reference
+      <code class="hljs">x</code> is a shared (<code class="hljs">&amp;</code>) or mutable (<code class="hljs"
+        >&amp;mut</code
+      >) reference. However, in more complex cases that involve multiple dereferences, the treatment is different.
+    </p>
+    <p>
+      <strong>Supporting prefixes.</strong> To define the reborrow constraints, we first introduce the idea of
+      supporting prefixes – this definition will be useful in a few places. The <em>supporting prefixes</em> for an
+      lvalue are formed by stripping away fields and derefs, except that we stop when we reach the deref of a shared
+      reference. Inituitively, shared references are different because they are <code class="hljs">Copy</code> – and
+      hence one could always copy the shared reference into a temporary and get an equivalent path. Here are some
+      examples of supporting prefixes:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">let r: (&amp;(i32, i64), (f32, f64));
+
+// The path (*r.0).1 has type `i64` and supporting prefixes:
+// - (*r.0).1
+// - *r.0
+
+// The path r.1.0 has type `f32` and supporting prefixes:
+// - r.1.0
+// - r.1
+// - r
+
+let m: (&amp;mut (i32, i64), (f32, f64));
+
+// The path (*m.0).1 has type `i64` and supporting prefixes:
+// - (*m.0).1
+// - *m.0
+// - m.0
+// - m
+</code></pre>
+    <p>
+      <strong>Reborrow constraints.</strong> Consider the case where we have a borrow (shared or mutable) of some lvalue
+      <code class="hljs">lv_b</code> for the lifetime <code class="hljs">'b</code>:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">lv_l = &amp;'b lv_b      // or:
+lv_l = &amp;'b mut lv_b
+</code></pre>
+    <p>
+      In that case, we compute the supporting prefixes of
+      <code class="hljs">lv_b</code>, and find every deref lvalue <code class="hljs">*lv</code> in the set where
+      <code class="hljs">lv</code> is a reference with lifetime <code class="hljs">'a</code>. We then add a constraint
+      <code class="hljs">('a: 'b) @ P</code>, where <code class="hljs">P</code> is the point following the borrow
+      (that’s the point where the borrow takes effect).
+    </p>
+    <p>
+      Let’s look at some examples. In each case, we will link to the corresponding test from the prototype
+      implementation.
+    </p>
+    <p>
+      <a href="https://github.com/nikomatsakis/nll/blob/master/test/borrowck-read-variable-while-borrowed-indirect.nll"
+        ><strong>Example 1.</strong></a
+      >
+      To see why this rule is needed, let’s first consider a simple example involving a single reference:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: <span class="hljs-built_in">i32</span>     = <span class="hljs-number">22</span>;
+<span class="hljs-keyword">let</span> r_a: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> foo;
+<span class="hljs-keyword">let</span> r_b: &amp;<span class="hljs-symbol">'b</span> <span class="hljs-keyword">mut</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'b</span> <span class="hljs-keyword">mut</span> *r_a;
+...
+<span class="hljs-keyword">use</span>(r_b);</code></pre>
+    <p>
+      In this case, the supporting prefixes of
+      <code class="hljs">*r_a</code> are <code class="hljs">*r_a</code> and <code class="hljs">r_a</code> (because
+      <code class="hljs">r_a</code> is a mutable reference, we recurse). Only one of those,
+      <code class="hljs">*r_a</code>, is a deref lvalue, and the reference <code class="hljs">r_a</code> being
+      dereferenced has the lifetime <code class="hljs">'a</code>. We would add the constraint that
+      <code class="hljs">'a: 'b</code>, thus ensuring that <code class="hljs">foo</code> is considered borrowed so long
+      as <code class="hljs">r_b</code> is in use. Without this constraint, the lifetime
+      <code class="hljs">'a</code> would end after the second borrow, and hence <code class="hljs">foo</code> would be
+      considered unborrowed, even though <code class="hljs">*r_b</code> could still be used to access
+      <code class="hljs">foo</code>.
+    </p>
+    <p>
+      <a href="https://github.com/nikomatsakis/nll/blob/master/test/borrowck-write-variable-after-ref-extracted.nll"
+        ><strong>Example 2.</strong></a
+      >
+      Consider now a case with a double indirection:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: <span class="hljs-built_in">i32</span>     = <span class="hljs-number">22</span>;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> r_a: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'a</span> foo;
+<span class="hljs-keyword">let</span> r_b: &amp;<span class="hljs-symbol">'b</span> &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'b</span> r_a;
+<span class="hljs-keyword">let</span> r_c: &amp;<span class="hljs-symbol">'c</span> <span class="hljs-built_in">i32</span>     = &amp;<span class="hljs-symbol">'c</span> **r_b;
+<span class="hljs-comment">// What is considered borrowed here?</span>
+<span class="hljs-keyword">use</span>(r_c);</code></pre>
+    <p>
+      Just as before, it is important that, so long as
+      <code class="hljs">r_c</code> is in use, <code class="hljs">foo</code> is considered borrowed. However, what about
+      the variable <code class="hljs">r_a</code>: should <em>it</em> considered borrowed? The answer is no: once
+      <code class="hljs">r_c</code> is initialized, the value of <code class="hljs">r_a</code> is no longer important,
+      and it would be fine to (for example) overwrite <code class="hljs">r_a</code> with a new value, even as
+      <code class="hljs">foo</code> is still considered borrowed. This result falls out from our reborrowing rules: the
+      supporting paths of <code class="hljs">**r_b</code> is just <code class="hljs">**r_b</code>. We do not add any
+      more paths because this path is already a dereference of <code class="hljs">*r_b</code>, and
+      <code class="hljs">*r_b</code> has (shared reference) type <code class="hljs">&amp;'a i32</code>. Therefore, we
+      would add one reborrow constraint: that <code class="hljs">'a: 'c</code>. This constraint ensures that as long as
+      <code class="hljs">r_c</code> is in use, the borrow of <code class="hljs">foo</code> remains in force, but the
+      borrow of <code class="hljs">r_a</code> (which has the lifetime <code class="hljs">'b</code>) can expire.
+    </p>
+    <p>
+      <a
+        href="https://github.com/nikomatsakis/nll/blob/master/test/borrowck-read-ref-while-referent-mutably-borrowed.nll"
+        ><strong>Example 3.</strong></a
+      >
+      The previous example showed how a borrow of a shared reference can expire once it has been dereferenced. With
+      mutable references, however, this is not safe. Consider the following example:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> foo = Foo { ... };
+<span class="hljs-keyword">let</span> p: &amp;<span class="hljs-symbol">'p</span> <span class="hljs-keyword">mut</span> Foo = &amp;<span class="hljs-keyword">mut</span> foo;
+<span class="hljs-keyword">let</span> q: &amp;<span class="hljs-symbol">'q</span> <span class="hljs-keyword">mut</span> &amp;<span class="hljs-symbol">'p</span> <span class="hljs-keyword">mut</span> Foo = &amp;<span class="hljs-keyword">mut</span> p;
+<span class="hljs-keyword">let</span> r: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> Foo = &amp;<span class="hljs-keyword">mut</span> **q;
+<span class="hljs-keyword">use</span>(*p); <span class="hljs-comment">// &lt;-- This line should result in an ERROR</span>
+<span class="hljs-keyword">use</span>(r);</code></pre>
+    <p>
+      The key point here is that we create a reference
+      <code class="hljs">r</code> by reborrowing <code class="hljs">**q</code>; <code class="hljs">r</code> is then
+      later used in the final line of the program. This use of <code class="hljs">r</code> must extend the lifetime of
+      the borrows used to create <em>both</em> <code class="hljs">p</code> <em>and</em> <code class="hljs">q</code>.
+      Otherwise, one could access (and mutate) the same memory through both <code class="hljs">*r</code> and
+      <code class="hljs">*p</code>. (In fact, the real rustc did in its early days have a soundness bug much like this
+      one.)
+    </p>
+    <p>
+      Because dereferencing a mutable reference does not stop the supporting prefixes from being enumerated, the
+      supporting prefixes of
+      <code class="hljs">**q</code> are <code class="hljs">**q</code>, <code class="hljs">*q</code>, and
+      <code class="hljs">q</code>. Therefore, we add two reborrow constraints: <code class="hljs">'q: 'r</code> and
+      <code class="hljs">'p: 'r</code>, and hence both borrows are indeed considered in scope at the line in question.
+    </p>
+    <p>
+      As an alternate way of looking at the previous example, consider it like this. To create the mutable reference
+      <code class="hljs">p</code>, we get a “lock” on <code class="hljs">foo</code> (that lasts so long as
+      <code class="hljs">p</code> is in use). We then take a lock on the mutable reference
+      <code class="hljs">p</code> to create <code class="hljs">q</code>; this lock must last for as long as
+      <code class="hljs">q</code> is in use. When we create <code class="hljs">r</code> by borrowing
+      <code class="hljs">**q</code>, that is the last direct use of <code class="hljs">q</code> – so you might think we
+      can release the lock on <code class="hljs">p</code>, since <code class="hljs">q</code> is no longer in (direct)
+      use. However, that would be unsound, since then <code class="hljs">r</code> and <code class="hljs">*p</code> could
+      both be used to access the same memory. The key is to recognize that <code class="hljs">r</code> represents an
+      indirect use of <code class="hljs">q</code> (and <code class="hljs">q</code> in turn is an indirect use of
+      <code class="hljs">p</code>), and hence so long as <code class="hljs">r</code> is in use,
+      <code class="hljs">p</code> and <code class="hljs">q</code> must also be considered “in use” (and hence their
+      “locks” still enforced).
+    </p>
+    <h3 id="solving-constraints">
+      <a class="header" href="#solving-constraints">Solving constraints</a>
+    </h3>
+    <p>
+      Once the constraints are created, the
+      <strong>inference algorithm</strong> solves the constraints. This is done via fixed-point iteration: each lifetime
+      variable begins as an empty set and we iterate over the constraints, repeatedly growing the lifetimes until they
+      are big enough to satisfy all constraints.
+    </p>
+    <p>
+      The meaning of a constraint like <code class="hljs">('a: 'b) @ P</code> is that, starting from the point P, the
+      lifetime <code class="hljs">'a</code> must include all points in <code class="hljs">'b</code> that are reachable
+      from the point P. The implementation
+      <a
+        href="https://github.com/nikomatsakis/nll/blob/1cff361c9aeb6f553b528078866f5717f1872dad/nll/src/infer.rs#L71-L113"
+        >does a depth-first search starting from P</a
+      >; the search stops if we exit the lifetime <code class="hljs">'b</code>. Otherwise, for each point we find, we
+      add it to <code class="hljs">'a</code>.
+    </p>
+    <p>In our example, the full set of constraints is:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('foo: 'p) @ A/1
+('bar: 'p) @ B/3
+('p: {A/1}) @ A/1
+('p: {B/0}) @ B/0
+('p: {B/3}) @ B/3
+('p: {B/4}) @ B/4
+('p: {C/0}) @ C/0
+</code></pre>
+    <p>Solving these constraints results in the following lifetimes, which are precisely the answers we expected:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">'p   = {A/1, B/0, B/3, B/4, C/0}
+'foo = {A/1, B/0, C/0}
+'bar = {B/3, B/4, C/0}
+</code></pre>
+    <h3 id="intuition-for-why-this-algorithm-is-correct">
+      <a class="header" href="#intuition-for-why-this-algorithm-is-correct"
+        >Intuition for why this algorithm is correct</a
+      >
+    </h3>
+    <p>
+      For the algorithm to be correct, there is a critical invariant that we must maintain. Consider some path H that is
+      borrowed with lifetime L at a point P to create a reference R; this reference R (or some copy/move of it) is then
+      later dereferenced at some point Q.
+    </p>
+    <p>
+      We must ensure that the reference has not been invalidated: this means that the memory which was borrowed must not
+      have been freed by the time we reach Q. If the reference R is a shared reference (<code class="hljs">&amp;T</code
+      >), then the memory must also not have been written (modulo <code class="hljs">UnsafeCell</code>). If the
+      reference R is a mutable reference (<code class="hljs">&amp;mut T</code>), then the memory must not have been
+      accessed at all, except through the reference R.
+      <strong
+        >To guarantee these properties, we must prevent actions that might affect the borrowed memory for all of the
+        points between P (the borrow) and Q (the use).</strong
+      >
+    </p>
+    <p>
+      This means that L must at least include all the points between P and Q. There are two cases to consider. First,
+      the case where the access at point Q occurs through the same reference R that was created by the borrow:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">R = &amp;H; // point P
+...
+use(R); // point Q
+</code></pre>
+    <p>
+      In this case, the variable R will be <strong>live</strong> on all the points between P and Q. The liveness-based
+      rules suffice for this case: specifically, because the type of R includes the lifetime L, we know that L must
+      include all the points between P and Q, since R is live there.
+    </p>
+    <p>The second case is when the memory referenced by R is accessed, but through an alias (or move):</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">R = &amp;H;  // point P
+R2 = R;  // last use of R, point A
+...
+use(R2); // point Q
+</code></pre>
+    <p>
+      In this case, the liveness rules alone do not suffice. The problem is that the
+      <code class="hljs">R2 = R</code> assignment may well be the last use of R, and so the <strong>variable</strong> R
+      is dead at this point. However, the <em>value</em> in R will still be dereferenced later (through R2), and hence
+      we want the lifetime L to include those points. This is where the <strong>subtyping constraints</strong> come into
+      play: the type of R2 includes a lifetime L2, and the assignment <code class="hljs">R2 = R</code> will establish an
+      outlives constraint <code class="hljs">(L: L2) @ A</code> between L and L2. Moreover, this new variable R2 must be
+      live between the assignment and the ultimate use (that is, along the path A…Q). Putting these two facts together,
+      we see that L will ultimately include the points from P to A (because of the liveness of R) and the points from A
+      to Q (because the subtyping requirement propagates the liveness of R2).
+    </p>
+    <p>
+      Note that it is possible for these lifetimes to have gaps. This can occur when the same variable is used and
+      overwritten multiple times:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">let R: &amp;L i32;
+let R2: &amp;L2 i32;
+
+R = &amp;H1; // point P1
+R2 = R;  // point A1
+use(R2); // point Q1
+...
+R2 = &amp;H2; // point P2
+use(R2);  // point Q2
+</code></pre>
+    <p>
+      In this example, the liveness constraints on R2 will ensure that L2 (the lifetime in its type) includes Q1 and Q2
+      (because R2 is live at those two points), but not the “…” nor the points P1 or P2. Note that the subtyping
+      relationship (<code class="hljs">(L: L2) @ A1)</code>) at A1 here ensures that L also includes Q1, but doesn’t
+      require that L includes Q2 (even though L2 has point Q2). This is because the value in R2 at Q2 cannot have come
+      from the assignment at A1; if it could have done, then either R2 would have to be live between A1 and Q2 or else
+      there would be a subtyping constraint.
+    </p>
+    <h3 id="other-examples">
+      <a class="header" href="#other-examples">Other examples</a>
+    </h3>
+    <p>
+      Let us work through some more examples. We begin with problem cases #1 and #2 (problem case #3 will be covered
+      after we cover named lifetimes in a later section).
+    </p>
+    <h4 id="problem-case-1">
+      <a class="header" href="#problem-case-1">Problem case #1.</a>
+    </h4>
+    <p>Translated into MIR, the example will look roughly as follows:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data: <span class="hljs-built_in">Vec</span>&lt;<span class="hljs-built_in">i32</span>&gt;;
+<span class="hljs-keyword">let</span> slice: &amp;<span class="hljs-symbol">'slice</span> <span class="hljs-keyword">mut</span> <span class="hljs-built_in">i32</span>;
+START {
+    data = ...;
+    slice = &amp;<span class="hljs-symbol">'borrow</span> <span class="hljs-keyword">mut</span> data;
+    capitalize(slice);
+    data.push(<span class="hljs-string">'d'</span>);
+    data.push(<span class="hljs-string">'e'</span>);
+    data.push(<span class="hljs-string">'f'</span>);
+}</code></pre>
+    <p>The constraints generated will be as follows:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('slice: {START/2}) @ START/2
+('borrow: 'slice) @ START/2
+</code></pre>
+    <p>
+      Both <code class="hljs">'slice</code> and <code class="hljs">'borrow</code> will therefore be inferred to START/2,
+      and hence the accesses to <code class="hljs">data</code> in START/3 and the following statements are permitted.
+    </p>
+    <h4 id="problem-case-2">
+      <a class="header" href="#problem-case-2">Problem case #2.</a>
+    </h4>
+    <p>
+      Translated into MIR, the example will look roughly as follows (some irrelevant details are elided). Note that the
+      <code class="hljs">match</code> statement is translated into a SWITCH, which tests the variant, and a “downcast”,
+      which lets us extract the contents out from the <code class="hljs">Some</code> variant (this operation is specific
+      to MIR and has no Rust equivalent, other than as part of a match).
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">let map: HashMap&lt;K,V&gt;;
+let key: K;
+let tmp0: &amp;'tmp0 mut HashMap&lt;K,V&gt;;
+let tmp1: &amp;K;
+let tmp2: Option&lt;&amp;'tmp2 mut V&gt;;
+let value: &amp;'value mut V;
+
+START {
+/*0*/ map = ...;
+/*1*/ key = ...;
+/*2*/ tmp0 = &amp;'map mut map;
+/*3*/ tmp1 = &amp;key;
+/*4*/ tmp2 = HashMap::get_mut(tmp0, tmp1);
+/*5*/ SWITCH tmp2 { None =&gt; NONE, Some =&gt; SOME }
+}
+
+NONE {
+/*0*/ ...
+/*1*/ goto EXIT;
+}
+
+SOME {
+/*0*/ value = tmp2.downcast&lt;Some&gt;.0;
+/*1*/ process(value);
+/*2*/ goto EXIT;
+}
+
+EXIT {
+}
+</code></pre>
+    <p>The following liveness constraints are generated:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('tmp0: {START/3}) @ START/3
+('tmp0: {START/4}) @ START/4
+('tmp2: {SOME/0}) @ SOME/0
+('value: {SOME/1}) @ SOME/1
+</code></pre>
+    <p>The following subtyping-based constraints are generated:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('map: 'tmp0) @ START/3
+('tmp0: 'tmp2) @ START/5
+('tmp2: 'value) @ SOME/1
+</code></pre>
+    <p>
+      Ultimately, the lifetime we are most interested in is
+      <code class="hljs">'map</code>, which indicates the duration for which <code class="hljs">map</code> is borrowed.
+      If we solve the constraints above, we will get:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">'map == {START/3, START/4, SOME/0, SOME/1}
+'tmp0 == {START/3, START/4, SOME/0, SOME/1}
+'tmp2 == {SOME/0, SOME/1}
+'value == {SOME/1}
+</code></pre>
+    <p>
+      These results indicate that <code class="hljs">map</code> <strong>can</strong> be mutated in the
+      <code class="hljs">None</code> arm; <code class="hljs">map</code> could also be mutated in the
+      <code class="hljs">Some</code> arm, but only after <code class="hljs">process()</code> is called (i.e., starting
+      at SOME/2). This is the desired result.
+    </p>
+    <h4 id="example-4-invariant">
+      <a class="header" href="#example-4-invariant">Example 4, invariant</a>
+    </h4>
+    <p>
+      It’s worth looking at a variant of our running example (“Example 4”). This is the same pattern as before, but
+      instead of using
+      <code class="hljs">&amp;'a T</code> references, we use <code class="hljs">Foo&lt;'a&gt;</code> references, which
+      are <strong>invariant</strong> with respect to <code class="hljs">'a</code>. This means that the
+      <code class="hljs">'a</code> lifetime in a <code class="hljs">Foo&lt;'a&gt;</code> value cannot be approximated
+      (i.e., you can’t make it shorter, as you can with a normal reference). Usually invariance arises because of
+      mutability (e.g., <code class="hljs">Foo&lt;'a&gt;</code> might have a field of type
+      <code class="hljs">Cell&lt;&amp;'a ()&gt;</code>). The key point here is that invariance actually makes
+      <strong>no difference at all</strong> the outcome. This is true because of location-based subtyping.
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: T = ...;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> bar: T = ...;
+<span class="hljs-keyword">let</span> p: Foo&lt;<span class="hljs-symbol">'a</span>&gt;;
+
+p = Foo::new(&amp;foo);
+<span class="hljs-keyword">if</span> condition {
+    print(*p);
+    p = Foo::new(&amp;bar);
+}
+print(*p);</code></pre>
+    <p>
+      Effectively, we wind up with the same constraints as before, but where we only had
+      <code class="hljs">'foo: 'p</code>/<code class="hljs">'bar: 'p</code>
+      constraints before (due to subtyping), we now also have
+      <code class="hljs">'p: 'foo</code> and <code class="hljs">'p: 'bar</code> constraints:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('foo: 'p) @ A/1
+('p: 'foo) @ A/1
+('bar: 'p) @ B/3
+('p: 'bar) @ B/3
+('p: {A/1}) @ A/1
+('p: {B/0}) @ B/0
+('p: {B/3}) @ B/3
+('p: {B/4}) @ B/4
+('p: {C/0}) @ C/0
+</code></pre>
+    <p>
+      The key point is that the new constraints don’t affect the final answer: the new constraints were already
+      satisfied with the older answer.
+    </p>
+    <h4 id="vec-push-ref">
+      <a class="header" href="#vec-push-ref">vec-push-ref</a>
+    </h4>
+    <p>
+      In previous iterations of this proposal, the location-aware subtyping rules were replaced with transformations
+      such as SSA form. The vec-push-ref example demonstrates the value of location-aware subtyping in contrast to these
+      approaches.
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> foo: <span class="hljs-built_in">i32</span>;
+<span class="hljs-keyword">let</span> vec: <span class="hljs-built_in">Vec</span>&lt;&amp;<span class="hljs-symbol">'vec</span> <span class="hljs-built_in">i32</span>&gt;;
+<span class="hljs-keyword">let</span> p: &amp;<span class="hljs-symbol">'p</span> <span class="hljs-built_in">i32</span>;
+
+foo = ...;
+vec = <span class="hljs-built_in">Vec</span>::new();
+p = &amp;<span class="hljs-symbol">'foo</span> foo;
+<span class="hljs-keyword">if</span> <span class="hljs-literal">true</span> {
+    vec.push(p);
+} <span class="hljs-keyword">else</span> {
+    <span class="hljs-comment">// Key point: `foo` not borrowed here.</span>
+    <span class="hljs-keyword">use</span>(vec);
+}</code></pre>
+    <p>This can be converted to control-flow graph form:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">block START {
+    v = Vec::new();
+    p = &amp;'foo foo;
+    goto B C;
+}
+
+block B {
+    vec.push(p);
+    goto EXIT;
+}
+
+block C {
+    // Key point: `foo` not borrowed here
+    use(vec);
+    goto EXIT;
+}
+
+block EXIT {
+}
+</code></pre>
+    <p>Here the relations from liveness are:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('vec: {START/1}) @ START/1
+('vec: {START/2}) @ START/2
+('vec: {B/0}) @ B/0
+('vec: {C/0}) @ C/0
+('p: {START/2}) @ START/2
+('p: {B/0}) @ B/0
+</code></pre>
+    <p>Meanwhile, the call to <code class="hljs">vec.push(p)</code> establishes this subtyping relation:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">('p: 'vec) @ B/1
+('foo: 'p) @ START/2
+</code></pre>
+    <p>The solution is:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">'vec = {START/1, START/2, B/0, C/0}
+'p = {START/2, B/0}
+'foo = {START/2, B/0}
+</code></pre>
+    <p>
+      What makes this example interesting is that
+      <strong
+        >the lifetime <code class="hljs">'vec</code> must include both halves of the
+        <code class="hljs">if</code></strong
+      >
+      – because it is used in both branches – but
+      <code class="hljs">'vec</code> only becomes “entangled” with the lifetime <code class="hljs">'p</code> on one
+      path. Thus even though <code class="hljs">'p</code> has to outlive <code class="hljs">'vec</code>,
+      <code class="hljs">'p</code> never winds up including the “else” branch thanks to location-aware subtyping.
+    </p>
+    <h2 id="layer-2-avoiding-infinite-loops">
+      <a class="header" href="#layer-2-avoiding-infinite-loops">Layer 2: Avoiding infinite loops</a>
+    </h2>
+    <p>
+      The previous design was described in terms of the “pure” MIR control-flow graph. However, using the raw graph has
+      some undesirable properties around infinite loops. In such cases, the graph has no exit, which undermines the
+      traditional definition of reverse analyses like liveness. To address this, when we build the control-flow graph
+      for our functions, we will augment it with additional edges – in particular, for every infinite loop (<code
+        class="hljs"
+        >loop { }</code
+      >), we will add false “unwind” edges. This ensures that the control-flow graph has a final exit node (the success
+      of the RETURN and RESUME nodes) that postdominates all other nodes in the graph.
+    </p>
+    <p>
+      If we did not add such edges, the result would also allow a number of surprising programs to type-check. For
+      example, it would be possible to borrow local variables with <code class="hljs">'static</code> lifetime, so long
+      as the function never returned:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">usize</span>;
+    <span class="hljs-keyword">let</span> y: &amp;<span class="hljs-symbol">'static</span> x = &amp;x;
+    <span class="hljs-keyword">loop</span> { }
+}</code></pre>
+    <p>
+      This would work because (as covered in detail under the borrow check section) the
+      <code class="hljs">StorageDead(x)</code> instruction would never be reachable, and hence any lifetime of borrow
+      would be acceptable. This further leads to other surprising programs that still type-check, such as this example
+      which uses an (incorrect, but declared as unsafe) API for spawning threads:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> scope = Scope::new();
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo = <span class="hljs-number">22</span>;
+
+<span class="hljs-keyword">unsafe</span> {
+    <span class="hljs-comment">// dtor joins the thread</span>
+    <span class="hljs-keyword">let</span> _guard = scope.spawn(&amp;<span class="hljs-keyword">mut</span> foo);
+    <span class="hljs-keyword">loop</span> {
+        foo += <span class="hljs-number">1</span>;
+    }
+    <span class="hljs-comment">// drop of `_guard` joins the thread</span>
+}</code></pre>
+    <p>
+      Without the unwind edges, this code would pass the borrowck, since the drop of
+      <code class="hljs">_guard</code> (and <code class="hljs">StorageDead</code> instruction) is not reachable, and
+      hence <code class="hljs">_guard</code> is not considered live (after all, its destructor will indeed never run).
+      However, this would permit the <code class="hljs">foo</code> variable to be modified both during the infinite loop
+      and by the thread launched by <code class="hljs">scope.spawn()</code>, which was given access to an
+      <code class="hljs">&amp;mut foo</code> reference (albeit one with a theoretically short lifetime).
+    </p>
+    <p>
+      With the false unwind edge, the compiler essentially always assumes that a destructor <em>may</em> run, since
+      every scope may theoretically execute. This extends the <code class="hljs">&amp;mut foo</code> borrow given to
+      <code class="hljs">scope.spawn()</code> to cover the body of the loop, resulting in a borrowck error.
+    </p>
+    <h2 id="layer-3-accommodating-dropck">
+      <a class="header" href="#layer-3-accommodating-dropck">Layer 3: Accommodating dropck</a>
+    </h2>
+    <p>MIR includes an action that corresponds to “dropping” a variable:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">DROP(variable)
+</code></pre>
+    <p>
+      Note that while MIR supports general drops of any lvalue, at the point where this analysis is running, we are
+      always dropping entire variables at a time. This operation executes the destructor for
+      <code class="hljs">variable</code>, effectively “de-initializing” the memory in which the value resides (if the
+      variable – or parts of the variable – have already been dropped, then drop has no effect; this is not relevant to
+      the current analysis).
+    </p>
+    <p>
+      Interestingly, in many cases dropping a value does not require that the lifetimes in the dropped value be valid.
+      After all, dropping a reference of type <code class="hljs">&amp;'a T</code> or
+      <code class="hljs">&amp;'a mut T</code> is defined as a no-op, so it does not matter if the reference points at
+      valid memory. In cases like this, we say that the lifetime <code class="hljs">'a</code>
+      <strong>may dangle</strong>. This is inspired by the C term “dangling pointer” which means a pointer to freed or
+      invalid memory.
+    </p>
+    <p>
+      However, if that same reference is stored in the field of a struct which implements the
+      <code class="hljs">Drop</code> trait, when the struct may, during its destructor, access the referenced value, so
+      it’s very important that the reference be valid in that case. Put another way, if you have a value
+      <code class="hljs">v</code> of type <code class="hljs">Foo&lt;'a&gt;</code> that implements
+      <code class="hljs">Drop</code>, then <code class="hljs">'a</code> typically <strong>cannot dangle</strong> when
+      <code class="hljs">v</code> is dropped (just as <code class="hljs">'a</code> would not be allowed to dangle for
+      any other operation).
+    </p>
+    <p>
+      More generally, RFC 1327 defined specific rules for which lifetimes in a type may dangle during drop and which may
+      not. We integrate those rules into our liveness analysis as follows: the MIR instruction
+      <code class="hljs">DROP(variable)</code> is not treated like other MIR instructions when it comes to liveness. In
+      a sense, conceptually we run two distinct liveness analyses (in practice, the prototype uses two bits per
+      variable):
+    </p>
+    <ol>
+      <li>
+        The first, which we’ve already seen, indicates when a variable’s current value may be <strong>used</strong> in
+        the future. This corresponds to “non-drop” uses of the variable in the MIR. Whenever a variable is live by this
+        definition, all of the lifetimes in its type are live.
+      </li>
+      <li>
+        The second, which we are adding now, indicates when a variable’s current value may be
+        <strong>dropped</strong> in the future. This corresponds to “drop” uses of the variable in the MIR. Whenever a
+        variable is live in <em>this</em> sense, all of the lifetimes in its type
+        <strong>except those marked as may-dangle</strong> are live.
+      </li>
+    </ol>
+    <p>
+      Permitting lifetimes to dangle during drop is very important! In fact, it is essential to even the most basic
+      non-lexical lifetime examples, such as Problem Case #1. After all, if we translate Problem Case #1 into MIR, we
+      see that the reference <code class="hljs">slice</code> will wind up being dropped at the end of the block:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data: <span class="hljs-built_in">Vec</span>&lt;<span class="hljs-built_in">i32</span>&gt;;
+<span class="hljs-keyword">let</span> slice: &amp;<span class="hljs-symbol">'slice</span> <span class="hljs-keyword">mut</span> <span class="hljs-built_in">i32</span>;
+START {
+    ...
+    slice = &amp;<span class="hljs-symbol">'borrow</span> <span class="hljs-keyword">mut</span> data;
+    capitalize(slice);
+    data.push(<span class="hljs-string">'d'</span>);
+    data.push(<span class="hljs-string">'e'</span>);
+    data.push(<span class="hljs-string">'f'</span>);
+    DROP(slice);
+    DROP(data);
+}</code></pre>
+    <p>
+      This poses no problem for our analysis, however, because
+      <code class="hljs">'slice</code> “may dangle” during the drop, and hence is not considered live.
+    </p>
+    <h2 id="layer-4-named-lifetimes">
+      <a class="header" href="#layer-4-named-lifetimes">Layer 4: Named lifetimes</a>
+    </h2>
+    <p>
+      Until now, we’ve only considered lifetimes that are confined to the extent of a function. Often, we want to reason
+      about lifetimes that begin or end after the current function has ended. More subtly, we sometimes want to have
+      lifetimes that sometimes begin and end in the current function, but which may (along some paths) extend into the
+      caller. Consider Problem Case #3 (the corresponding test case in the prototype is the
+      <a href="https://github.com/nikomatsakis/nll/blob/master/test/get-default.nll">get-default</a>
+      test):
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_default</span></span>&lt;<span class="hljs-symbol">'r</span>,K,V:<span class="hljs-built_in">Default</span>&gt;(map: &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> HashMap&lt;K,V&gt;,
+                               key: K)
+                               -&gt; &amp;<span class="hljs-symbol">'r</span> <span class="hljs-keyword">mut</span> V {
+    <span class="hljs-keyword">match</span> map.get_mut(&amp;key) { <span class="hljs-comment">// -------------+ 'r</span>
+        <span class="hljs-literal">Some</span>(value) =&gt; value,              <span class="hljs-comment">// |</span>
+        <span class="hljs-literal">None</span> =&gt; {                          <span class="hljs-comment">// |</span>
+            map.insert(key, V::default()); <span class="hljs-comment">// |</span>
+            <span class="hljs-comment">//  ^~~~~~ ERROR               // |</span>
+            map.get_mut(&amp;key).unwrap()     <span class="hljs-comment">// |</span>
+        }                                  <span class="hljs-comment">// |</span>
+    }                                      <span class="hljs-comment">// |</span>
+}                                          <span class="hljs-comment">// v</span></code></pre>
+    <p>When we translate this into MIR, we get something like the following (this is “pseudo-MIR”):</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">block START {
+  m1 = &amp;'m1 mut *map;  // temporary created for `map.get_mut()` call
+  v = Map::get_mut(m1, &amp;key);
+  switch v { SOME NONE };
+}
+
+block SOME {
+  return = v.as&lt;Some&gt;.0; // assign to return value slot
+  goto END;
+}
+
+block NONE {
+  Map::insert(&amp;*map, key, ...);
+  m2 = &amp;'m2 mut *map;  // temporary created for `map.get_mut()` call
+  v = Map::get_mut(m2, &amp;key);
+  return = ... // "unwrap" of `v`
+  goto END;
+}
+
+block END {
+  return;
+}
+</code></pre>
+    <p>
+      The key to this example is that the first borrow of
+      <code class="hljs">map</code>, with the lifetime <code class="hljs">'m1</code>, must extend to the end of the
+      <code class="hljs">'r</code>, but only if we branch to SOME. Otherwise, it should end once we enter the NONE
+      block.
+    </p>
+    <p>
+      To accommodate cases like this, we will extend the notion of a region so that it includes not only points in the
+      control-flow graph, but also includes a (possibly empty) set of “end regions” for various named lifetimes. We
+      denote these as <code class="hljs">end('r)</code> for some named region <code class="hljs">'r</code>. The region
+      <code class="hljs">end('r)</code> can be understood semantically as referring to some portion of the caller’s
+      control-flow graph (actually, they could extend beyond the end of the caller, into the caller’s caller, and so
+      forth, but that doesn’t concern us). This new region might then be denoted as the following (in pseudocode form):
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Region</span></span> {
+  points: Set&lt;Point&gt;,
+  end_regions: Set&lt;NamedLifetime&gt;,
+}</code></pre>
+    <p>
+      In this case, when a type mentions a named lifetime, such as
+      <code class="hljs">'r</code>, that can be represented by a region that includes:
+    </p>
+    <ul>
+      <li>the entire CFG,</li>
+      <li>and, the end region for that named lifetime (<code class="hljs">end('r)</code>).</li>
+    </ul>
+    <p>
+      Furthermore, we can <strong>elaborate</strong> the set to include <code class="hljs">end('x)</code> for every
+      named lifetime <code class="hljs">'x</code> such that <code class="hljs">'r: 'x</code>. This is because, if
+      <code class="hljs">'r: 'x</code>, then we know that <code class="hljs">'r</code> doesn’t end up until
+      <code class="hljs">'x</code> has already ended.
+    </p>
+    <p>
+      Finally, we must adjust our definition of subtyping to accommodate this amended definition of a region, which we
+      do as follows. When we have an outlives relation
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">'b: 'a @ P
+</code></pre>
+    <p>
+      where the end point of the CFG is reachable from P without leaving
+      <code class="hljs">'a</code>, the existing inference algorithm would simply add the end-point to
+      <code class="hljs">'b</code> and stop. The new algorithm would also add any end regions that are included in
+      <code class="hljs">'a</code> to <code class="hljs">'b</code> at that time. (Expressed less operationally,
+      <code class="hljs">'b</code> only outlives <code class="hljs">'a</code> if it also includes the end-regions that
+      <code class="hljs">'a</code> includes, presuming that the end point of the CFG is reachable from P). The reason
+      that we require the end point of the CFG to be reachable is because otherwise the data never escapes the current
+      function, and hence <code class="hljs">end('r)</code> is not reachable (since
+      <code class="hljs">end('r)</code> only covers the code in callers that executes <em>after</em> the return).
+    </p>
+    <p>
+      NB: This part of the prototype is partially implemented.
+      <a href="https://github.com/nikomatsakis/nll/issues/12">Issue #12</a>
+      describes the current status and links to the in-progress PRs.
+    </p>
+    <h2 id="layer-5-how-the-borrow-check-works">
+      <a class="header" href="#layer-5-how-the-borrow-check-works">Layer 5: How the borrow check works</a>
+    </h2>
+    <p>
+      For the most part, the focus of this RFC is on the structure of lifetimes, but it’s worth talking a bit about how
+      to integrate these non-lexical lifetimes into the borrow checker. In particular, along the way, we’d like to fix
+      two shortcomings of the borrow checker:
+    </p>
+    <p>
+      <strong>First, support nested method calls like <code class="hljs">vec.push(vec.len())</code>.</strong>
+      Here, the plan is to continue with the
+      <code class="hljs">mut2</code> borrow solution proposed in
+      <a href="https://github.com/rust-lang/rfcs/pull/2025">RFC 2025</a>. This RFC does not (yet) propose one of the
+      type-based solutions described in RFC 2025, such as “borrowing for the future” or <code class="hljs">Ref2</code>.
+      The reasons why are discussed in the Alternatives section. For simplicity, this description of the borrow checker
+      ignores <a href="https://github.com/rust-lang/rfcs/pull/2025">RFC 2025</a>. The extensions described here are
+      fairly orthogonal to the changes proposed in <a href="https://github.com/rust-lang/rfcs/pull/2025">RFC 2025</a>,
+      which in effect cause the start of a borrow to be delayed.
+    </p>
+    <p>
+      <strong
+        >Second, permit variables containing mutable references to be modified, even if their referent is
+        borrowed.</strong
+      >
+      This refers to the “Problem Case #4” described in the introduction; we wish to accept the original program.
+    </p>
+    <h3 id="borrow-checker-phase-1-computing-loans-in-scope">
+      <a class="header" href="#borrow-checker-phase-1-computing-loans-in-scope"
+        >Borrow checker phase 1: computing loans in scope</a
+      >
+    </h3>
+    <p>
+      The first phase of the borrow checker computes, at each point in the CFG, the set of in-scope
+      <strong>loans</strong>. A “loan” is represented as a tuple
+      <code class="hljs">('a, shared|uniq|mut, lvalue)</code> indicating:
+    </p>
+    <ol>
+      <li>the lifetime <code class="hljs">'a</code> for which the value was borrowed;</li>
+      <li>
+        whether this was a shared, unique, or mutable loan;
+        <ul>
+          <li>
+            “unique” loans are exactly like mutable loans, but they do not permit mutation of their referents. They are
+            used only in closure desugarings and are not part of Rust’s surface syntax.
+          </li>
+        </ul>
+      </li>
+      <li>the lvalue that was borrowed (e.g., <code class="hljs">x</code> or <code class="hljs">(*x).foo</code>).</li>
+    </ol>
+    <p>
+      The set of in-scope loans at each point is found via a fixed-point dataflow computation. We create a loan tuple
+      from each borrow rvalue in the MIR (that is, every assignment statement like
+      <code class="hljs">tmp = &amp;'a b.c.d</code>), giving each tuple a unique index <code class="hljs">i</code>. We
+      can then represent the set of loans that are in scope at a particular point using a bit-set and do a standard
+      forward data-flow propagation.
+    </p>
+    <p>
+      For a statement at point P in the graph, we define the “transfer function” – that is, which loans it brings into
+      or out of scope – as follows:
+    </p>
+    <ul>
+      <li>any loans whose region does not include P are killed;</li>
+      <li>if this is a borrow statement, the corresponding loan is generated;</li>
+      <li>
+        if this is an assignment <code class="hljs">lv = &lt;rvalue&gt;</code>, then any loan for some path P of which
+        <code class="hljs">lv</code> is a prefix is killed.
+      </li>
+    </ul>
+    <p>
+      The last point bears some elaboration. This rule is what allows us to support cases like the one in Problem Case
+      #4:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> list: &amp;<span class="hljs-keyword">mut</span> List&lt;T&gt; = ...;
+<span class="hljs-keyword">let</span> v = &amp;<span class="hljs-keyword">mut</span> (*list).value;
+list = ...; <span class="hljs-comment">// &lt;-- assignment</span></code></pre>
+    <p>
+      At the point of the marked assignment, the loan of
+      <code class="hljs">(*list).value</code> is in-scope, but it does not have to be considered in-scope afterwards.
+      This is because the variable <code class="hljs">list</code> now holds a fresh value, and that new value has not
+      yet been borrowed (or else we could not have produced it). Specifically, whenever we see an assignment
+      <code class="hljs">lv = &lt;rvalue&gt;</code> in MIR, we can clear all loans where the borrowed path
+      <code class="hljs">lv_loan</code> has <code class="hljs">lv</code> as a prefix. (In our example, the assignment is
+      to <code class="hljs">list</code>, and the loan path <code class="hljs">(*list).value</code> has
+      <code class="hljs">list</code> as a prefix.)
+    </p>
+    <p>
+      <strong>NB.</strong> In this phase, when there is an assignment, we always clear all loans that applied to the
+      overwritten path; however, in some cases the <strong>assignment itself</strong> may be illegal due to those very
+      loans. In our example, this would be the case if the type of <code class="hljs">list</code> had been
+      <code class="hljs">List&lt;T&gt;</code> and not <code class="hljs">&amp;mut List&lt;T&gt;</code>. In such cases,
+      errors will be reported by the next portion of the borrowck, described in the next section.
+    </p>
+    <h3 id="borrow-checker-phase-2-reporting-errors">
+      <a class="header" href="#borrow-checker-phase-2-reporting-errors">Borrow checker phase 2: reporting errors</a>
+    </h3>
+    <p>
+      At this point, we have computed which loans are in scope at each point. Next, we traverse the MIR and identify
+      actions that are illegal given the loans in scope. Rather than go through every kind of MIR statement, we can
+      break things down into two kinds of actions that can be performed:
+    </p>
+    <ul>
+      <li>Accessing an lvalue, which we categorize along two axes (shallow vs deep, read vs write)</li>
+      <li>Dropping an lvalue</li>
+    </ul>
+    <p>
+      For each of these kinds of actions, we will specify below the rules that determine when they are legal, given the
+      set of loans L in scope at the start of the action. The second phase of the borrow check therefore consists of
+      iterating over each statement in the MIR and checking, given the in-scope loans, whether the actions it performs
+      are legal. Translating MIR statements into actions is mostly straightforward:
+    </p>
+    <ul>
+      <li>A <code class="hljs">StorageDead</code> statement counts as a <strong>shallow write</strong>.</li>
+      <li>
+        An assignment statement <code class="hljs">LV = RV</code> is a <strong>shallow write</strong> to
+        <code class="hljs">LV</code>;
+      </li>
+      <li>
+        and, within the rvalue <code class="hljs">RV</code>:
+        <ul>
+          <li>
+            Each lvalue operand is either a <strong>deep read</strong> or a <strong>deep write</strong> action,
+            depending on whether or not the type of the lvalue implements <code class="hljs">Copy</code>.
+            <ul>
+              <li>Note that moves count as “deep writes”.</li>
+            </ul>
+          </li>
+          <li>A shared borrow <code class="hljs">&amp;LV</code> counts as a <strong>deep read</strong>.</li>
+          <li>A mutable borrow <code class="hljs">&amp;mut LV</code> counts as <strong>deep write</strong>.</li>
+        </ul>
+      </li>
+    </ul>
+    <p>There are a few interesting cases to keep in mind:</p>
+    <ul>
+      <li>
+        MIR models discriminants more precisely. They should be thought of as a distinct <em>field</em> when it comes to
+        borrows.
+      </li>
+      <li>
+        In the compiler today, <code class="hljs">Box</code> is still “built-in” to MIR. This RFC ignores that
+        possibility and instead acts as though borrowed references (<code class="hljs">&amp;</code> and
+        <code class="hljs">&amp;mut</code>) and raw pointers (<code class="hljs">*const</code> and
+        <code class="hljs">*mut</code>) were the only sorts of pointers. It should be straight-forward to extend the
+        text here to cover <code class="hljs">Box</code>, though some questions arise around the handling of drop (see
+        the section on drops for details).
+      </li>
+    </ul>
+    <p><strong>Accessing an lvalue LV.</strong> When accessing an lvalue LV, there are two axes to consider:</p>
+    <ul>
+      <li>
+        The access can be SHALLOW or DEEP:
+        <ul>
+          <li>
+            A <em>shallow</em> access means that the immediate fields reached at LV are accessed, but references or
+            pointers found within are not dereferenced. Right now, the only access that is shallow is an assignment like
+            <code class="hljs">x = ...</code>, which would be a <strong>shallow write</strong> of
+            <code class="hljs">x</code>.
+          </li>
+          <li>
+            A <em>deep</em> access means that all data reachable through a given lvalue may be invalidated or accessed
+            by this action.
+          </li>
+        </ul>
+      </li>
+      <li>
+        The access can be a READ or WRITE:
+        <ul>
+          <li>A <em>read</em> means that the existing data may be read, but will not be changed.</li>
+          <li>
+            A <em>write</em> means that the data may be mutated to new values or otherwise invalidated (for example, it
+            could be de-initialized, as in a move operation).
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      “Deep” accesses are often deep because they create and release an alias, in which case the “deep” qualifier
+      reflects what might happen through that alias. For example, if you have
+      <code class="hljs">let x = &amp;mut y</code>, that is considered a <strong>deep write</strong> of
+      <code class="hljs">y</code>, even though the <strong>actual borrow</strong> doesn’t do anything at all, we create
+      a mutable alias <code class="hljs">x</code> that can be used to mutate anything reachable from
+      <code class="hljs">y</code>. A move <code class="hljs">let x = y</code> is similar: it writes to the shallow
+      content of <code class="hljs">y</code>, but then – via the new name <code class="hljs">x</code> – we can access
+      all other content accessible through <code class="hljs">y</code>.
+    </p>
+    <p>The pseudocode for deciding when an access is legal looks like this:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">fn access_legal(lvalue, is_shallow, is_read) {
+    let relevant_borrows = select_relevant_borrows(lvalue, is_shallow);
+
+    for borrow in relevant_borrows {
+        // shared borrows like `&amp;x` still permit reads from `x` (but not writes)
+        if is_read &amp;&amp; borrow.is_read { continue; }
+        
+        // otherwise, report an error, because we have an access
+        // that conflicts with an in-scope borrow
+        report_error();
+    }
+}
+</code></pre>
+    <p>
+      As you can see, it works in two steps. First, we enumerate a set of in-scope borrows that are relevant to
+      <code class="hljs">lvalue</code> – this set is affected by whether this is a “shallow” or “deep” action, as will
+      be described shortly. Then, for each such borrow, we check if it conflicts with the action (i.e.,, if at least one
+      of them is potentially writing), and, if so, we report an error.
+    </p>
+    <p>
+      For <strong>shallow</strong> accesses to the path <code class="hljs">lvalue</code>, we consider borrows relevant
+      if they meet one of the following criteria:
+    </p>
+    <ul>
+      <li>
+        there is a loan for the path <code class="hljs">lvalue</code>;
+        <ul>
+          <li>
+            so: writing a path like <code class="hljs">a.b.c</code> is illegal if <code class="hljs">a.b.c</code> is
+            borrowed
+          </li>
+        </ul>
+      </li>
+      <li>
+        there is a loan for some prefix of the path
+        <code class="hljs">lvalue</code>;
+        <ul>
+          <li>
+            so: writing a path like <code class="hljs">a.b.c</code> is illegal if <code class="hljs">a</code> or
+            <code class="hljs">a.b</code> is borrowed
+          </li>
+        </ul>
+      </li>
+      <li>
+        <code class="hljs">lvalue</code> is a <strong>shallow prefix</strong> of the loan path
+        <ul>
+          <li>shallow prefixes are found by stripping away fields, but stop at any dereference</li>
+          <li>
+            so: writing a path like <code class="hljs">a</code> is illegal if <code class="hljs">a.b</code> is borrowed
+          </li>
+          <li>
+            but: writing <code class="hljs">a</code> is legal if <code class="hljs">*a</code> is borrowed, whether or
+            not <code class="hljs">a</code> is a shared or mutable reference
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      For <strong>deep</strong> accesses to the path <code class="hljs">lvalue</code>, we consider borrows relevant if
+      they meet one of the following criteria:
+    </p>
+    <ul>
+      <li>
+        there is a loan for the path <code class="hljs">lvalue</code>;
+        <ul>
+          <li>
+            so: reading a path like <code class="hljs">a.b.c</code> is illegal if <code class="hljs">a.b.c</code> is
+            mutably borrowed
+          </li>
+        </ul>
+      </li>
+      <li>
+        there is a loan for some prefix of the path
+        <code class="hljs">lvalue</code>;
+        <ul>
+          <li>
+            so: reading a path like <code class="hljs">a.b.c</code> is illegal if <code class="hljs">a</code> or
+            <code class="hljs">a.b</code> is mutably borrowed
+          </li>
+        </ul>
+      </li>
+      <li>
+        <code class="hljs">lvalue</code> is a <strong>supporting prefix</strong> of the loan path
+        <ul>
+          <li>supporting prefixes were defined earlier</li>
+          <li>
+            so: reading a path like <code class="hljs">a</code> is illegal if <code class="hljs">a.b</code> is mutably
+            borrowed, but – in contrast with shallow accesses – reading <code class="hljs">a</code> is also illegal if
+            <code class="hljs">*a</code> is mutably borrowed
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      <strong>Dropping an lvalue LV.</strong> Dropping an lvalue can be treated as a DEEP WRITE, like a move, but this
+      is overly conservative. The rules here are under active development, see
+      <a href="https://github.com/nikomatsakis/nll-rfc/issues/40">#40</a>.
+    </p>
+    <h1 id="how-we-teach-this">
+      <a class="header" href="#how-we-teach-this">How We Teach This</a>
+    </h1>
+    <h2 id="terminology">
+      <a class="header" href="#terminology">Terminology</a>
+    </h2>
+    <p>
+      In this RFC, I’ve opted to continue using the term “lifetime” to refer to the portion of the program in which a
+      reference is in active use (or, alternatively, to the “duration of a borrow”). As the intro to the RFC makes
+      clear, this terminology somewhat conflicts with an alternative usage, in which lifetime refers to the dynamic
+      extent of a value (what we call the “scope”). I think that – if we were starting over – it might have been
+      preferable to find an alternative term that is more specific. However, it would be rather difficult to try and
+      change the term “lifetime” at this point, and hence this RFC does not attempt do so. To avoid confusion, however,
+      it seems best if the error messages result from the region and borrow check avoid the term lifetime where
+      possible, or use qualification to make the meaning more clear.
+    </p>
+    <h2 id="leveraging-intuition-framing-errors-in-terms-of-points">
+      <a class="header" href="#leveraging-intuition-framing-errors-in-terms-of-points"
+        >Leveraging intuition: framing errors in terms of points</a
+      >
+    </h2>
+    <p>
+      Part of the reason that Rust currently uses lexical scopes to determine lifetimes is that it was thought that they
+      would be simpler for users to reason about. Time and experience have not borne this hypothesis out: for many
+      users, the fact that borrows are “artificially” extended to the end of the block is more surprising than not.
+      Furthermore, most users have a pretty intuitive understanding of control flow (which makes sense: you have to, in
+      order to understand what your program will do).
+    </p>
+    <p>
+      We therefore propose to leverage this intution when explaining borrow and lifetime errors. To the extent possible,
+      we will try to explain all errors in terms of three points:
+    </p>
+    <ul>
+      <li>The point where the borrow occurred (B).</li>
+      <li>The point where the resulting reference is used (U).</li>
+      <li>An intervening point that might have invalidated the reference (A).</li>
+    </ul>
+    <p>
+      We should select three points such that B can reach A and A can reach U. In general, the approach is to describe
+      the errors in “narrative” form:
+    </p>
+    <ul>
+      <li>First, value is borrowed occurs.</li>
+      <li>Next, the action occurs, invalidating the reference.</li>
+      <li>Finally, the next use occurs, after the reference has been invalidated.</li>
+    </ul>
+    <p>
+      This approach is similar to what we do today, but we often neglect to mention this third point, where the next use
+      occurs. Note that the “point of error” remains the <em>second</em> action – that is, the error, conceptually, is
+      to perform an invalidating action in between two uses of the reference (rather than, say, to use the reference
+      after an invalidating action). This actually reflects the definition of undefined behavior more accurately (that
+      is, performing an illegal write is what causes undefined behavior, but the write is illegal because of the latter
+      use).
+    </p>
+    <p>To see the difference, consider this erroneous program:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> i = <span class="hljs-number">3</span>;
+    <span class="hljs-keyword">let</span> x = &amp;i;
+    i += <span class="hljs-number">1</span>;
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}</code></pre>
+    <p>Currently, we emit the following error:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot assign to `i` because it is borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     let x = &amp;i;
+   |              - borrow of `i` occurs here
+ 4 |     i += 1;
+   |     ^^^^^^ assignment to borrowed `i` occurs here
+</code></pre>
+    <p>
+      Here, the points B and A are highlighted, but not the point of use U. Moreover, the “blame” is placed on the
+      assignment. Under this RFC, we would display the error as follows:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot write to `i` while borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     let x = &amp;i;
+   |              - (shared) borrow of `i` occurs here
+ 4 |     i += 1;
+   |     ^^^^^^ write to `i` occurs here, while borrow is still active
+ 5 |     println!("{}", x);
+   |                    - borrow is later used here
+</code></pre>
+    <p>Another example, this time using a <code class="hljs">match</code>:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-literal">Some</span>(<span class="hljs-number">3</span>);
+    <span class="hljs-keyword">match</span> &amp;<span class="hljs-keyword">mut</span> x {
+        <span class="hljs-literal">Some</span>(i) =&gt; {
+            x = <span class="hljs-literal">None</span>;
+            *i += <span class="hljs-number">1</span>;
+        }
+        <span class="hljs-literal">None</span> =&gt; {
+            x = <span class="hljs-literal">Some</span>(<span class="hljs-number">0</span>); <span class="hljs-comment">// OK</span>
+        }
+    }
+}</code></pre>
+    <p>The error might be:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot write to `x` while borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     match &amp;mut x {
+   |           ------ (mutable) borrow of `x` occurs here
+ 4 |         Some(i) =&gt; {
+ 5 |              x = None;
+   |              ^^^^^^^^ write to `x` occurs here, while borrow is still active
+ 6 |              *i += 1;
+   |              -- borrow is later used here
+   |
+</code></pre>
+    <p>
+      (Note that the assignment in the <code class="hljs">None</code> arm is not an error, since the borrow is never
+      used again.)
+    </p>
+    <h2 id="some-special-cases">
+      <a class="header" href="#some-special-cases">Some special cases</a>
+    </h2>
+    <p>
+      There are some cases where the three points are not all visible in the user syntax where we may need some careful
+      treatment.
+    </p>
+    <h3 id="drop-as-last-use">
+      <a class="header" href="#drop-as-last-use">Drop as last use</a>
+    </h3>
+    <p>
+      There are times when the last use of a variable will in fact be its destructor. Consider an example like this:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Foo</span></span>&lt;<span class="hljs-symbol">'a</span>&gt; { field: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">u32</span> }
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> Foo&lt;<span class="hljs-symbol">'a</span>&gt; { .. }
+
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-number">22</span>;
+    <span class="hljs-keyword">let</span> y = Foo { field: &amp;x };
+    x += <span class="hljs-number">1</span>;
+}</code></pre>
+    <p>
+      This code would be legal, but for the destructor on
+      <code class="hljs">y</code>, which will implicitly execute at the end of the enclosing scope. The error message
+      might be shown as follows:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot write to `x` while borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 6 |     let y = Foo { field: &amp;x };
+   |                          -- borrow of `x` occurs here
+ 7 |     x += 1;
+   |     ^ write to `x` occurs here, while borrow is still active
+ 8 | }
+   | - borrow is later used here, when `y` is dropped
+</code></pre>
+    <h3 id="method-calls">
+      <a class="header" href="#method-calls">Method calls</a>
+    </h3>
+    <p>One example would be method calls:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>];
+    x.push(x.pop().unwrap());
+}</code></pre>
+    <p>We propose the following error for this sort of scenario:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot write to `x` while borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     x.push(x.pop().unwrap());
+   |     - ---- ^^^^^^^^^^^^^^^^
+   |     | |    write to `x` occurs here, while borrow is still in active use
+   |     | borrow is later used here, during the call
+   |     `x` borrowed here
+</code></pre>
+    <p>If you are not using a method, the error would look slightly different, but be similar in concept:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: cannot assign to `x` because it is borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     Vec::push(&amp;mut x, x.pop().unwrap());
+   |     --------- ------  ^^^^^^^^^^^^^^^^
+   |     |         |       write to `x` occurs here, while borrow is still in active use
+   |     |         `x` borrowed here
+   |     borrow is later used here, during the call
+</code></pre>
+    <p>
+      We can detect this scenario in MIR readily enough by checking when the point of use turns out to be a “call”
+      terminator. We’ll have to tweak the spans to get everything to look correct, but that is easy enough.
+    </p>
+    <h3 id="closures"><a class="header" href="#closures">Closures</a></h3>
+    <p>
+      As today, when the initial borrow is part of constructing a closure, we wish to highlight not only the point where
+      the closure is constructed, but the point <em>within</em> the closure where the variable in question is used.
+    </p>
+    <h2 id="borrowing-a-variable-for-longer-than-its-scope">
+      <a class="header" href="#borrowing-a-variable-for-longer-than-its-scope"
+        >Borrowing a variable for longer than its scope</a
+      >
+    </h2>
+    <p>Consider this example:</p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> p;
+{
+    <span class="hljs-keyword">let</span> x = <span class="hljs-number">3</span>;
+    p = &amp;x;
+}
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, p);</code></pre>
+    <p>
+      In this example, the reference <code class="hljs">p</code> refers to <code class="hljs">x</code> with a lifetime
+      that exceeds the scope of <code class="hljs">x</code>. In short, that portion of the stack will be popped with
+      <code class="hljs">p</code> still in active use. In today’s compiler, this is detected during the borrow checker
+      by a special check that computes the “maximal scope” of the path being borrowed (<code class="hljs">x</code>,
+      here). This makes sense in the existing system since lifetimes and scopes are expressed in the same units
+      (portions of the AST). In the newer, non-lexical formulation, this error would be detected somewhat differently.
+      As described earlier, we would see that a <code class="hljs">StorageDead</code> instruction frees the slot for
+      <code class="hljs">x</code> while <code class="hljs">p</code> is still in use. We can thus present the error in
+      the same “three-point style”:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="hljs">error[E0506]: variable goes out of scope while still borrowed
+ --&gt; &lt;anon&gt;:4:5
+   |
+ 3 |     p = &amp;x;
+   |          - `x` borrowed here
+ 4 | }
+   | ^ `x` goes out of scope here, while borrow is still in active use
+ 5 | println!("{}", p);
+   |                - borrow used here, after invalidation
+</code></pre>
+    <h2 id="errors-during-inference">
+      <a class="header" href="#errors-during-inference">Errors during inference</a>
+    </h2>
+    <p>
+      The remaining set of lifetime-related errors come about primarily due to the interaction with function signatures.
+      For example:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">impl</span> Foo {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">foo</span></span>(&amp;<span class="hljs-keyword">self</span>, y: &amp;<span class="hljs-built_in">u8</span>) -&gt; &amp;<span class="hljs-built_in">u8</span> {
+        x
+    }
+}</code></pre>
+    <p>
+      We already have work-in-progress on presenting these sorts of errors in a better way (see
+      <a href="https://github.com/rust-lang/rust/issues/42516">issue 42516</a>
+      for numerous examples and details), all of which should be applicable here. In short, the name of the game is to
+      identify patterns and suggest changes to improve the function signature to match the body (or at least diagnose
+      the problem more clearly).
+    </p>
+    <p>
+      Whenever possible, we should leverage points in the control-flow and try to explain errors in “narrative” form.
+    </p>
+    <h1 id="drawbacks"><a class="header" href="#drawbacks">Drawbacks</a></h1>
+    <p>
+      There are very few drawbacks to this proposal. The primary one is that the
+      <strong>rules</strong> for the system become more complex. However, this permits us to accept a larger number of
+      programs, and so we expect that <strong>using Rust</strong> will feel simpler. Moreover, experience has shown that
+      – for many users – the current scheme of tying reference lifetimes to lexical scoping is confusing and surprising.
+    </p>
+    <h1 id="alternatives">
+      <a class="header" href="#alternatives">Alternatives</a>
+    </h1>
+    <h3 id="alternative-formulations-of-nll">
+      <a class="header" href="#alternative-formulations-of-nll">Alternative formulations of NLL</a>
+    </h3>
+    <p>
+      During the runup to this RFC, a number of alternate schemes and approaches to describing NLL were tried and
+      discarded.
+    </p>
+    <p>
+      <strong>RFC 396.</strong>
+      <a href="https://github.com/rust-lang/rfcs/pull/396">RFC 396</a> defined lifetimes to be a “prefix” of the
+      dominator tree – roughly speaking, a single-entry, multiple-exit region of the control-flow graph. Unlike our
+      system, this definition did not permit gaps or holes in a lifetime. Ensuring continuous lifetimes was meant to
+      guarantee soundness; in this RFC, we use the liveness constraints to achieve a similar effect. This more flexible
+      setup allows us to handle cases like Problem Case #3, which RFC 396 would not have accepted. RFC 396 also did not
+      cover dropck and a number of other complications.
+    </p>
+    <p>
+      <strong>SSA or SSI transformation.</strong> Rather than incorporating the “current location” into the subtype
+      check, we also considered formulations that first applied an SSA transformation to the input program, and then
+      gave each of those variables a distinct type. This does allow some examples to type-check that wouldn’t otherwise,
+      but it is not flexible enough for the <code class="hljs">vec-push-ref</code> example covered earlier.
+    </p>
+    <p>
+      Using SSA also introduces other complications. Among other things, Rust permits variables and temporaries to be
+      borrowed and mutated indirectly (e.g., via <code class="hljs">&amp;mut</code>). If we were to apply SSA to MIR in
+      a naive fashion, then, it would ignore these assignments when creating numberings. For example:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-number">1</span>;      <span class="hljs-comment">// x0, has value 1</span>
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> p = &amp;<span class="hljs-keyword">mut</span> x; <span class="hljs-comment">// p0</span>
+*p += <span class="hljs-number">1</span>;
+<span class="hljs-keyword">use</span>(x);             <span class="hljs-comment">// uses `x0`, but it now has value 2</span></code></pre>
+    <p>
+      Here, the value of <code class="hljs">x0</code> changed due to a write from <code class="hljs">p</code>. Thus this
+      is not a true SSA form. Normally, SSA transformations achieve this by making local variables like
+      <code class="hljs">x</code> and <code class="hljs">p</code> be pointers into stack slots, and then lifting those
+      stack slots into locals when safe. MIR was intentionally not done using SSA form precisely to avoid the need for
+      such contortions (we can leave that to the optimizing backend).
+    </p>
+    <p>
+      <strong>Type per program point.</strong> Going further than SSA, one can accommodate
+      <code class="hljs">vec-push-ref</code> through a scheme that gives each variable a distinct type at each point in
+      the CFG (similar to what Ericson2314 describes in the
+      <a href="https://github.com/Ericson2314/a-stateful-mir-for-rust">stateful MIR for Rust</a>) and applies
+      transformations to the lifetimes on every edge. During the rustc design sprint, the compiler team also enumerated
+      such a design. The author believes this RFC to be a roughly equivalent analysis, but with an alternative, more
+      familiar formulation that still uses one type per variable (rather than one type per variable per point).
+    </p>
+    <p>
+      There are several advantages to the design enumerated here. For one thing, it involves far fewer inference
+      variables (if each variable has many types, each of those types needs distinct inference variables at each point)
+      and far fewer constraints (we don’t need constraints just for connecting the type of a variable between distinct
+      points). It is also a more natural fit for the surface language, in which variables have a single type.
+    </p>
+    <h3 id="different-lifetime-roles">
+      <a class="header" href="#different-lifetime-roles">Different “lifetime roles”</a>
+    </h3>
+    <p>
+      In the discussion about nested method calls (<a href="https://github.com/rust-lang/rfcs/pull/2025">RFC 2025</a>,
+      and the discussions that led up to it), there were various proposals that were aimed at accepting the naive
+      desugaring of a call like <code class="hljs">vec.push(vec.len())</code>:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> tmp0 = &amp;<span class="hljs-keyword">mut</span> vec;
+<span class="hljs-keyword">let</span> tmp1 = vec.len(); <span class="hljs-comment">// does a shared borrow of vec</span>
+<span class="hljs-built_in">Vec</span>::push(tmp0, tmp1);</code></pre>
+    <p>
+      The alternatives to RFC 2025 were focused on augmenting the type of references to have distinct “roles” – the most
+      prominent such proposal was
+      <code class="hljs">Ref2&lt;'r, 'w&gt;</code>, in which mutable references change to have two distinct lifetimes, a
+      “read” lifetime (<code class="hljs">'r</code>) and a “write” lifetime (<code class="hljs">'w</code>), where read
+      encompasses the entire span of the reference, but write only contains those points where writes are occurring.
+      This RFC does not attempt to change the approach to nested method calls, rather continuing with the RFC 2025
+      approach (which affects only the borrowck handling). However, if we did wish to adopt a
+      <code class="hljs">Ref2</code>-style approach in the future, it could be done backwards compatibly, but it would
+      require modifying (for example) the liveness requirements. For example, currently, if a variable
+      <code class="hljs">x</code> is live at some point P, then all lifetimes in the type of
+      <code class="hljs">x</code> must contain P – but in the <code class="hljs">Ref2</code> approach, only the read
+      lifetime would have to contain P. This implies that lifetimes are treated differently depending on their “role”.
+      It seems like a good idea to isolate such a change into a distinct RFC.
+    </p>
+    <h1 id="unresolved-questions">
+      <a class="header" href="#unresolved-questions">Unresolved questions</a>
+    </h1>
+    <p>None at present.</p>
+    <h1 id="appendix-what-this-proposal-will-not-fix">
+      <a class="header" href="#appendix-what-this-proposal-will-not-fix">Appendix: What this proposal will not fix</a>
+    </h1>
+    <p>
+      It is worth discussing a few kinds of borrow check errors that the current RFC will
+      <strong>not</strong> eliminate. These are generally errors that cross procedural boundaries in some form or
+      another.
+    </p>
+    <p>
+      <strong>Closure desugaring.</strong> The first kind of error has to do with the closure desugaring. Right now,
+      closures always capture local variables, even if the closure only uses some sub-path of the variable internally:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">let</span> get_len = || <span class="hljs-keyword">self</span>.vec.len(); <span class="hljs-comment">// borrows `self`, not `self.vec`</span>
+<span class="hljs-keyword">self</span>.vec2.push(...); <span class="hljs-comment">// error: self is borrowed</span></code></pre>
+    <p>
+      This was discussed on
+      <a href="https://internals.rust-lang.org/t/borrow-the-full-stable-name-in-closures-for-ergonomics/5387"
+        >an internals thread</a
+      >. It is possible to fix this
+      <a
+        href="https://internals.rust-lang.org/t/borrow-the-full-stable-name-in-closures-for-ergonomics/5387/11?u=nikomatsakis"
+        >by making the closure desugaring smarter</a
+      >.
+    </p>
+    <p>
+      <strong>Disjoint fields across functions.</strong> Another kind of error is when you have one method that only
+      uses a field <code class="hljs">a</code> and another that only uses some field <code class="hljs">b</code>; right
+      now, you can’t express that, and hence these two methods cannot be used “in parallel” with one another:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-keyword">impl</span> Foo {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_a</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; &amp;A { &amp;<span class="hljs-keyword">self</span>.a }
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">inc_b</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) { <span class="hljs-keyword">self</span>.b.value += <span class="hljs-number">1</span>; }
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">bar</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">let</span> a = <span class="hljs-keyword">self</span>.get_a();
+        <span class="hljs-keyword">self</span>.inc_b(); <span class="hljs-comment">// Error: self is already borrowed</span>
+        <span class="hljs-keyword">use</span>(a);
+    }
+}</code></pre>
+    <p>
+      The fix for this is to refactor so as to expose the fact that the methods operate on disjoint data. For example,
+      one can factor out the methods into methods on the fields themselves:
+    </p>
+    <pre><div class="buttons"><button class="clip-button" title="Copy to clipboard" aria-label="Copy to clipboard"><i class="tooltiptext"></i></button></div><code class="language-rust hljs"><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">bar</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+    <span class="hljs-keyword">let</span> a = <span class="hljs-keyword">self</span>.a.get();
+    <span class="hljs-keyword">self</span>.b.inc();
+    <span class="hljs-keyword">use</span>(a);
+}</code></pre>
+    <p>
+      This way, when looking at <code class="hljs">bar()</code> alone, we see borrows of
+      <code class="hljs">self.a</code> and <code class="hljs">self.b</code>, rather than two borrows of
+      <code class="hljs">self</code>. Another technique is to introduce “free functions” (e.g.,
+      <code class="hljs">get(&amp;self.a)</code> and <code class="hljs">inc(&amp;mut self.b)</code>) that expose more
+      clearly which fields are operated upon, or to inline the method bodies. This is a non-trivial bit of design and is
+      out of scope for this RFC. See
+      <a href="https://internals.rust-lang.org/t/partially-borrowed-moved-struct-types/5392/2"
+        >this comment on an internals thread</a
+      >
+      for further thoughts.
+    </p>
+    <p>
+      <strong>Self-referential structs.</strong> The final limitation we are not fixing yet is the inability to have
+      “self-referential structs”. That is, you cannot have a struct that stores, within itself, an arena and pointers
+      into that arena, and then move that struct around. This comes up in a number of settings. There are various
+      workarounds: sometimes you can use a vector with indices, for example, or
+      <a href="https://crates.io/crates/owning_ref">the <code class="hljs">owning_ref</code> crate</a>. The latter, when
+      combined with <a href="https://github.com/rust-lang/rfcs/pull/1598">associated type constructors</a>, might be an
+      adequate solution for some uses cases, actually (it’s basically a way of modeling “existential lifetimes” in
+      library code). For the case of futures especially,
+      <a href="https://github.com/rust-lang/rfcs/pull/1858">the <code class="hljs">?Move</code> RFC</a>
+      proposes another lightweight and interesting approach.
+    </p>
+    <h1 id="endnotes"><a class="header" href="#endnotes">Endnotes</a></h1>
+    <p><a name="temporaries"></a></p>
+    <p>
+      <strong>1.</strong> Scopes always correspond to blocks with one exception: the scope of a temporary value is
+      sometimes the enclosing statement.
+    </p>
+  </body>
+</html>

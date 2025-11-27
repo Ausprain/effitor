@@ -1,0 +1,19 @@
+{
+  "files": ["./env.d.ts"],
+  "include": ["./src", "./shared", "./tests"],
+  "compilerOptions": {
+    "strict": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "lib": ["esnext", "DOM", "dom.iterable"],
+
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["react", "node"]
+  }
+}

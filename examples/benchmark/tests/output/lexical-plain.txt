@@ -1,0 +1,140 @@
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [lexical]
+duration: 34.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 100       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 32        │ good                │
+│ INPs (avg) │ 32.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [lexical]
+duration: 44.4s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 160       │ good                │
+│ LCP        │ 160       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 48        │ good                │
+│ INPs (avg) │ 48.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [lexical]
+duration: 34.9s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 96        │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 24        │ good                │
+│ INPs (avg) │ 24.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [lexical]
+duration: 45.2s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 152       │ good                │
+│ LCP        │ 152       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 56.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [lexical]
+duration: 34.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 100       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 32        │ good                │
+│ INPs (avg) │ 32.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [lexical]
+duration: 69.7s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ undefined │ undefined           │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ undefined │ undefined           │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [lexical]
+duration: 34.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 96        │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 32        │ good                │
+│ INPs (avg) │ 32.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [lexical]
+duration: 45.2s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 160       │ good                │
+│ LCP        │ 160       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 56.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [lexical]
+duration: 34.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 100       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 32        │ good                │
+│ INPs (avg) │ 32.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [lexical]
+duration: 45.2s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 156       │ good                │
+│ LCP        │ 156       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 48        │ good                │
+│ INPs (avg) │ 48.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+

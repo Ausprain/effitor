@@ -18,15 +18,47 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsup"
+    "build": "tsup",
+    "test5": "for i in {1..5}; do npx playwright test; done",
+    "result": "bun result.ts"
   },
   "dependencies": {
+    "@effitor/themes": "link:@effitor/themes",
     "@excalidraw/excalidraw": "^0.18.0",
+    "@lexical/clipboard": "^0.38.2",
+    "@lexical/code": "0.38.2",
+    "@lexical/history": "0.38.2",
+    "@lexical/html": "^0.38.2",
+    "@lexical/link": "0.38.2",
+    "@lexical/list": "0.38.2",
+    "@lexical/markdown": "0.38.2",
+    "@lexical/offset": "^0.38.2",
+    "@lexical/react": "0.38.2",
+    "@lexical/rich-text": "0.38.2",
+    "@lexical/selection": "^0.38.2",
+    "@lexical/table": "0.38.2",
+    "@lexical/utils": "^0.38.2",
+    "@tiptap/core": "^3.11.0",
+    "@tiptap/extension-image": "^3.11.0",
+    "@tiptap/extension-link": "^3.11.0",
+    "@tiptap/extension-table": "^3.11.0",
+    "@tiptap/extension-table-cell": "^3.11.0",
+    "@tiptap/extension-table-header": "^3.11.0",
+    "@tiptap/extension-table-row": "^3.11.0",
+    "@tiptap/starter-kit": "^3.11.0",
     "dompurify": "^3.3.0",
-    "effitor": "workspace:*",
-    "@effitor/themes": "workspace:*"
+    "effitor": "link:effitor",
+    "lexical": "0.38.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "vite": "^7.0.6"
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "playwright": "^1.56.1",
+    "vite": "^7.2.4",
+    "web-vitals": "^5.1.0"
   }
 }

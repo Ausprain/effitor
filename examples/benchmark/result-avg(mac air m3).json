@@ -1,0 +1,30 @@
+{
+  "Typing 1,000 chars in empty editor (only heading and paragraph)": {
+    "effitor": { "duration": 33.9, "lcp": null, "cls": 0, "inp": 28.8, "inps": 28.8, "memory": 16.2 },
+    "lexical": { "duration": 34.7, "lcp": null, "cls": 0, "inp": 30.4, "inps": 30.4, "memory": 10 },
+    "tiptap": { "duration": 34.3, "lcp": null, "cls": 0, "inp": 32, "inps": 32, "memory": 10 }
+  },
+  "Typing 1,000 chars in 300K-char editor (only heading and paragraph)": {
+    "effitor": { "duration": 43.3, "lcp": 179.2, "cls": 0, "inp": 38.4, "inps": 36, "memory": 16.2 },
+    "lexical": { "duration": 49.9, "lcp": 63.2, "cls": 0, "inp": 43.2, "inps": 43.2, "memory": 10 },
+    "tiptap": { "duration": 47.7, "lcp": 152, "cls": 0, "inp": 44.8, "inps": 44.8, "memory": 10 }
+  },
+  "Typing 1,000 chars in 3M-char editor (only heading and paragraph)": {
+    "effitor": { "duration": 62.4, "lcp": 1149.6, "cls": 0, "inp": 48, "inps": 52, "memory": 16.2 },
+    "tiptap": { "duration": 65.9, "lcp": 907.2, "cls": 0, "inp": 40, "inps": 48, "memory": 10 }
+  },
+  "Typing 1,000 chars in empty editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 35.1, "lcp": 1768.8, "cls": 0, "inp": 99.2, "inps": 109.6, "memory": 66.6 },
+    "lexical": { "duration": 43.8, "lcp": 336.8, "cls": 0, "inp": 49.6, "inps": 56, "memory": 21.6 },
+    "tiptap": { "duration": 39, "lcp": 210.4, "cls": 0, "inp": 38.4, "inps": 38.4, "memory": 22 }
+  },
+  "Typing 1,000 chars in 300K-char editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 44.8, "lcp": 1774.4, "cls": 0, "inp": 75.2, "inps": 75.2, "memory": 65 },
+    "lexical": { "duration": 49.3, "lcp": 336, "cls": 0, "inp": 40, "inps": 57.6, "memory": 21 },
+    "tiptap": { "duration": 47.6, "lcp": 212, "cls": 0, "inp": 40, "inps": 40, "memory": 22.3 }
+  },
+  "Typing 1,000 chars in 1M-char editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 45.8, "lcp": 1776, "cls": 0, "inp": 158, "inps": 178, "memory": 65 },
+    "tiptap": { "duration": 60.2, "lcp": 246.4, "cls": 0, "inp": 40, "inps": 48, "memory": 22 }
+  }
+}
