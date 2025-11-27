@@ -9,11 +9,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const OUT_DIR = path.resolve(__dirname, './tests/output')
 const FILES = {
   EFFITOR_PLAIN: path.resolve(OUT_DIR, 'effitor-plain.txt'),
-  // EFFITOR_RICH: path.resolve(OUT_DIR, 'effitor-rich.txt'),
+  EFFITOR_RICH: path.resolve(OUT_DIR, 'effitor-rich.txt'),
   LEXICAL_PLAIN: path.resolve(OUT_DIR, 'lexical-plain.txt'),
-  // // LEXICAL_RICH: path.resolve(OUT_DIR, 'lexical-rich.txt'),
+  LEXICAL_RICH: path.resolve(OUT_DIR, 'lexical-rich.txt'),
   TIPTAP_PLAIN: path.resolve(OUT_DIR, 'tiptap-plain.txt'),
-  // // TIPTAP_RICH: path.resolve(OUT_DIR, 'tiptap-rich.txt'),
+  TIPTAP_RICH: path.resolve(OUT_DIR, 'tiptap-rich.txt'),
 }
 
 // const resultPath = path.resolve(__dirname, './result.json')

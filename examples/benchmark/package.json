@@ -20,8 +20,7 @@
     "dev": "vite",
     "build": "tsup",
     "bundle": "bun vite build | grep \"dist/.*-rich\" > bundle.txt",
-    "clear": "rm -rf tests/output",
-    "test5": "bun clear && for i in {1..5}; do npx playwright test; done && bun result.ts"
+    "benchmark": "bun bm.ts"
   },
   "dependencies": {
     "@effitor/themes": "link:@effitor/themes",
