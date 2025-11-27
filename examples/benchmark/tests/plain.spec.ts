@@ -10,7 +10,7 @@ const saveMetrics = (fileName: string, testTitle: string) => async (page: Page, 
   await appendMetrics(page, fileName, testTitle, testInfo.duration)
 }
 
-const TEST_ITEM_1 = 'Typing 1,000 chars in empty editor (only heading and paragraph)'
+const TEST_ITEM_1 = '仅支持标题和段落的空编辑器中输入 1000 个字符'
 
 typing_1000_chars_InEmptyEditor({
   editor: 'effitor',
@@ -33,7 +33,7 @@ typing_1000_chars_InEmptyEditor({
   testEnd: saveMetrics('tiptap-plain.txt', TEST_ITEM_1 + ' by [tiptap]'),
 })
 
-const TEST_ITEM_2 = 'Typing 1,000 chars in 300K-char editor (only heading and paragraph)'
+const TEST_ITEM_2 = '仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符'
 
 typing_1000_chars_AtEditorEnd_WithInitialContent(rustNllPlainHTML_5, {
   editor: 'effitor',
@@ -56,7 +56,7 @@ typing_1000_chars_AtEditorEnd_WithInitialContent(rustNllPlainHTML_5, {
   testEnd: saveMetrics('tiptap-plain.txt', TEST_ITEM_2 + ' by [tiptap]'),
 })
 
-const TEST_ITEM_3 = 'Typing 1,000 chars in 3M-char editor (only heading and paragraph)'
+const TEST_ITEM_3 = '仅支持标题和段落的编辑器, 加载 300 万字符 HTML (10000 段落 和 2500 标题), 并在末段落输入 1000 个字符'
 
 typing_1000_chars_AtEditorEnd_WithInitialContent(rustNllPlainHTML_50, {
   editor: 'effitor',

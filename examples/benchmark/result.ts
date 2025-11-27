@@ -2,28 +2,29 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getSystemInfoShort } from './tests/utils'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const OUT_DIR = path.resolve(__dirname, './tests/output')
 const FILES = {
   EFFITOR_PLAIN: path.resolve(OUT_DIR, 'effitor-plain.txt'),
-  EFFITOR_RICH: path.resolve(OUT_DIR, 'effitor-rich.txt'),
+  // EFFITOR_RICH: path.resolve(OUT_DIR, 'effitor-rich.txt'),
   LEXICAL_PLAIN: path.resolve(OUT_DIR, 'lexical-plain.txt'),
-  LEXICAL_RICH: path.resolve(OUT_DIR, 'lexical-rich.txt'),
+  // // LEXICAL_RICH: path.resolve(OUT_DIR, 'lexical-rich.txt'),
   TIPTAP_PLAIN: path.resolve(OUT_DIR, 'tiptap-plain.txt'),
-  TIPTAP_RICH: path.resolve(OUT_DIR, 'tiptap-rich.txt'),
+  // // TIPTAP_RICH: path.resolve(OUT_DIR, 'tiptap-rich.txt'),
 }
 
-const resultPath = path.resolve(__dirname, './result.json')
-const resultAvgPath = path.resolve(__dirname, './result-avg.json')
-const resultRecord = {} as any
+// const resultPath = path.resolve(__dirname, './result.json')
+// const resultAvgPath = path.resolve(__dirname, './result-avg.json')
+const resultMarkdownPath = path.resolve(__dirname, './result.md')
 const METRIC_NAME_REG = /Metrics for: (.+) by \[(\w+)\]/
 const DURATION_REG = /duration: (.+)s/
 const METRIC_VALUE_REG = /│.+│(.+)│.+│/
 const MEMORY_REG = /│ total: (\d+) MB/
 
-const parseOutput = async (filePath: string) => {
+const parseOutput = async (filePath: string, record: any) => {
   const content = await fs.promises.readFile(filePath, 'utf-8')
   const metrics = content.split('\n\n')
   for (const metric of metrics) {
@@ -35,14 +36,15 @@ const parseOutput = async (filePath: string) => {
     if (!name || !editor) {
       continue
     }
-    if (!resultRecord[name]) {
-      resultRecord[name] = {}
+    if (!record[name]) {
+      record[name] = {}
     }
-    if (!resultRecord[name][editor]) {
-      resultRecord[name][editor] = []
+    if (!record[name][editor]) {
+      record[name][editor] = []
     }
-    resultRecord[name][editor].push(metrics)
+    record[name][editor].push(metrics)
   }
+  return record
 }
 const parseMetric = async (metric: string) => {
   metric = metric.trim()
@@ -118,15 +120,19 @@ const parseMetric = async (metric: string) => {
     memory,
   }
 }
-const writeResult = () => {
-  fs.writeFileSync(resultPath, JSON.stringify(resultRecord))
+const getOutputRecord = async () => {
+  const resultRecord = {} as any
+  for (const filePath of Object.values(FILES)) {
+    await parseOutput(filePath, resultRecord)
+  }
+  return resultRecord
 }
-const writeResultAvg = () => {
+const getOutputRecordAvg = async (outputRecord: any) => {
   const resultAvg = {} as any
-  for (const name of Object.keys(resultRecord)) {
+  for (const name of Object.keys(outputRecord)) {
     resultAvg[name] = {}
-    for (const editor of Object.keys(resultRecord[name])) {
-      const metrics = resultRecord[name][editor]
+    for (const editor of Object.keys(outputRecord[name])) {
+      const metrics = outputRecord[name][editor]
       const avgMetrics = metrics.reduce((acc: any, cur: any) => {
         for (const key of Object.keys(cur)) {
           acc[key] = (acc[key] || 0) + cur[key]
@@ -139,14 +145,31 @@ const writeResultAvg = () => {
       resultAvg[name][editor] = avgMetrics
     }
   }
-  fs.writeFileSync(resultAvgPath, JSON.stringify(resultAvg))
+  return resultAvg
+}
+const writeResultMarkdown = (outputRecordAvg: any) => {
+  let markdown = '# ' + getSystemInfoShort() + '\n\n'
+  for (const item of Object.keys(outputRecordAvg)) {
+    markdown += `## ${item}\n`
+    markdown += '| Editor | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |\n'
+    markdown += '| ------ | -------- | --- | --- | --- | ---- | ------ |\n'
+    for (const editor of Object.keys(outputRecordAvg[item])) {
+      const metrics = outputRecordAvg[item][editor]
+      markdown += `| ${editor} | ${metrics.duration} | ${metrics.lcp} | ${metrics.cls} | ${metrics.inp} | ${metrics.inps} | ${metrics.memory} |\n`
+    }
+    markdown += '\n'
+  }
+  markdown += '\n'
+  if (fs.existsSync(resultMarkdownPath)) {
+    fs.appendFileSync(resultMarkdownPath, markdown)
+  }
+  else {
+    fs.writeFileSync(resultMarkdownPath, markdown)
+  }
 }
 const main = async () => {
-  for (const filePath of Object.values(FILES)) {
-    await parseOutput(filePath)
-  }
-  writeResult()
-  writeResultAvg()
+  const resultAvg = await getOutputRecordAvg(await getOutputRecord())
+  writeResultMarkdown(resultAvg)
 }
 
 await main()

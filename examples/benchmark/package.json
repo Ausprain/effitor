@@ -19,9 +19,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsup",
-    "test5": "for i in {1..5}; do npx playwright test; done",
-    "result": "bun result.ts",
-    "bundle": "bun vite build | grep \"dist/.*-rich\" > bundle.txt"
+    "bundle": "bun vite build | grep \"dist/.*-rich\" > bundle.txt",
+    "clear": "rm -rf tests/output",
+    "test5": "bun clear && for i in {1..5}; do npx playwright test; done && bun result.ts"
   },
   "dependencies": {
     "@effitor/themes": "link:@effitor/themes",
