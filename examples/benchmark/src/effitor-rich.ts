@@ -24,7 +24,6 @@ import {
 } from 'effitor/plugins'
 
 import { listenWebMetrics } from '../shared/metric'
-import { rustNllFullHTML } from '../shared/nll-full'
 import { rustNllRichHTML } from '../shared/nll-rich'
 listenWebMetrics()
 
@@ -65,5 +64,3 @@ editor.fromHTML(rustNllRichHTML)
 window.$initEditorContentfromHTML = (html: string) => {
   editor.fromHTML(html)
 }
-
-window.$initEditorContentfromHTML(rustNllFullHTML.repeat(5))

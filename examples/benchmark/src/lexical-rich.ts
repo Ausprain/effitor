@@ -7,7 +7,6 @@ import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
 import { $getRoot, createEditor, CreateEditorArgs, ParagraphNode, TextNode } from 'lexical'
 
 import { listenWebMetrics } from '../shared/metric'
-import { rustNllFullHTML } from '../shared/nll-full'
 listenWebMetrics()
 
 const editorConfig: CreateEditorArgs = {
@@ -51,5 +50,3 @@ const host = document.createElement('div')
 host.contentEditable = 'true'
 app.appendChild(host)
 editor.setRootElement(host)
-
-window.$initEditorContentfromHTML(rustNllFullHTML.repeat(5))

@@ -8,7 +8,6 @@ import { TableRow } from '@tiptap/extension-table-row'
 import StarterKit from '@tiptap/starter-kit'
 
 import { listenWebMetrics } from '../shared/metric'
-import { rustNllFullHTML } from '../shared/nll-full'
 listenWebMetrics()
 
 const editor = new Editor({
@@ -44,5 +43,3 @@ const editor = new Editor({
 window.$initEditorContentfromHTML = (html: string) => {
   editor.commands.setContent(html)
 }
-
-window.$initEditorContentfromHTML(rustNllFullHTML.repeat(5))
