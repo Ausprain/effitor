@@ -54,6 +54,9 @@ const getPathAndMetricString = async (page: Page, fileName: string, title: strin
     return [window.webMetrics, navigator.userAgent]
   })
   const outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../output')
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir)
+  }
   const filePath = path.resolve(outDir, fileName)
   return [filePath, easyMetrics(title, duration, env, metrics)]
 }

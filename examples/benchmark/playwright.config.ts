@@ -5,27 +5,13 @@ export default defineConfig({
   testDir: 'tests',
 
   // Run all tests in parallel.
-  // fullyParallel: true,
-
+  fullyParallel: true,
   timeout: 3 * 60_000,
-
-  fullyParallel: false, // ❗ 改为 false，避免多进程竞争资源
-  retries: 0, // ❗ 不重试，避免缓存掩盖问题
-  workers: 1, // ❗ 强制单 worker，避免并行干扰
+  retries: 0,
 
   use: {
     headless: true, // 无头模式，减少渲染开销
     viewport: { width: 1280, height: 720 },
-    launchOptions: {
-      args: [
-        '--disable-gpu', // 减少 GPU 开销
-        '--no-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-      ],
-    },
     // 禁用缓存
     storageState: undefined,
     contextOptions: {

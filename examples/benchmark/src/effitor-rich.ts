@@ -24,7 +24,6 @@ import {
 } from 'effitor/plugins'
 
 import { listenWebMetrics } from '../shared/metric'
-import { rustNllRichHTML } from '../shared/nll-rich'
 listenWebMetrics()
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -59,7 +58,6 @@ const editor = new Effitor({
 })
 
 editor.mount(host)
-editor.fromHTML(rustNllRichHTML)
 
 window.$initEditorContentfromHTML = (html: string) => {
   editor.fromHTML(html)

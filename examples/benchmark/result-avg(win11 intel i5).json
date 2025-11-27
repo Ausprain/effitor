@@ -1,0 +1,30 @@
+{
+  "Typing 1,000 chars in empty editor (only heading and paragraph)": {
+    "effitor": { "duration": 47.3, "lcp": null, "cls": 0, "inp": 8, "inps": 8, "memory": 16 },
+    "lexical": { "duration": 47.5, "lcp": null, "cls": 0, "inp": 12, "inps": 12, "memory": 10 },
+    "tiptap": { "duration": 47.3, "lcp": null, "cls": 0, "inp": 8, "inps": 8, "memory": 10 }
+  },
+  "Typing 1,000 chars in 300K-char editor (only heading and paragraph)": {
+    "effitor": { "duration": 57.1, "lcp": 438, "cls": 0, "inp": 16, "inps": 16, "memory": 16.5 },
+    "lexical": { "duration": 59.8, "lcp": 264, "cls": 0, "inp": 76, "inps": 59.2, "memory": 10 },
+    "tiptap": { "duration": 58.8, "lcp": 250, "cls": 0, "inp": 40, "inps": 42, "memory": 10 }
+  },
+  "Typing 1,000 chars in 3M-char editor (only heading and paragraph)": {
+    "effitor": { "duration": 115.6, "lcp": 1990, "cls": 0, "inp": 120, "inps": 95.1, "memory": 16 },
+    "tiptap": { "duration": 123.5, "lcp": 1554, "cls": 0, "inp": 180, "inps": 157.1, "memory": 10 }
+  },
+  "Typing 1,000 chars in empty editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 46.4, "lcp": null, "cls": 0, "inp": 16, "inps": 16, "memory": 48 },
+    "lexical": { "duration": 47.5, "lcp": null, "cls": 0, "inp": 12, "inps": 12, "memory": 10 },
+    "tiptap": { "duration": 46.9, "lcp": null, "cls": 0, "inp": 12, "inps": 12, "memory": 10 }
+  },
+  "Typing 1,000 chars in 300K-char editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 55.9, "lcp": 1796, "cls": 0, "inp": 108, "inps": 130, "memory": 48 },
+    "lexical": { "duration": 92.1, "lcp": 684, "cls": 0, "inp": 136, "inps": 120.5, "memory": 10 },
+    "tiptap": { "duration": 62.3, "lcp": 488, "cls": 0.2, "inp": 40, "inps": 46, "memory": 10 }
+  },
+  "Typing 1,000 chars in 1M-char editor (basic markdown omitting code block and table)": {
+    "effitor": { "duration": 72, "lcp": 3042, "cls": 0, "inp": 48, "inps": 211.3, "memory": 48 },
+    "tiptap": { "duration": 91.5, "lcp": 1168, "cls": 0.2, "inp": 96, "inps": 99.6, "memory": 10 }
+  }
+}

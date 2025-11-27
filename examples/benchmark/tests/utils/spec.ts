@@ -54,9 +54,24 @@ const testEditorPerf = ({ editor, testItem, pageUrl, testStart, testEnd, testAct
       await testStart(page)
     }
 
-    // 聚焦编辑区, 光标移动至末尾
-    await page.locator('[contenteditable="true"],[contenteditable=""]').click()
-    await page.keyboard.press('Meta+ArrowDown')
+    const editor = page.locator('[contenteditable="true"],[contenteditable=""]')
+    // 点击一次，触发交互，防止滚动到页面底部时再次触发 LCP 指标更新
+    // ps. LCP 指标在第一次交互后停止监听
+    await editor.click()
+
+    // 滚动页面至底部
+    await page.evaluate(() => {
+      document.documentElement.scrollTop = document.documentElement.scrollHeight
+    })
+
+    // 聚焦编辑区, 光标移动至末段落
+    const lastP = editor.locator('>:last-child')
+    if (await lastP.count() > 0) {
+      await lastP.click({ position: { x: 100, y: 10 } })
+    }
+    else {
+      await editor.click()
+    }
 
     await testAction(page)
 
@@ -146,7 +161,7 @@ export const testPaste = ({ editor, testItem, pageUrl, pasteHTML, testEnd }: Pas
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         window.webMetrics = {} as any
       })
-      await page.keyboard.press('Meta+v')
+      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+v' : 'Control+v')
     },
   })
 }

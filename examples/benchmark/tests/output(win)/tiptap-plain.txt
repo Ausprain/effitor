@@ -1,0 +1,84 @@
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [tiptap]
+duration: 47.4s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 224       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [tiptap]
+duration: 58.0s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 260       │ good                │
+│ LCP        │ 260       │ good                │
+│ CLS        │ 0.0483    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 40.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 3M-char editor (only heading and paragraph) by [tiptap]
+duration: 118.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1640      │ good                │
+│ LCP        │ 1640      │ good                │
+│ CLS        │ 0.0483    │ good                │
+│ INP        │ 152       │ good                │
+│ INPs (avg) │ 151.1     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in empty editor (only heading and paragraph) by [tiptap]
+duration: 47.3s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 192       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 300K-char editor (only heading and paragraph) by [tiptap]
+duration: 59.5s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 240       │ good                │
+│ LCP        │ 240       │ good                │
+│ CLS        │ 0.0483    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 44.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: Typing 1,000 chars in 3M-char editor (only heading and paragraph) by [tiptap]
+duration: 128.5s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1468      │ good                │
+│ LCP        │ 1468      │ good                │
+│ CLS        │ 0.0483    │ good                │
+│ INP        │ 208       │ needs-improvement   │
+│ INPs (avg) │ 163.1     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
