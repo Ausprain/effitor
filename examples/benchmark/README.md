@@ -2,26 +2,50 @@
 
 # Results
 
-## Typing 1,000 chars in empty editor
+## Windows: 8x[Intel(R) Core(TM) i5-8250U CPU] 12GB, nodejs: v24.3.0
 
-### Only Heading and Paragraph Supported
+### 仅支持标题和段落的空编辑器中输入 1000 个字符
 
-| editor  | FCP   | LCP   | CLS | INP  | INPs (avg) | Memory |
-| ------- | ----- | ----- | --- | ---- | ---------- | ------ |
-| Effitor | 100ms | 200ms | 0.1 | 10ms | 20ms       | 100MB  |
-| Lexical | 150ms | 300ms | 0.2 | 15ms | 30ms       | 150MB  |
-| Tiptap  | 200ms | 400ms | 0.3 | 20ms | 40ms       | 200MB  |
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 47.2         | NaN      | 0   | 9.6      | 9.6       | 16.6        |
+| lexical | 47.8         | NaN      | 0   | 12.8     | 12.8      | 10          |
+| tiptap  | 47.6         | NaN      | 0   | 11.2     | 11.2      | 10          |
 
-### Basic Markdown Features Supported
+### 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符
 
-## Typing 1,000 chars in 3M-char document
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 56.9         | 501.6    | 0   | 24       | 24        | 16.4        |
+| lexical | 58.7         | 322.4    | 0   | 59.2     | 59.5      | 10          |
+| tiptap  | 58.1         | 329.6    | 0   | 40       | 42.4      | 10          |
 
-### Only Heading and Paragraph Supported
+### 仅支持标题和段落的编辑器, 加载 300 万字符 HTML (10000 段落 和 2500 标题), 并在末段落输入 1000 个字符
 
-### Basic Markdown Features Supported
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 125.2        | 2606.4   | 0   | 107.2    | 105.2     | 16.4        |
+| tiptap  | 130.9        | 1835.2   | 0   | 166.4    | 166.5     | 10          |
 
-## Paste 60K-char HTML
+### 支持基础 markdown 的空编辑器中输入 1000 个字符
 
-### Only Heading and Paragraph Supported
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 46.3         | NaN      | 0   | 12.8     | 12.8      | 48          |
+| lexical | 47.6         | NaN      | 0   | 8        | 8         | 10          |
+| tiptap  | 47.1         | NaN      | 0   | 11.2     | 11.2      | 10          |
 
-### Basic Markdown Features Supported
+### 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符
+
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 56.3         | 1861.6   | 0   | 78.4     | 148       | 48          |
+| lexical | 115.2        | 828.8    | 0   | 148.8    | 141.8     | 10          |
+| tiptap  | 69.3         | 612.8    | 0.2 | 41.6     | 49.6      | 10          |
+
+### 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符
+
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 87.1         | 3525.6   | 0   | 60.8     | 251.3     | 48          |
+| tiptap  | 101.4        | 1414.4   | 0.2 | 112      | 116.6     | 10          |

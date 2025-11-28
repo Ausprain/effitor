@@ -1,0 +1,140 @@
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [lexical]
+duration: 47.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 268       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [lexical]
+duration: 114.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 840       │ good                │
+│ LCP        │ 840       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 152       │ good                │
+│ INPs (avg) │ 145.8     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [lexical]
+duration: 47.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 284       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [lexical]
+duration: 116.2s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 824       │ good                │
+│ LCP        │ 824       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 152       │ good                │
+│ INPs (avg) │ 142.4     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [lexical]
+duration: 47.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 260       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [lexical]
+duration: 114.8s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 832       │ good                │
+│ LCP        │ 832       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 152       │ good                │
+│ INPs (avg) │ 133.7     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [lexical]
+duration: 47.7s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 272       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [lexical]
+duration: 115.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 844       │ good                │
+│ LCP        │ 844       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 144       │ good                │
+│ INPs (avg) │ 146.7     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [lexical]
+duration: 47.5s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 248       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [lexical]
+duration: 114.6s
+env: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 804       │ good                │
+│ LCP        │ 804       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 144       │ good                │
+│ INPs (avg) │ 140.6     │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
