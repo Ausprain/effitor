@@ -80,6 +80,7 @@ et-li.etp {
   position: relative;
   margin: 2px 0;
   padding-block: 2px;
+  min-height: calc(1.5em + 4px);
 
   &[et-check] {
     /* safari部分不支持::marker，无法通过::marker将其设置为空 */

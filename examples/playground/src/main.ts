@@ -121,7 +121,7 @@ const editor = new Effitor({
 
 const host = document.getElementById('effitor-host') as HTMLDivElement
 editor.mount(host)
-editor.fromMarkdown(md, false)
+editor.fromMarkdown(md)
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

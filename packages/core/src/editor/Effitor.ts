@@ -76,6 +76,8 @@ export class Effitor {
   private __context: Et.EditorContext | null = null
   private __ac: AbortController | undefined
   private __scrollContainer: HTMLElement = document.documentElement
+  /** 已注册样式的文档对象, 避免再次挂载时重复注册样式表 */
+  private __styledDocuments = new WeakSet<Document>()
 
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
@@ -84,10 +86,10 @@ export class Effitor {
     isDark: false,
   }
 
+  public readonly isShadow: boolean
   public readonly theme: string
   public readonly config: Readonly<Et.EditorConfig>
   public readonly platform = platform
-  public readonly isShadow: boolean
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor
   public readonly callbacks: Et.EditorCallbacks
@@ -208,7 +210,7 @@ export class Effitor {
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
-    const pluginConfigs = reducePlugins(plugins, pluginElCtors, contextMeta)
+    const pluginConfigs = this.#reducePlugins(plugins, pluginElCtors, contextMeta)
     // html相关处理器
     const htmlTransformerMaps: Et.HtmlToEtElementTransformerMap[] = []
     // mdast相关处理器
@@ -278,6 +280,8 @@ export class Effitor {
    * @param host 编辑器宿主, 一个 div 元素
    * @param scrollContainer 滚动容器, 默认是 html 根元素, 若编辑器 mount 在另一个滚动容器内部,
    *                        则必须配置此项, 否则一些插件无法正确工作
+   * @param locale 编辑器语言, 默认是平台语言
+   * @param customStyleLinks 自定义样式链接, 默认是配置中的样式链接; 该值会覆盖配置中的样式链接
    */
   mount(host: HTMLDivElement, {
     scrollContainer,
@@ -295,9 +299,9 @@ export class Effitor {
     if (scrollContainer) {
       this.__scrollContainer = scrollContainer
     }
-    const { contextMeta, mainEffector, cssText, pluginConfigs, hotstringOptions } = this.__meta
+    const { contextMeta, mainEffector, pluginConfigs, hotstringOptions } = this.__meta
     const ac = new AbortController()
-    const [root, bodyEl] = formatEffitorStructure(host, this, cssText, customStyleLinks, ac.signal)
+    const [root, bodyEl] = this.#formatEffitorStructure(host, customStyleLinks, ac.signal)
     const context = new EditorContext({
       contextMeta,
       root,
@@ -590,123 +594,129 @@ export class Effitor {
     }
     this.__observerDisconnecters.clear()
   }
-}
 
-const reducePlugins = (
-  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
-): PluginConfigs => {
-  const pNameSet = new Set<Et.EditorPlugin['name']>()
-  const effectors = [],
-    preEffectors = [],
-    postEffectors = [],
-    onMounteds = [],
-    onBeforeUnmounts = [],
-    cssTexts = []
-  const setSchema: Et.EditorSchemaSetter = (init) => {
-    Object.assign(
-      ctx.schema,
-      Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
-    )
-  }
-  for (const cur of plugins) {
-    if (pNameSet.has(cur.name)) {
-      throw Error(`Duplicate plug-in named '${cur.name}'.`)
+  #reducePlugins(
+    plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
+  ): PluginConfigs {
+    const pNameSet = new Set<Et.EditorPlugin['name']>()
+    const effectors = [],
+      preEffectors = [],
+      postEffectors = [],
+      onMounteds = [],
+      onBeforeUnmounts = [],
+      cssTexts = []
+    const setSchema: Et.EditorSchemaSetter = (init) => {
+      Object.assign(
+        ctx.schema,
+        Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
+      )
     }
-    pNameSet.add(cur.name)
-    if (cur.cssText) {
-      cssTexts.push(cur.cssText)
-    }
-    if (cur.elements) {
-      cur.elements.forEach(e => elCtors.push(e))
-    }
-    const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
-    for (const et of ets) {
-      const { onMounted, onBeforeUnmount, ...solvers } = et
-      if (onMounted) {
-        onMounteds.push(onMounted)
+    for (const cur of plugins) {
+      if (pNameSet.has(cur.name)) {
+        throw Error(`Duplicate plug-in named '${cur.name}'.`)
       }
-      if (onBeforeUnmount) {
-        onBeforeUnmounts.push(onBeforeUnmount)
+      pNameSet.add(cur.name)
+      if (cur.cssText) {
+        cssTexts.push(cur.cssText)
       }
-      if (et.enforce === void 0) {
-        effectors.push(solvers)
+      if (cur.elements) {
+        cur.elements.forEach(e => elCtors.push(e))
       }
-      else if (et.enforce === 'pre') {
-        preEffectors.push(solvers)
+      const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
+      for (const et of ets) {
+        const { onMounted, onBeforeUnmount, ...solvers } = et
+        if (onMounted) {
+          onMounteds.push(onMounted)
+        }
+        if (onBeforeUnmount) {
+          onBeforeUnmounts.push(onBeforeUnmount)
+        }
+        if (et.enforce === void 0) {
+          effectors.push(solvers)
+        }
+        else if (et.enforce === 'pre') {
+          preEffectors.push(solvers)
+        }
+        else {
+          postEffectors.push(solvers)
+        }
       }
-      else {
-        postEffectors.push(solvers)
+      cur.register?.(ctx, setSchema, mountEtHandler)
+    }
+    const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
+    return {
+      cssText: cssTexts.join('\n'),
+      onMounteds,
+      onBeforeUnmounts,
+      ...pluginEffector,
+    }
+  }
+
+  /** 格式化容器div为Effitor初始化结构 */
+  #formatEffitorStructure(
+    host: HTMLDivElement, customStyleLinks: readonly Et.CustomStyleLink[], signal: AbortSignal,
+  ) {
+    const editorEl = document.createElement(BuiltinElName.ET_EDITOR)
+    const body = document.createElement(BuiltinElName.ET_BODY)
+
+    // 链接自定义样式文件
+    const linkStyleCss = () => {
+      for (const link of customStyleLinks) {
+        const linkEl = document.createElement('link')
+        // 使用preload 先加载样式, 防止内容闪烁
+        linkEl.href = link.href
+        linkEl.type = 'text/css'
+        if (link.preload) {
+          linkEl.rel = 'preload'
+          linkEl.as = link.as ?? 'style'
+        }
+        if (link.onload) {
+          linkEl.addEventListener('load', link.onload, { signal })
+        }
+        root.appendChild(linkEl)
       }
     }
-    cur.register?.(ctx, setSchema, mountEtHandler)
-  }
-  const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
-  return {
-    cssText: cssTexts.join('\n'),
-    onMounteds,
-    onBeforeUnmounts,
-    ...pluginEffector,
-  }
-}
 
-/** 格式化容器div为Effitor初始化结构 */
-const formatEffitorStructure = (
-  host: HTMLDivElement, editor: Et.Editor,
-  cssText: string, customStyleLinks: readonly Et.CustomStyleLink[], signal: AbortSignal,
-) => {
-  const editorEl = document.createElement(BuiltinElName.ET_EDITOR)
-  const body = document.createElement(BuiltinElName.ET_BODY)
+    let root: Et.EditorRoot
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(this.__meta.cssText)
 
-  let root: Et.EditorRoot
-  const sheet = new CSSStyleSheet()
-  sheet.replaceSync(cssText)
-
-  if (editor.isShadow) {
-    // 在editor下创建一个shadowRoot
-    root = editorEl.attachShadow({ mode: 'open' }) as Et.ShadowRoot
-    root.adoptedStyleSheets = [sheet]
-  }
-  else {
-    root = editorEl
-    document.adoptedStyleSheets = [sheet]
-  }
-
-  // 链接自定义样式文件
-  for (const link of customStyleLinks) {
-    const linkEl = document.createElement('link')
-    // 使用preload 先加载样式, 防止内容闪烁
-    linkEl.href = link.href
-    linkEl.type = 'text/css'
-    if (link.preload) {
-      linkEl.rel = 'preload'
-      linkEl.as = link.as ?? 'style'
+    if (this.isShadow) {
+      // 在editor下创建一个shadowRoot
+      root = editorEl.attachShadow({ mode: 'open' }) as Et.ShadowRoot
+      root.adoptedStyleSheets = [sheet]
+      linkStyleCss()
     }
-    if (link.onload) {
-      linkEl.addEventListener('load', link.onload, { signal })
+    else {
+      root = editorEl
+      if (!this.__styledDocuments.has(document)) {
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
+        linkStyleCss()
+        this.__styledDocuments.add(document)
+      }
     }
-    root.append(linkEl)
-  }
 
-  // 清空el并挂载editor
-  host.innerHTML = ''
-  host.append(editorEl)
-  host.classList.add(CssClassEnum.Effitor)
-  // host.style.position = 'relative'  // host 定位会让 dropdown 的锚点定位不基于视口判断
-  if (editor.theme) {
-    editorEl.setAttribute(BuiltinConfig.THEME_ATTR, editor.theme)
-  }
-  // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
-  // fixed. 若为 relative, 会让内部的 anchor-position失效
-  // host.style.position = 'relative'
+    // 清空el并挂载editor
+    host.innerHTML = ''
+    host.append(editorEl)
+    host.classList.add(CssClassEnum.Effitor)
+    // host.style.position = 'relative'  // host 定位会让 dropdown 的锚点定位不基于视口判断
+    if (this.theme) {
+      editorEl.setAttribute(BuiltinConfig.THEME_ATTR, this.theme)
+    }
+    // host元素需要设置定位, 让editor内部元素能以其为offsetParent, 而不是body
+    // fixed. 若为 relative, 会让内部的 anchor-position失效
+    // host.style.position = 'relative'
 
-  editorEl.append(body)
-  // 使用shadow, 将editor所有内容移动到root下; 否则不显示
-  if (root !== editorEl) {
-    root.append(...editorEl.childNodes)
-  }
+    editorEl.append(body)
+    // 使用shadow, 将editor所有内容移动到root下; 否则不显示
+    if (root !== editorEl) {
+      root.append(...editorEl.childNodes)
+    }
 
-  // todo 如果能处理好输入法位置的话，使用editcontext也是可以的
-  // body.contentEditable = 'false'
-  // body.editContext = new EditContext()
-  return [root, body] as const
+    // todo 如果能处理好输入法位置的话，使用editcontext也是可以的
+    // body.contentEditable = 'false'
+    // body.editContext = new EditContext()
+    return [root, body] as const
+  }
 }
