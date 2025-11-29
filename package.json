@@ -21,6 +21,7 @@
     "build:main": "bun ./scripts/build.js",
     "prebuild:main": "tsc --noEmit && bun eslint packages --quiet && bun run update:packages",
     "update:packages": "bun ./scripts/updatePackageJson.js",
+    "benchmark": "cd examples/benchmark && bun run benchmark",
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"
