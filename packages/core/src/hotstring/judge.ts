@@ -4,13 +4,16 @@ export interface HotstringAction {
   /**
    * 热字符串触发回调
    * @param ctx 编辑器上下文
-   * @param hs 热字符串
-   * @param removeInsertedHotstring 移除已输入的热字符串, 不会判断移除热字符串文本后节点是否为空
+   * @param hs 匹配的热字符串对象
+   * @param removeInsertedHotstring 移除已输入的热字符串, 不会判断移除热字符串文本后节点是否为空;
+   *                                接受一个参数, 要替换插入的字符串, 默认空串, 即仅删除热字符串; 若缺省, 则使用热字符对象上的 repl 属性
    */
-  (ctx: Et.EditorContext, hs: string, removeInsertedHotstring: () => Text | null): void
+  (ctx: Et.EditorContext, hs: Hotstring, removeInsertedHotstring: (repl?: string) => Text | null): void
 }
 export interface HotstringOptions {
   action: HotstringAction
+  /** 热字符串替换字符串 */
+  repl?: string
   title?: string
   descr?: string
 }
@@ -22,6 +25,8 @@ export class Hotstring {
   private __pos = 0
   /** 热字符串整串(不包含触发字符) */
   public readonly hotstring: string
+  /** 热字符串替换字符串 */
+  public readonly repl: string
   public readonly title: string
   /** 热字符串描述 */
   public readonly descr: string
@@ -35,14 +40,13 @@ export class Hotstring {
    */
   constructor(hotstring: string, triggerChars: string, {
     action,
+    repl = '',
     title = '',
     descr = '',
-  }: {
-    action: HotstringAction
-    title?: string
-    descr?: string
-  }) {
+  }: HotstringOptions,
+  ) {
     this.hotstring = hotstring + triggerChars.slice(0, -1)
+    this.repl = repl
     this.title = title
     this.descr = descr
     this.__chars = (hotstring + triggerChars).split('')

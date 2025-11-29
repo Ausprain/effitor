@@ -2,6 +2,16 @@ import type { Et } from '../@types'
 import { removeHotstringOnTrigger } from './actions'
 import { Hotstring, type HotstringOptions } from './judge'
 
+declare module '../editor/ConfigManager' {
+  interface UserConfig {
+    hotstringData?: HotstringData
+  }
+}
+
+interface HotstringData {
+  hotstringMapping: Record<string, string>
+}
+
 export interface HotstringManagerOptions {
   /**
    * 热字符串触发串\
@@ -22,11 +32,13 @@ const defaultOptions: HotstringManagerOptions = {
  * 获取一个热字符串管理器
  */
 export class HotstringManager {
+  private readonly hotstringMapping: Record<string, string> = {}
   private readonly hotstringMap = new Map<string, Hotstring>()
   private readonly hsArray: Hotstring[] = []
   private _resetNeeded = false
   public readonly triggerChars: string
   public readonly trigger: string
+  private readonly _configManager: Et.ConfigManager
 
   constructor(
     private readonly _ctx: Et.EditorContext,
@@ -35,6 +47,24 @@ export class HotstringManager {
     const triggerChars = options?.triggerChars ?? defaultOptions.triggerChars
     this.triggerChars = triggerChars
     this.trigger = triggerChars.slice(-1)
+    this._configManager = _ctx.editor.configManager
+
+    // 初始化替换热字符串
+    const hotstringData = this._configManager.getConfig('hotstringData') ?? {} as HotstringData
+    if (!hotstringData) {
+      this._configManager.updateConfig('hotstringData', {
+        hotstringMapping: {},
+      })
+    }
+    else if (hotstringData.hotstringMapping) {
+      this.addReplHotstrings(hotstringData.hotstringMapping)
+    }
+  }
+
+  #updateConfig() {
+    this._configManager.updateConfig('hotstringData', {
+      hotstringMapping: { ...this.hotstringMapping },
+    })
   }
 
   #updateHsArray() {
@@ -90,7 +120,7 @@ export class HotstringManager {
         Promise.resolve().then(() => {
           // _resetNeeded = false
           this._ctx.commandManager.startTransaction()
-          hs.action(this._ctx, hs.hotstring, () => removeHotstringOnTrigger(this._ctx, hs.hotstring))
+          hs.action(this._ctx, hs, (repl = hs.repl) => removeHotstringOnTrigger(this._ctx, hs.hotstring, repl))
           this._ctx.commandManager.closeTransaction()
         })
         return (this._resetNeeded = true)
@@ -120,6 +150,27 @@ export class HotstringManager {
       this.#addHotString(new Hotstring(k, this.triggerChars, v), false)
     })
     this.#updateHsArray()
+  }
+
+  /**
+   * 创建并添加一组热字符串, 已存在则覆盖; 若任意键或值为空, 则跳过
+   * @param hotstringMapping 热字符串 -> 替换字符串
+   */
+  addReplHotstrings(hotstringMapping: Record<string, string>) {
+    Object.entries(hotstringMapping).forEach(([k, v]) => {
+      if (!k || !v) {
+        return
+      }
+      this.#addHotString(new Hotstring(k, this.triggerChars, {
+        repl: v,
+        action: (_ctx, _hs, removeInsertedHotstring) => {
+          removeInsertedHotstring()
+        },
+      }), false)
+      this.hotstringMapping[k] = v
+    })
+    this.#updateHsArray()
+    this.#updateConfig()
   }
 
   allHotstrings() {

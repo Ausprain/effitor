@@ -1,5 +1,4 @@
 import type { Et } from '../@types'
-import { ConfigManager } from '../editor/ConfigManager'
 import {
   BuiltinHotkeyActionMap,
   ModKeyDownBuiltinMap,
@@ -72,7 +71,7 @@ export class HotkeyManager {
     return num === CtrlCmd
   }
 
-  private readonly _configManager: ConfigManager
+  private readonly _configManager: Et.ConfigManager
   constructor(
     private readonly _ctx: Et.EditorContext,
   ) {
@@ -120,15 +119,19 @@ export class HotkeyManager {
       needUpdateConfig = true
     }
     if (needUpdateConfig) {
-      this._configManager.updateConfig('hotkeyData', {
-        hotkeyMapping: { ...this._hotkeyActionKeyMap },
-      })
+      this.#updateConfig()
     }
 
     // 加载内置系统级按键行为
     this._builtinModKeyEffect = ModKeyDownBuiltinMap
     // 加载默认按键行为
     this._defaultModKeyEffect = ModKeyDownDefaultMap
+  }
+
+  #updateConfig() {
+    this._configManager.updateConfig('hotkeyData', {
+      hotkeyMapping: { ...this._hotkeyActionKeyMap },
+    })
   }
 
   /**
@@ -224,9 +227,7 @@ export class HotkeyManager {
       // if (!confirm) return false
     }
     this._hotkeyActionKeyMap[hotkey] = actionKey
-    this._configManager.updateConfig('hotkeyData', {
-      hotkeyMapping: { ...this._hotkeyActionKeyMap },
-    })
+    this.#updateConfig()
     return true
   }
 

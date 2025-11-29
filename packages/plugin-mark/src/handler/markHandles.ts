@@ -35,7 +35,7 @@ const checkRemoveZWSAndMarkChars = (ctx: Et.EditorContext, tc: Et.ValidTargetCar
     }
     else {
       offset = offset - marker.length
-      ctx.commandManager.handleDeleteText(text, offset, marker, true)
+      ctx.commandManager.handleUpdateText(text, offset, marker, '', true)
       if (tc.isAtEnd()) {
         return cr.caretOutEnd(text)
       }
@@ -156,7 +156,7 @@ export const markHandler: Et.EffectHandler = {
       }
       else {
         insertAt = cr.caret(tr.commonAncestor, tr.startOffset)
-        ctx.commandManager.handleDeleteText(tr.commonAncestor, tr.startOffset, data.length, false)
+        ctx.commandManager.handleUpdateText(tr.commonAncestor, tr.startOffset, data.length, '', false)
       }
       return insertMarkNodeAtCaret(ctx, insertAt, markType, data)
     })

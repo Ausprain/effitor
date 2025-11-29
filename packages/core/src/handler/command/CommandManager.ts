@@ -381,54 +381,27 @@ export class CommandManager implements CommandQueue {
   /* -------------------------------------------------------------------------- */
 
   /**
-   * 在文本节点中插入文本, 不自动 commit
+   * 更新文本节点中的文本, 不自动 commit
+   * * ⚠️ 该方法不会判断更新(删除文本)后文本节点是否为空;
    * @param destCaretRange 命令执行后光标位置;
    *                       若为 true, 则使用新节点内开头位置;
    *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
    */
-  handleInsertText(
-    textNode: Text,
-    offset: number,
-    data: string,
-    destCaretRange: Et.CaretRange | boolean = false,
-  ) {
-    this.push(cmd.insertText({
-      text: textNode as Et.Text,
-      offset,
-      data,
-      setCaret: destCaretRange === true,
-    }))
-    if (!destCaretRange) {
-      return this.handle()
-    }
-    return this.handleAndUpdate(destCaretRange === true ? void 0 : destCaretRange)
-  }
-
-  /**
-   * 删除文本节点中的文本, 不自动 commit
-   * * ⚠️ 该方法不会判断删除后文本节点是否为空;
-   * * 此方法使用 backward 方向删除
-   * @param destCaretRange 命令执行后光标位置;
-   *                       若为 true, 则使用新节点内开头位置;
-   *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
-   */
-  handleDeleteText(
+  handleUpdateText(
     textNode: Text,
     offset: number,
     delDataOrLen: string | number,
+    replData: string,
     destCaretRange: Et.CaretRange | boolean = false,
   ) {
-    if (typeof delDataOrLen === 'number') {
-      delDataOrLen = textNode.data.slice(offset, offset + delDataOrLen)
-    }
-    if (!delDataOrLen) {
+    if (!delDataOrLen && !replData) {
       return false
     }
-    this.push(cmd.deleteText({
+    this.push(cmd.replaceText({
       text: textNode as Et.Text,
-      data: delDataOrLen,
       offset,
-      isBackward: true,
+      data: replData,
+      delLen: typeof delDataOrLen === 'string' ? delDataOrLen.length : delDataOrLen,
       setCaret: destCaretRange === true,
     }))
     if (!destCaretRange) {
