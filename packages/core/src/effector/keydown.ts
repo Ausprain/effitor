@@ -1,5 +1,4 @@
 import type { Et } from '../@types'
-import { solveKeydownArrow } from './keydownArrow'
 
 export type MainKeyboardSolver = {
   [K in keyof Et.KeyboardKeySolver]: (ev: KeyboardEvent, ctx: Et.UpdatedContext) => void
@@ -80,12 +79,12 @@ export const runKeyboardSolver = (
  *
  * 正常情况下编辑器只注册一个 keydown 监听器, 执行顺序:
  *
+ * 2. 监听内置系统级按键行为; hotkeyManager.listenBuiltin; 有些系统级别的约定俗成
+ *    的行为不应再走插件, 如 `opt+ArrowLeft` 光标左移一个单词等
  * 0. 判断是否为输入法输入, 是则直接返回;
  *    光标是否在input/textarea 内, 是则直接执行 4 并返回
  * 1. 普通输入行为: ev.key.length==1 且无除`shift`外的修饰键; 此项放在前面时为了
  *    性能, 因为普通输入占编辑器输入的绝大多数场景
- * 2. 监听内置系统级按键行为; hotkeyManager.listenBuiltin; 有些系统级别的约定俗成
- *    的行为不应再走插件, 如 `opt+ArrowLeft` 光标左移一个单词等
  * 3. 监听快捷键绑定; hotkeyManager.listenBinding 在 listenBuiltin 失败之后,
  *    插件 keydownSovler 之前执行; 快捷键也不应走插件, 如 撤销/重做 等.
  * 4. 插件 keydownSovler;
@@ -169,14 +168,13 @@ export const getKeydownListener = (
   ctx: Et.UpdatedContext, main: MainKeydownKeySolver, solver?: Et.KeyboardSolver,
 ) => {
   return (ev: Et.KeyboardEvent) => {
+    // 2. 监听内置系统级按键行为
     // 判断方向键
-    if (ev.code[0] === 'A' && ev.code[4] === 'w') {
-      if (solveKeydownArrow(ctx)) {
-        ev.preventDefault()
-        ev.stopPropagation()
-        ev.stopImmediatePropagation()
-        return
-      }
+    if (ctx.hotkeyManager.listenBuiltin()) {
+      ev.preventDefault()
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
+      return
     }
 
     // MacOS 下非 Safari, 通过延迟1帧, 等待 compositionstart 激活来判断是否输入法输入
@@ -209,12 +207,6 @@ export const getKeydownListener = (
           data,
           inputType: 'insertText',
         })
-        return
-      }
-
-      // 2. 监听内置系统级按键行为
-      // ctx.hotkeyManager.setModkey(ev)
-      if (ctx.hotkeyManager.listenBuiltin()) {
         return
       }
 

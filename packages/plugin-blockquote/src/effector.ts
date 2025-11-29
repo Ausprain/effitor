@@ -78,8 +78,10 @@ export const blockquoteEffector: Et.Effector = {
     const hsm = ctx.hotstringManager
     const metaMap = ctx.pctx.$bqPx.metaMap
     for (const meta of Object.values(metaMap)) {
-      hsm.create(meta.abbr, (ctx) => {
-        checkAbbrToBlockquote(ctx, meta)
+      hsm.create(meta.abbr, {
+        action: (ctx) => {
+          checkAbbrToBlockquote(ctx, meta)
+        },
       })
     }
   },

@@ -4,30 +4,31 @@
 
 import type { Et } from '../@types'
 import { platform } from '../config'
-import type { ActionRun } from './config'
+import { ModKeyDownModifySelectionMap } from './builtinKeydownArrow'
+import type { HotkeyAction } from './config'
 import { Key } from './Key'
 import { CtrlCmd, LineModifier, Mod, WordModifier } from './Mod'
-import { create, createAction, withMod } from './util'
+import { create } from './util'
 
-type InputTypeOrActionRun = Et.InputType | ActionRun['run']
+type InputTypeOrEditorAction = Et.InputType | Et.EditorAction
 
 /**
  * keydown中按下组合键对应行为
  */
-export type ModKeyDownEffectMap = Record<string, InputTypeOrActionRun>
+export type ModKeyDownEffectMap = Record<string, InputTypeOrEditorAction>
 
 /**
  * 内置快捷键操作列表 \
  * // TODO 待完善
  */
-export const BuiltinHotkeyActionMap = {
+export const BuiltinHotkeyActionMap: Record<string, HotkeyAction> = {
   // /** 撤销 */
   // editorUndo: createAction('editor', '撤销', { hotkey: withMod(Key.Z) }),
   // /** 重做 */
   // editorRedo: createAction('editor', '重做', { hotkey: withMod(Key.Z, Mod.Shift) }),
   // editorRedoOnWindows: createAction('editor', '重做', { hotkey: withMod(Key.Y) }),
   /** 搜索 */
-  editorSearch: createAction('editor', '编辑器内搜索', { hotkey: withMod(Key.F) }),
+  // editorSearch: createAction('editor', '编辑器内搜索', { hotkey: withMod(Key.F) }),
   // /** 复制 */
   // editorCopy: createAction('editor', '复制', { hotkey: withMod(Key.C) }),
   // /** 粘贴 */
@@ -35,28 +36,29 @@ export const BuiltinHotkeyActionMap = {
   // /** 剪切 */
   // editorCut: createAction('editor', '剪切', { hotkey: withMod(Key.X) }),
 
-  /** 斜体 */
-  markItalic: createAction('editor', '添加斜体', { hotkey: withMod(Key.I) }),
-  /** 粗体 */
-  markBold: createAction('editor', '添加粗体', { hotkey: withMod(Key.B) }),
-  /** 内联代码, mac的 cmd+\` 无法拦截, 绑定为ctrl+\` */
-  markInlineCode: createAction('editor', '添加内联代码', { hotkey: create(Key.Backquote, Mod.Ctrl) }),
-  /** 删除线 */
-  markDelete: createAction('editor', '添加删除线', { hotkey: withMod(Key.D) }),
-  /** 下划线 */
-  markUnderline: createAction('editor', '添加下划线', { hotkey: withMod(Key.U) }),
-  /** 高亮 */
-  markHighlight: createAction('editor', '添加高亮', { hotkey: withMod(Key.H) }),
+  // /** 斜体 */
+  // markItalic: createAction('editor', '添加斜体', { hotkey: withMod(Key.I) }),
+  // /** 粗体 */
+  // markBold: createAction('editor', '添加粗体', { hotkey: withMod(Key.B) }),
+  // /** 内联代码, mac的 cmd+` 无法拦截, 绑定为ctrl+` */
+  // markInlineCode: createAction('editor', '添加内联代码', { hotkey: create(Key.Backquote, Mod.Ctrl) }),
+  // /** 删除线 */
+  // markStrikethrough: createAction('editor', '添加删除线', { hotkey: withMod(Key.D) }),
+  // /** 下划线 */
+  // markUnderline: createAction('editor', '添加下划线', { hotkey: withMod(Key.U) }),
+  // /** 高亮 */
+  // markHighlight: createAction('editor', '添加高亮', { hotkey: withMod(Key.H) }),
 
-  /** 链接 */
-  insertLink: createAction('editor', '插入链接', { hotkey: withMod(Key.K) }),
+  // /** 链接 */
+  // insertLink: createAction('editor', '插入链接', { hotkey: withMod(Key.K) }),
 
 }
 
 /**
- * 系统层面的编辑行为, 在 (插件)KeydownSovler 之前执行, 执行成功则结束keydown事件周期
+ * 系统级(不受输入法影响的)按键行为, keydown事件开始时执行, 执行返回 true 则结束keydown事件周期
  */
 export const ModKeyDownBuiltinMap: ModKeyDownEffectMap = {
+  ...ModKeyDownModifySelectionMap,
 
   // ctrl+a 逐级全选
   [create(Key.A, CtrlCmd)]: ctx => (ctx.selection.selectAllGradually(), true), // 始终返回 true, 禁止逃逸触发浏览器默认行为

@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { type Et, hotkey } from '@effitor/core'
 import {
   boldIcon,
   highlightIcon,
@@ -46,12 +46,37 @@ export const markEffector: Et.Effector = {
         ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
       }
     }
-    ctx.hotkeyManager.bindActionRun({
-      markBold: ctx => checkFormatMark(ctx, MarkType.BOLD),
-      markItalic: ctx => checkFormatMark(ctx, MarkType.ITALIC),
-      markDelete: ctx => checkFormatMark(ctx, MarkType.DELETE),
-      markHighlight: ctx => checkFormatMark(ctx, MarkType.HIGHLIGHT),
-      markInlineCode: ctx => checkFormatMark(ctx, MarkType.CODE),
+    ctx.hotkeyManager.addActions({
+      /** 斜体 */
+      markItalic: hotkey.createAction('editor', '添加斜体', {
+        hotkey: hotkey.withMod(hotkey.Key.I),
+        run: ctx => checkFormatMark(ctx, MarkType.ITALIC),
+      }),
+      /** 粗体 */
+      markBold: hotkey.createAction('editor', '添加粗体', {
+        hotkey: hotkey.withMod(hotkey.Key.B),
+        run: ctx => checkFormatMark(ctx, MarkType.BOLD),
+      }),
+      /** 内联代码, mac的 cmd+` 无法拦截, 绑定为ctrl+` */
+      markInlineCode: hotkey.createAction('editor', '添加内联代码', {
+        hotkey: hotkey.create(hotkey.Key.Backquote, hotkey.Mod.Ctrl),
+        run: ctx => checkFormatMark(ctx, MarkType.CODE),
+      }),
+      /** 删除线 */
+      markStrikethrough: hotkey.createAction('editor', '添加删除线', {
+        hotkey: hotkey.withMod(hotkey.Key.D),
+        run: ctx => checkFormatMark(ctx, MarkType.DELETE),
+      }),
+      // /** 下划线 */
+      // markUnderline: hotkey.createAction('editor', '添加下划线', {
+      //   hotkey: hotkey.withMod(hotkey.Key.U),
+      //   run:
+      //  }),
+      /** 高亮 */
+      markHighlight: hotkey.createAction('editor', '添加高亮', {
+        hotkey: hotkey.withMod(hotkey.Key.H),
+        run: ctx => checkFormatMark(ctx, MarkType.HIGHLIGHT),
+      }),
     })
     // 下拉菜单添加 mark 相关的 item
     addMarkItemToDropdown(ctx.assists.dropdown)

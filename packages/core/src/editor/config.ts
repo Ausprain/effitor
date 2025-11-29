@@ -10,7 +10,7 @@ import type {
   EtParagraphCtor,
 } from '../element'
 import type { MountEtHandler } from '../element/register'
-import { HotstringOptions } from '../hotstring/manager'
+import { HotstringManagerOptions } from '../hotstring/HotstringManager'
 import { HtmlProcessorOptions } from '../html'
 import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
@@ -56,7 +56,6 @@ export interface ParagraphCreator {
    */
   (ctx: EditorContext): [EtParagraph] | [EtParagraph, CaretRange]
 }
-
 /**
  * 编辑器设置, 类似于编辑器回调, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \
  * 其最大的意义是, 在编辑器创建之后, 在不重启编辑器的情况下更改编辑器及其插件的配置
@@ -66,12 +65,10 @@ export interface EditorSettings {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: (...args: any[]) => any
 }
-
 export interface EditorStatus {
   /** 是否为深色模式 */
   isDark: boolean
 }
-
 /**
  * 编辑器配置
  */
@@ -105,7 +102,6 @@ export interface EditorConfig {
    */
   // DYNAMIC_CONTENTEDITABLE: boolean
 }
-
 type IndexSchema = Readonly<Record<string, EffectElementCtor>>
 export interface EditorSchema extends IndexSchema {
   /** 当前编辑器元素类 */
@@ -118,7 +114,6 @@ export interface EditorSchema extends IndexSchema {
   readonly paragraph: EtParagraphCtor
 }
 export type EditorSchemaSetter = (init: Partial<OmitStringIndexSignature<EditorSchema>>) => void
-
 /**
  * 编辑器插件
  */
@@ -166,8 +161,7 @@ export interface EditorPlugin {
   readonly register?: (
     ctxMeta: EditorContextMeta, setSchema: EditorSchemaSetter, mountEtHandler: MountEtHandler,
   ) => void
-};
-
+}
 /**
  * 编辑器初始化选项
  */
@@ -204,7 +198,7 @@ export interface CreateEditorOptions {
   // /** 热键配置选项 */
   // hotkeyOptions?: HotkeyOptions
   /** 热字符串配置选项 */
-  hotstringOptions?: HotstringOptions
+  hotstringOptions?: HotstringManagerOptions
   /** html 处理器选项 */
   htmlOptions?: HtmlProcessorOptions
   // /** markdown 处理器选项 */
@@ -214,7 +208,7 @@ export interface CreateEditorOptions {
    * 通过该属性获取的配置的优先级是最高的, 会覆盖 config 传入的配置
    */
   configManager?: ConfigManager
-};
+}
 export interface CustomStyleLink {
   href: string
   /** 是否预加载, 内容相关样式预加载可降低内容闪烁的可能; 或者直接使用customStyleText添加样式 */
@@ -222,7 +216,6 @@ export interface CustomStyleLink {
   as?: 'font' | 'style'
   onload?: (this: HTMLLinkElement, ev: HTMLElementEventMap['load']) => void
 }
-
 export interface EditorMountOptions {
   /** 编辑器所在滚动容器, 默认为根 html 元素 */
   scrollContainer?: HTMLElement
@@ -230,4 +223,11 @@ export interface EditorMountOptions {
   locale?: string
   /** 自定义样式文件列表, 该值会覆盖编辑器初始化时的customStyleLinks */
   customStyleLinks?: CustomStyleLink[]
+}
+export interface EditorAction {
+  /** 编辑器操作函数, 用于执行编辑器内的任何操作; 当且仅当返回 true 时, 终止后续操作 */
+  (ctx: EditorContext): TrueOrVoid
+}
+export interface EditorActionMap {
+  [k: string]: EditorAction
 }

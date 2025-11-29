@@ -159,14 +159,14 @@ export class HotkeyManager {
   }
 
   /**
-   * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
+   * 在 MainKeydownSolver 前监听按键默认行为, 在插件keydownSovler之后执行; 如 `opt+Backspace` 删除一个word
    */
   listenDefault() {
     return this.listenEffect(this._defaultModKeyEffect)
   }
 
   /**
-   * 在 keydown 中监听快捷键绑定; 在 listenBuiltin 失败之后, 插件 keydownSovler 之前执行
+   * 在 keydown 中监听快捷键绑定; 在 listenBuiltin 失败之后, 插件 keydownSovler 之前执行; 不可 repeat 执行
    */
   listenBinding() {
     const action = this._hotkeyActionMap[this._modkey]

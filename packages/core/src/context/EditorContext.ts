@@ -11,7 +11,7 @@ import { CommonHandler } from '../handler/CommonHandler'
 import { effectInvoker } from '../handler/invoker'
 import { KeepDefaultModkeyMap } from '../hotkey/builtin'
 import { HotkeyManager } from '../hotkey/HotkeyManager'
-import { getHotstringManager } from '../hotstring/manager'
+import { HotstringManager } from '../hotstring/HotstringManager'
 import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
 import { traversal } from '../utils'
@@ -48,7 +48,7 @@ export interface UpdatedContext extends EditorContext {
 }
 export interface CreateEditorContextOptionsFields {
   readonly contextMeta: Readonly<Et.EditorContextMeta>
-  readonly hotstringOptions?: Et.hotstring.HotstringOptions
+  readonly hotstringOptions?: Et.hotstring.ManagerOptions
 }
 export interface CreateEditorContextOptions extends CreateEditorContextOptionsFields {
   readonly root: Et.EditorRoot
@@ -174,7 +174,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     // 只能在命令管理器创建之后创建
     this.commonHandler = new CommonHandler(this)
     this.hotkeyManager = new HotkeyManager(this)
-    this.hotstringManager = getHotstringManager(this, options.hotstringOptions)
+    this.hotstringManager = new HotstringManager(this, options.hotstringOptions)
 
     this.__onEffectElementChanged = options.onEffectElementChanged
     this.__onParagraphChanged = options.onParagraphChanged

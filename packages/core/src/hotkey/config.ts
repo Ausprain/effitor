@@ -1,4 +1,4 @@
-import type { Et } from '../@types'
+import type { EditorAction } from '../editor'
 
 /** 快捷键字符串, 包含修饰键和按键的信息 */
 export type A_hotkey = string
@@ -15,14 +15,12 @@ export interface ActionGroupMap_ {
   app: 'app'
   editor: 'editor'
 }
-export interface ActionRun {
-  /** 当且仅当返回true，跳过后续操作 */
-  run: (ctx: Et.EditorContext) => TrueOrVoid
-}
-export interface HotkeyAction extends Partial<ActionRun> {
+
+export interface HotkeyAction {
   title: string
   descr: string
   group: keyof ActionGroupMap_
   hotkey: A_hotkey
   canCustom: boolean
+  run?: EditorAction
 }

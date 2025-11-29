@@ -9,6 +9,11 @@ export interface HotstringAction {
    */
   (ctx: Et.EditorContext, hs: string, removeInsertedHotstring: () => Text | null): void
 }
+export interface HotstringOptions {
+  action: HotstringAction
+  title?: string
+  descr?: string
+}
 /**
  * 热字符串类，用于判断输入字符是否匹配热字符串, 匹配后执行相应动作
  */
@@ -17,6 +22,9 @@ export class Hotstring {
   private __pos = 0
   /** 热字符串整串(不包含触发字符) */
   public readonly hotstring: string
+  public readonly title: string
+  /** 热字符串描述 */
+  public readonly descr: string
   /** 热字符串触发回调 */
   public readonly action: HotstringAction
 
@@ -25,8 +33,18 @@ export class Hotstring {
    * @param hotstring 热字符串（不可包含触发字符：默认是空格）
    * @param action 热字符串触发回调
    */
-  constructor(hotstring: string, triggerChars: string, action: HotstringAction) {
+  constructor(hotstring: string, triggerChars: string, {
+    action,
+    title = '',
+    descr = '',
+  }: {
+    action: HotstringAction
+    title?: string
+    descr?: string
+  }) {
     this.hotstring = hotstring + triggerChars.slice(0, -1)
+    this.title = title
+    this.descr = descr
     this.__chars = (hotstring + triggerChars).split('')
     this.action = action
   }

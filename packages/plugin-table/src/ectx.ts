@@ -74,31 +74,6 @@ const moveCaretDownInCellOrBeneath = (ctx: Et.EditorContext) => {
   }
 }
 
-// const tryToMoveRowUp = (ctx: Et.EditorContext) => {
-//   const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
-//   if (!row) {
-//     return
-//   }
-//   const prevRow = row.previousSibling
-//   if (!prevRow) {
-//     return
-//   }
-//   // 先移除 prev, 再插入 row 的后边, 因此基于 row 计算的到的插入位置要 -1
-//   ctx.commonHandler.moveNode(prevRow, cr.caretOutEnd(row).moved(-1))
-// }
-
-// const tryToMoveRowDown = (ctx: Et.EditorContext) => {
-//   const row = ctx.commonEtElement?.parentNode as EtTableRowElement | undefined
-//   if (!row) {
-//     return
-//   }
-//   const nextRow = row.nextSibling
-//   if (!nextRow) {
-//     return
-//   }
-//   ctx.commonHandler.moveNode(nextRow, cr.caretOutStart(row))
-// }
-
 const tryToMoveColLeft = (ctx: Et.EditorContext) => {
   const cell = ctx.commonEtElement
   if (!cell?.previousSibling) {
@@ -175,16 +150,15 @@ const setTableAlign = (ctx: Et.EditorContext, align: 'left' | 'center' | 'right'
 
 // 当且仅当返回 false, 使用默认行为
 export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
+  // 覆盖默认的 cmd+enter 快捷键行为 (默认行为只是插入一个当前类型段落, 而表格还需要插入相同数量的单元格)
   [hotkey.create(hotkey.Key.Enter, hotkey.CtrlCmd)]: 'insertParagraph',
   [hotkey.create(hotkey.Key.Tab, 0)]: tabToNextCellOrInsertNewColumn,
   [hotkey.create(hotkey.Key.Tab, hotkey.Mod.Shift)]: shiftTabToPrevCellOrInsertNewColumn,
   [hotkey.create(hotkey.Key.ArrowUp, 0)]: moveCaretUpInCellOrAbove,
   [hotkey.create(hotkey.Key.ArrowDown, 0)]: moveCaretDownInCellOrBeneath,
-  // [hotkey.create(hotkey.Key.ArrowUp, hotkey.Mod.AltOpt)]: tryToMoveRowUp,
-  // [hotkey.create(hotkey.Key.ArrowDown, hotkey.Mod.AltOpt)]: tryToMoveRowDown,
   [hotkey.create(hotkey.Key.ArrowLeft, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColLeft,
   [hotkey.create(hotkey.Key.ArrowRight, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColRight,
-  [hotkey.create(hotkey.Key.C, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'center'),
-  [hotkey.create(hotkey.Key.R, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'right'),
-  [hotkey.create(hotkey.Key.L, hotkey.CtrlCmd)]: ctx => setTableAlign(ctx, 'left'),
+  [hotkey.create(hotkey.Key.C, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'center'),
+  [hotkey.create(hotkey.Key.R, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'right'),
+  [hotkey.create(hotkey.Key.L, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'left'),
 }
