@@ -183,11 +183,6 @@ export const mediaEffector: Et.Effector = {
 }
 
 const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx: Et.EditorContext) => {
-  const onchosen = (type: MediaType) => {
-    return (ctx: Et.EditorContext) => {
-      return ctx.assists.dialog && showMediaUploadDialog(ctx.assists.dialog, ctx, type)
-    }
-  }
   const getItemOpts = (prefix: string): DropdownMenuItemOptions => {
     return {
       filter: {
@@ -201,21 +196,21 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
   if (image) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       imageFileIcon(),
-      onchosen(MediaType.Image),
+      (ctx: Et.EditorContext) => openMediaUploadDialog(ctx, MediaType.Image),
       getItemOpts('image'),
     ))
   }
   if (audio) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       audioFileIcon(),
-      onchosen(MediaType.Audio),
+      (ctx: Et.EditorContext) => openMediaUploadDialog(ctx, MediaType.Audio),
       getItemOpts('audio'),
     ))
   }
   if (video) {
     dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
       videoFileIcon(),
-      onchosen(MediaType.Video),
+      (ctx: Et.EditorContext) => openMediaUploadDialog(ctx, MediaType.Video),
       getItemOpts('video'),
     ))
   }
@@ -226,7 +221,7 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
  * @param type 媒体类型
  * @param signal
  */
-const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx: Et.EditorContext, type: MediaType) => {
+const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx: Et.EditorContext, type: `${MediaType}`) => {
   dialog.open<FileList | null>(async (container, resolve) => {
     const dropArea = document.createElement('div')
     dropArea.className = 'et-media__upload-area'
@@ -361,4 +356,16 @@ const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
       }
     },
   })
+}
+
+/**
+ * 打开媒体上传弹窗
+ * @param ctx 编辑器上下文
+ * @param type 媒体类型 (image | audio | video)
+ */
+export const openMediaUploadDialog = (ctx: Et.EditorContext, type: `${MediaType}`) => {
+  if (!ctx.assists.dialog || !ctx.isUpdated() || !ctx.isPlainParagraph(ctx.focusEtElement)) {
+    return false
+  }
+  return showMediaUploadDialog(ctx.assists.dialog, ctx, type)
 }
