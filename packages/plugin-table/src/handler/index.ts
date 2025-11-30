@@ -71,7 +71,25 @@ export const tableHandler: Et.EffectHandler = {
 // export const inTableHandler: Et.EffectHandler = {}
 export const inTableRowHandler: Et.EffectHandler = {
   EinsertText(ctx, payload) {
-    return this.superHandler.EinsertText?.(ctx, collapseTargetRangeOfInputEffectPayload(payload))
+    // 选区刚好选中 tc 边缘禁止输入
+    if (!payload.targetRange.collapsed
+      && payload.targetRange.startEtElement === payload.targetRange.endEtElement
+      && ctx.schema.tableRow.is(payload.targetRange.startEtElement)
+    ) {
+      ctx.setSelection(payload.targetRange.toTargetCaret().etCaret.toTextAffinity())
+      const tr = ctx.selection.getTargetRange()
+      if (!tr) {
+        return
+      }
+      payload = {
+        ...payload,
+        targetRange: tr,
+      }
+    }
+    else {
+      payload = collapseTargetRangeOfInputEffectPayload(payload)
+    }
+    return this.superHandler.EinsertText?.(ctx, payload)
   },
   // EinsertCompositionText(ctx, payload) {
   //   return this.superHandler.EinsertCompositionText?.(ctx, collapseTargetRangeOfInputEffectPayload(payload))

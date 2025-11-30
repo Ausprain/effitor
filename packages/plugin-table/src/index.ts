@@ -15,6 +15,7 @@
 
 import type { Et } from '@effitor/core'
 
+import { tableActions } from './ectx'
 import { tableEffector, tabToTableEffector } from './effector'
 import { EtTableCellElement } from './EtTableCellElement'
 import { EtTableElement } from './EtTableElement'
@@ -31,9 +32,15 @@ export interface TablePluginOptions {
    * 会将当前段落转换为表格单元格; 默认为 true
    */
   tabToTableAfterShortText?: boolean
+  /**
+   * 使用表格操作
+   * @param actions 表格操作函数
+   */
+  useActions?: (actions: typeof tableActions) => void
 }
 export { EtTableCellElement, EtTableElement, EtTableRowElement }
 export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPlugin => {
+  options?.useActions?.(tableActions)
   options = { ...defaultOptions, ...options }
   return {
     name: '@effitor/plugin-table',

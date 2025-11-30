@@ -12,9 +12,7 @@ import {
 } from '@effitor/shared'
 
 import { TableName } from './config'
-import { tableCellKeyMap } from './ectx'
-import { tryToRemoveNextColumn, tryToRemoveNextRow } from './handler/delete'
-import { insertNewColumn, insertNewRow } from './handler/insert'
+import { tableActions, tableCellKeyMap } from './ectx'
 
 const beforeKeydownSolver: Et.KeyboardSolver = {
   [TableName.TableCell]: (ev, ctx) => {
@@ -79,23 +77,7 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
   }
   dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
     tableIcon(),
-    (ctx) => {
-      const currP = ctx.focusParagraph
-      if (!ctx.isPlainParagraph(currP)) {
-        return
-      }
-      const text = currP.textContent
-      if (text.length > 50) {
-        ctx.effectInvoker.invoke(currP, 'insertTableAfterParagraph', ctx, {
-          paragraph: currP,
-        })
-        return
-      }
-      ctx.effectInvoker.invoke(currP, 'replaceParagraphWithTable', ctx, {
-        data: text.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, ''),
-        paragraph: currP,
-      })
-    },
+    tableActions.markTable,
   ))
 
   dropdown.register({
@@ -105,40 +87,16 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
   function createTableDropdownContent(): DropdownContent {
     const el = document.createElement('div')
     const insertItems = ([
-      [rowInsertTopIcon(), (ctx) => {
-        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          insertNewRow(ctx, ctx.focusEtElement.parentNode, 'top', false)
-        }
-      }],
-      [rowInsertBottomIcon(), (ctx) => {
-        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          insertNewRow(ctx, ctx.focusEtElement.parentNode, 'bottom', false)
-        }
-      }],
-      [colInsertLeftIcon(), (ctx) => {
-        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          insertNewColumn(ctx, ctx.focusEtElement, 'left', false)
-        }
-      }],
-      [colInsertRightIcon(), (ctx) => {
-        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          insertNewColumn(ctx, ctx.focusEtElement, 'right', false)
-        }
-      }],
+      [rowInsertTopIcon(), tableActions.insertNewRowTop],
+      [rowInsertBottomIcon(), tableActions.insertNewRowBottom],
+      [colInsertLeftIcon(), tableActions.insertNewColumnLeft],
+      [colInsertRightIcon(), tableActions.insertNewColumnRight],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
       ([icon, onchosen]) => dropdown.createMenuItem(icon, onchosen),
     )
     const deleteItems = ([
-      [rowDeleteBottomIcon(), (ctx) => {
-        if (ctx.schema.tableRow.is(ctx.focusEtElement?.parentNode)) {
-          tryToRemoveNextRow(ctx, ctx.focusEtElement.parentNode)
-        }
-      }],
-      [colDeleteRightIcon(), (ctx) => {
-        if (ctx.schema.tableCell.is(ctx.focusEtElement)) {
-          tryToRemoveNextColumn(ctx, ctx.focusEtElement)
-        }
-      }],
+      [rowDeleteBottomIcon(), tableActions.tryToRemoveNextRow],
+      [colDeleteRightIcon(), tableActions.tryToRemoveNextColumn],
     ] as [SVGElement, (ctx: Et.EditorContext) => void][]).map(
       ([icon, onchosen]) => dropdown.createMenuItem(icon, onchosen),
     )
@@ -151,10 +109,25 @@ const initTableDropdown = (ctx: Et.EditorContext) => {
     })
     // FIXME 目前这里的加粗只能临时展示, 不能持久化; 需待 mark 插件将 formatBold 接口提供出来;
     // 然后在此处为对应单元格激活加粗效应, 方可实现markdown 互转
+    // 交给互转逻辑额外处理
     const boldFirstRowMenu = dropdown.createMenu('bold first row', {
       defaultStyle: true,
       onchosen(ctx) {
         const table = ctx.focusParagraph?.parentNode
+        // if (!ctx.schema.table.is(table)) {
+        //   return
+        // }
+        // const caretRange = ctx.selection.getCaretRange()
+        // ctx.body.dispatchInputEvent('beforeinput', {
+        //   inputType: 'formatBold',
+        //   targetRanges: [new StaticRange({
+        //     startContainer: table,
+        //     startOffset: 0,
+        //     endContainer: table,
+        //     endOffset: 1,
+        //   })],
+        // })
+        // ctx.setSelection(caretRange)
         if (ctx.schema.table.is(table)) {
           const f = table.tableHead
           if (f.includes('r')) {
