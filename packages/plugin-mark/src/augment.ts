@@ -50,7 +50,9 @@ declare module '@effitor/core' {
     /** 将选区转为mark节点 */
     checkFormatMark: (ctx: Et.EditorContext, payload: {
       markType: MarkType
-      /** 目标范围, 为空时使用当前选区 */
+      /** 目标元素 */
+      targetElement?: Et.HTMLElement
+      /** 目标范围, 为空时使用当前选区; 若 targetElement 非空, 则此参数无效 */
       targetRange?: Et.ValidTargetRange | null
     }) => boolean
 

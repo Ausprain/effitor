@@ -1,12 +1,12 @@
 import './augment'
 
-import type { Et } from '@effitor/core'
+import { EffectElement, type Et } from '@effitor/core'
 
 import { initMarkPluginContext } from './config'
 import { markActions, markEffector } from './effector'
 import { EtMarkElement, MARK_ET_TYPE } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
-import { markHandler } from './handler/markHandles'
+import { markHandler, markInputTypeHandler } from './handler/markHandler'
 
 export interface MarkPluginOptions {
   /** 是否开启标记符hinting */
@@ -31,6 +31,7 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
       setSchema({ mark: EtMarkElement })
       mountEtHandler(EtMarkElement, inMarkHandler)
       mountEtHandler(EtMarkElement, markHandler)
+      mountEtHandler(EffectElement, markInputTypeHandler)
       // 注册接收markEffect的元素
       ;(options?.needMarkEffectElementCtors ?? [ctxMeta.schema.paragraph]).forEach((Ctor) => {
         mountEtHandler(Ctor, markHandler, MARK_ET_TYPE)

@@ -274,10 +274,12 @@ export class CommandManager implements CommandQueue {
     this.startTransaction()
     try {
       this.push(...cmds).handleAndUpdate(destCaretRange)
+      return true
     }
     catch (_) {
       this.discard()
       this._ctx.assists.logger?.logError('withTransaction error', 'CommandManager')
+      return false
     }
     finally {
       this.closeTransaction()

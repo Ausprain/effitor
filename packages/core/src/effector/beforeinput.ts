@@ -1,6 +1,7 @@
 import { BuiltinConfig } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { cr } from '../selection'
 import { solveInputInRawEl } from './beforeinputInRaw'
 
 const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
@@ -21,9 +22,18 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
         ? ev.data
         : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
     }
-    const targetRange = ctx.selection.getTargetRange()
+    // 如果 beforeinput 事件提供了 targetRange, 则尝试从事件对象中获取 targetRange
+    // 由于 effitor 拦截了所有默认行为, 理论上这里的 targetRange 不会是浏览器创建的
+    // 而如果非空, 则说明是由 effitor 创建并触发的 beforeinput 事件, 并提供了 StaticRange
+    let targetRange, staticRange
+    if ((staticRange = ev.getTargetRanges?.()[0])) {
+      targetRange = ctx.selection.createTargetRange(cr.fromRange(staticRange))
+    }
+    if (!targetRange) {
+      targetRange = ctx.selection.getTargetRange()
+    }
     // 理论上通过用户编辑行为触发的事件, ctx 上下文与targetRange 上下文应该是一致的
-    if (!targetRange || ctx.commonEtElement !== targetRange.commonEtElement) {
+    if (!targetRange || (!staticRange && ctx.commonEtElement !== targetRange.commonEtElement)) {
       return false
     }
     if (ctx.effectInvoker.invoke(ctx.commonEtElement, effect as Et.InputTypeEffect, ctx, {

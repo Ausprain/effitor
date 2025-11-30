@@ -34,15 +34,21 @@ export const minifiedHtml = (html: string) => {
   return html.replaceAll(/(?<=>)\s+|\s+(?=<)/g, '').trim()
 }
 
-export const clearHtmlAttrs = (html: string) => {
+/**
+ * 清除 html 元素的指定属性
+ * @param html
+ * @param attrs 要清除的属性列表, 默认清除 style 和 class 属性
+ */
+export const clearHtmlAttrs = (html: string, attrs: string[] = ['style', 'class']) => {
   const div = document.createElement('div')
   div.innerHTML = html
   traversal.traverseNode(div as any, null, {
     whatToShow: NodeFilter.SHOW_ELEMENT,
     filter(el) {
       if (el instanceof HTMLElement) {
-        el.removeAttribute('style')
-        el.removeAttribute('class')
+        attrs.forEach((attr) => {
+          el.removeAttribute(attr)
+        })
       }
       return NodeFilter.FILTER_SKIP
     },

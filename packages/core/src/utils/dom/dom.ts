@@ -119,7 +119,7 @@ export const findEffectParent = (node: Et.NodeOrNull, stopTag: string = BuiltinE
 
 export const isText = (node: Node | null): node is Et.Text => node?.nodeType === 3 /** Node.TEXT_NODE */
 export const isElement = (node: Node | null): node is Et.Element => node?.nodeType === 1 /** Node.ELEMENT_NODE */
-export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instanceof HTMLElement
+export const isHTMLElement = (node: Node | null): node is Et.HTMLElement => node instanceof HTMLElement
 export const isElementOrText = (node: Node): node is Element | Text => node.nodeType === 1 || node.nodeType === 3
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
 export const isBrElement = (node: Node): node is HTMLBRElement => (node as Et.Node).localName === 'br'
