@@ -38,14 +38,25 @@ import './augment'
 
 import { type Et } from '@effitor/core'
 
-import { listEffector } from './effector'
+import { listEffector, replaceCurrentParagraphWithList } from './effector'
 import { EtListElement, EtListItemElement } from './EtListElement'
 import { inListHandler } from './handler/inListHandler'
 import listCss from './index.css?raw'
 
-export interface ListPluginOptions {}
+const listActions = {
+  replaceCurrentParagraphWithList,
+}
+
+export interface ListPluginOptions {
+  /**
+   * 使用列表动作
+   * @param actions 列表动作
+   */
+  useActions?: (actions: typeof listActions) => void
+}
 export { EtListElement, EtListItemElement }
-export const useListPlugin = (_options?: ListPluginOptions): Et.EditorPlugin => {
+export const useListPlugin = (options?: ListPluginOptions): Et.EditorPlugin => {
+  options?.useActions?.(listActions)
   return {
     name: '@effitor/plugin-list',
     cssText: listCss,

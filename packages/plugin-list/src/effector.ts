@@ -114,7 +114,7 @@ const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['
     unorderedListIcon(),
     (ctx) => {
       // 通过dropdown插入无序列表
-      toListAtCaret(ctx, false)
+      replaceCurrentParagraphWithList(ctx, false)
     },
     {
       prefixes: ['list', 'unordered'],
@@ -123,7 +123,7 @@ const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['
     orderedListIcon(),
     (ctx) => {
       // 通过dropdown插入有序列表
-      toListAtCaret(ctx, true)
+      replaceCurrentParagraphWithList(ctx, true)
     },
     {
       prefixes: ['list', 'ordered'],
@@ -131,7 +131,7 @@ const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['
   ))
 }
 
-const toListAtCaret = (ctx: Et.EditorContext, ordered: boolean) => {
+export const replaceCurrentParagraphWithList = (ctx: Et.EditorContext, ordered: boolean) => {
   if (!ctx.focusParagraph || !ctx.isPlainParagraph(ctx.focusParagraph)) {
     return
   }
