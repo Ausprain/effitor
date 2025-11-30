@@ -23,7 +23,7 @@
   border-radius: 4px;
   background-color: var(--et-color-bg__card);
   box-shadow: var(--et-shadow-m);
-  overflow: hidden;
+  /* overflow: hidden; */
   z-index: 99;
   animation: dropdown-in 0.2s ease-in;
 
@@ -39,8 +39,8 @@
   max-height: 256px;
   max-width: 211px;
   padding: 0 8px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* overflow-x: hidden;
+  overflow-y: auto; */
 
   /* dev */
   /* background-color: skyblue; */
