@@ -97,11 +97,28 @@ const addCodeBlockItemToDropdown = (dd?: Et.EditorAssists['dropdown']) => {
   ))
 }
 
-const insertCodeBlock = (ctx: Et.EditorContext) => {
+/**
+ * 插入代码块
+ * @param ctx 编辑器上下文
+ * @param param1 代码块参数
+ * @param param1.code 代码内容
+ * @param param1.lang 代码语言
+ * @param param1.async 是否异步高亮
+ * @returns 是否插入成功
+ */
+export const insertCodeBlock = (ctx: Et.EditorContext, {
+  code = '',
+  lang = '',
+  async = false,
+}: {
+  code?: string
+  lang?: string
+  async?: boolean
+} = {}) => {
   if (!ctx.focusParagraph) {
     return false
   }
-  const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', '')
+  const codeEl = ctx.schema.code.withDefaultDecoration(ctx, code, lang, async)
   ctx.commandManager.push(cmd.insertNode({
     node: codeEl,
     execAt: cr.caretOutEnd(ctx.focusParagraph),
