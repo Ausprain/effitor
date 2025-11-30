@@ -3,7 +3,7 @@ import './augment'
 import type { Et } from '@effitor/core'
 
 import { initMarkPluginContext } from './config'
-import { markEffector } from './effector'
+import { markActions, markEffector } from './effector'
 import { EtMarkElement, MARK_ET_TYPE } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler } from './handler/markHandles'
@@ -13,9 +13,15 @@ export interface MarkPluginOptions {
   enableHinting?: boolean
   /** 需要mark effect的元素构造器列表, 若为缺省, 则默认添加schema段落 */
   needMarkEffectElementCtors?: Et.EtElementCtor[]
+  /**
+   * 使用 mark 插件动作
+   * @param actions mark 插件动作
+   */
+  useActions?: (actions: typeof markActions) => void
 }
 export { EtMarkElement }
 export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
+  options?.useActions?.(markActions)
   return {
     name: '@effitor/plugin-mark',
     effector: markEffector,
