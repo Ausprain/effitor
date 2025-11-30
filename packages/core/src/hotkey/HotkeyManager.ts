@@ -212,7 +212,8 @@ export class HotkeyManager {
 
   /**
    * 给一个操作重新设置快捷键和执行函数
-   * @param [enforce=false] 是否强制设置，无视已存在; 否则若已存在会发出提示
+   * @param [enforce=false] 是否强制设置热键，无视已存在; 否则若存在则不提换; 若提供了 run, 则始终会更新 run
+   * @returns 是否成功设置热键
    */
   setHotkey(actionKey: A_actionKey, hotkey: A_hotkey, run?: HotkeyAction['run'], enforce = false) {
     const action = this._actionMap[actionKey]
@@ -222,9 +223,7 @@ export class HotkeyManager {
     }
     if (action.hotkey === hotkey) return true
     if (!enforce && (hotkey in this._hotkeyActionMap)) {
-      // TODO 提示快捷键冲突
-      // const confirm = ctx.popover('该热键已存在, 是否覆盖')
-      // if (!confirm) return false
+      return false
     }
     this._hotkeyActionKeyMap[hotkey] = actionKey
     this.#updateConfig()
