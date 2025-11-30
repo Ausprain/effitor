@@ -6,10 +6,11 @@
  * - [ ] 文档首段落不可编辑, 则使用 cmd + ↑ 将光标定位文档开头无效; 末段落不可编辑同理
  */
 
+import { KeyMod } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { dom, traversal } from '../utils'
-import { Key } from './Key'
-import { CtrlCmd, LineModifier, Mod, WordModifier } from './Mod'
+import { CtrlCmd, LineModifier, WordModifier } from './Mod'
 import { create } from './util'
 
 // FIXME 使用 `selection.modify('move', 'forward', 'documentboundary')` 可能会让光标进入 et-body 内
@@ -208,43 +209,43 @@ export const ModKeyDownModifySelectionMap: ModKeyActionMap = {
   // 2. chromium 和 safari 在 cmd+shfit+left 之后再 cmd+shift+right 之后会全选当前行
   //    而不是从当前位置要么全选左边, 要么全选右边, 这反直觉, 因此要先 collapsed
 
-  [create(Key.Home, Mod.None)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
-  [create(Key.End, Mod.None)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
+  [create('Home', KeyMod.None)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
+  [create('End', KeyMod.None)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
   // 光标移动到行首, MacOS: cmd + left, Windows: alt + left
-  [create(Key.ArrowLeft, LineModifier)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
-  [create(Key.ArrowRight, LineModifier)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
+  [create('ArrowLeft', LineModifier)]: ctx => ctx.selection.modify('move', 'backward', 'lineboundary'),
+  [create('ArrowRight', LineModifier)]: ctx => ctx.selection.modify('move', 'forward', 'lineboundary'),
 
-  [create(Key.ArrowUp, Mod.None)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowUp', KeyMod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'line')
     : collapseRange(ctx, true, true)),
-  [create(Key.ArrowDown, Mod.None)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowDown', KeyMod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'line')
     : collapseRange(ctx, false, true)),
-  [create(Key.ArrowLeft, Mod.None)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowLeft', KeyMod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElStartToPrevNode(ctx) || checkAtTextStartToPrevNode(ctx) || ctx.selection.modify('move', 'backward', 'character')
     : collapseRange(ctx, true, true)),
-  [create(Key.ArrowRight, Mod.None)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowRight', KeyMod.None)]: ctx => (ctx.selection.isCollapsed
     ? checkInRawElEndToNextNode(ctx) || checkAtTextEndToNextNode(ctx) || ctx.selection.modify('move', 'forward', 'character')
     : collapseRange(ctx, false, true)),
-  [create(Key.ArrowUp, CtrlCmd)]: ctx => moveToDocumentStart(ctx),
-  [create(Key.ArrowDown, CtrlCmd)]: ctx => moveToDocumentEnd(ctx),
-  [create(Key.ArrowLeft, WordModifier)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowUp', CtrlCmd)]: ctx => moveToDocumentStart(ctx),
+  [create('ArrowDown', CtrlCmd)]: ctx => moveToDocumentEnd(ctx),
+  [create('ArrowLeft', WordModifier)]: ctx => (ctx.selection.isCollapsed
     ? ctx.selection.modify('move', 'backward', 'word')
     : collapseRange(ctx, true, true)),
-  [create(Key.ArrowRight, WordModifier)]: ctx => (ctx.selection.isCollapsed
+  [create('ArrowRight', WordModifier)]: ctx => (ctx.selection.isCollapsed
     ? ctx.selection.modify('move', 'forward', 'word')
     : collapseRange(ctx, false, true)),
 
   // 选择
-  [create(Key.ArrowUp, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'line'),
-  [create(Key.ArrowDown, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'line'),
-  [create(Key.ArrowUp, CtrlCmd | Mod.Shift)]: ctx => extendToDocumentStart(ctx),
-  [create(Key.ArrowDown, CtrlCmd | Mod.Shift)]: ctx => extendToDocumentEnd(ctx),
-  [create(Key.ArrowLeft, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'character'),
-  [create(Key.ArrowRight, Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'character'),
-  [create(Key.ArrowLeft, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'word'),
-  [create(Key.ArrowRight, WordModifier | Mod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'word'),
-  [create(Key.ArrowLeft, CtrlCmd | Mod.Shift)]: ctx => collapseRange(ctx, true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary'),
-  [create(Key.ArrowRight, CtrlCmd | Mod.Shift)]: ctx => collapseRange(ctx, false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary'),
+  [create('ArrowUp', KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'line'),
+  [create('ArrowDown', KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'line'),
+  [create('ArrowUp', CtrlCmd | KeyMod.Shift)]: ctx => extendToDocumentStart(ctx),
+  [create('ArrowDown', CtrlCmd | KeyMod.Shift)]: ctx => extendToDocumentEnd(ctx),
+  [create('ArrowLeft', KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'character'),
+  [create('ArrowRight', KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'character'),
+  [create('ArrowLeft', WordModifier | KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'backward', 'word'),
+  [create('ArrowRight', WordModifier | KeyMod.Shift)]: ctx => ctx.selection.modify('extend', 'forward', 'word'),
+  [create('ArrowLeft', CtrlCmd | KeyMod.Shift)]: ctx => collapseRange(ctx, true, false) && ctx.selection.modify('extend', 'backward', 'lineboundary'),
+  [create('ArrowRight', CtrlCmd | KeyMod.Shift)]: ctx => collapseRange(ctx, false, false) && ctx.selection.modify('extend', 'forward', 'lineboundary'),
 
 }

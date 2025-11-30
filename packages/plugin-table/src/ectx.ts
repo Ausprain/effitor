@@ -157,16 +157,16 @@ const setTableAlign = (ctx: Et.EditorContext, align: 'left' | 'center' | 'right'
 // 当且仅当返回 false, 使用默认行为
 export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   // 覆盖默认的 cmd+enter 快捷键行为 (默认行为只是插入一个当前类型段落, 而表格还需要插入相同数量的单元格)
-  [hotkey.create(hotkey.Key.Enter, hotkey.CtrlCmd)]: 'insertParagraph',
-  [hotkey.create(hotkey.Key.Tab, 0)]: tabToNextCellOrInsertNewColumn,
-  [hotkey.create(hotkey.Key.Tab, hotkey.Mod.Shift)]: shiftTabToPrevCellOrInsertNewColumn,
-  [hotkey.create(hotkey.Key.ArrowUp, 0)]: moveCaretUpInCellOrAbove,
-  [hotkey.create(hotkey.Key.ArrowDown, 0)]: moveCaretDownInCellOrBeneath,
-  [hotkey.create(hotkey.Key.ArrowLeft, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColLeft,
-  [hotkey.create(hotkey.Key.ArrowRight, hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColRight,
-  [hotkey.create(hotkey.Key.C, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'center'),
-  [hotkey.create(hotkey.Key.R, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'right'),
-  [hotkey.create(hotkey.Key.L, hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'left'),
+  [hotkey.create('Enter', hotkey.CtrlCmd)]: 'insertParagraph',
+  [hotkey.create('Tab', 0)]: tabToNextCellOrInsertNewColumn,
+  [hotkey.create('Tab', hotkey.Mod.Shift)]: shiftTabToPrevCellOrInsertNewColumn,
+  [hotkey.create('ArrowUp', 0)]: moveCaretUpInCellOrAbove,
+  [hotkey.create('ArrowDown', 0)]: moveCaretDownInCellOrBeneath,
+  [hotkey.create('ArrowLeft', hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColLeft,
+  [hotkey.create('ArrowRight', hotkey.Mod.Ctrl | hotkey.Mod.AltOpt)]: tryToMoveColRight,
+  [hotkey.create('KeyC', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'center'),
+  [hotkey.create('KeyR', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'right'),
+  [hotkey.create('KeyL', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'left'),
 }
 
 export const tableActions = {

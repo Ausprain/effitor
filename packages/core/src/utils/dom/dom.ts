@@ -23,6 +23,8 @@ export const pureEditableDiv = (plaintextOnly: boolean) => {
   div.contentEditable = plaintextOnly ? 'plaintext-only' : 'true'
   div.tabIndex = 0
   div.spellcheck = false
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   div.autocorrect = false
   div.autocapitalize = 'none'
   return div

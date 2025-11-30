@@ -44,6 +44,20 @@ type OmitStringIndexSignature<T> = {
   [K in keyof T as string extends K ? never : K]: T[K]
 }
 
+type OmitNumberIndexSignature<T> = {
+  [K in keyof T as number extends K ? never : K]: T[K]
+}
+
+type OmitIndexSignature<T> = {
+  [K in keyof T as number extends K
+    ? never
+    : string extends K
+      ? never
+      : symbol extends K
+        ? never
+        : K]: T[K]
+}
+
 type Mutable<T> = {
   -readonly [k in keyof T]: T[k]
 }

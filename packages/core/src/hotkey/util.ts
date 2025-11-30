@@ -1,6 +1,8 @@
+import { KeyMod } from '@effitor/shared'
+
 import { type A_hotkey, type ActionGroupMap_, type HotkeyAction, HotkeyEnum } from './config'
 import { Key } from './Key'
-import { CtrlCmd, Mod } from './Mod'
+import { CtrlCmd, type ModType } from './Mod'
 
 /**
  * 获取一个快捷键字符串\
@@ -8,16 +10,17 @@ import { CtrlCmd, Mod } from './Mod'
  * @param mod 修饰键, 通过 hotkey.Mod 枚举获取, 多个修饰符通过 | 组合
  * @param key 按键, 通过 hotkey.Key 枚举获取
  */
-export const create = (key: Key, mod: Mod): A_hotkey => {
+export const create = (key: Key, mod: ModType): A_hotkey => {
   return key + HotkeyEnum.Connector + mod
 }
+
 /**
  * 获取一个快捷键字符串，该快捷键包含平台自适应的经典修饰键：如Mac的cmd 与 Win的ctrl
  * @param key 按键, 通过 hotkey.Key 枚举获取
  * @param extraMod 额外修饰键, 通过 hotkey.Mod 枚举获取, 默认0
  */
-export const withMod = (key: Key, extraMod: Mod = Mod.None): A_hotkey => {
-  return create(key, (CtrlCmd | extraMod) as Mod)
+export const withMod = (key: Key, extraMod: ModType = KeyMod.None): A_hotkey => {
+  return create(key, (CtrlCmd | extraMod) as KeyMod)
 }
 
 /**
@@ -27,10 +30,10 @@ export const withMod = (key: Key, extraMod: Mod = Mod.None): A_hotkey => {
  */
 export const modKey = (ev: KeyboardEvent) => {
   return ev.code + HotkeyEnum.Connector + (
-    (ev.metaKey ? Mod.MetaCmd : 0)
-    | (ev.ctrlKey ? Mod.Ctrl : 0)
-    | (ev.altKey ? Mod.AltOpt : 0)
-    | (ev.shiftKey ? Mod.Shift : 0)
+    (ev.metaKey ? KeyMod.MetaCmd : 0)
+    | (ev.ctrlKey ? KeyMod.Ctrl : 0)
+    | (ev.altKey ? KeyMod.AltOpt : 0)
+    | (ev.shiftKey ? KeyMod.Shift : 0)
   )
 }
 

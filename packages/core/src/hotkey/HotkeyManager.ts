@@ -1,3 +1,5 @@
+import { KeyMod } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import {
   BuiltinHotkeyActionMap,
@@ -7,7 +9,7 @@ import {
 } from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
 import { keyChars } from './Key'
-import { CtrlCmd, Mod, modChar } from './Mod'
+import { CtrlCmd, modChar } from './Mod'
 import { create, createAction, modKey, withMod } from './util'
 
 declare module '../editor/ConfigManager' {
@@ -62,7 +64,7 @@ export class HotkeyManager {
    * 检查当前 keydown 按下的按键组合含 modifier 修饰键
    * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键, 缺省时自动适配 CtrlCmd
    */
-  checkWithMod(modifier?: Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift) {
+  checkWithMod(modifier?: KeyMod.AltOpt | KeyMod.Ctrl | KeyMod.MetaCmd | KeyMod.Shift) {
     const [_, mod] = this._modkey.split(HotkeyEnum.Connector)
     const num = parseInt(mod)
     if (modifier) {
@@ -188,10 +190,10 @@ export class HotkeyManager {
     const [key, mod] = modKey.split(HotkeyEnum.Connector)
     const num = parseInt(mod)
     const parts = [
-      (num & Mod.Ctrl) ? modChar.ctrl : '',
-      (num & Mod.Shift) ? modChar.shift : '',
-      (num & Mod.AltOpt) ? modChar.altopt : '',
-      (num & Mod.MetaCmd) ? modChar.metacmd : '',
+      (num & KeyMod.Ctrl) ? modChar.ctrl : '',
+      (num & KeyMod.Shift) ? modChar.shift : '',
+      (num & KeyMod.AltOpt) ? modChar.altopt : '',
+      (num & KeyMod.MetaCmd) ? modChar.metacmd : '',
     ].filter(Boolean)
     parts.push(keyChars[key as keyof typeof keyChars] ?? key)
     return parts
