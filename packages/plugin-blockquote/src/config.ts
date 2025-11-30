@@ -35,6 +35,8 @@ declare module '@effitor/core' {
       meta?: BlockquoteMeta
       /** 被替换的段落元素 */
       paragraph: Et.EtParagraphElement
+      /** 是否复用被替换的段落 (将被替换的段落插入引用块) */
+      reuse?: boolean
     }>
   }
 }
@@ -59,7 +61,20 @@ export interface BlockquotePluginContext {
  */
 export interface BlockquoteMeta {
   /**
-   * 引用块类型. 该值会直接赋值给 et-bq 的 data-type 属性, 并将其全大写应用于转化的 markdown 中
+   * 引用块类型. 该值会直接赋值给 et-bq 的 data-type 属性, 并将其全大写应用于转化的 markdown 中;
+   * 内置类型:
+   * ```
+   * // github flavored
+   * note
+   * tip
+   * important
+   * warning
+   * caution
+   * // 段落组 (分栏)
+   * pg
+   * pg2
+   * pg3
+   * ```
    */
   type: string
   /**
