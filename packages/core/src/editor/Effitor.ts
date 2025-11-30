@@ -246,8 +246,8 @@ export class Effitor {
       contextMeta,
       mainEffector,
       cssText: baseCss + builtinCss + allCtorCssText,
-      pluginConfigs: pluginConfigs,
-      customStyleLinks: [...customStyleLinks],
+      pluginConfigs,
+      customStyleLinks,
       hotstringOptions,
     }
     this.htmlProcessor = new HtmlProcessor(htmlTransformerMaps, htmlOptions)
