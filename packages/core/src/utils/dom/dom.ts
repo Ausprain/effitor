@@ -17,6 +17,16 @@ type HTMLNodeCreator = <N extends string>(elName: N) => N extends keyof Et.Defin
 export const zwsText = () => document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
 export const createText = (data: string) => document.createTextNode(data) as Et.Text
 export const createElement: HTMLNodeCreator = elName => document.createElement(elName) as ReturnType<HTMLNodeCreator>
+/** 创建一个可编辑的 div 元素, 禁用拼写检查、自动修正、自动大写 */
+export const pureEditableDiv = (plaintextOnly: boolean) => {
+  const div = document.createElement('div')
+  div.contentEditable = plaintextOnly ? 'plaintext-only' : 'true'
+  div.tabIndex = 0
+  div.spellcheck = false
+  div.autocorrect = false
+  div.autocapitalize = 'none'
+  return div
+}
 /** 节点长度, 文本节点返回文本长度, 元素节点返回子节点数量 */
 export const nodeLength = (nod: Et.Node) => isText(nod) ? nod.length : nod.childNodes.length
 /** 获取节点在父节点中的索引; 若节点没有父节点, 返回 -1 */

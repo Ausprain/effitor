@@ -10,6 +10,7 @@ export const enum LinkEnum {
 
   Class_Popup = 'et-link-popup',
   Class_Popup_Input = 'et-link-popup_input',
+  Class_Popup_Items = 'et-link-popup_items',
   Class_Dialog_Input = 'et-link-dialog_input',
   Class_Dialog_Btn = 'et-link-dialog_btn',
 
