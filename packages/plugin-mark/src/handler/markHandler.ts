@@ -50,7 +50,7 @@ const insertMarkNodeAtCaret = (ctx: Et.EditorContext, insertAt: Et.EtCaret, mark
     return false
   }
   const [markEl, zws] = createMarkNode(markType, data)
-  ctx.pctx.$markEx.markState.startMarking(markEl)
+  ctx.pctx.$markPx.markState.startMarking(markEl)
   return handlerUtils.insertElementAtCaret(ctx, markEl, tc, cr.caretInEndFuture(zws))
 }
 const checkUnformatMark = (ctx: Et.EditorContext, tc: Et.ValidTargetCaret, markType: MarkType) => {
@@ -272,7 +272,7 @@ export const markHandler: Et.EffectHandler = {
       return ctx.commandManager.handleAndUpdate()
     }
     else {
-      ctx.pctx.$markEx.markState.endMarking()
+      ctx.pctx.$markPx.markState.endMarking()
       ctx.commandManager.closeTransaction()
       return false
     }

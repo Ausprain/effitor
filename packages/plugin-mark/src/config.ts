@@ -60,7 +60,7 @@ export const createMarkState = () => ({
   },
   /**
    * 结束临时mark标记
-   * @param success 是否 marking完成, 默认 true; 若将要撤回插入的临时节点, 应传入 false
+   * @param success 是否 marking完成, 默认 true; 若临时节点将要被撤销, 应传入 false
    */
   endMarking(success = true) {
     this.isMarking = false
@@ -70,7 +70,7 @@ export const createMarkState = () => ({
     this.markEl = null
   },
   /**
-   * @param success 是否 marking 完成, 若将要撤回插入的临时节点, 应传入 false
+   * @param success 是否 marking 完成, 若临时节点将要被撤销, 应传入 false
    * @returns 若为 marking 状态, 则调用 endMarking, 否则返回 false
    */
   checkAndEndMarking(success: boolean) {
@@ -79,8 +79,7 @@ export const createMarkState = () => ({
 })
 
 export const initMarkPluginContext = (meta: Et.EditorContextMeta, enableHinting = true) => {
-  // @ts-expect-error first assign
-  meta.pctx.$markEx = {
+  meta.pctx.$markPx = {
     markState: createMarkState(),
     enableHinting,
   }

@@ -292,9 +292,9 @@ export class CommonHandler {
    * 删除节点, 连带删除空祖先, 并合并前后可合并内容
    * @param node 待删除节点
    * @param destCaretRange 命令执行后光标位置; 若为 true, 则使用节点被移除位置;
-   *    若为 false, 命令执行后不更新选区和上下文; 默认为 true
+   *    若为 false, 命令执行后不更新选区和上下文;
    */
-  removeNodeAndMerge(node: Et.Node, destCaretRange: Et.CaretRange | boolean = true) {
+  removeNodeAndMerge(node: Et.Node, destCaretRange: Et.CaretRange | boolean) {
     if (!removeNodesAndChildlessAncestorAndMergeSiblings(this._ctx, node, node, null)) {
       return false
     }

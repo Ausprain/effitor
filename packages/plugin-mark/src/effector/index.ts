@@ -12,23 +12,23 @@ import { checkFormatMark, checkInsertMark } from './check'
 import { markBeforeKeydownSolver } from './keydown'
 
 export const markEffector: Et.Effector = {
-  enforce: 'pre',
+  // enforce: 'pre',
   beforeKeydownSolver: markBeforeKeydownSolver,
   htmlEventSolver: {
     mousedown: (_ev, ctx) => {
-      if (ctx.pctx.$markEx.enableHinting) {
+      if (ctx.pctx.$markPx.enableHinting) {
         // 光标已经在 mark 节点内, 不处理; 避免页面跳动(layout shift)
         if (ctx.schema.mark.is(ctx.focusEtElement)) {
           return
         }
         ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
       }
-      if (ctx.pctx.$markEx.markState.checkAndEndMarking(false)) {
+      if (ctx.pctx.$markPx.markState.checkAndEndMarking(false)) {
         ctx.commandManager.discard()
       }
     },
     mouseup: (_ev, ctx) => {
-      if (ctx.pctx.$markEx.enableHinting) {
+      if (ctx.pctx.$markPx.enableHinting) {
         ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
       }
     },
@@ -38,7 +38,7 @@ export const markEffector: Et.Effector = {
       if (hinting === void 0) {
         hinting = !ctx.bodyEl.hasCssClass(MarkStatus.HINTING_HIDDEN)
       }
-      ctx.pctx.$markEx.enableHinting = hinting
+      ctx.pctx.$markPx.enableHinting = hinting
       if (hinting) {
         ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
       }

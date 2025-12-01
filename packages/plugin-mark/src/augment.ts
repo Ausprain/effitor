@@ -33,7 +33,7 @@ declare module '@effitor/core' {
     toggleHintingMarker: (enableHinting: boolean) => void
   }
   interface EditorPluginContext {
-    readonly $markEx: MarkPluginContext
+    $markPx: MarkPluginContext
   }
   interface EffectHandleDeclaration {
     /* -------------------------------------------------------------------------- */

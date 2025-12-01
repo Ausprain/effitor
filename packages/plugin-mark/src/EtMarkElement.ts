@@ -50,7 +50,7 @@ export class EtMarkElement extends EtRichText {
     if (this.textContent === '\u200b') {
       // 回调在selchange之后触发，光标已不在this节点; 标记节点内光标位置，以便撤回删除时能让光标落于this节点内
       ctx.commandManager.withSrcCaretRange(cr.caretInStart(this), () => {
-        ctx.commonHandler.removeNodeAndMerge(this)
+        ctx.commonHandler.removeNodeAndMerge(this, false)
       })
     }
     else {

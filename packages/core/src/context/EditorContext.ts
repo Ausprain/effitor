@@ -332,8 +332,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
-  /** 编辑区失去焦点时调用 */
-  blurCallback() {
+  /**
+   * @internal
+   * 编辑区失去焦点时调用
+   */
+  private _blurCallback() {
     this._updated = false
     this._oldNode = null
     this.focusEtElement = null

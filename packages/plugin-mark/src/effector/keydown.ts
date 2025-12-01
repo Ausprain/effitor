@@ -41,8 +41,9 @@ export const markBeforeKeydownSolver: Et.KeyboardSolver = {
       case 'ArrowRight':
       case 'Home':
       case 'End':
+      case 'Escape':
       {
-        if (ctx.pctx.$markEx.markState.checkAndEndMarking(false)) {
+        if (ctx.pctx.$markPx.markState.checkAndEndMarking(false)) {
           ctx.commandManager.discard()
           return ctx.skipDefault()
         }

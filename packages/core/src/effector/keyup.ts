@@ -2,6 +2,9 @@ import type { Et } from '../@types'
 import { type MainKeyboardSolver, runKeyboardSolver } from './keydown'
 
 const mainKeyupSolver: MainKeyboardSolver = {
+  'Escape': (_ev, ctx) => {
+    ctx.editor.blur()
+  },
   ' ': (_ev, ctx) => {
     if (ctx.prevUpKey === ' ') {
       const tc = ctx.selection.getTargetCaret()

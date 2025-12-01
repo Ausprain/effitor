@@ -137,7 +137,8 @@ export const addListenersToEditorBody = (
         if (import.meta.env.DEV) {
           return
         }
-        ctx.blurCallback()
+        // @ts-expect-error, deliberate, internal api
+        ctx._blurCallback()
       }, 10)
     }
   }, { signal: ac.signal })
@@ -171,7 +172,9 @@ export const addListenersToEditorBody = (
   body.addEventListener('drop', listeners.drop, { signal: ac.signal })
 
   // 媒体查询
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (ev) => {
+  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  ctx.editor.setColorScheme(darkModeMediaQuery.matches)
+  darkModeMediaQuery.onchange = (ev) => {
     ctx.editor.setColorScheme(ev.matches)
-  }, { signal: ac.signal })
+  }
 }

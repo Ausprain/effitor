@@ -333,7 +333,7 @@ const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
       trashIcon(),
       '删除',
       (ctx, _, target) => {
-        ctx.commonHandler.removeNodeAndMerge(target)
+        ctx.commonHandler.removeNodeAndMerge(target, true)
       },
     ),
   ]

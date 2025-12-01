@@ -104,6 +104,10 @@ export class Effitor {
     return this._isFocused
   }
 
+  get isMounted() {
+    return this.__host !== undefined
+  }
+
   /**
    * 编辑器宿主 div元素
    */
@@ -313,6 +317,12 @@ export class Effitor {
       onTopElementChanged: this.callbacks.onTopElementChanged,
     })
 
+    this.__ac = ac
+    this.__root = root
+    this.__host = host
+    this.__body = bodyEl
+    this.__context = context
+
     // 使用 shadowRoot 时, 必须向 EtSelection 提供获取 shadowRoot 内选区的方法
     if (this.isShadow) {
       context.selection.setSelectionGetter(root as Et.ShadowRoot)
@@ -321,12 +331,6 @@ export class Effitor {
     /** 编辑器事件监听器 */
     const listeners = initListeners(context, mainEffector, pluginConfigs)
     addListenersToEditorBody(bodyEl, ac, context, listeners, pluginConfigs.htmlEventSolver)
-
-    this.__ac = ac
-    this.__root = root
-    this.__host = host
-    this.__body = bodyEl
-    this.__context = context
 
     // 配置了自动创建首段落
     if (this.config.AUTO_CREATE_FIRST_PARAGRAPH) {
@@ -380,13 +384,13 @@ export class Effitor {
   /**
    * 让编辑区获取焦点, 若没有记录的光标位置, 则光标聚焦到编辑器末尾
    */
-  focus() {
+  focus(options?: FocusOptions) {
     if (this._isFocused) {
       return
     }
     this._markFocused()
     const ctx = this.context
-    this.bodyEl.focus()
+    this.bodyEl.focus(options)
     if (ctx.selection.restore()) {
       ctx.forceUpdate()
     }
