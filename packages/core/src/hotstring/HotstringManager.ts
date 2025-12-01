@@ -36,7 +36,9 @@ export class HotstringManager {
   private readonly hotstringMap = new Map<string, Hotstring>()
   private readonly hsArray: Hotstring[] = []
   private _resetNeeded = false
+  /** 热字符串触发串, 除最后一个字符外, 作为热字符串的一部分(后缀) */
   public readonly triggerChars: string
+  /** 热字符串触发字符, 即 HotstringOptions.triggerChars 的最后一个字符 */
   public readonly trigger: string
   private readonly _configManager: Et.ConfigManager
 

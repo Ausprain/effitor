@@ -154,6 +154,25 @@ const setTableAlign = (ctx: Et.EditorContext, align: 'left' | 'center' | 'right'
   })).handle()
 }
 
+const toggleTableEven = (ctx: Et.EditorContext) => {
+  const [_, table] = checkInValidTableCell(ctx)
+  if (!table) {
+    return false
+  }
+  ctx.commandManager.commitNextHandle(true)
+  return ctx.commandManager.push(cmd.functional({
+    meta: {
+      _table: table,
+    },
+    execCallback() {
+      this.meta._table.tableEven = !this.meta._table.tableEven
+    },
+    undoCallback(ctx) {
+      this.execCallback(ctx)
+    },
+  })).handle()
+}
+
 // 当且仅当返回 false, 使用默认行为
 export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   // 覆盖默认的 cmd+enter 快捷键行为 (默认行为只是插入一个当前类型段落, 而表格还需要插入相同数量的单元格)
@@ -167,6 +186,7 @@ export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create('KeyC', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'center'),
   [hotkey.create('KeyR', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'right'),
   [hotkey.create('KeyL', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'left'),
+  [hotkey.create('KeyE', hotkey.Mod.AltOpt)]: toggleTableEven,
 }
 
 export const tableActions = {

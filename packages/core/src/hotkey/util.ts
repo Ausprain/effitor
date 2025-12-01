@@ -1,8 +1,8 @@
 import { KeyMod } from '@effitor/shared'
 
 import { type A_hotkey, type ActionGroupMap_, type HotkeyAction, HotkeyEnum } from './config'
-import { Key } from './Key'
-import { CtrlCmd, type ModType } from './Mod'
+import { Key, keyChars } from './Key'
+import { CtrlCmd, modChar, type ModType } from './Mod'
 
 /**
  * 获取一个快捷键字符串\
@@ -35,6 +35,24 @@ export const modKey = (ev: KeyboardEvent) => {
     | (ev.altKey ? KeyMod.AltOpt : 0)
     | (ev.shiftKey ? KeyMod.Shift : 0)
   )
+}
+
+/**
+ * 解析一个快捷键，返回其组成数组, 该数组至少含 2 个元素, 最后一个元素为按键名, 前面的为修饰键简写字符;\
+ * 修饰键顺序固定为: `['Ctrl', 'Shift', 'Alt', 'Win']` in Windows, `['⌃', '⇧', '⌥', '⌘']` in MacOS \
+ * 如"KeyA_12"(快捷键`ctrl+shift+A`), 对应为: `['Ctrl', 'Shift', 'A']` 或 `['⌃', '⇧', 'A']` \
+ */
+export const parseHotkey = (modKey: string) => {
+  const [key, mod] = modKey.split(HotkeyEnum.Connector)
+  const num = parseInt(mod)
+  const parts = [
+    (num & KeyMod.Ctrl) ? modChar.ctrl : '',
+    (num & KeyMod.Shift) ? modChar.shift : '',
+    (num & KeyMod.AltOpt) ? modChar.altopt : '',
+    (num & KeyMod.MetaCmd) ? modChar.metacmd : '',
+  ].filter(Boolean)
+  parts.push(keyChars[key as keyof typeof keyChars] ?? key)
+  return parts
 }
 
 /**

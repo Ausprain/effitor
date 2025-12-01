@@ -33,9 +33,20 @@ export class Hotstring {
   /** 热字符串触发回调 */
   public readonly action: HotstringAction
 
+  /** 当前匹配进度 */
+  get pos() {
+    return this.__pos
+  }
+
+  /** 热字符串及其触发串后缀, 即热字符串整串 */
+  get chars() {
+    return this.__chars.join('')
+  }
+
   /**
    * 构造一个热字符串对象，所有热字符串均由空格作为末尾触发字符
-   * @param hotstring 热字符串（不可包含触发字符：默认是空格）
+   * @param hotstring 热字符串（不可包含触发串）
+   * @param triggerChars 热字符串触发串, 会追加到热字符串末尾进行判定
    * @param action 热字符串触发回调
    */
   constructor(hotstring: string, triggerChars: string, {

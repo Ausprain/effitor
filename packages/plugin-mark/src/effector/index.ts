@@ -48,32 +48,32 @@ export const markEffector: Et.Effector = {
     }
     ctx.hotkeyManager.addActions({
       /** 斜体 */
-      markItalic: hotkey.createAction('editor', '添加斜体', {
+      markItalic: hotkey.createAction('editor', 'Italic', {
         hotkey: hotkey.withMod('KeyI'),
         run: markActions.formatItalic,
       }),
       /** 粗体 */
-      markBold: hotkey.createAction('editor', '添加粗体', {
+      markBold: hotkey.createAction('editor', 'Bold', {
         hotkey: hotkey.withMod('KeyB'),
         run: markActions.formatBold,
       }),
       /** 内联代码, mac的 cmd+` 无法拦截, 绑定为ctrl+` */
-      markInlineCode: hotkey.createAction('editor', '添加内联代码', {
+      markInlineCode: hotkey.createAction('editor', 'InlineCode', {
         hotkey: hotkey.create('Backquote', hotkey.Mod.Ctrl),
         run: markActions.formatInlineCode,
       }),
       /** 删除线 */
-      markStrikethrough: hotkey.createAction('editor', '添加删除线', {
+      markStrikethrough: hotkey.createAction('editor', 'Strikethrough', {
         hotkey: hotkey.withMod('KeyD'),
         run: markActions.formatStrikethrough,
       }),
       // /** 下划线 */
-      // markUnderline: hotkey.createAction('editor', '添加下划线', {
+      // markUnderline: hotkey.createAction('editor', 'Underline', {
       //   hotkey: hotkey.withMod('KeyU'),
       //   run:
       //  }),
       /** 高亮 */
-      markHighlight: hotkey.createAction('editor', '添加高亮', {
+      markHighlight: hotkey.createAction('editor', 'Highlight', {
         hotkey: hotkey.withMod('KeyH'),
         run: markActions.formatHighlight,
       }),

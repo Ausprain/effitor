@@ -8,9 +8,8 @@ import {
   ModKeyDownEffectMap,
 } from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
-import { keyChars } from './Key'
-import { CtrlCmd, modChar } from './Mod'
-import { create, createAction, modKey, withMod } from './util'
+import { CtrlCmd } from './Mod'
+import { create, createAction, modKey, parseHotkey, withMod } from './util'
 
 declare module '../editor/ConfigManager' {
   interface UserConfig {
@@ -44,6 +43,7 @@ export class HotkeyManager {
 
   readonly create = create
   readonly withMod = withMod
+  readonly parseHotkey = parseHotkey
   readonly createAction = createAction
 
   private _modkey = ''
@@ -62,15 +62,15 @@ export class HotkeyManager {
 
   /**
    * 检查当前 keydown 按下的按键组合含 modifier 修饰键
-   * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键, 缺省时自动适配 CtrlCmd
+   * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键或其组合, 缺省时自动适配 CtrlCmd
    */
-  checkWithMod(modifier?: KeyMod.AltOpt | KeyMod.Ctrl | KeyMod.MetaCmd | KeyMod.Shift) {
-    const [_, mod] = this._modkey.split(HotkeyEnum.Connector)
+  checkWithMod(modifier?: Omit<KeyMod, KeyMod.None>, modkey = this._modkey) {
+    const [_, mod] = modkey.split(HotkeyEnum.Connector)
     const num = parseInt(mod)
-    if (modifier) {
-      return num === modifier
+    if (typeof modifier === 'number') {
+      return (num & modifier) === modifier
     }
-    return num === CtrlCmd
+    return (num & CtrlCmd) === CtrlCmd
   }
 
   private readonly _configManager: Et.ConfigManager
@@ -179,24 +179,6 @@ export class HotkeyManager {
       return action.run(this._ctx)
     }
     return false
-  }
-
-  /**
-   * 解析一个快捷键，返回其组成数组, 该数组至少含 2 个元素, 最后一个元素为按键名, 前面的为修饰键简写字符;\
-   * 修饰键顺序固定为: `['Ctrl', 'Shift', 'Alt', 'Win']` in Windows, `['⌃', '⇧', '⌥', '⌘']` in MacOS \
-   * 如"KeyA_12"(快捷键`ctrl+shift+A`), 对应为: `['Ctrl', 'Shift', 'A']` 或 `['⌃', '⇧', 'A']` \
-   */
-  parseHotkey(modKey: string) {
-    const [key, mod] = modKey.split(HotkeyEnum.Connector)
-    const num = parseInt(mod)
-    const parts = [
-      (num & KeyMod.Ctrl) ? modChar.ctrl : '',
-      (num & KeyMod.Shift) ? modChar.shift : '',
-      (num & KeyMod.AltOpt) ? modChar.altopt : '',
-      (num & KeyMod.MetaCmd) ? modChar.metacmd : '',
-    ].filter(Boolean)
-    parts.push(keyChars[key as keyof typeof keyChars] ?? key)
-    return parts
   }
 
   /** 添加一组热键操作, 无视已存在，直接覆盖 */
