@@ -17,6 +17,18 @@ type HTMLNodeCreator = <N extends string>(elName: N) => N extends keyof Et.Defin
 export const zwsText = () => document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
 export const createText = (data: string) => document.createTextNode(data) as Et.Text
 export const createElement: HTMLNodeCreator = elName => document.createElement(elName) as ReturnType<HTMLNodeCreator>
+/** 创建一个可编辑的 div 元素, 禁用拼写检查、自动修正、自动大写 */
+export const pureEditableDiv = (plaintextOnly: boolean) => {
+  const div = document.createElement('div')
+  div.contentEditable = plaintextOnly ? 'plaintext-only' : 'true'
+  div.tabIndex = 0
+  div.spellcheck = false
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  div.autocorrect = false
+  div.autocapitalize = 'none'
+  return div
+}
 /** 节点长度, 文本节点返回文本长度, 元素节点返回子节点数量 */
 export const nodeLength = (nod: Et.Node) => isText(nod) ? nod.length : nod.childNodes.length
 /** 获取节点在父节点中的索引; 若节点没有父节点, 返回 -1 */
@@ -109,7 +121,7 @@ export const findEffectParent = (node: Et.NodeOrNull, stopTag: string = BuiltinE
 
 export const isText = (node: Node | null): node is Et.Text => node?.nodeType === 3 /** Node.TEXT_NODE */
 export const isElement = (node: Node | null): node is Et.Element => node?.nodeType === 1 /** Node.ELEMENT_NODE */
-export const isHTMLElement = (node: Node): node is Et.HTMLElement => node instanceof HTMLElement
+export const isHTMLElement = (node: Node | null): node is Et.HTMLElement => node instanceof HTMLElement
 export const isElementOrText = (node: Node): node is Element | Text => node.nodeType === 1 || node.nodeType === 3
 export const isFragment = (node: Node): node is Et.Fragment => node.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
 export const isBrElement = (node: Node): node is HTMLBRElement => (node as Et.Node).localName === 'br'

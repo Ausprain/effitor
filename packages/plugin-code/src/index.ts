@@ -14,11 +14,24 @@ import type { Et } from '@effitor/core'
 import { initCodePluginContext } from './codePluginContext'
 import { RenderOptions } from './codeRenderer'
 import type { CodeBlockRenderOptions } from './config'
-import { codeEffector } from './effector'
+import { codeEffector, insertCodeBlock } from './effector'
 import { EtCodeElement } from './EtCodeElement'
-import { codeHandler } from './handler'
+import { inCodeHandler } from './handler'
 import { createShikiHighlighter, type ShikiHighlighterOptions } from './highlighter'
 import cssText from './index.css?raw'
+
+const codeActions = {
+  /**
+   * 插入代码块
+   * @param ctx 编辑器上下文
+   * @param param1 代码块参数
+   * @param param1.code 代码内容
+   * @param param1.lang 代码语言
+   * @param param1.async 是否异步高亮
+   * @returns 是否插入成功
+   */
+  insertCodeBlock,
+}
 
 export interface CodePluginOptions extends CodeBlockRenderOptions {
   /**
@@ -36,11 +49,17 @@ export interface CodePluginOptions extends CodeBlockRenderOptions {
    * @default 2
    */
   defaultTabSize?: 2 | 3 | 4
+  /**
+   * 使用代码块操作
+   * @param actions 代码块操作
+   */
+  useActions?: (actions: typeof codeActions) => void
 }
 export { EtCodeElement }
 export type { EtCodeHighlighter } from './highlighter'
 export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPlugin> => {
   const highlighter = await createShikiHighlighter(options?.shikiOptions)
+  options?.useActions?.(codeActions)
 
   const renderOptions: RenderOptions = {}
   if (options?.canRenderLangs?.includes('html')) {
@@ -106,7 +125,7 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
       setSchema({
         code: EtCodeElement,
       })
-      mountEtHandler(EtCodeElement, codeHandler)
+      mountEtHandler(EtCodeElement, inCodeHandler)
     },
   }
 }

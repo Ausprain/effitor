@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { cmd, cr, dom } from '@effitor/core'
-import { HtmlCharEnum } from '@effitor/shared'
+import { HtmlCharEnum, quoteBlockIcon } from '@effitor/shared'
 
 import { BlockquoteMeta } from './config'
 import { blockquoteMetaParser } from './util'
@@ -78,10 +78,14 @@ export const blockquoteEffector: Et.Effector = {
     const hsm = ctx.hotstringManager
     const metaMap = ctx.pctx.$bqPx.metaMap
     for (const meta of Object.values(metaMap)) {
-      hsm.create(meta.abbr, (ctx) => {
-        checkAbbrToBlockquote(ctx, meta)
+      hsm.create(meta.abbr, {
+        action: (ctx) => {
+          checkAbbrToBlockquote(ctx, meta)
+        },
       })
     }
+    // 注册 dropdown
+    initDropdown(ctx)
   },
 }
 
@@ -99,4 +103,41 @@ const checkAbbrToBlockquote = (ctx: Et.EditorContext, meta: BlockquoteMeta) => {
     meta,
     paragraph: currP,
   })
+}
+
+const initDropdown = (ctx: Et.EditorContext) => {
+  const dropdown = ctx.assists.dropdown
+  if (!dropdown) {
+    return
+  }
+  dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
+    quoteBlockIcon(),
+    (ctx: Et.EditorContext) => {
+      replaceCurrentParagraphWithBlockquote(ctx)
+    },
+    {
+      prefixes: ['bq', 'blockquote'],
+      tip: 'Mark as Blockquote',
+    },
+  ))
+}
+
+/**
+ * 替换当前段落为引用块
+ * @param ctx 编辑器上下文
+ * @param param1 选项
+ * @param param1.meta 引用块元数据
+ * @param param1.reuse 是否复用被替换的段落 (将被替换段落插入引用块末尾)
+ * @returns 是否成功替换
+ */
+export const replaceCurrentParagraphWithBlockquote = (
+  ctx: Et.EditorContext, { meta, reuse = true }: { meta?: BlockquoteMeta, reuse?: boolean } = {},
+): boolean => {
+  const currP = ctx.focusParagraph
+  if (!currP || !ctx.isPlainParagraph(currP)) {
+    return false
+  }
+  return ctx.effectInvoker.invoke(
+    currP, 'replaceParagraphWithBlockquote', ctx, { meta, reuse, paragraph: currP },
+  )
 }

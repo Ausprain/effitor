@@ -367,7 +367,7 @@ export class CommonHandler {
       this._ctx.selection.collapseTo(textNode, 1)
       return true
     }
-    return this.commander.handleInsertText(textNode, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
+    return this.commander.handleUpdateText(textNode, 0, 0, HtmlCharEnum.ZERO_WIDTH_SPACE, true)
   }
 
   /**

@@ -1,5 +1,61 @@
 Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
-duration: 33.4s
+duration: 33.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 144       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 16        │ good                │
+│ INPs (avg) │ 16.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
+duration: 45.9s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 156       │ good                │
+│ LCP        │ 156       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 40.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
+duration: 33.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 164       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 24        │ good                │
+│ INPs (avg) │ 24.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
+duration: 46.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 152       │ good                │
+│ LCP        │ 152       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 48        │ good                │
+│ INPs (avg) │ 48.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
+duration: 33.8s
 env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
 ┌────────────┬───────────┬─────────────────────┐
 │ metric     │ value     │ rating              │
@@ -13,114 +69,30 @@ env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, 
 └────────────┴───────────┴─────────────────────┘
 
 Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
-duration: 44.2s
+duration: 46.7s
 env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
 ┌────────────┬───────────┬─────────────────────┐
 │ metric     │ value     │ rating              │
 ├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 112       │ good                │
-│ LCP        │ 112       │ good                │
+│ FCP        │ 156       │ good                │
+│ LCP        │ 156       │ good                │
 │ CLS        │ 0.0103    │ good                │
 │ INP        │ 40        │ good                │
-│ INPs (avg) │ 40.0      │ good                │ 
+│ INPs (avg) │ 44.0      │ good                │ 
 │ Memory     │ total: 10 MB, used: 10 MB       │
 └────────────┴───────────┴─────────────────────┘
 
 Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
-duration: 33.3s
+duration: 33.8s
 env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
 ┌────────────┬───────────┬─────────────────────┐
 │ metric     │ value     │ rating              │
 ├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 160       │ good                │
+│ FCP        │ 176       │ good                │
 │ LCP        │ undefined │ undefined           │
 │ CLS        │ 0.0000    │ good                │
 │ INP        │ 8         │ good                │
 │ INPs (avg) │ 8.0       │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
-duration: 46.3s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 156       │ good                │
-│ LCP        │ 156       │ good                │
-│ CLS        │ 0.0103    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 44.0      │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
-duration: 34.2s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 164       │ good                │
-│ LCP        │ undefined │ undefined           │
-│ CLS        │ 0.0000    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 28.0      │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
-duration: 46.9s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 156       │ good                │
-│ LCP        │ 156       │ good                │
-│ CLS        │ 0.0103    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 48.0      │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
-duration: 34.2s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 212       │ good                │
-│ LCP        │ undefined │ undefined           │
-│ CLS        │ 0.0000    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 24.0      │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
-duration: 46.8s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 156       │ good                │
-│ LCP        │ 156       │ good                │
-│ CLS        │ 0.0103    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 44.0      │ good                │ 
-│ Memory     │ total: 10 MB, used: 10 MB       │
-└────────────┴───────────┴─────────────────────┘
-
-Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
-duration: 34.2s
-env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
-┌────────────┬───────────┬─────────────────────┐
-│ metric     │ value     │ rating              │
-├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 160       │ good                │
-│ LCP        │ undefined │ undefined           │
-│ CLS        │ 0.0000    │ good                │
-│ INP        │ 40        │ good                │
-│ INPs (avg) │ 28.0      │ good                │ 
 │ Memory     │ total: 10 MB, used: 10 MB       │
 └────────────┴───────────┴─────────────────────┘
 
@@ -130,8 +102,36 @@ env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, 
 ┌────────────┬───────────┬─────────────────────┐
 │ metric     │ value     │ rating              │
 ├────────────┼───────────┼─────────────────────┤
-│ FCP        │ 160       │ good                │
-│ LCP        │ 160       │ good                │
+│ FCP        │ 156       │ good                │
+│ LCP        │ 156       │ good                │
+│ CLS        │ 0.0103    │ good                │
+│ INP        │ 48        │ good                │
+│ INPs (avg) │ 48.0      │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的空编辑器中输入 1000 个字符 by [lexical]
+duration: 33.9s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 212       │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 8         │ good                │
+│ INPs (avg) │ 8.0       │ good                │ 
+│ Memory     │ total: 10 MB, used: 10 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 仅支持标题和段落的编辑器, 加载 30 万字符 HTML (1000 段落 和 250 标题), 并在末段落输入 1000 个字符 by [lexical]
+duration: 46.7s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 152       │ good                │
+│ LCP        │ 152       │ good                │
 │ CLS        │ 0.0103    │ good                │
 │ INP        │ 48        │ good                │
 │ INPs (avg) │ 48.0      │ good                │ 

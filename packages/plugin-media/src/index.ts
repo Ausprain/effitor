@@ -7,12 +7,16 @@ import type {
   VideoOptions,
 } from './config'
 import { MEDIA_ET_TYPE, MediaType } from './config'
-import { mediaEffector } from './effector'
+import { mediaEffector, openMediaUploadDialog } from './effector'
 import { EtAudioElement } from './EtAudioElement'
 import { EtImageElement } from './EtImageElement'
 import { EtVideoElement } from './EtVideoElement'
 import { markMediaHandler } from './handler'
 import cssText from './index.css?raw'
+
+const mediaActions = {
+  openMediaUploadDialog,
+}
 
 const defaultOptions = {
   image: {
@@ -40,6 +44,10 @@ export interface MediaOptions {
   image: ImageOptions | true
   audio?: AudioOptions | true
   video?: VideoOptions | true
+  /**
+   * 使用媒体动作
+   */
+  useActions?: (actions: typeof mediaActions) => void
 }
 export type {
   CreateAudioOptions,
@@ -54,6 +62,7 @@ export { EtAudioElement, EtImageElement, EtVideoElement }
  * @param options 配置项, 缺省时只有图片
  */
 export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
+  options?.useActions?.(mediaActions)
   return {
     name: '@effitor/plugin-media',
     cssText,

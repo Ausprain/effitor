@@ -120,18 +120,19 @@ const removeNodesAndMergeSiblingsIfCan = (
 }
 
 /**
- * 扩大删除, 并根据选区范围, 克隆插回未选择的内容; 可选插入额外内容以及判定插回位置前后节点与
- * 插回片段是否需要合并;
+ * 扩大删除, 并根据选区范围, 克隆插回未选择的内容; 可选插入额外内容 (会自动判定插回位置前后节点与
+ * 插回片段是否需要合并);
  * * 此方法不判断插入内容在插入位置的合法性
  * * 跨段落使用该方法时, 不可启用合并, 否则可能会导致前后段落被合并, 而未被 range 选择的段落本不该合并
  * @param staticRange 目标选区
  * @param startExpandNode 扩大删除的起始节点
  * @param endExpandNode 扩大删除的结束节点
- * @param extraContents 额外内容, 若提供, 则会在删除范围前插入
+ * @param insertContents 额外插入内容, 若提供, 则会插入到 `staticRange` 的位置
  * @param includeExpandNode 克隆是否包含扩大节点
  * @param checkNeedMerge 是否需要检查合并插入片段与前后兄弟节点;
- *    这在 includeExpandNode 为 false, 时是有必要的; 因为扩大节点会被删除, 而如果
+ *    这在 includeExpandNode 为 false, 时是有必要的; 因为扩大节点始终会被删除, 而如果
  *    插入内容不含扩大节点边缘, 则扩大节点前后兄弟与插入内容边缘节点可能存在可合并的情况.
+ *    (正常情况下, startExpandNode与其前兄弟, endExpandNode与其后兄弟, 必定不同(不可合并))
  * @param destCaretRange 命令执行后光标位置, 缺省则使用片段合并位置
  * @returns 是否成功添加命令, 若 起始/结束 扩大节点不是同层节点, 或不在页面上, 返回 false
  */
@@ -140,7 +141,7 @@ export const expandRemoveInsert = (
   staticRange: Et.StaticRange,
   startExpandNode: Et.Node,
   endExpandNode: Et.Node,
-  extraContents: Et.Fragment | null,
+  insertContents: Et.Fragment | null,
   includeExpandNode: boolean,
   checkNeedMerge: boolean,
   destCaretRange?: Et.CaretRange,
@@ -150,8 +151,8 @@ export const expandRemoveInsert = (
   if (!removeRange) {
     return false
   }
-  if (extraContents && !extraContents.hasChildNodes()) {
-    extraContents = null
+  if (insertContents && !insertContents.hasChildNodes()) {
+    insertContents = null
   }
   startExpandNode = removeRange.startNode as Et.Node
   endExpandNode = removeRange.endNode as Et.Node
@@ -161,7 +162,7 @@ export const expandRemoveInsert = (
   )
 
   // 插入内容为空, 仅删除, 同时判断是否连带删除空祖先
-  if (!df1.hasChildNodes() && !df2.hasChildNodes() && !extraContents) {
+  if (!df1.hasChildNodes() && !df2.hasChildNodes() && !insertContents) {
     return removeNodesAndChildlessAncestorAndMergeSiblings(ctx, startExpandNode, endExpandNode)
   }
 
@@ -174,13 +175,13 @@ export const expandRemoveInsert = (
     // df1, df2 必定有一个非空, 若有一个为空, 则应使用另一个的近端节点做合并判断
     const dfFirst = df1.hasChildNodes()
       ? df1.firstChild
-      : extraContents
-        ? extraContents.firstChild
+      : insertContents
+        ? insertContents.firstChild
         : df2.firstChild
     const dfLast = df2.hasChildNodes()
       ? df2.lastChild
-      : extraContents
-        ? extraContents.lastChild
+      : insertContents
+        ? insertContents.lastChild
         : df1.lastChild
     const prevNeedMerge = prevSibling && dfFirst && dom.isEqualNode(prevSibling, dfFirst)
     const nextNeedMerge = nextSibling && dfLast && dom.isEqualNode(dfLast, nextSibling)
@@ -208,8 +209,8 @@ export const expandRemoveInsert = (
     return false
   }
 
-  if (extraContents) {
-    df1 = fragmentUtils.mergeEtFragments(df1, extraContents)
+  if (insertContents) {
+    df1 = fragmentUtils.mergeEtFragments(df1, insertContents)
   }
 
   // 合并内容, 结束光标位置优先亲和到前者末尾

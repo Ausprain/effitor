@@ -36,7 +36,7 @@ export const nestedChecker = {
   /**
    * @returns false: 禁止插入该mark, true: 对于嵌套规则而言允许插入该mark
    */
-  check(currEl: Et.EtElement, newMark: MarkType): boolean {
+  check(currEl: Et.HTMLElement, newMark: MarkType): boolean {
     const markEls: EtMarkElement[] = traversal.outerElements(currEl, MarkEnum.ElName)
     let point = 0
     for (const el of markEls) {

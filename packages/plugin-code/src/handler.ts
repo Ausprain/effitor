@@ -4,7 +4,7 @@ import { CodeContext } from './CodeContext'
 import { Brackets } from './config'
 import type { EtCodeElement } from './EtCodeElement'
 
-export const codeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
+export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
   InsertCompositionTextInRawEl(ctx, { rawEl, data }) {
     const codeCtx = ctx.commonEtElement.codeCtx
     if (rawEl !== codeCtx.area) {

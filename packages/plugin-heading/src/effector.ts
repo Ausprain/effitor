@@ -68,12 +68,12 @@ export const headingEffector: Et.Effector = {
 
 const headingMenuForDropdown = (ctx: Et.EditorContext, dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
   const items = [
-    [h1Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 1), ['h1', 'heading1']],
-    [h2Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 2), ['h2', 'heading2']],
-    [h3Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 3), ['h3', 'heading3']],
-    [h4Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 4), ['h4', 'heading4']],
-    [h5Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 5), ['h5', 'heading5']],
-    [h6Icon(), (ctx: Et.EditorContext) => toHeadingAtCaret(ctx, 6), ['h6', 'heading6']],
+    [h1Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 1), ['h1', 'heading1']],
+    [h2Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 2), ['h2', 'heading2']],
+    [h3Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 3), ['h3', 'heading3']],
+    [h4Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 4), ['h4', 'heading4']],
+    [h5Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 5), ['h5', 'heading5']],
+    [h6Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 6), ['h6', 'heading6']],
   ] as [SVGElement, (ctx: Et.EditorContext) => void, string[]][]
   const menu = dropdown.createMenu('heading', {
     items: items.map(([icon, onchosen, prefixes]) => dropdown.createMenuItem(icon, onchosen, {
@@ -95,7 +95,7 @@ const headingMenuForDropdown = (ctx: Et.EditorContext, dropdown: Required<Et.Edi
 /**
  * 在光标位置将当前段落转为标题, 原有内容转为纯文本
  */
-const toHeadingAtCaret = (ctx: Et.EditorContext, level: Et.HeadingLevel) => {
+export const replaceCurrentParagraphWithHeading = (ctx: Et.EditorContext, level: Et.HeadingLevel) => {
   // 不是纯段落, 无法转为标题; 不过不是段落应该会被filter过滤掉
   if (!ctx.isUpdated() || !ctx.isPlainParagraph(ctx.focusParagraph)) {
     return
@@ -103,7 +103,7 @@ const toHeadingAtCaret = (ctx: Et.EditorContext, level: Et.HeadingLevel) => {
   // 校验段落长度, 避免将长段落转为标题
   const title = ctx.focusParagraph.textContent
   if (title.length > 50) {
-    ctx.assists.msg?.info('当前段落内容太长, 无法转为标题.')
+    ctx.assists.msg?.info('Too many content to convert to heading.')
     return
   }
   return replaceParagraphWithHeading(ctx, {

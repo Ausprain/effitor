@@ -9,21 +9,6 @@
     "markdown"
   ],
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./styles/*": {
-      "default": "./dist/styles/*"
-    }
-  },
   "author": "Henvn Leaf",
   "license": "MIT",
   "homepage": "https://github.com/Ausprain/effitor#readme",
@@ -36,6 +21,7 @@
     "build:main": "bun ./scripts/build.js",
     "prebuild:main": "tsc --noEmit && bun eslint packages --quiet && bun run update:packages",
     "update:packages": "bun ./scripts/updatePackageJson.js",
+    "benchmark": "cd examples/benchmark && bun run benchmark",
     "test": "vitest --project unit --project intg",
     "test-unit": "vitest unit",
     "test-e2e:chrome": "vitest e2e --browser chromium"

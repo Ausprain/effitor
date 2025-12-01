@@ -26,6 +26,7 @@ export class EtTableElement extends EtComponent {
     this.dataset.head = value
   }
 
+  /** 表格是否等宽 */
   get tableEven() {
     return this.dataset.even === '1'
   }
@@ -34,6 +35,7 @@ export class EtTableElement extends EtComponent {
     this.dataset.even = value ? '1' : '0'
   }
 
+  /** 表格对齐方式 */
   get tableAlign() {
     return this.dataset.align || 'left'
   }

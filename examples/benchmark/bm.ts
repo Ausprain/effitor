@@ -3,6 +3,9 @@ import fs from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { styleText } from 'node:util'
+import { DEV_PORT } from './shared/config'
+
+import { createServer } from 'vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const TEST_COUNT = 5
@@ -36,8 +39,28 @@ const clearOutputDir = () => {
   fs.mkdirSync(OUT_DIR, { recursive: true })
 }
 
+async function startDevServer() {
+  const server = await createServer({
+    root: __dirname, // 项目根目录（含 index.html）
+    server: {
+      port: DEV_PORT,
+    },
+    // 可选：自定义配置，如 plugins、resolve 等
+  })
+
+  await server.listen()
+
+  const { port, host } = server.config.server
+  console.log(`Vite dev server running on http://${host || 'localhost'}:${port}`)
+
+  // 将 server 实例暴露出去，便于后续关闭
+  return server
+}
+
 async function main() {
   console.log(styleText('cyan', `=============== test start ===============`))
+  console.log(styleText('cyan', `start server......`))
+  const server = await startDevServer()
   clearOutputDir()
 
   for (let i = 0; i < TEST_COUNT; i++) {
@@ -48,6 +71,7 @@ async function main() {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     catch (error: any) {
+      server.close()
       console.error(styleText('red', `❌ Test ${i + 1}/${TEST_COUNT} failed:`, error.message))
       // 可以选择继续或停止
       // throw error // 如果想在失败时停止
@@ -58,6 +82,7 @@ async function main() {
   process.stdout.write(styleText('cyan', `=============== build result ===============`))
   execSync(`bun result.ts`)
   process.stdout.write(styleText('cyan', `\r=============== build result success ===============`))
+  server.close()
 }
 
 main().catch((error) => {

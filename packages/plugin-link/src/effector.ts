@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { dom, type Et } from '@effitor/core'
 import { copyIcon, CssClassEnum, gotoIcon, linkIcon, MIMETypeEnum } from '@effitor/shared'
 
 import { LinkEnum } from './config'
@@ -73,21 +73,22 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
   popup.addHoverPopup<EtLinkElement>(LinkEnum.Popup_Key, () => {
     const div = document.createElement('div')
     div.classList.add(LinkEnum.Class_Popup, CssClassEnum.Card)
-    const urlInput = document.createElement('input')
+    const urlInput = dom.pureEditableDiv(true)
+    urlInput.tabIndex = 0
     urlInput.className = LinkEnum.Class_Popup_Input
     urlInput.onclick = () => {
       setTimeout(() => {
         urlInput.focus()
       }, 10)
     }
-
-    div.appendChild(urlInput)
-    let i = 0
+    const itemContainer = document.createElement('div')
+    itemContainer.classList.add(LinkEnum.Class_Popup_Items)
+    itemContainer.style = `display:flex; flex-direction:column; justify-content:start; align-items:center;`
     for (const item of popupItems) {
-      item.el.style = `position: absolute; top: 0; right: 0; margin: 6px; margin-right: ${6 + i * 32}px;`
-      div.appendChild(item.el)
-      i++
+      item.el.style = `margin-inline:3px;`
+      itemContainer.appendChild(item.el)
     }
+    div.append(urlInput, itemContainer)
     return div
   }, {
     popupItems,
@@ -96,15 +97,15 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
       atTop: false,
     },
     beforeShow: (_ctx, linkEl, contentEl, _items) => {
-      const inputDiv = contentEl.firstElementChild as HTMLInputElement
-      inputDiv.value = linkEl.linkUrl
+      const inputDiv = contentEl.firstElementChild as HTMLDivElement
+      inputDiv.textContent = linkEl.linkUrl
       inputDiv.setAttribute('title', linkEl.linkTitle)
       inputDiv.onmousedown = e => (e.stopPropagation(), _ctx.editor.blur())
     },
     beforeHide: (_ctx, linkEl, content) => {
-      const inputDiv = content.firstElementChild as HTMLInputElement
+      const inputDiv = content.firstElementChild as HTMLDivElement
       // 关闭popup时, 若链接不同, 则更新
-      const newUrl = inputDiv.value.replaceAll(/\s/g, '')
+      const newUrl = inputDiv.textContent?.replaceAll(/\s/g, '') ?? ''
       const linkCtx = _ctx.pctx.$linkPx
       if (linkEl.linkUrl !== newUrl) {
         if (!linkCtx.urlReg.test(newUrl)) {
@@ -137,34 +138,36 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
 const addLinkItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
   dropdown.addInlineRichTextMenuItem(dropdown.createMenuItem(
     linkIcon(),
-    (ctx) => {
-      ctx.assists.dialog?.open<{ name: string, url: string } | undefined>(async (el, close) => {
-        // 需要强制编辑器失去焦点, 否则无法让内部输入框获取到焦点
-        ctx.editor.blur()
-        initLinkDialog(ctx, el, close)
-      }).then((res) => {
-        ctx.editor.focus()
-        const tc = ctx.selection.getTargetCaret()
-        if (!tc) {
-          return
-        }
-        if (res) {
-          const { name, url } = res
-          if (!name || !url) {
-            ctx.assists.msg?.error('链接格式错误.')
-            return
-          }
-          return checkInsertLink(ctx, tc, { text: name, url, title: '' })
-        }
-        else {
-          ctx.assists.msg?.info('取消插入链接')
-        }
-      })
-    },
+    openDialogToInsertLink,
     {
       prefixes: ['link'],
     },
   ))
+}
+
+export const openDialogToInsertLink = (ctx: Et.EditorContext) => {
+  ctx.assists.dialog?.open<{ name: string, url: string } | undefined>(async (el, close) => {
+    // 需要强制编辑器失去焦点, 否则无法让内部输入框获取到焦点
+    ctx.editor.blur()
+    initLinkDialog(ctx, el, close)
+  }).then((res) => {
+    ctx.editor.focus()
+    const tc = ctx.selection.getTargetCaret()
+    if (!tc) {
+      return
+    }
+    if (res) {
+      const { name, url } = res
+      if (!name || !url) {
+        ctx.assists.msg?.error('链接格式错误.')
+        return
+      }
+      return checkInsertLink(ctx, tc, { text: name, url, title: '' })
+    }
+    else {
+      ctx.assists.msg?.info('取消插入链接')
+    }
+  }).catch(() => { /** catch reject */ })
 }
 
 /* -------------------------------------------------------------------------- */

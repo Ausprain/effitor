@@ -2,9 +2,11 @@ import { Page, TestInfo } from 'playwright/test'
 import { rustNllPlainHTML_5, rustNllPlainHTML_50 } from '../shared/nll-plain'
 import { appendMetrics, typing_1000_chars_AtEditorEnd_WithInitialContent, typing_1000_chars_InEmptyEditor } from './utils'
 
-const EFFITOR_PLAIN_URL = 'http://localhost:5173/src/effitor-plain.html'
-const LEXICAL_PLAIN_URL = 'http://localhost:5173/src/lexical-plain.html'
-const TIPTAP_PLAIN_URL = 'http://localhost:5173/src/tiptap-plain.html'
+import { DEV_PORT } from '../shared/config'
+
+const EFFITOR_PLAIN_URL = `http://localhost:${DEV_PORT}/src/effitor-plain.html`
+const LEXICAL_PLAIN_URL = `http://localhost:${DEV_PORT}/src/lexical-plain.html`
+const TIPTAP_PLAIN_URL = `http://localhost:${DEV_PORT}/src/tiptap-plain.html`
 
 const saveMetrics = (fileName: string, testTitle: string) => async (page: Page, testInfo: TestInfo) => {
   await appendMetrics(page, fileName, testTitle, testInfo.duration)

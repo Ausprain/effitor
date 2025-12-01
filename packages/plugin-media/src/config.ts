@@ -25,14 +25,14 @@ declare module '@effitor/core' {
     /** 当前光标所在文本节点内容符合markdown图片语法时, 将文本转为media元素 */
     markMedia: Et.EffectHandle<Et.ValidTargetCaretAtText>
     /** 插入媒体元素: 图片/音/视频 */
-    insertMedia: <T extends MediaType>(this: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
+    insertMedia: <T extends `${MediaType}`>(this: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
       targetCaret: Et.ValidTargetCaret
       type: T
       url: string
       meta: Omit<CreateMediaOptionsMap[T], 'url'>
     }) => TrueOrVoid
     /** 插入多个媒体元素: 图片/音/视频, 但一次只能插入同一个类型 */
-    insertMediaChunk: <T extends MediaType>(this: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
+    insertMediaChunk: <T extends `${MediaType}`>(this: Et.EffectHandleThis, ctx: Et.EditorContext, payload: {
       targetCaret: Et.ValidTargetCaret
       type: T
       chunk: CreateMediaOptionsMap[T][]

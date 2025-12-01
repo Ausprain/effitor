@@ -2,9 +2,11 @@ import { Page, TestInfo } from 'playwright/test'
 import { rustNllRichHTML } from '../shared/nll-rich'
 import { appendMetrics, typing_1000_chars_AtEditorEnd_WithInitialContent, typing_1000_chars_InEmptyEditor } from './utils'
 
-const EFFITOR_RICH_URL = 'http://localhost:5173/src/effitor-rich.html'
-const LEXICAL_RICH_URL = 'http://localhost:5173/src/lexical-rich.html'
-const TIPTAP_RICH_URL = 'http://localhost:5173/src/tiptap-rich.html'
+import { DEV_PORT } from '../shared/config'
+
+const EFFITOR_RICH_URL = `http://localhost:${DEV_PORT}/src/effitor-rich.html`
+const LEXICAL_RICH_URL = `http://localhost:${DEV_PORT}/src/lexical-rich.html`
+const TIPTAP_RICH_URL = `http://localhost:${DEV_PORT}/src/tiptap-rich.html`
 
 const saveMetrics = (fileName: string, testTitle: string) => async (page: Page, testInfo: TestInfo) => {
   await appendMetrics(page, fileName, testTitle, testInfo.duration)

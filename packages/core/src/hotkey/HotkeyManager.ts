@@ -1,5 +1,6 @@
+import { KeyMod } from '@effitor/shared'
+
 import type { Et } from '../@types'
-import { ConfigManager } from '../editor/ConfigManager'
 import {
   BuiltinHotkeyActionMap,
   ModKeyDownBuiltinMap,
@@ -8,7 +9,7 @@ import {
 } from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
 import { keyChars } from './Key'
-import { CtrlCmd, Mod, modChar } from './Mod'
+import { CtrlCmd, modChar } from './Mod'
 import { create, createAction, modKey, withMod } from './util'
 
 declare module '../editor/ConfigManager' {
@@ -63,7 +64,7 @@ export class HotkeyManager {
    * 检查当前 keydown 按下的按键组合含 modifier 修饰键
    * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键, 缺省时自动适配 CtrlCmd
    */
-  checkWithMod(modifier?: Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift) {
+  checkWithMod(modifier?: KeyMod.AltOpt | KeyMod.Ctrl | KeyMod.MetaCmd | KeyMod.Shift) {
     const [_, mod] = this._modkey.split(HotkeyEnum.Connector)
     const num = parseInt(mod)
     if (modifier) {
@@ -72,7 +73,7 @@ export class HotkeyManager {
     return num === CtrlCmd
   }
 
-  private readonly _configManager: ConfigManager
+  private readonly _configManager: Et.ConfigManager
   constructor(
     private readonly _ctx: Et.EditorContext,
   ) {
@@ -120,15 +121,19 @@ export class HotkeyManager {
       needUpdateConfig = true
     }
     if (needUpdateConfig) {
-      this._configManager.updateConfig('hotkeyData', {
-        hotkeyMapping: { ...this._hotkeyActionKeyMap },
-      })
+      this.#updateConfig()
     }
 
     // 加载内置系统级按键行为
     this._builtinModKeyEffect = ModKeyDownBuiltinMap
     // 加载默认按键行为
     this._defaultModKeyEffect = ModKeyDownDefaultMap
+  }
+
+  #updateConfig() {
+    this._configManager.updateConfig('hotkeyData', {
+      hotkeyMapping: { ...this._hotkeyActionKeyMap },
+    })
   }
 
   /**
@@ -159,14 +164,14 @@ export class HotkeyManager {
   }
 
   /**
-   * 在 MainKeydownSolver 前监听按键默认行为; 如 `opt+Backspace` 删除一个word
+   * 在 MainKeydownSolver 前监听按键默认行为, 在插件keydownSovler之后执行; 如 `opt+Backspace` 删除一个word
    */
   listenDefault() {
     return this.listenEffect(this._defaultModKeyEffect)
   }
 
   /**
-   * 在 keydown 中监听快捷键绑定; 在 listenBuiltin 失败之后, 插件 keydownSovler 之前执行
+   * 在 keydown 中监听快捷键绑定; 在 listenBuiltin 失败之后, 插件 keydownSovler 之前执行; 不可 repeat 执行
    */
   listenBinding() {
     const action = this._hotkeyActionMap[this._modkey]
@@ -185,10 +190,10 @@ export class HotkeyManager {
     const [key, mod] = modKey.split(HotkeyEnum.Connector)
     const num = parseInt(mod)
     const parts = [
-      (num & Mod.Ctrl) ? modChar.ctrl : '',
-      (num & Mod.Shift) ? modChar.shift : '',
-      (num & Mod.AltOpt) ? modChar.altopt : '',
-      (num & Mod.MetaCmd) ? modChar.metacmd : '',
+      (num & KeyMod.Ctrl) ? modChar.ctrl : '',
+      (num & KeyMod.Shift) ? modChar.shift : '',
+      (num & KeyMod.AltOpt) ? modChar.altopt : '',
+      (num & KeyMod.MetaCmd) ? modChar.metacmd : '',
     ].filter(Boolean)
     parts.push(keyChars[key as keyof typeof keyChars] ?? key)
     return parts
@@ -209,7 +214,8 @@ export class HotkeyManager {
 
   /**
    * 给一个操作重新设置快捷键和执行函数
-   * @param [enforce=false] 是否强制设置，无视已存在; 否则若已存在会发出提示
+   * @param [enforce=false] 是否强制设置热键，无视已存在; 否则若存在则不提换; 若提供了 run, 则始终会更新 run
+   * @returns 是否成功设置热键
    */
   setHotkey(actionKey: A_actionKey, hotkey: A_hotkey, run?: HotkeyAction['run'], enforce = false) {
     const action = this._actionMap[actionKey]
@@ -219,14 +225,10 @@ export class HotkeyManager {
     }
     if (action.hotkey === hotkey) return true
     if (!enforce && (hotkey in this._hotkeyActionMap)) {
-      // TODO 提示快捷键冲突
-      // const confirm = ctx.popover('该热键已存在, 是否覆盖')
-      // if (!confirm) return false
+      return false
     }
     this._hotkeyActionKeyMap[hotkey] = actionKey
-    this._configManager.updateConfig('hotkeyData', {
-      hotkeyMapping: { ...this._hotkeyActionKeyMap },
-    })
+    this.#updateConfig()
     return true
   }
 

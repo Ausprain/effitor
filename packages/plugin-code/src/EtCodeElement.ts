@@ -53,6 +53,14 @@ export class EtCodeElement extends EtComponent {
     throw Error('EtCodeElement.create is not implemented')
   }
 
+  /**
+   * 创建默认装饰的代码块元素
+   * @param ctx 编辑器上下文
+   * @param value 代码内容
+   * @param lang 代码语言
+   * @param async 是否异步渲染高亮
+   * @returns 代码块元素
+   */
   static withDefaultDecoration(ctx: Et.EditorContext, value = '', lang = '', async = false) {
     const el = document.createElement(CodeEnum.ElName)
     el.lang = lang
