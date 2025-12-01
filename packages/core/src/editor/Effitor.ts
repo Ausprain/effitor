@@ -365,13 +365,15 @@ export class Effitor {
    * @param isDark 是否为深色模式
    */
   setColorScheme(isDark: boolean) {
-    if (this.status.isDark === isDark) return
     const root = this.isShadow ? (this.__root as ShadowRoot).host : (this.__root as HTMLElement)
+    if (!root || root.classList.contains('dark') === isDark) {
+      return
+    }
     if (isDark) {
-      root?.classList.add('dark')
+      root.classList.add('dark')
     }
     else {
-      root?.classList.remove('dark')
+      root.classList.remove('dark')
     }
     Object.assign(this.status, { isDark })
     this.callbacks.onDarkModeChanged?.(this.context, isDark)
