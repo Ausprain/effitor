@@ -1,0 +1,16 @@
+.et-h-keymods {
+  &:not(:empty) {
+    &::before, &::after {
+      font-weight: bold;
+      opacity: 0.6;
+    }
+    &::before {
+      content: "「";
+      padding-bottom: 12px;
+    }
+    &::after {
+      content: "」";
+      padding-top: 12px;
+    }
+  }
+}

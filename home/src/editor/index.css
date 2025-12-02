@@ -1,0 +1,15 @@
+.effitor > et-editor.et {
+  margin: 0;
+  border: none;
+  padding-block: 12px;
+  padding-inline: 24px;
+}
+et-body.et {
+  min-height: 300px;
+}
+
+et-heading.ET_cls-h1 {
+  &:first-child {
+    margin-top: 0;
+  }
+}

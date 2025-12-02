@@ -1,0 +1,104 @@
+import { hotkey, hotstring, type Et } from 'effitor'
+import { KEY_CONNECTOR, KEY_ROUTES, type KeyInfo } from './keymap'
+
+declare module 'effitor' {
+  interface EditorAssists {
+    typingTip: TypingTipAssist
+  }
+}
+
+export interface KeyState {
+  modkey: string
+  mods: string[]
+  nextMods: string[]
+  keys: KeyInfo[]
+}
+export interface HotstringInfo {
+  chars: string
+  pos: number
+  title: string
+}
+
+class TypingTipAssist {
+  private prevScope = ''
+  private prevModkey = ''
+  public onModChange?: (state: KeyState) => void
+  public onHotstringProgress?: (his: HotstringInfo[]) => void
+
+  constructor(options: { onModChange?: (state: KeyState) => void } = {}) {
+    this.onModChange = options.onModChange
+  }
+
+  checkModkey(scope: string, modkey: string) {
+    const routeMap = KEY_ROUTES[scope] || KEY_ROUTES.default
+    if (!routeMap) {
+      return
+    }
+    if (scope !== this.prevScope || modkey !== this.prevModkey) {
+      this.prevScope = scope
+      this.prevModkey = modkey
+      const parts = hotkey.parseHotkey(modkey)
+      parts.pop()
+      const keyBind = parts.length ? parts.join(KEY_CONNECTOR) : ''
+      const route = routeMap[keyBind]
+
+      if (!route) {
+        return
+      }
+      this.onModChange?.({
+        modkey,
+        mods: parts,
+        nextMods: route.nextMods,
+        keys: route.keys,
+      })
+    }
+  }
+
+  checkHotstring(hss: readonly hotstring.Hotstring[]) {
+    hss = hss.filter(hs => !!hs.pos)
+    this.onHotstringProgress?.(hss.map(hs => ({
+      chars: hs.chars.slice(0, -1),
+      pos: hs.pos,
+      title: hs.title,
+    })).sort((a, b) => b.pos / b.chars.length - a.pos / a.chars.length))
+  }
+}
+
+export const useTypingTipAssist = (): Et.EditorPlugin => {
+  return {
+    name: '@effitor/home-typingTipAssist',
+    effector: [{
+      enforce: 'pre',
+      beforeKeydownSolver: {
+        default: (ev, ctx) => {
+          ctx.assists.typingTip.checkModkey(ctx.commonEtElement.localName, ctx.hotkeyManager.modkey)
+        },
+      },
+      afterInputSolver: {
+        default: (ev, ctx) => {
+          switch (ev.inputType) {
+            case 'insertText':
+            case 'deleteContentBackward':
+            case 'deleteWordBackward':
+              Promise.resolve().then(() => {
+                ctx.assists.typingTip.checkHotstring(ctx.hotstringManager.allHotstrings())
+              })
+              break
+            default:
+              ctx.assists.typingTip.onHotstringProgress?.([])
+              break
+          }
+        },
+      },
+      onEffectElementChanged: (_el, _old, ctx) => {
+        if (!ctx.commonEtElement) {
+          return
+        }
+        ctx.assists.typingTip.checkModkey(ctx.commonEtElement.localName, ctx.hotkeyManager.modkey)
+      },
+    }],
+    register(ctxMeta) {
+      ctxMeta.assists.typingTip = new TypingTipAssist()
+    },
+  }
+}
