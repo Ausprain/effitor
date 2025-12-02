@@ -24,7 +24,6 @@ et-link {
 
   color: var(--et-link-color__text);
   text-decoration: underline;
-  transition: var(--et-transition-color-scheme);
 
   & > * {
     pointer-events: none;

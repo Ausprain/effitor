@@ -113,11 +113,22 @@ et-p.etp {
 .Et__card {
   background-color: var(--et-color-bg__card);
   box-shadow: var(--et-shadow-l);
-  transition: var(--et-transition-color-scheme);
+  transition-property: var(--et-transition-property);
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
 }
 
 .Et__trans-cs {
-  transition: var(--et-transition-color-scheme);
+  --default-property: 
+    background-color, 
+    outline-color,
+    border-color,
+    color;
+  --default-duration: 0.3s;
+  --default-timing-function: ease-in;
+  transition-property: var(--et-transition-property, var(--default-property));
+  transition-duration: var(--et-transition-duration, var(--default-duration));
+  transition-timing-function: var(--et-transition-timing-function, var(--default-timing-function));
 }
 
 /* content-visibility */

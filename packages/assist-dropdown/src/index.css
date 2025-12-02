@@ -9,7 +9,6 @@
   border-radius: 2px;
   text-decoration: underline;
   background-color: var(--et-color-bg-mute);
-  transition: var(--et-transition-color-scheme);
 }
 
 .et-dd__container {

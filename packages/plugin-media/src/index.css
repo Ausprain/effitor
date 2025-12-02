@@ -93,7 +93,6 @@
     padding: 1px 3px;
     border-radius: 3px;
     background-color: var(--et-color-bg--hover);
-    transition: var(--et-transition-color-scheme);
     display: inline-block;
     max-width: 100px;
     font-family: monospace;
@@ -103,6 +102,9 @@
     white-space: pre;
     text-overflow: ellipsis;
     vertical-align: middle;
+    transition-property: var(--et-transition-property);
+    transition-duration: var(--et-transition-duration);
+    transition-timing-function: var(--et-transition-timing-function);
   }
 }
 

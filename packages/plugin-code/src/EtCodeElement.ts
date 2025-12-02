@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { cr, CreateMdastNode, EtComponent, ToMdastResult } from '@effitor/core'
-import { EtTypeEnum } from '@effitor/shared'
+import { CssClassEnum, EtTypeEnum } from '@effitor/shared'
 
 import { CodeContext, type CodeContextOptions } from './CodeContext'
 import { CodeHeader } from './CodeHeader'
@@ -151,6 +151,10 @@ export class EtCodeElement extends EtComponent {
         this.wrapping = wrapping
       },
     })
+  }
+
+  connectedCallback(): void {
+    this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
   // FIXME 这里不严谨, EtCodeElement 是 Component, 外部不可编辑

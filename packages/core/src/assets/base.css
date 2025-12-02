@@ -90,10 +90,13 @@ et-editor,
   --et-font-weight: 449;
   --et-letter-space: 0.02em;
 
-  --et-transition-color-scheme: 
-    background-color 0.2s ease-in, 
-    border-color 0.2s ease-in,
-    color 0.2s ease-in;
+  --et-transition-property: 
+    background-color, 
+    outline-color,
+    border-color,
+    color;
+  --et-transition-duration: 0.3s;
+  --et-transition-timing-function: ease-in;
 }
 
 et-editor,
@@ -122,5 +125,7 @@ et-editor,
   font-weight: var(--et-font-weight);
   letter-spacing: var(--et-letter-space);
 
-  transition: var(--et-transition-color-scheme);
+  transition-property: var(--et-transition-property);
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
 }

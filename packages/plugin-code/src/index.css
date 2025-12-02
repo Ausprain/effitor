@@ -9,7 +9,11 @@ et-editor,
   --et-code-bg-copy: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' height='20' width='20' viewBox='0 0 24 24' fill='none' stroke='rgba(128,128,128,1)' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2'/></svg>");
   --et-code-bg-copied: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' height='20' width='20' viewBox='0 0 24 24' fill='none' stroke='rgba(128,128,128,1)' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4'/></svg>");
   --et-code-bg-render: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='rgba(128,128,128,1)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m17 2 4 4-4 4'/><path d='M3 11v-1a4 4 0 0 1 4-4h14'/><path d='m7 22-4-4 4-4'/><path d='M21 13v1a4 4 0 0 1-4 4H3'/></svg>");
-  --et-code-bg-wordwrap: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' ><path fill='rgba(128,128,128,1)' d='M4 19h6v-2H4v2zM20 5H4v2h16V5zm-3 6H4v2h13.25c1.1 0 2 .9 2 2s-.9 2-2 2H15v-2l-3 3l3 3v-2h2c2.21 0 4-1.79 4-4s-1.79-4-4-4z'></path></svg>")
+  --et-code-bg-wordwrap: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' ><path fill='rgba(128,128,128,1)' d='M4 19h6v-2H4v2zM20 5H4v2h16V5zm-3 6H4v2h13.25c1.1 0 2 .9 2 2s-.9 2-2 2H15v-2l-3 3l3 3v-2h2c2.21 0 4-1.79 4-4s-1.79-4-4-4z'></path></svg>");
+
+  .shiki span {
+    font-style: var(--shiki-light-font-style);
+  }
 }
 
 et-editor.dark,
@@ -25,6 +29,9 @@ et-editor.dark,
   .shiki {
     background-color: var(--shiki-dark-bg) !important;
   }
+  .shiki span {
+    font-style: var(--shiki-dark-font-style) !important;
+  }
 }
 
 et-code {
@@ -34,7 +41,6 @@ et-code {
   border: 1px solid var(--et-color-border-1);
   border-radius: var(--et-code-radius);
   hyphens: none;
-  transition: var(--et-transition-color-scheme);
   /* 阻止代码块在分栏时被分割 */
   break-inside: avoid-column;
 
@@ -69,7 +75,6 @@ et-code {
   border-radius: inherit;
   overflow: auto;
   contain: content;
-  transition: var(--et-transition-color-scheme);
 }
 .et-code__container {
   position: relative;
@@ -94,7 +99,6 @@ et-code {
     letter-spacing: inherit;
     word-spacing: inherit;
     white-space: inherit;
-    transition: var(--et-transition-color-scheme);
   }
 }
 /* code pre */

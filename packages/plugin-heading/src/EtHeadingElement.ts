@@ -40,7 +40,6 @@ export class EtHeadingElement extends EtHeading {
       this.removeCssClass(levelClass(curr))
     }
     this.headingLevel = hl
-    this.addCssClass(levelClass(hl))
   }
 
   fromPlainParagraph(plainParagraph: Et.EtParagraph): Et.EtParagraph {

@@ -12,7 +12,6 @@ et-bq {
   padding-left: 16px;
   border-left: 3px solid var(--et-bq-color-semantic);
   color: var(--et-bq-color-text);
-  transition: var(--et-transition-color-scheme);
 }
 
 /* 默认引用块 */

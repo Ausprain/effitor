@@ -37,7 +37,7 @@ et-heading {
 et-heading.ET_cls-h1,
 et-heading.ET_cls-h2 {
   border-bottom: 1px solid var(--et-color-border-1);
-  transition: var(--et-transition-color-scheme);
+  transition: border-color 0.3s ease-in;
 }
 et-heading.ET_cls-h1 {
   font-size: 2rem;

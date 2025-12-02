@@ -74,7 +74,7 @@ export class DialogManager {
 
   private __init() {
     const backdrop = document.createElement('div')
-    backdrop.classList.add(DialogEnum.Class_Backdrop)
+    backdrop.classList.add(DialogEnum.Class_Backdrop, CssClassEnum.TransitionColorScheme)
     const container = document.createElement('div')
     // backdrop.style.position = this._options.backdropPosition
     if (!this._options.backdropBackground) {

@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { cr, EtBlockquote } from '@effitor/core'
-import { HtmlCharEnum } from '@effitor/shared'
+import { CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import { BlockquoteEnum, BlockquoteMeta, BlockquotePluginContext } from './config'
 import { blockquoteMetaParser } from './util'
@@ -20,6 +20,10 @@ export class EtBlockquoteElement extends EtBlockquote {
     const el = new EtBlockquoteElement()
     el.bqType = type
     return el
+  }
+
+  connectedCallback(): void {
+    this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
   focusinCallback(ctx: Et.EditorContext): void {

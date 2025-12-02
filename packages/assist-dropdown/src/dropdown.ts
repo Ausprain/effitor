@@ -143,7 +143,7 @@ export class Dropdown {
     this.container = container
     wrapper.append(inputSpan, container)
     const defaultContentEl = document.createElement('div')
-    wrapper.className = DropdownEnum.Class_Wrapper
+    wrapper.classList.add(DropdownEnum.Class_Wrapper, CssClassEnum.TransitionColorScheme)
     container.className = DropdownEnum.Class_Container
     defaultContentEl.className = DropdownEnum.Class_Content
     this.defaultContent = {

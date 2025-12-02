@@ -53,6 +53,10 @@ et-table {
   /* 阻止表格在分栏时被分割 */
   break-inside: avoid-column;
 
+  transition-property: border-color;
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
+
   &:has(> :only-child) {
     border-radius: 4px;
     --et-table-border-radius: 4px;
@@ -72,7 +76,9 @@ et-tr {
 
   &:nth-child(odd) {
     background-color: var(--et-table-odd-row-bg-color);
-    transition: var(--et-transition-color-scheme);
+    transition-property: background-color;
+    transition-duration: var(--et-transition-duration);
+    transition-timing-function: var(--et-transition-timing-function);
   }
   &:first-child {
     border-top-left-radius: var(--et-table-border-radius);
@@ -95,6 +101,10 @@ et-tc {
   line-height: 1.5;
   /* 设置最小高度, 避免空内容时高度坍缩; 表格中使用 height 而非 min-height, 后者无效 */
   height: calc(1.5em + 12px);
+
+  transition-property: border-color;
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
 
   &:not(:first-child) {
     border-inline-start: 1px solid var(--et-table-border-color);

@@ -1,6 +1,6 @@
 import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
 import { EtRichText, trimAndCleanZWS } from '@effitor/core'
-import { EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
+import { CssClassEnum, EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
 
 import { LINK_ET_TYPE, LinkEnum } from './config'
 
@@ -66,6 +66,10 @@ export class EtLinkElement extends EtRichText {
       url = 'https://' + url
     }
     window.open(url, target, windowFeatures)
+  }
+
+  connectedCallback(): void {
+    this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
   toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {

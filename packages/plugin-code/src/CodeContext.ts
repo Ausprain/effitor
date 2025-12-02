@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 import { traversal } from '@effitor/core'
-import { HtmlCharEnum } from '@effitor/shared'
+import { CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import { CodeEnum } from './config'
 import type { EtCodeHighlighter } from './highlighter'
@@ -43,7 +43,7 @@ export class CodeContext<L extends string = string> {
     // this._lineWrapper = this.pre
     this._lineWrapper = document.createElement('code')
     this.wrapper = document.createElement('div')
-    this.wrapper.classList.add(CodeEnum.Class_Wrapper)
+    this.wrapper.classList.add(CodeEnum.Class_Wrapper, CssClassEnum.TransitionColorScheme)
     this._container = document.createElement('div')
     this._container.classList.add(CodeEnum.Class_Container)
     this._container.appendChild(this.pre)

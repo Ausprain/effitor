@@ -66,7 +66,9 @@ et-mark.ET_cls-code {
   color: var(--et-mark-color__code_text);
   font-size: 14px;
   font-family: var(--et-mark-font__code), monospace ;
-  transition: var(--et-transition-color-scheme);
+  transition-property: color, background-color;
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
 }
 et-mark.ET_cls-code.Et--caret-in {
   padding: 3px 0 2px;
