@@ -5,12 +5,12 @@ import type {
   MdastNodeHandlerMap,
   ToMdastResult,
 } from '@effitor/core'
-import { EtRichText } from '@effitor/core'
+import { EffectElement } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'
 
 import { TABLE_CELL_ET_TYPE, TableName } from './config'
 
-export class EtTableCellElement extends EtRichText {
+export class EtTableCellElement extends EffectElement {
   static readonly elName = TableName.TableCell
   static readonly etType = super.etType
     | TABLE_CELL_ET_TYPE
