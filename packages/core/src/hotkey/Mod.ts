@@ -44,7 +44,7 @@ export const modChar = (() => (platform.isMac
       ctrl: 'Ctrl',
       shift: 'Shift',
       altopt: 'Alt',
-      metacmd: 'Win',
+      metacmd: platform.isWin ? 'Win' : 'Meta',
     } as const)
 )()
 /** 适配 Windows/MacOS 的 Ctrl/Cmd 键 */
