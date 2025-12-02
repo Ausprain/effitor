@@ -323,6 +323,10 @@ export class Effitor {
     this.__body = bodyEl
     this.__context = context
 
+    if (this.config.USE_HOST_AS_SCROLL_CONTAINER) {
+      this.__scrollContainer = host
+    }
+
     // 使用 shadowRoot 时, 必须向 EtSelection 提供获取 shadowRoot 内选区的方法
     if (this.isShadow) {
       context.selection.setSelectionGetter(root as Et.ShadowRoot)

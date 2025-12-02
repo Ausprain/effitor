@@ -94,6 +94,8 @@ export interface EditorConfig {
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: boolean
   /** 插入(硬)换行时是否使用 br, 否则使用`\n`, 默认 false */
   INSERT_BR_FOR_LINE_BREAK: boolean
+  /** 是否将编辑器 host 元素作为滚动容器; 默认 false */
+  USE_HOST_AS_SCROLL_CONTAINER: boolean
   /**
    * // TODO 使用插件方式实现
    * 是否动态设置contenteditable; 默认 false; (该配置仅 Chromium 有效)\

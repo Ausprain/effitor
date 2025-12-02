@@ -39,6 +39,8 @@ export const defaultConfig: Readonly<Et.EditorConfig> = {
   WITH_EDITOR_DEFAULT_LOGGER: false,
   AUTO_REPLACE_FULL_WIDTH_PUNC_WITH_HALF_AFTER_SPACE: true,
   INSERT_BR_FOR_LINE_BREAK: false,
+  /** 是否将编辑器 host 元素作为滚动容器; 默认 false */
+  USE_HOST_AS_SCROLL_CONTAINER: false,
 }
 
 // export type DefaultConfig = typeof defaultConfig
