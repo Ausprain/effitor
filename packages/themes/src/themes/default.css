@@ -9,7 +9,6 @@ et-editor[et-theme="default"],
   --et-mark-font__code: var(--et-font-cascadia_code);
 
   min-height: 300px;
-  max-width: 760px;
   padding: 40px;
   margin: 8px auto;
   border: 1px solid var(--et-color-border-3);

@@ -171,10 +171,10 @@ export const addListenersToEditorBody = (
   body.addEventListener('dragleave', listeners.dragleave, { signal: ac.signal })
   body.addEventListener('drop', listeners.drop, { signal: ac.signal })
 
-  // 媒体查询
-  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  ctx.editor.setColorScheme(darkModeMediaQuery.matches)
-  darkModeMediaQuery.onchange = (ev) => {
-    ctx.editor.setColorScheme(ev.matches)
-  }
+  // // 媒体查询
+  // const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  // ctx.editor.setColorScheme(darkModeMediaQuery.matches)
+  // darkModeMediaQuery.onchange = (ev) => {
+  //   ctx.editor.setColorScheme(ev.matches)
+  // }
 }
