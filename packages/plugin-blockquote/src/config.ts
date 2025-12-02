@@ -97,9 +97,9 @@ const buildinMetaMap: Record<string, BlockquoteMeta> = {
   [BlockquoteType.WARNING.toUpperCase()]: { type: BlockquoteType.WARNING, title: 'Warning', abbr: 'warn.' },
   [BlockquoteType.CAUTION.toUpperCase()]: { type: BlockquoteType.CAUTION, title: 'Caution', abbr: 'caut.' },
   // 段落组 (分栏)
-  [BlockquoteType.PG.toUpperCase()]: { type: BlockquoteType.PG, title: '', abbr: 'pg.' },
-  [BlockquoteType.PG2.toUpperCase()]: { type: BlockquoteType.PG2, title: '', abbr: 'pg2.' },
-  [BlockquoteType.PG3.toUpperCase()]: { type: BlockquoteType.PG3, title: '', abbr: 'pg3.' },
+  [BlockquoteType.PG.toUpperCase()]: { type: BlockquoteType.PG, title: 'Paragraph Group', abbr: 'pg.' },
+  [BlockquoteType.PG2.toUpperCase()]: { type: BlockquoteType.PG2, title: 'Paragraph Group 2', abbr: 'pg2.' },
+  [BlockquoteType.PG3.toUpperCase()]: { type: BlockquoteType.PG3, title: 'Paragraph Group 3', abbr: 'pg3.' },
 }
 
 export const initBlockquotePluginContext = (

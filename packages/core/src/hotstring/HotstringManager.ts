@@ -175,7 +175,8 @@ export class HotstringManager {
     this.#updateConfig()
   }
 
+  /** 获取所有已注册热字符串对象数组 */
   allHotstrings() {
-    return Object.fromEntries(this.hotstringMap.entries())
+    return [...this.hotstringMap.values()]
   }
 }

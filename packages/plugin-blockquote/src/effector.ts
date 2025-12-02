@@ -79,6 +79,7 @@ export const blockquoteEffector: Et.Effector = {
     const metaMap = ctx.pctx.$bqPx.metaMap
     for (const meta of Object.values(metaMap)) {
       hsm.create(meta.abbr, {
+        title: meta.title,
         action: (ctx) => {
           checkAbbrToBlockquote(ctx, meta)
         },

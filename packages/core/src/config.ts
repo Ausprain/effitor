@@ -7,12 +7,14 @@ import type { Et } from './@types'
 // Firefox: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:142.0) Gecko/20100101 Firefox/142.0"
 // macOS WKWebView: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)"
 const isMac = navigator.userAgentData ? navigator.userAgentData.platform === 'macOS' : /Mac/.test(navigator.userAgent)
+const isWin = navigator.userAgentData ? navigator.userAgentData.platform === 'Windows' : /Win/.test(navigator.userAgent)
 const isChrome = /Chrome/.test(navigator.userAgent)
 const isFirefox = /Firefox/.test(navigator.userAgent)
 const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
 export const platform = {
   locale: navigator.language,
   isMac,
+  isWin,
   isChrome,
   isFirefox,
   isSafari,
