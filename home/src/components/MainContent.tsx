@@ -1,10 +1,12 @@
 import React from 'react'
 import MainSlogan from './MainSlogan'
+import { useTranslation } from 'react-i18next'
 
 const MainContent: React.FC<{ onClickTryNow?: () => void, children?: React.ReactNode }> = ({
   onClickTryNow,
   children,
 }) => {
+  const { t } = useTranslation()
   return (
     <div className="@container w-4/5 max-w-[960px] mx-auto">
       {/* 标语 */}
@@ -16,7 +18,7 @@ const MainContent: React.FC<{ onClickTryNow?: () => void, children?: React.React
           className="px-8 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-1"
           onClick={() => onClickTryNow?.()}
         >
-          Try Now
+          {t('main.try')}
         </button>
       </div>
 

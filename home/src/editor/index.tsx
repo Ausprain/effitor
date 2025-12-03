@@ -5,6 +5,8 @@ import { createEditor } from './editor'
 import './plugins/keymap'
 import { useTypingTipAssist, type HotstringInfo, type KeyState } from './plugins/typingTipAssist'
 import type { Et } from 'effitor'
+import { useDarkAssist } from './plugins/darkAssist'
+import { useColorScheme } from '../hooks/useColorScheme'
 
 // 监听编辑器focusin/focusout回调, 而不是简单的监听focus/blur事件
 // 因为编辑器内部跨越contenteditable会导致编辑器失去焦点, 从而focus或blur
@@ -27,11 +29,11 @@ const editor = await createEditor({
   extraPlugins: [
     listenFocusPlugin,
     useTypingTipAssist(),
+    useDarkAssist(),
   ],
 })
 
 const Editor: React.FC<{
-  isDark?: boolean
   // 当编辑器获得焦点时的回调函数
   onFocus?: () => void
   // 当编辑器失去焦点时的回调函数
@@ -40,12 +42,13 @@ const Editor: React.FC<{
   onHotstringProgress?: (state: HotstringInfo[]) => void
 }
 > = ({
-  isDark = false,
   onFocus,
   onBlur,
   onKeymodChange = void 0,
   onHotstringProgress = void 0,
 }) => {
+  const { isDark, toggleDark } = useColorScheme()
+
   // 获取 editor-host 元素的引用
   const editorHostRef = useRef<HTMLDivElement>(null)
   editorFocusCallbacks.onFocus = onFocus
@@ -56,6 +59,10 @@ const Editor: React.FC<{
       return
     }
     editor.mount(editorHostRef.current)
+    editor.context.assists.darkAssist.toggleDark = () => {
+      console.log('toggle dark', isDark)
+      toggleDark()
+    }
     editor.context.assists.typingTip.onModChange = onKeymodChange
     editor.context.assists.typingTip.onHotstringProgress = onHotstringProgress
     return () => {
@@ -63,7 +70,10 @@ const Editor: React.FC<{
     }
   }, [])
   useEffect(() => {
-    editor?.setColorScheme(isDark)
+    if (editor) {
+      editor.setColorScheme(isDark)
+      editor.context.assists.darkAssist.isDark = isDark
+    }
   }, [isDark])
 
   return (

@@ -1,10 +1,9 @@
 const MainSlogan = () => (
-  <div className="text-gray-800 dark:text-gray-200 text-center py-8
+  <div className="text-center py-8
     @max-lg:text-6xl
     @max-2xl:text-7xl
     @2xl:text-8xl
-    italic font-bold
-    transition-colors"
+    italic font-bold"
   >
     <p className="leading-[1.2] @max-lg:-my-8">
       An elegant and

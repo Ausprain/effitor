@@ -1,5 +1,6 @@
 import { hotkey, hotstring, type Et } from 'effitor'
 import { KEY_CONNECTOR, KEY_ROUTES, type KeyInfo } from './keymap'
+import { hotstrings } from './hotstring'
 
 declare module 'effitor' {
   interface EditorAssists {
@@ -8,7 +9,7 @@ declare module 'effitor' {
 }
 
 export interface KeyState {
-  modkey: string
+  key: string
   mods: string[]
   nextMods: string[]
   keys: KeyInfo[]
@@ -38,7 +39,7 @@ class TypingTipAssist {
       this.prevScope = scope
       this.prevModkey = modkey
       const parts = hotkey.parseHotkey(modkey)
-      parts.pop()
+      const key = parts.pop() || ''
       const keyBind = parts.length ? parts.join(KEY_CONNECTOR) : ''
       const route = routeMap[keyBind]
 
@@ -46,7 +47,7 @@ class TypingTipAssist {
         return
       }
       this.onModChange?.({
-        modkey,
+        key,
         mods: parts,
         nextMods: route.nextMods,
         keys: route.keys,
@@ -95,6 +96,10 @@ export const useTypingTipAssist = (): Et.EditorPlugin => {
           return
         }
         ctx.assists.typingTip.checkModkey(ctx.commonEtElement.localName, ctx.hotkeyManager.modkey)
+      },
+      onMounted(ctx) {
+        // 注册热字符串
+        ctx.hotstringManager.addHotStrings(hotstrings)
       },
     }],
     register(ctxMeta) {

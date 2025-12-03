@@ -3,7 +3,7 @@ import MainContent from './components/MainContent'
 import Navbar from './components/Navbar'
 import Editor from './editor'
 import type { HotstringInfo, KeyState } from './editor/plugins/typingTipAssist'
-import { useDark } from './hooks/useDark'
+import { useColorScheme } from './hooks/useColorScheme'
 const focusEditorToStick = (navbar?: HTMLElement | null, editorArea?: HTMLElement | null) => {
   // 当编辑器获得焦点时的自定义逻辑，包括滚动功能
   if (!navbar || !editorArea) {
@@ -45,11 +45,11 @@ const focusEditorToStick = (navbar?: HTMLElement | null, editorArea?: HTMLElemen
 }
 
 const App: React.FC = () => {
-  const { isDark, colorMode, changeMode } = useDark('auto')
+  const { colorMode, changeMode } = useColorScheme()
 
   const [isEditorFocused, setIsEditorFocused] = useState(false)
   const [keyState, setKeyState] = useState<KeyState>({
-    modkey: '',
+    key: '',
     mods: [],
     nextMods: [],
     keys: [],
@@ -77,7 +77,6 @@ const App: React.FC = () => {
         <MainContent onClickTryNow={() => focusEditorToStick(navbarRef.current, editorAreaRef.current)}>
           <div ref={editorAreaRef} className="bg-white/80 dark:bg-gray-900/80 rounded-xl shadow-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-colors">
             <Editor
-              isDark={isDark}
               onFocus={() => {
                 setIsEditorFocused(true)
                 focusEditorToStick(navbarRef.current, editorAreaRef.current)
