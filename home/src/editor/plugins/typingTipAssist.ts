@@ -73,6 +73,9 @@ export const useTypingTipAssist = (): Et.EditorPlugin => {
       beforeKeydownSolver: {
         default: (ev, ctx) => {
           ctx.assists.typingTip.checkModkey(ctx.commonEtElement.localName, ctx.hotkeyManager.modkey)
+          if (ev.key.length !== 1) {
+            ctx.assists.typingTip.onHotstringProgress?.([])
+          }
         },
       },
       afterInputSolver: {

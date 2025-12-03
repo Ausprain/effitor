@@ -58,5 +58,12 @@
     "表格右对齐": "Right Align Table",
     "表格左对齐": "Left Align Table",
     "单元格等宽": "Equal Cell Width"
+  },
+  "hotstring": {
+    "段落组": "Paragraph Group",
+    "段落组(2栏)": "Paragraph Group (2 Columns)",
+    "段落组(3栏)": "Paragraph Group (3 Columns)",
+    "深色模式切换": "Toggle Dark Mode",
+    "清空编辑器": "Clear Editor"
   }
 }

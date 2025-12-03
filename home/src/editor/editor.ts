@@ -28,7 +28,7 @@ export const createEditor = async ({
   config?: Partial<Et.EditorConfig>
   extraPlugins?: Et.EditorPlugin[]
 }) => {
-  return new Effitor({
+  const editor = new Effitor({
     htmlOptions: {
       sanitizer: html => dompurify.sanitize(html),
     },
@@ -55,6 +55,34 @@ export const createEditor = async ({
       useBlockquotePlugin(),
       await useCodePlugin(),
       ...extraPlugins,
+      {
+        name: 'patch_pg_hs',
+        effector: {
+          enforce: 'post',
+          onMounted(ctx) {
+            // 段落组热字符串没有提示, 在这里加上
+            ctx.hotstringManager.allHotstrings().forEach((hs) => {
+              if (hs.hotstring === 'pg.') {
+                Object.assign(hs, {
+                  title: '段落组',
+                })
+              }
+              else if (hs.hotstring === 'pg2.') {
+                Object.assign(hs, {
+                  title: '段落组(2栏)',
+                })
+              }
+              else if (hs.hotstring === 'pg3.') {
+                Object.assign(hs, {
+                  title: '段落组(3栏)',
+                })
+              }
+            })
+          },
+        },
+      },
     ],
   })
+
+  return editor
 }
