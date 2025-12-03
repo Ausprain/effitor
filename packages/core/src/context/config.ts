@@ -1,4 +1,4 @@
-import type { EditorSchema, EditorSettings, Effitor } from '../editor'
+import type { EditorSchema, Effitor } from '../editor'
 import type { EditorLogger } from './EditorLogger'
 
 /**
@@ -9,6 +9,15 @@ export interface EditorAssists {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [k: string]: any
   logger?: EditorLogger
+}
+
+/**
+ * 编辑器动作, 挂载到ctx上, 由插件扩展其功能; 类似EditorAssists
+ * @augmentable
+ */
+export interface EditorActions {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [k: string]: any
 }
 /**
  * 编辑器插件上下文
@@ -28,15 +37,12 @@ export interface EditorContextMeta {
   readonly schema: EditorSchema
   /** 编辑器助手插件 */
   readonly assists: EditorAssists
+  /** 编辑器动作 */
+  readonly actions: EditorActions
   /**
    * 插件上下文, 可扩展 EditorPluginContext 接口来获取类型提示
    */
   readonly pctx: EditorPluginContext
-  /**
-   * 编辑器设置, 类似EditorCallbacks, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \
-   * 其最大的意义是, 在编辑器创建之后, 在不重启编辑器的情况下更改编辑器及其插件的配置
-   */
-  readonly settings: EditorSettings
   /**
    * 保持 keydown 事件默认行为的按键组合; 默认放行 "复制/剪切/粘贴",
    * `ctrl + x/c/v` in Windows, or `cmd + x/c/v` in MacOS

@@ -1,22 +1,10 @@
 import type { Et } from '@effitor/core'
 
 import { BlockquoteMeta, initBlockquotePluginContext } from './config'
-import { blockquoteEffector, replaceCurrentParagraphWithBlockquote } from './effector'
+import { type BlockquoteActionMap, blockquoteActions, blockquoteEffector } from './effector'
 import { EtBlockquoteElement } from './EtBlockquoteElement'
 import { blockquoteHandler } from './handler'
 import cssText from './index.css?raw'
-
-const blockquoteActions = {
-  /**
-   * 替换当前段落为引用块
-   * @param ctx 编辑器上下文
-   * @param param1 选项
-   * @param param1.meta 引用块元数据
-   * @param param1.reuse 是否复用被替换的段落 (将被替换段落插入引用块末尾)
-   * @returns 是否成功替换
-   */
-  replaceCurrentParagraphWithBlockquote,
-}
 
 export interface BlockquotePluginOptions {
   /**
@@ -38,7 +26,7 @@ export interface BlockquotePluginOptions {
    * 使用引用块操作
    * @param actions 引用块操作
    */
-  useActions?: (actions: typeof blockquoteActions) => void
+  useActions?: (actions: BlockquoteActionMap) => void
 }
 
 export { EtBlockquoteElement } from './EtBlockquoteElement'

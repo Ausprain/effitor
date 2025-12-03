@@ -1,3 +1,4 @@
+import type { Dropdown } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
 import { cmd, cr } from '@effitor/core'
 import { codeBlockIcon } from '@effitor/shared'
@@ -79,11 +80,13 @@ export const codeEffector: Et.Effector = {
     },
   },
   onMounted(ctx) {
+    // 注册actions
+    ctx.actions.code = codeActions
     addCodeBlockItemToDropdown(ctx.assists.dropdown)
   },
 }
 
-const addCodeBlockItemToDropdown = (dd?: Et.EditorAssists['dropdown']) => {
+const addCodeBlockItemToDropdown = (dd?: Dropdown) => {
   if (!dd) {
     return
   }
@@ -126,3 +129,17 @@ export const insertCodeBlock = (ctx: Et.EditorContext, {
   ctx.commandManager.handle()
   codeEl.focusToInnerEditable(ctx, true)
 }
+
+export const codeActions = {
+  /**
+   * 插入代码块
+   * @param ctx 编辑器上下文
+   * @param param1 代码块参数
+   * @param param1.code 代码内容
+   * @param param1.lang 代码语言
+   * @param param1.async 是否异步高亮
+   * @returns 是否插入成功
+   */
+  insertCodeBlock,
+}
+export type CodeActionMap = typeof codeActions

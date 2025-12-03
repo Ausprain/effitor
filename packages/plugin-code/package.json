@@ -38,6 +38,7 @@
     "shiki": "^3.13.0"
   },
   "devDependencies": {
+    "@effitor/assist-dropdown": "workspace:*",
     "@types/katex": "^0.16.7"
   }
 }

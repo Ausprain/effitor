@@ -1,5 +1,6 @@
 import type { Et } from '@effitor/core'
 
+import type { HeadingActionMap } from './effector'
 import type { EtHeadingElement } from './EtHeadingElement'
 
 export const enum HeadingEnum {
@@ -10,6 +11,10 @@ export const enum HeadingEnum {
 declare module '@effitor/core' {
   interface DefinedEtElementMap {
     [HeadingEnum.ElName]: EtHeadingElement
+  }
+  interface EditorActions {
+    /** heading plugin actions */
+    heading: HeadingActionMap
   }
   export interface EffectHandleDeclaration {
     /**

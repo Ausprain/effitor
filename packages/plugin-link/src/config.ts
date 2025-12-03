@@ -1,6 +1,7 @@
 import type { Et } from '@effitor/core'
 import { etcode } from '@effitor/core'
 
+import type { LinkActionMap } from './effector'
 import type { EtLinkElement } from './EtLinkElement'
 
 export const enum LinkEnum {
@@ -25,6 +26,10 @@ declare module '@effitor/core' {
   interface EditorSchema {
     /** 链接元素类, 仅在使用了链接插件(useLinkPlugin)时非空 */
     link: typeof EtLinkElement
+  }
+  interface EditorActions {
+    /** link plugin actions */
+    link: LinkActionMap
   }
   interface EditorPluginContext {
     $linkPx: {

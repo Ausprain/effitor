@@ -1,3 +1,6 @@
+import type { DialogManager } from '@effitor/assist-dialog'
+import type { Dropdown } from '@effitor/assist-dropdown'
+import type { Popup } from '@effitor/assist-popup'
 import { dom, type Et } from '@effitor/core'
 import { copyIcon, CssClassEnum, gotoIcon, linkIcon, MIMETypeEnum } from '@effitor/shared'
 
@@ -46,6 +49,8 @@ export const linkEffector: Et.Effector = {
     return ctx.preventAndSkipDefault(ev)
   },
   onMounted(ctx) {
+    // 注册actions
+    ctx.actions.link = linkActions
     const { popup, dropdown } = ctx.assists
     if (popup) {
       initLinkPopup(popup)
@@ -59,14 +64,14 @@ export const linkEffector: Et.Effector = {
 /* -------------------------------------------------------------------------- */
 /*                                    popup                                   */
 /* -------------------------------------------------------------------------- */
-const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) => {
+const initLinkPopup = (popup: Popup) => {
   const popupItems = [
-    popup.createPopupItem<EtLinkElement>(gotoIcon(), '打开链接', (_ctx, _self, target) => {
-      _ctx.assists.logger?.logInfo('跳转到链接', target.linkUrl)
+    popup.createPopupItem<EtLinkElement>(gotoIcon(), 'Open Link', (_ctx, _self, target) => {
+      _ctx.assists.logger?.logInfo('Open Link', target.linkUrl)
       target.openUrl()
     }),
-    popup.createPopupItem<EtLinkElement>(copyIcon(), '复制链接', (_ctx, _self, target) => {
-      _ctx.assists.logger?.logInfo('复制链接', target.linkUrl)
+    popup.createPopupItem<EtLinkElement>(copyIcon(), 'Copy Link', (_ctx, _self, target) => {
+      _ctx.assists.logger?.logInfo('Copy Link', target.linkUrl)
       navigator.clipboard.writeText(target.linkUrl)
     }),
   ]
@@ -108,7 +113,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
       const linkCtx = _ctx.pctx.$linkPx
       if (linkEl.linkUrl !== newUrl) {
         if (!linkCtx.urlReg.test(newUrl)) {
-          _ctx.assists.msg?.error('链接格式错误')
+          _ctx.assists.msg?.error('Link format is invalid.')
           return
         }
         _ctx.commandManager.pushByName('Functional', {
@@ -134,7 +139,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
 /* -------------------------------------------------------------------------- */
 /*                                  dropdown                                  */
 /* -------------------------------------------------------------------------- */
-const addLinkItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
+const addLinkItemToDropdown = (dropdown: Dropdown) => {
   dropdown.addInlineRichTextMenuItem(dropdown.createMenuItem(
     linkIcon(),
     openDialogToInsertLink,
@@ -145,7 +150,11 @@ const addLinkItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['
 }
 
 export const openDialogToInsertLink = (ctx: Et.EditorContext) => {
-  ctx.assists.dialog?.open<{ name: string, url: string } | undefined>(async (el, close) => {
+  const dialog = ctx.assists.dialog as DialogManager
+  if (!dialog) {
+    return
+  }
+  dialog.open<{ name: string, url: string } | undefined>(async (el, close) => {
     // 需要强制编辑器失去焦点, 否则无法让内部输入框获取到焦点
     ctx.editor.blur()
     initLinkDialog(ctx, el, close)
@@ -158,13 +167,13 @@ export const openDialogToInsertLink = (ctx: Et.EditorContext) => {
     if (res) {
       const { name, url } = res
       if (!name || !url) {
-        ctx.assists.msg?.error('链接格式错误.')
+        ctx.assists.msg?.error('Link url is invalid.')
         return
       }
       return checkInsertLink(ctx, tc, { text: name, url, title: '' })
     }
     else {
-      ctx.assists.msg?.info('取消插入链接')
+      ctx.assists.msg?.info('Cancel insert link.')
     }
   }).catch(() => { /** catch reject */ })
 }
@@ -195,16 +204,16 @@ const initLinkDialog = (
   const linkForm = dom.el('form', void 0, `position: absolute; display: flex; flex-direction: column; height: 100%; width: 100%;`)
   const linkNameInput = dom.el('input', LinkEnum.Class_Dialog_Input)
   const linkUrlInput = dom.el('input', LinkEnum.Class_Dialog_Input)
-  linkNameInput.placeholder = `显示文本 最大长度${linkCtx.maxNameLength}字符`
-  linkUrlInput.placeholder = `链接地址 最大长度${linkCtx.maxUrlLength}字符`
+  linkNameInput.placeholder = `Display text (max ${linkCtx.maxNameLength} chars)`
+  linkUrlInput.placeholder = `Link URL (max ${linkCtx.maxUrlLength} chars)`
 
   const btnCls = LinkEnum.Class_Dialog_Btn + ' ' + CssClassEnum.BgItem
   const cancelBtn = dom.el('button', btnCls, 'margin-right: 6em;')
   const confirmBtn = dom.el('button', btnCls, 'margin-right: 1.5em;')
   cancelBtn.type = 'button'
   confirmBtn.type = 'submit'
-  cancelBtn.textContent = '取消'
-  confirmBtn.textContent = '确定'
+  cancelBtn.textContent = 'Cancel'
+  confirmBtn.textContent = 'Confirm'
   linkForm.append(linkNameInput, linkUrlInput, cancelBtn, confirmBtn)
   linkDialog.appendChild(linkForm)
 
@@ -231,3 +240,8 @@ const initLinkDialog = (
     linkNameInput.focus()
   }, 10)
 }
+
+export const linkActions = {
+  openDialogToInsertLink,
+}
+export type LinkActionMap = typeof linkActions

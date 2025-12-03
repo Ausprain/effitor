@@ -1,5 +1,6 @@
 import type { Et } from '@effitor/core'
 
+import type { BlockquoteActionMap } from './effector'
 import type { EtBlockquoteElement } from './EtBlockquoteElement'
 
 export const enum BlockquoteEnum {
@@ -21,6 +22,10 @@ export const enum BlockquoteType {
 declare module '@effitor/core' {
   interface EditorSchema {
     blockquote: typeof EtBlockquoteElement
+  }
+  interface EditorActions {
+    /** blockquote plugin actions */
+    blockquote: BlockquoteActionMap
   }
   interface DefinedEtElementMap {
     [BlockquoteEnum.ElName]: EtBlockquoteElement

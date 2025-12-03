@@ -200,17 +200,14 @@ export class Effitor {
       ...schemaInit,
     } as Et.EditorSchema
     /** 初始化编辑器上下文 */
-    const contextMeta = {
+    const contextMeta: Et.EditorContextMeta = {
       editor: this,
       schema,
-      assists: {},
-      pctx: {},
-      settings: {},
+      assists: {} as Et.EditorAssists,
+      actions: {} as Et.EditorActions,
+      pctx: {} as Et.EditorPluginContext,
       keepDefaultModkeyMap: {},
-      // 这里提示 assists 类型错误, 这是因为有些 assists 的类型增强中没有使用?可选声明
-      // 目的是为了避免在插件实现中频繁地使用?操作符, 或 as 运算
-      // 但这并不会影响类型安全, 此处做忽略处理
-    } as unknown as Et.EditorContextMeta
+    }
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */

@@ -1,3 +1,4 @@
+import type { Dropdown } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
 import { HtmlCharEnum, orderedListIcon, unorderedListIcon } from '@effitor/shared'
 
@@ -98,18 +99,20 @@ export const listEffector: Et.Effector = {
   keydownSolver,
 
   onMounted(ctx) {
-    const dropdown = ctx.assists.dropdown
-    if (!dropdown) {
-      return
-    }
-    addListItemToDropdown(dropdown)
+    // 注册actions
+    ctx.actions.list = listActions
+    // 初始化dropdown
+    initListDropdown(ctx.assists.dropdown)
   },
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  dropdown                                  */
 /* -------------------------------------------------------------------------- */
-const addListItemToDropdown = (dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
+const initListDropdown = (dropdown?: Dropdown) => {
+  if (!dropdown) {
+    return
+  }
   dropdown.addBlockRichTextMenuItem(dropdown.createMenuItem(
     unorderedListIcon(),
     (ctx) => {
@@ -144,3 +147,8 @@ export const replaceCurrentParagraphWithList = (ctx: Et.EditorContext, ordered: 
     moveContents: true,
   })
 }
+
+export const listActions = {
+  replaceCurrentParagraphWithList,
+}
+export type ListActionMap = typeof listActions

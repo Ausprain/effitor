@@ -56,15 +56,6 @@ export interface ParagraphCreator {
    */
   (ctx: EditorContext): [EtParagraph] | [EtParagraph, CaretRange]
 }
-/**
- * 编辑器设置, 类似于编辑器回调, 但编辑器核心不会主动调用; 一般由扩展/插件添加, 用于定义编辑器的状态 \
- * 其最大的意义是, 在编辑器创建之后, 在不重启编辑器的情况下更改编辑器及其插件的配置
- * @augmentable
- */
-export interface EditorSettings {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: (...args: any[]) => any
-}
 export interface EditorStatus {
   /** 是否为深色模式 */
   isDark: boolean
@@ -229,7 +220,4 @@ export interface EditorMountOptions {
 export interface EditorAction {
   /** 编辑器操作函数, 用于执行编辑器内的任何操作; 当且仅当返回 true 时, 终止后续操作 */
   (ctx: EditorContext): TrueOrVoid
-}
-export interface EditorActionMap {
-  [k: string]: EditorAction
 }

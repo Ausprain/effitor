@@ -1,3 +1,4 @@
+import type { Dropdown } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
 import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
 
@@ -53,20 +54,25 @@ export const headingEffector: Et.Effector = {
   beforeKeydownSolver,
   keydownSolver,
   onMounted(ctx) {
-    // todo 添加按钮到dropdown
-    const dropdown = ctx.assists.dropdown
-    if (!dropdown) {
-      return
-    }
-    dropdown.addMenuToDefaultContent(headingMenuForDropdown(ctx, dropdown), 0)
+    // 注册actions
+    ctx.actions.heading = headingActions
+    // 注册 dropdown
+    initHeadingDropdown(ctx)
   },
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  dropdown                                  */
 /* -------------------------------------------------------------------------- */
+const initHeadingDropdown = (ctx: Et.EditorContext) => {
+  const dropdown = ctx.assists.dropdown
+  if (!dropdown) {
+    return
+  }
+  dropdown.addMenuToDefaultContent(headingMenuForDropdown(ctx, dropdown), 0)
+}
 
-const headingMenuForDropdown = (ctx: Et.EditorContext, dropdown: Required<Et.EditorContext['assists']>['dropdown']) => {
+const headingMenuForDropdown = (ctx: Et.EditorContext, dropdown: Dropdown) => {
   const items = [
     [h1Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 1), ['h1', 'heading1']],
     [h2Icon(), (ctx: Et.EditorContext) => replaceCurrentParagraphWithHeading(ctx, 2), ['h2', 'heading2']],
@@ -112,3 +118,8 @@ export const replaceCurrentParagraphWithHeading = (ctx: Et.EditorContext, level:
     paragraph: ctx.focusParagraph,
   })
 }
+
+export const headingActions = {
+  replaceCurrentParagraphWithHeading,
+}
+export type HeadingActionMap = typeof headingActions

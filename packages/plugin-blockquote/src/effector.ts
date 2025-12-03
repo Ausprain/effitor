@@ -85,6 +85,8 @@ export const blockquoteEffector: Et.Effector = {
         },
       })
     }
+    // 注册actions
+    ctx.actions.blockquote = blockquoteActions
     // 注册 dropdown
     initDropdown(ctx)
   },
@@ -142,3 +144,16 @@ export const replaceCurrentParagraphWithBlockquote = (
     currP, 'replaceParagraphWithBlockquote', ctx, { meta, reuse, paragraph: currP },
   )
 }
+
+export const blockquoteActions = {
+  /**
+   * 替换当前段落为引用块
+   * @param ctx 编辑器上下文
+   * @param param1 选项
+   * @param param1.meta 引用块元数据
+   * @param param1.reuse 是否复用被替换的段落 (将被替换段落插入引用块末尾)
+   * @returns 是否成功替换
+   */
+  replaceCurrentParagraphWithBlockquote,
+}
+export type BlockquoteActionMap = typeof blockquoteActions

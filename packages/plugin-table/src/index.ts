@@ -15,7 +15,7 @@
 
 import type { Et } from '@effitor/core'
 
-import { tableActions } from './ectx'
+import { type TableActionMap, tableActions } from './ectx'
 import { tableEffector, tabToTableEffector } from './effector'
 import { EtTableCellElement } from './EtTableCellElement'
 import { EtTableElement } from './EtTableElement'
@@ -36,7 +36,7 @@ export interface TablePluginOptions {
    * 使用表格操作
    * @param actions 表格操作函数
    */
-  useActions?: (actions: typeof tableActions) => void
+  useActions?: (actions: TableActionMap) => void
 }
 export { EtTableCellElement, EtTableElement, EtTableRowElement }
 export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPlugin => {

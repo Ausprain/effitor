@@ -1,12 +1,17 @@
 import type { Et } from '@effitor/core'
 
 import type { CodeContext } from './CodeContext'
-import { CodeEnum, CodePluginContext } from './config'
+import { CodeEnum, type CodePluginContext } from './config'
+import type { CodeActionMap } from './effector'
 import type { EtCodeElement } from './EtCodeElement'
 
 declare module '@effitor/core' {
   interface EditorSchema {
     code: typeof EtCodeElement
+  }
+  interface EditorActions {
+    /** code block plugin actions */
+    code: CodeActionMap
   }
   interface EditorPluginContext {
     $codePx: CodePluginContext

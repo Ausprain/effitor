@@ -67,8 +67,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   readonly root
   readonly schema
   readonly assists
+  readonly actions
   readonly pctx: Readonly<EditorPluginContext>
-  readonly settings
   readonly keepDefaultModkeyMap: Readonly<EditorContextMeta['keepDefaultModkeyMap']>
 
   /** 编辑区对象 */
@@ -155,8 +155,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.editor = contextMeta.editor
     this.schema = contextMeta.schema
     this.assists = contextMeta.assists
+    this.actions = contextMeta.actions
     this.pctx = contextMeta.pctx
-    this.settings = contextMeta.settings
     this.keepDefaultModkeyMap = {
       ...contextMeta.keepDefaultModkeyMap,
       ...KeepDefaultModkeyMap,

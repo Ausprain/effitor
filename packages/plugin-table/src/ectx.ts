@@ -246,3 +246,4 @@ export const tableActions = {
     }
   },
 }
+export type TableActionMap = typeof tableActions

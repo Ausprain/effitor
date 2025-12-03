@@ -13,14 +13,10 @@
 import type { Et } from '@effitor/core'
 
 import { initLinkPluginContext, LINK_ET_TYPE, type LinkPluginContextOptions } from './config'
-import { linkEffector, openDialogToInsertLink } from './effector'
+import { type LinkActionMap, linkActions, linkEffector } from './effector'
 import { EtLinkElement } from './EtLinkElement'
 import { markLinkHandler } from './handler'
 import cssText from './index.css?raw'
-
-const linkActions = {
-  openDialogToInsertLink,
-}
 
 export interface LinkPluginOptions extends LinkPluginContextOptions {
   /** 允许插入链接的效应元素的构造器列表, 默认仅有shcema段落 */
@@ -29,7 +25,7 @@ export interface LinkPluginOptions extends LinkPluginContextOptions {
    * 使用链接动作
    * @param actions 链接动作
    */
-  useActions?: (actions: typeof linkActions) => void
+  useActions?: (actions: LinkActionMap) => void
 }
 export { EtLinkElement }
 export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPlugin => {

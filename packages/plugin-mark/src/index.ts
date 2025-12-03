@@ -3,7 +3,7 @@ import './augment'
 import { EffectElement, type Et } from '@effitor/core'
 
 import { initMarkPluginContext } from './config'
-import { markActions, markEffector } from './effector'
+import { type MarkActionMap, markActions, markEffector } from './effector'
 import { EtMarkElement, MARK_ET_TYPE } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler, markInputTypeHandler } from './handler/markHandler'
@@ -17,7 +17,7 @@ export interface MarkPluginOptions {
    * 使用 mark 插件动作
    * @param actions mark 插件动作
    */
-  useActions?: (actions: typeof markActions) => void
+  useActions?: (actions: MarkActionMap) => void
 }
 export { EtMarkElement }
 export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {

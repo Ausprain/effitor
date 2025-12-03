@@ -1,6 +1,7 @@
 import type { Et } from '@effitor/core'
 
 import { MarkEnum, MarkPluginContext, MarkType } from './config'
+import type { MarkActionMap } from './effector'
 import type { EtMarkElement } from './EtMarkElement'
 
 declare module 'mdast' {
@@ -24,13 +25,11 @@ declare module '@effitor/core' {
   interface DefinedEtElementMap {
     [MarkEnum.ElName]: EtMarkElement
   }
-  interface EditorSettings {
+  interface EditorActions {
     /**
-     * 切换 mark 元素的标记符提示功能, 开启时光标落入标记节点内, 会展开标记符
-     * * 仅 mounted 之后可用
-     * @param enableHinting 是否开启标记符提示
+     * mark plugin actions
      */
-    toggleHintingMarker: (enableHinting: boolean) => void
+    mark: MarkActionMap
   }
   interface EditorPluginContext {
     $markPx: MarkPluginContext

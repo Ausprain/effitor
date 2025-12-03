@@ -1,4 +1,6 @@
-import type { DropdownMenuItemOptions } from '@effitor/assist-dropdown'
+import type { DialogManager } from '@effitor/assist-dialog'
+import type { Dropdown, DropdownMenuItemOptions } from '@effitor/assist-dropdown'
+import type { Popup } from '@effitor/assist-popup'
 import type { Et } from '@effitor/core'
 import { etcode, traversal } from '@effitor/core'
 import {
@@ -172,6 +174,7 @@ export const mediaEffector: Et.Effector = {
     }
   },
   onMounted(ctx) {
+    ctx.actions.media = mediaActions
     const { dropdown, popup } = ctx.assists
     if (dropdown) {
       initMediaDropdown(dropdown, ctx)
@@ -182,7 +185,7 @@ export const mediaEffector: Et.Effector = {
   },
 }
 
-const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx: Et.EditorContext) => {
+const initMediaDropdown = (dropdown: Dropdown, ctx: Et.EditorContext) => {
   const getItemOpts = (prefix: string): DropdownMenuItemOptions => {
     return {
       filter: {
@@ -221,7 +224,7 @@ const initMediaDropdown = (dropdown: Required<Et.EditorAssists>['dropdown'], ctx
  * @param type 媒体类型
  * @param signal
  */
-const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx: Et.EditorContext, type: `${MediaType}`) => {
+const showMediaUploadDialog = (dialog: DialogManager, ctx: Et.EditorContext, type: `${MediaType}`) => {
   dialog.open<FileList | null>(async (container, resolve) => {
     const dropArea = document.createElement('div')
     dropArea.className = 'et-media__upload-area'
@@ -283,7 +286,7 @@ const showMediaUploadDialog = (dialog: Required<Et.EditorAssists>['dialog'], ctx
  * @param ctx
  * @param signal
  */
-const initMediaPopup = (popup: Required<Et.EditorAssists>['popup']) => {
+const initMediaPopup = (popup: Popup) => {
   const popupItems = [
     popup.createPopupItem<IEtMediaElement>(
       fullScreenIcon(),
@@ -369,3 +372,8 @@ export const openMediaUploadDialog = (ctx: Et.EditorContext, type: `${MediaType}
   }
   return showMediaUploadDialog(ctx.assists.dialog, ctx, type)
 }
+
+export const mediaActions = {
+  openMediaUploadDialog,
+}
+export type MediaActionMap = typeof mediaActions

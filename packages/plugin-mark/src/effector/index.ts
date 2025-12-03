@@ -1,3 +1,4 @@
+import type { Dropdown } from '@effitor/assist-dropdown'
 import { type Et, hotkey } from '@effitor/core'
 import {
   boldIcon,
@@ -34,18 +35,7 @@ export const markEffector: Et.Effector = {
     },
   },
   onMounted(ctx) {
-    ctx.settings.toggleHintingMarker = (hinting: boolean) => {
-      if (hinting === void 0) {
-        hinting = !ctx.bodyEl.hasCssClass(MarkStatus.HINTING_HIDDEN)
-      }
-      ctx.pctx.$markPx.enableHinting = hinting
-      if (hinting) {
-        ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
-      }
-      else {
-        ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
-      }
-    }
+    ctx.actions.mark = markActions
     ctx.hotkeyManager.addActions({
       /** 斜体 */
       markItalic: hotkey.createAction('editor', 'Italic', {
@@ -83,7 +73,7 @@ export const markEffector: Et.Effector = {
   },
 }
 
-const addMarkItemToDropdown = (dropdown?: Required<Et.EditorAssists>['dropdown']) => {
+const addMarkItemToDropdown = (dropdown?: Dropdown) => {
   if (!dropdown) {
     return
   }
@@ -105,4 +95,21 @@ export const markActions = {
   formatStrikethrough: (ctx: Et.EditorContext) => checkFormatMark(ctx, MarkType.DELETE),
   formatInlineCode: (ctx: Et.EditorContext) => checkFormatMark(ctx, MarkType.CODE),
   formatHighlight: (ctx: Et.EditorContext) => checkFormatMark(ctx, MarkType.HIGHLIGHT),
+  /**
+   * 切换 mark 元素的标记符提示功能, 开启时光标落入标记节点内, 会展开标记符
+   * @param enable 是否开启标记符提示
+   */
+  toggleHintingMarker: (ctx: Et.EditorContext, enable: boolean) => {
+    if (enable === void 0) {
+      enable = !ctx.bodyEl.hasCssClass(MarkStatus.HINTING_HIDDEN)
+    }
+    ctx.pctx.$markPx.enableHinting = enable
+    if (enable) {
+      ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
+    }
+    else {
+      ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
+    }
+  },
 }
+export type MarkActionMap = typeof markActions

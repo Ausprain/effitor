@@ -1,6 +1,7 @@
 import type { Et } from '@effitor/core'
 import { etcode } from '@effitor/core'
 
+import type { TableActionMap } from './ectx'
 import type { EtTableCellElement } from './EtTableCellElement'
 import type { EtTableElement } from './EtTableElement'
 import type { EtTableRowElement } from './EtTableRowElement'
@@ -12,16 +13,21 @@ export const enum TableName {
 }
 
 declare module '@effitor/core' {
-  interface EditorSchema {
-    readonly table: typeof EtTableElement
-    readonly tableRow: typeof EtTableRowElement
-    readonly tableCell: typeof EtTableCellElement
-  }
   interface DefinedEtElementMap {
     [TableName.Talbe]: EtTableElement
     [TableName.TableRow]: EtTableRowElement
     [TableName.TableCell]: EtTableCellElement
   }
+  interface EditorSchema {
+    readonly table: typeof EtTableElement
+    readonly tableRow: typeof EtTableRowElement
+    readonly tableCell: typeof EtTableCellElement
+  }
+  interface EditorActions {
+    /** table plugin actions */
+    table: TableActionMap
+  }
+
   interface EffectHandleDeclaration {
     replaceParagraphWithTable: Et.EffectHandle<{
       /** 第一个单元格的内容, 默认空字符串 */

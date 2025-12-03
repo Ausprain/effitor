@@ -2,6 +2,7 @@ import type { PopupItem } from '@effitor/assist-popup'
 import type { Et } from '@effitor/core'
 import { etcode } from '@effitor/core'
 
+import type { MediaActionMap } from './effector'
 import type { EtAudioElement } from './EtAudioElement'
 import type { EtImageElement } from './EtImageElement'
 import type { EtVideoElement } from './EtVideoElement'
@@ -16,6 +17,10 @@ declare module '@effitor/core' {
     [MediaType.Image]: typeof EtImageElement
     [MediaType.Audio]: typeof EtAudioElement
     [MediaType.Video]: typeof EtVideoElement
+  }
+  interface EditorActions {
+    /** media plugin actions */
+    media: MediaActionMap
   }
   interface EditorPluginContext {
     /** 用于mediaPlugin的上下文 */

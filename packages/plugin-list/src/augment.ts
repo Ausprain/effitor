@@ -1,18 +1,23 @@
 import type { Et } from '@effitor/core'
 
 import { ListEnum, ListType } from './config'
+import type { ListActionMap } from './effector'
 import type { EtListElement, EtListItemElement } from './EtListElement'
 
 declare module '@effitor/core' {
+  interface DefinedEtElementMap {
+    [ListEnum.List]: EtListElement
+    [ListEnum.Li]: EtListItemElement
+  }
   interface EditorSchema {
     /** 列表元素类, 仅在使用了列表插件(useLinkPlugin)时非空 */
     list: typeof EtListElement
     /** 列表项元素类, 仅在使用了列表插件(useLinkPlugin)时非空 */
     listItem: typeof EtListItemElement
   }
-  interface DefinedEtElementMap {
-    [ListEnum.List]: EtListElement
-    [ListEnum.Li]: EtListItemElement
+  interface EditorActions {
+    /** list plugin actions */
+    list: ListActionMap
   }
 
   interface EffectHandleDeclaration {

@@ -1,19 +1,16 @@
 import type { Et } from '@effitor/core'
 
 import { HeadingEnum } from './config'
-import { headingEffector, replaceCurrentParagraphWithHeading } from './effector'
+import { type HeadingActionMap, headingActions, headingEffector } from './effector'
 import { EtHeadingElement } from './EtHeadingElement'
 import cssText from './index.css?raw'
 
-const headingActions = {
-  replaceCurrentParagraphWithHeading,
-}
 export interface HeadingPluginOptions {
   /**
    * 是否隐藏标题前的`#1`标记符
    */
   hiddenHeadingLevelMarker?: boolean
-  useActions?: (actions: typeof headingActions) => void
+  useActions?: (actions: HeadingActionMap) => void
 }
 export { EtHeadingElement }
 export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPlugin => {

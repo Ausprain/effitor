@@ -7,16 +7,12 @@ import type {
   VideoOptions,
 } from './config'
 import { MEDIA_ET_TYPE, MediaType } from './config'
-import { mediaEffector, openMediaUploadDialog } from './effector'
+import { type MediaActionMap, mediaActions, mediaEffector } from './effector'
 import { EtAudioElement } from './EtAudioElement'
 import { EtImageElement } from './EtImageElement'
 import { EtVideoElement } from './EtVideoElement'
 import { markMediaHandler } from './handler'
 import cssText from './index.css?raw'
-
-const mediaActions = {
-  openMediaUploadDialog,
-}
 
 const defaultOptions = {
   image: {
@@ -47,7 +43,7 @@ export interface MediaOptions {
   /**
    * 使用媒体动作
    */
-  useActions?: (actions: typeof mediaActions) => void
+  useActions?: (actions: MediaActionMap) => void
 }
 export type {
   CreateAudioOptions,
