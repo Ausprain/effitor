@@ -13,7 +13,7 @@ export const insertLineBreak = createInputEffectHandle((ctx, pl) => {
   }
   // 插入 br 或 \n
   if (ctx.editor.config.INSERT_BR_FOR_LINE_BREAK) {
-    const br = dom.createElement('br')
+    const br = dom.el('br')
     insertElementAtCaret(ctx, br, pl.targetRange.toTargetCaret(), cr.caretOutEnd(br))
   }
   else {

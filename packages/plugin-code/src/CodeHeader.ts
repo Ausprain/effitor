@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { dom, type Et } from '@effitor/core'
 import { CssClassEnum, HtmlAttrEnum } from '@effitor/shared'
 
 import { CodeEnum } from './config'
@@ -8,10 +8,8 @@ export class CodeHeader {
   public readonly el: HTMLDivElement
   private readonly _btnGroup: HTMLDivElement
   constructor(ctx: Et.EditorContext, el: EtCodeElement, cbs: CodeDecorateCallbacks) {
-    this.el = document.createElement('div')
-    this._btnGroup = document.createElement('div')
-    this.el.className = CodeEnum.Class_Header
-    this._btnGroup.className = CodeEnum.Class_Btn_Group
+    this.el = dom.el('div', CodeEnum.Class_Header)
+    this._btnGroup = dom.el('div', CodeEnum.Class_Btn_Group)
     this.el.appendChild(this._btnGroup)
 
     this._btnGroup.onclick = (ev) => {
@@ -71,8 +69,7 @@ export class CodeHeader {
    * @param index 按钮位置, 最右边为 0; 默认添加到最左位置
    */
   addBtn(fn: (btn: HTMLButtonElement) => void, index?: number) {
-    const btn = document.createElement('button')
-    btn.className = CssClassEnum.BgItem
+    const btn = dom.el('button', CssClassEnum.BgItem)
     fn(btn)
     if (index === void 0) {
       this._btnGroup.prepend(btn)

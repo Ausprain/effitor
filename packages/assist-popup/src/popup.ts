@@ -4,7 +4,7 @@
  */
 
 import type { Et } from '@effitor/core'
-import { etcode, throttle, traversal } from '@effitor/core'
+import { dom, etcode, throttle, traversal } from '@effitor/core'
 import { CssClassEnum } from '@effitor/shared'
 
 import type {
@@ -88,11 +88,9 @@ export class Popup {
   constructor(ctx: Et.EditorContext, signal: AbortSignal) {
     this._ctx = ctx
     this.scrollTarget = ctx.editor.scrollTarget
-    const popupEl = document.createElement('div')
+    const popupEl = dom.el('div', PopupEnum.Class_Popup)
     this.popupEl = popupEl
-    popupEl.className = PopupEnum.Class_Popup
-    this.selectionRangePopupContent = document.createElement('div')
-    this.selectionRangePopupContent.classList.add(PopupEnum.Class_Popup_Item_Container, CssClassEnum.Card)
+    this.selectionRangePopupContent = dom.el('div', `${PopupEnum.Class_Popup_Item_Container} ${CssClassEnum.Card}`)
 
     popupEl.addEventListener('mousedown', e => (e.preventDefault(), e.stopPropagation()), { signal })
     popupEl.addEventListener('mouseenter', () => {
@@ -311,8 +309,7 @@ export class Popup {
         }
         return
       }
-      el = document.createElement('div')
-      el.classList.add(PopupEnum.Class_Popup_Item_Container, CssClassEnum.Card)
+      el = dom.el('div', `${PopupEnum.Class_Popup_Item_Container} ${CssClassEnum.Card}`)
     }
 
     this.hoverPopupContentMap.set(popupKey, [el, options])

@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { dom, type Et } from '@effitor/core'
 import { CssClassEnum } from '@effitor/shared'
 
 const enum DialogEnum {
@@ -73,15 +73,13 @@ export class DialogManager {
   }
 
   private __init() {
-    const backdrop = document.createElement('div')
-    backdrop.classList.add(DialogEnum.Class_Backdrop, CssClassEnum.TransitionColorScheme)
-    const container = document.createElement('div')
+    const backdrop = dom.el('div', `${DialogEnum.Class_Backdrop} ${CssClassEnum.TransitionColorScheme}`)
+    const container = dom.el('div', `${DialogEnum.Class_Container} ${CssClassEnum.Card}`)
     // backdrop.style.position = this._options.backdropPosition
     if (!this._options.backdropBackground) {
       backdrop.style.backgroundColor = 'transparent'
     }
     Object.assign(container.style, this._options.containerStyle)
-    container.classList.add(DialogEnum.Class_Container, CssClassEnum.Card)
     backdrop.appendChild(container)
     backdrop.onclick = () => this.close()
     container.addEventListener('click', e => e.stopPropagation())

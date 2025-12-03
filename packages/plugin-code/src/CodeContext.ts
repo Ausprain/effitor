@@ -1,5 +1,5 @@
 import type { Et } from '@effitor/core'
-import { traversal } from '@effitor/core'
+import { dom, traversal } from '@effitor/core'
 import { CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import { CodeEnum } from './config'
@@ -35,6 +35,7 @@ export class CodeContext<L extends string = string> {
     this.__tab = ' '.repeat(tabSize)
     this._highlighter = highlighter
     this.area = document.createElement('textarea')
+    this.area.name = 'codearea'
     this.area.autocomplete = 'off'
     this.area.autocapitalize = 'off'
     this.area.spellcheck = false
@@ -42,10 +43,8 @@ export class CodeContext<L extends string = string> {
     this.pre = document.createElement('pre')
     // this._lineWrapper = this.pre
     this._lineWrapper = document.createElement('code')
-    this.wrapper = document.createElement('div')
-    this.wrapper.classList.add(CodeEnum.Class_Wrapper, CssClassEnum.TransitionColorScheme)
-    this._container = document.createElement('div')
-    this._container.classList.add(CodeEnum.Class_Container)
+    this.wrapper = dom.el('div', `${CodeEnum.Class_Wrapper} ${CssClassEnum.TransitionColorScheme}`)
+    this._container = dom.el('div', CodeEnum.Class_Container)
     this._container.appendChild(this.pre)
     this._container.appendChild(this.area)
     this.wrapper.appendChild(this._container)

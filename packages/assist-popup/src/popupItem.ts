@@ -1,4 +1,4 @@
-import type { Et } from '@effitor/core'
+import { dom, type Et } from '@effitor/core'
 import { clearFormatIcon, copyDocIcon, CssClassEnum, HtmlAttrEnum, markdownIcon } from '@effitor/shared'
 
 import { ChoseItemCallback, PopupEnum, PopupItem, PopupItemFilter } from './config'
@@ -9,8 +9,7 @@ export const createPopupItem = <T extends Et.EtElement>(
   onchosen: ChoseItemCallback<T>,
   filter?: PopupItemFilter,
 ): PopupItem<T> => {
-  const span = document.createElement('span')
-  span.classList.add(CssClassEnum.BgItem, PopupEnum.Class_Popup_Item)
+  const span = dom.el('span', `${CssClassEnum.BgItem} ${PopupEnum.Class_Popup_Item}`)
   span.setAttribute(HtmlAttrEnum.HintTitle, tip)
   span.appendChild(icon)
   return {

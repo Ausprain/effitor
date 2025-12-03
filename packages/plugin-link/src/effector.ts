@@ -71,8 +71,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
     }),
   ]
   popup.addHoverPopup<EtLinkElement>(LinkEnum.Popup_Key, () => {
-    const div = document.createElement('div')
-    div.classList.add(LinkEnum.Class_Popup, CssClassEnum.Card)
+    const div = dom.el('div', LinkEnum.Class_Popup, CssClassEnum.Card)
     const urlInput = dom.pureEditableDiv(true)
     urlInput.tabIndex = 0
     urlInput.className = LinkEnum.Class_Popup_Input
@@ -81,7 +80,7 @@ const initLinkPopup = (popup: Required<Et.EditorContext['assists']>['popup']) =>
         urlInput.focus()
       }, 10)
     }
-    const itemContainer = document.createElement('div')
+    const itemContainer = dom.el('div', LinkEnum.Class_Popup_Items)
     itemContainer.classList.add(LinkEnum.Class_Popup_Items)
     itemContainer.style = `display:flex; flex-direction:column; justify-content:start; align-items:center;`
     for (const item of popupItems) {
@@ -193,23 +192,17 @@ const initLinkDialog = (
     return
   }
   linkDialog = document.createElement('div')
-  const linkForm = document.createElement('form')
-  linkForm.style.cssText = `position: absolute; display: flex; flex-direction: column; height: 100%; width: 100%;`
-  const linkNameInput = document.createElement('input')
-  const linkUrlInput = document.createElement('input')
+  const linkForm = dom.el('form', void 0, `position: absolute; display: flex; flex-direction: column; height: 100%; width: 100%;`)
+  const linkNameInput = dom.el('input', LinkEnum.Class_Dialog_Input)
+  const linkUrlInput = dom.el('input', LinkEnum.Class_Dialog_Input)
   linkNameInput.placeholder = `显示文本 最大长度${linkCtx.maxNameLength}字符`
   linkUrlInput.placeholder = `链接地址 最大长度${linkCtx.maxUrlLength}字符`
-  linkNameInput.className = LinkEnum.Class_Dialog_Input
-  linkUrlInput.className = LinkEnum.Class_Dialog_Input
 
-  const cancelBtn = document.createElement('button')
-  const confirmBtn = document.createElement('button')
+  const btnCls = LinkEnum.Class_Dialog_Btn + ' ' + CssClassEnum.BgItem
+  const cancelBtn = dom.el('button', btnCls, 'margin-right: 6em;')
+  const confirmBtn = dom.el('button', btnCls, 'margin-right: 1.5em;')
   cancelBtn.type = 'button'
   confirmBtn.type = 'submit'
-  cancelBtn.className = LinkEnum.Class_Dialog_Btn + ' ' + CssClassEnum.BgItem
-  confirmBtn.className = LinkEnum.Class_Dialog_Btn + ' ' + CssClassEnum.BgItem
-  cancelBtn.style = 'margin-right: 6em;'
-  confirmBtn.style = 'margin-right: 1.5em;'
   cancelBtn.textContent = '取消'
   confirmBtn.textContent = '确定'
   linkForm.append(linkNameInput, linkUrlInput, cancelBtn, confirmBtn)

@@ -1,4 +1,4 @@
-import { type Et, etcode } from '@effitor/core'
+import { dom, type Et, etcode } from '@effitor/core'
 import {
   chevronRightIcon,
   CssClassEnum,
@@ -52,8 +52,7 @@ import { DropdownEnum } from './config'
  */
 export class Dropdown {
   #createMenuEl = (defaultStyle?: boolean) => {
-    const div = document.createElement('div')
-    div.className = DropdownEnum.Class_Menu
+    const div = dom.el('div', DropdownEnum.Class_Menu)
     if (defaultStyle) {
       div.classList.add(CssClassEnum.BgItem)
     }
@@ -135,17 +134,14 @@ export class Dropdown {
     this.blockRichMenu.filter.matchEtType = ctx.schema.paragraph.etType
     this.blockRichMenu.filter.unmatchEtType = ~ctx.schema.paragraph.etType
 
-    const wrapper = document.createElement('div')
+    const wrapper = dom.el('div', `${DropdownEnum.Class_Wrapper} ${CssClassEnum.TransitionColorScheme}`)
     const inputSpan = document.createElement('span')
-    const container = document.createElement('div')
+    const container = dom.el('div', DropdownEnum.Class_Container)
+    wrapper.append(inputSpan, container)
     this.wrapper = wrapper
     this.inputSpan = inputSpan
     this.container = container
-    wrapper.append(inputSpan, container)
-    const defaultContentEl = document.createElement('div')
-    wrapper.classList.add(DropdownEnum.Class_Wrapper, CssClassEnum.TransitionColorScheme)
-    container.className = DropdownEnum.Class_Container
-    defaultContentEl.className = DropdownEnum.Class_Content
+    const defaultContentEl = dom.el('div', DropdownEnum.Class_Content)
     this.defaultContent = {
       el: defaultContentEl,
       menus: [this.inlineRichMenu, this.blockRichMenu],

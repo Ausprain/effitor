@@ -11,12 +11,20 @@ import { etcode } from '../../element/etcode'
 /* -------------------------------------------------------------------------- */
 /*                                  node utils                                */
 /* -------------------------------------------------------------------------- */
-type HTMLNodeCreator = <N extends string>(elName: N) => N extends keyof Et.DefinedEtElementMap ? Et.DefinedEtElementMap[N] : N extends keyof HTMLElementTagNameMap ? Et.HTMLElement : never
 
 /** 创建一个只有一个零宽字符的文本节点 */
 export const zwsText = () => document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
 export const createText = (data: string) => document.createTextNode(data) as Et.Text
-export const createElement: HTMLNodeCreator = elName => document.createElement(elName) as ReturnType<HTMLNodeCreator>
+export const el = <K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string, cssText?: string): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+  const el = document.createElement(tagName)
+  if (className) {
+    el.className = className
+  }
+  if (cssText) {
+    el.style.cssText = cssText
+  }
+  return el as HTMLElementTagNameMap[K] & Et.HTMLElement
+}
 /** 创建一个可编辑的 div 元素, 禁用拼写检查、自动修正、自动大写 */
 export const pureEditableDiv = (plaintextOnly: boolean) => {
   const div = document.createElement('div')
