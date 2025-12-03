@@ -1,7 +1,8 @@
 import dompurify from 'dompurify'
 
+import { EtTableCellElement } from '@effitor/plugin-table'
 import '@effitor/themes/default.min.css'
-import { Effitor, type Et } from 'effitor'
+import { Effitor, EtParagraphElement, type Et } from 'effitor'
 import {
   useCounterAssist,
   useDialogAssist,
@@ -19,8 +20,6 @@ import {
   useMediaPlugin,
   useTablePlugin,
 } from 'effitor/plugins'
-import { EtTableCellElement } from '@effitor/plugin-table'
-import { EtListItemElement } from '@effitor/plugin-list'
 
 export const createEditor = async ({
   config = {},
@@ -47,7 +46,7 @@ export const createEditor = async ({
     plugins: [
       useHeadingPlugin(),
       useMarkPlugin({
-        needMarkEffectElementCtors: [EtTableCellElement, EtListItemElement],
+        needMarkEffectElementCtors: [EtTableCellElement, EtParagraphElement],
       }),
       useLinkPlugin(),
       useListPlugin(),

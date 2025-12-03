@@ -2,8 +2,8 @@ import type { HotstringInfo } from '../editor/plugins/typingTipAssist'
 
 const HotstringTip = ({ hotstringState }: { hotstringState: HotstringInfo[] }) => (
   <div className="w-full h-full flex flex-nowrap justify-start items-center font-mono">
-    {hotstringState.map(hs => (
-      <div key={hs.chars} className="tooltip shrink-0 m-2" data-tip={hs.title}>
+    {hotstringState.map((hs, i) => (
+      <div key={hs.chars} className={`tooltip shrink-0 m-2 ${i === 0 ? 'tooltip-open' : ''}`} data-tip={hs.title}>
         <span className="kbd kbd-lg">
           <span className="text-accent/80">{hs.chars.slice(0, hs.pos)}</span>
           <span>{hs.chars.slice(hs.pos)}</span>
