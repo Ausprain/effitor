@@ -8,7 +8,7 @@ declare module '@effitor/core' {
     /**
      * 对话框助手, 在编辑器 mounted 时初始化
      */
-    dialog?: DialogManager
+    dialog: DialogManager
   }
 }
 
@@ -29,9 +29,6 @@ export const useDialogAssist = (options?: DialogAssistOptions): Et.EditorPlugin 
   cssText,
   effector: {
     onMounted(ctx) {
-      if (ctx.assists.dialog) {
-        return
-      }
       ctx.assists.dialog = new DialogManager(ctx, options)
     },
   },

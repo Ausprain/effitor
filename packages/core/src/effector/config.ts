@@ -23,6 +23,7 @@ type HookKeysInEditorCallback = keyof {
 export interface Hooks extends Pick<EditorCallbacks, HookKeysInEditorCallback> {
   /**
    * 编辑器mount一个div时执行
+   * @param ctx 编辑器上下文; 每次mount, 都是一个关联当前宿主的新上下文
    * @param signal 与编辑器相关的事件监听器的终止监听信号, 所有与编辑器相关的事件监听器都应在此回调内绑定 并绑定该sinal
    */
   readonly onMounted: (ctx: EditorContext, signal: AbortSignal) => void

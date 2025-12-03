@@ -11,7 +11,7 @@ declare module '@effitor/core' {
     /**
      * 消息助手, 在插件注册时初始化
      */
-    msg?: MessageManager
+    msg: MessageManager
   }
 }
 
