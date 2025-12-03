@@ -1,1 +1,1 @@
-export * as hotstring from './hotstring'
+export * as hotstring from './hs'

@@ -1,16 +1,6 @@
 import type { Et } from '../@types'
-import { removeHotstringOnTrigger } from './actions'
-import { Hotstring, type HotstringOptions } from './judge'
-
-declare module '../editor/ConfigManager' {
-  interface UserConfig {
-    hotstringData?: HotstringData
-  }
-}
-
-interface HotstringData {
-  hotstringMapping: Record<string, string>
-}
+import { HotstringData, HotstringEnum } from './config'
+import { Hotstring, type HotstringOptions } from './Hotstring'
 
 export interface HotstringManagerOptions {
   /**
@@ -25,7 +15,7 @@ export interface HotstringManagerOptions {
 }
 
 const defaultOptions: HotstringManagerOptions = {
-  triggerChars: '\x20',
+  triggerChars: HotstringEnum.TriggerChar,
 }
 
 /**
@@ -94,11 +84,12 @@ export class HotstringManager {
 
   /**
    * 创建并添加一个热字符串
-   * @param hotstring 热字符串, 不可包含触发字符(即HotstringOptions.triggerChars的最后一个字符, 默认为空格);
-   *                  该方法会为该字符串添加后缀, 即HotstringOptions.triggerChars除去最后一个字符的剩余部分
-   * @param action 热字符串触发回调
+   * @param hotstring 热字符串, 不可包含触发字符(即 HotstringManagerOptions.triggerChars的最后一个字符, 默认为空格);
+   *                  该方法会为该字符串添加后缀, 即 HotstringManagerOptions.triggerChars除去最后一个字符的剩余部分
+   * @param options 热字符串选项
    * @example
-   * // 假设 HotstringOptions.triggerChars = '.\x20'  即 '.' + 空格
+   * // 假设 HotstringManagerOptions.triggerChars = '.\x20'  即 '.' + 空格
+   * // 注意: 最后一个字符必须是可视字符, 如`\n`等是无效的
    * create('rel', action)  // 创建一个热字符串, 当连续输入 `rel.` + 空格 时执行 `action`
    */
   create(hotstring: string, options: HotstringOptions) {
@@ -122,7 +113,7 @@ export class HotstringManager {
         Promise.resolve().then(() => {
           // _resetNeeded = false
           this._ctx.commandManager.startTransaction()
-          hs.action(this._ctx, hs, (repl = hs.repl) => removeHotstringOnTrigger(this._ctx, hs.hotstring, repl))
+          hs.action(this._ctx)
           this._ctx.commandManager.closeTransaction()
         })
         return (this._resetNeeded = true)
@@ -132,6 +123,7 @@ export class HotstringManager {
   }
 
   /**
+   * @internal
    * 回退监听字符
    * @param count 回退字符数
    */
@@ -144,10 +136,21 @@ export class HotstringManager {
   }
 
   /**
-   * 创建并添加一组热字符串, 已存在则覆盖
-   * @param ha 热字符串 -> 触发函数
+   * 添加一组热字符串, 已存在则覆盖
+   * @param hss 热字符串对象数组
    */
-  addHotStrings(ha: Record<string, HotstringOptions>) {
+  addHotStrings(hss: Hotstring[]) {
+    for (const hs of hss) {
+      this.#addHotString(hs, false)
+    }
+    this.#updateHsArray()
+  }
+
+  /**
+   * 创建并添加一组热字符串, 已存在则覆盖
+   * @param ha 热字符串 -> 热字符串选项
+   */
+  addHotStringsByOptions(ha: Record<string, HotstringOptions>) {
     Object.entries(ha).forEach(([k, v]) => {
       this.#addHotString(new Hotstring(k, this.triggerChars, v), false)
     })
@@ -163,12 +166,7 @@ export class HotstringManager {
       if (!k || !v) {
         return
       }
-      this.#addHotString(new Hotstring(k, this.triggerChars, {
-        repl: v,
-        action: (_ctx, _hs, removeInsertedHotstring) => {
-          removeInsertedHotstring()
-        },
-      }), false)
+      this.#addHotString(new Hotstring(k, this.triggerChars, { repl: v }), false)
       this.hotstringMapping[k] = v
     })
     this.#updateHsArray()

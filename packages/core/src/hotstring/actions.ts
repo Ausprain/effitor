@@ -1,6 +1,5 @@
 import type { EditorContext } from '../context'
 
-export type RemoveHotstringAction = (ctx: EditorContext, hotstring: string, repl?: string) => Text | null
 /**
  * 移除已输入的热字符串
  * @param hotstring 不包含触发字符（尾空格）的热字符串
@@ -8,7 +7,7 @@ export type RemoveHotstringAction = (ctx: EditorContext, hotstring: string, repl
  * @returns 若不存在#text节点，或输入的字符串不是该热字符串, 返回 null;
  *  否则删除热字符串, 返回对应的文本节点, 可通过 ctx.selection.caretRange 获取最新光标位置
  */
-export const removeHotstringOnTrigger: RemoveHotstringAction = (ctx, hotstring, repl = '') => {
+export const removeHotstringOnTrigger = (ctx: EditorContext, hotstring: string, repl = '') => {
   if (!ctx.selection.isCollapsed) return null
   const text = ctx.selection.anchorText
   if (!text) return null
