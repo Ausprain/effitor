@@ -60,7 +60,6 @@ const Editor: React.FC<{
     }
     editor.mount(editorHostRef.current)
     editor.context.assists.darkAssist.toggleDark = () => {
-      console.log('toggle dark', isDark)
       toggleDark()
     }
     editor.context.assists.typingTip.onModChange = onKeymodChange

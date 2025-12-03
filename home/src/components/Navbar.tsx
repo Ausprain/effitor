@@ -24,7 +24,6 @@ const Navbar: React.FC<{
 
   const changeLanguage = (value: string) => {
     i18n.changeLanguage(value)
-    console.log(i18n.language)
   }
 
   return (
