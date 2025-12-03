@@ -11,12 +11,11 @@ et-bq {
   margin: 8px 0;
   padding-left: 16px;
   border-left: 3px solid var(--et-bq-color-semantic);
-  color: var(--et-bq-color-text);
 }
 
 /* 默认引用块 */
-et-bq[data-type]:not([data-type=""]) {
-  color: unset;
+et-bq[data-type=""] {
+  color: var(--et-bq-color-text);
 }
 
 /* github 风格语意引用块 */
@@ -99,6 +98,12 @@ et-bq[data-type="pg"],et-bq[data-type="pg2"],et-bq[data-type="pg3"] {
   &:has(> et-bq[data-type="pg2"]),
   &:has(> et-bq[data-type="pg3"]) {
     column-count: 1 !important;
+  }
+}
+
+.Et--pg-outlining {
+  et-bq[data-type="pg"],et-bq[data-type="pg2"],et-bq[data-type="pg3"] {
+    outline-color: var(--et-bq-color-semantic);
   }
 }
 

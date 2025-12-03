@@ -155,5 +155,8 @@ export const blockquoteActions = {
    * @returns 是否成功替换
    */
   replaceCurrentParagraphWithBlockquote,
+  toggleAlwaysOutlinePg: (ctx: Et.EditorContext) => {
+    ctx.bodyEl.classList.toggle('Et--pg-outlining')
+  },
 }
 export type BlockquoteActionMap = typeof blockquoteActions
