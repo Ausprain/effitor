@@ -412,8 +412,26 @@ export class CommonHandler {
         }
         return false
       }
+      let insertAt
       if (!newP) {
         newP = topLevel ? ctx.createPlainParagraph() : ctx.cloneParagraph(tc.anchorParagraph)
+        insertAt = cr.caretOutEnd(topLevel ? tc.anchorTopElement : tc.anchorParagraph)
+      }
+      else if (topLevel) {
+        insertAt = cr.caretOutEnd(tc.anchorTopElement)
+      }
+      else {
+        // 判断当前段落父节点是否允许传入的newP
+        const ps = ctx.body.outerParagraphs(tc.anchorParagraph)
+        for (const p of ps) {
+          if (etcode.checkIn(p, newP)) {
+            insertAt = cr.caretOutEnd(p)
+            break
+          }
+        }
+        if (!insertAt) {
+          insertAt = cr.caretOutEnd(tc.anchorTopElement)
+        }
       }
       let dest: Et.CaretRange | undefined
       if (destCaretRange === true) {
@@ -429,7 +447,7 @@ export class CommonHandler {
       }
       if (ctx.commandManager.push(cmd.insertNode({
         node: newP,
-        execAt: cr.caretOutEnd(topLevel ? tc.anchorTopElement : tc.anchorParagraph),
+        execAt: insertAt,
       })).handleAndUpdate(dest)) {
         if (dispatch) {
           ctx.body.dispatchInputEvent('input', {
