@@ -88,7 +88,7 @@ export class Effitor {
 
   public readonly isShadow: boolean
   public readonly theme: string
-  public readonly config: Readonly<Et.EditorConfig>
+  public readonly config: Et.EditorConfig
   public readonly platform = platform
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor

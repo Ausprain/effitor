@@ -1,4 +1,5 @@
 /* eslint-disable @stylistic/max-len */
+import { HtmlCharEnum } from '@effitor/shared'
 import type * as mdast from 'mdast'
 
 import type { Et } from '../@types'
@@ -74,7 +75,16 @@ const handleMdastNode = <T extends mdast.Nodes>(ctx: Et.EditorContext, node: T, 
       return document.createTextNode(node.value)
     }
     if (node.type === 'break') {
-      return document.createElement('br')
+      if (ctx.editor.config.INSERT_BR_FOR_LINE_BREAK) {
+        return document.createElement('br')
+      }
+      // 下一个兄弟节点是文本节点, 则插入换行符
+      const nextSibling = parent.children[index + 1]
+      if (nextSibling?.type === 'text') {
+        return document.createTextNode('\n')
+      }
+      // 否则插入模拟换行符
+      return document.createTextNode(HtmlCharEnum.MOCK_LINE_BREAK)
     }
     return null
   }
