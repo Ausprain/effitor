@@ -56,8 +56,12 @@ export function solveEffectors(effectors: Et.Effector[]): Et.Effector {
     }
   }
   // 处理 callback 合并
-  for (const [name, cbs] of Object.entries(singleEffector)) {
-    singleEffector[name] = (...A: any) => { for (const cb of (cbs as Function[])) { if (cb(...A)) return true } }
+  for (const [name, cbs] of Object.entries(singleEffector as Record<string, Function[]>)) {
+    singleEffector[name] = name.startsWith('on')
+      // on开头的回调(钩子)没有返回true终止后续的特性, 且参数列表不固定
+      ? (...A: any[]) => { for (const cb of cbs) { cb(...A) } }
+      // (ev, ctx) => {}
+      : (e: any, x: any) => { for (const cb of cbs) { if (cb(e, x)) return true } }
   }
   // 处理 solver 合并
   for (const [name, solver] of Object.entries(solversMap)) {
@@ -84,15 +88,16 @@ export function solveEffectors(effectors: Et.Effector[]): Et.Effector {
 
     singleEffector[name] = Object.keys(solverFunsMap).reduce((pre, k) => {
       const funs = solverFunsMap[k] as Function[]
-      pre[k] = (...A: any) => {
+      // (ev, ctx) => {}
+      pre[k] = (e: any, x: any) => {
         for (const fn of funs) {
-          if (fn(...A)) {
+          if (fn(e, x)) {
             return true
           }
         }
       }
       return pre
-    }, {} as Record<string, (...A: any[]) => any>)
+    }, {} as Record<string, Function>)
   }
 
   effectors = void 0 as any
