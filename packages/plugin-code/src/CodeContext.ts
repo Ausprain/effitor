@@ -50,10 +50,6 @@ export class CodeContext<L extends string = string> {
     this.wrapper.appendChild(this._container)
     this.pre.appendChild(this._lineWrapper)
     highlighter.onInit?.(this.wrapper, lang)
-    // 代码块初始内容为空, 设置初始值为一个换行符, 否则代码块坍缩
-    if (!value) {
-      value = '\n'
-    }
     this.area.value = value
     this.disable()
   }
