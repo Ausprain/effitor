@@ -190,9 +190,7 @@ export class Effitor {
     if (this.config.toString() !== restoreConfig?.toString()) {
       configManager.updateConfig('editorConfig', this.config)
     }
-    // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
-    // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
-    plugins = [useUndo(), ...assists, ...plugins]
+
     const schema = {
       editor: EtEditorElement,
       body: EtBodyElement,
@@ -211,7 +209,9 @@ export class Effitor {
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
-    const pluginConfigs = this.#reducePlugins(plugins, pluginElCtors, contextMeta)
+    // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
+    // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
+    const pluginConfigs = this.#reducePlugins([useUndo(), ...assists], plugins, pluginElCtors, contextMeta)
     // html相关处理器
     const htmlTransformerMaps: Et.HtmlToEtElementTransformerMap[] = []
     // mdast相关处理器
@@ -603,53 +603,58 @@ export class Effitor {
   }
 
   #reducePlugins(
+    assists: Et.EditorPlugin[],
     plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
   ): PluginConfigs {
     const pNameSet = new Set<Et.EditorPlugin['name']>()
-    const effectors = [],
-      preEffectors = [],
-      postEffectors = [],
-      onMounteds = [],
-      onBeforeUnmounts = [],
-      cssTexts = []
+    const effectors: Et.Effector[] = [],
+      preEffectors: Et.Effector[] = [],
+      postEffectors: Et.Effector[] = [],
+      onMounteds: Required<Et.Effector>['onMounted'][] = [],
+      onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][] = [],
+      cssTexts: string[] = []
     const setSchema: Et.EditorSchemaSetter = (init) => {
       Object.assign(
         ctx.schema,
         Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
       )
     }
-    for (const cur of plugins) {
-      if (pNameSet.has(cur.name)) {
-        throw Error(`Duplicate plug-in named '${cur.name}'.`)
+    function solvePlugins(ps: Et.EditorPlugin[]) {
+      for (const cur of ps) {
+        if (pNameSet.has(cur.name)) {
+          throw Error(`Duplicate plug-in named '${cur.name}'.`)
+        }
+        pNameSet.add(cur.name)
+        if (cur.cssText) {
+          cssTexts.push(cur.cssText)
+        }
+        if (cur.elements) {
+          cur.elements.forEach(e => elCtors.push(e))
+        }
+        const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
+        for (const et of ets) {
+          const { onMounted, onBeforeUnmount, ...solvers } = et
+          if (onMounted) {
+            onMounteds.push(onMounted)
+          }
+          if (onBeforeUnmount) {
+            onBeforeUnmounts.push(onBeforeUnmount)
+          }
+          if (et.enforce === void 0) {
+            effectors.push(solvers)
+          }
+          else if (et.enforce === 'pre') {
+            preEffectors.push(solvers)
+          }
+          else {
+            postEffectors.push(solvers)
+          }
+        }
+        cur.register?.(ctx, setSchema, mountEtHandler)
       }
-      pNameSet.add(cur.name)
-      if (cur.cssText) {
-        cssTexts.push(cur.cssText)
-      }
-      if (cur.elements) {
-        cur.elements.forEach(e => elCtors.push(e))
-      }
-      const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
-      for (const et of ets) {
-        const { onMounted, onBeforeUnmount, ...solvers } = et
-        if (onMounted) {
-          onMounteds.push(onMounted)
-        }
-        if (onBeforeUnmount) {
-          onBeforeUnmounts.push(onBeforeUnmount)
-        }
-        if (et.enforce === void 0) {
-          effectors.push(solvers)
-        }
-        else if (et.enforce === 'pre') {
-          preEffectors.push(solvers)
-        }
-        else {
-          postEffectors.push(solvers)
-        }
-      }
-      cur.register?.(ctx, setSchema, mountEtHandler)
     }
+    solvePlugins(assists)
+    solvePlugins(plugins)
     const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
     return {
       cssText: cssTexts.join('\n'),
