@@ -5,6 +5,7 @@ import { visit } from 'unist-util-visit'
 
 import type { Et } from '../@types'
 import { fragmentUtils } from '../handler'
+import { reduceMappings } from '../utils'
 import {
   type MdastNodeHandlerMap,
   type MdastNodeTransformerMap,
@@ -34,32 +35,8 @@ export const getMdProcessor = ({
   toMdTransformerMapList,
   toMdHandlerMap = {},
 }: GetMdPorcesserOptions) => {
-  const fromMdHandlersMap: MdastHandlersMap = {}
-  const toMdTransformersMap: MdastTransformersMap = {}
-  for (const map of fromMdHandlerMapList) {
-    for (const [k, v] of Object.entries(map)) {
-      // fromMdHandlersMap[k] = fromMdHandlersMap[k] ?? []
-      // fromMdHandlersMap[k].push(v)
-      if (Reflect.get(fromMdHandlersMap, k)) {
-        Reflect.get(fromMdHandlersMap, k).push(v)
-      }
-      else {
-        Reflect.set(fromMdHandlersMap, k, [v])
-      }
-    }
-  }
-  for (const map of toMdTransformerMapList) {
-    for (const [k, v] of Object.entries(map)) {
-      // toMdTransformersMap[k] = toMdTransformersMap[k] ?? []
-      // toMdTransformersMap[k].push(v)
-      if (Reflect.get(toMdTransformersMap, k)) {
-        Reflect.get(toMdTransformersMap, k).push(v)
-      }
-      else {
-        Reflect.set(toMdTransformersMap, k, [v])
-      }
-    }
-  }
+  const fromMdHandlersMap: MdastHandlersMap = reduceMappings(fromMdHandlerMapList)
+  const toMdTransformersMap: MdastTransformersMap = reduceMappings(toMdTransformerMapList)
 
   return {
     /**
