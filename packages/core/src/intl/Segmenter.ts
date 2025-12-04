@@ -42,6 +42,24 @@ export class Segmenter {
   }
 
   /**
+   * 对文本进行“视觉字符”(字素 grapheme)分词\
+   * @param text 要分词的文本
+   * @returns 一个迭代器, 每个元素为Intl.SegmentData 其segment属性值为一个字素字符串
+   */
+  segmentGraphemeItor(text: string) {
+    return this._graphemeSegmenter.segment(text)[Symbol.iterator]()
+  }
+
+  /**
+   * 对文本进行“单词”(word)分词
+   * @param text 要分词的文本
+   * @returns 一个迭代器, 每个元素为Intl.SegmentData 其segment属性值为一个单词字符串
+   */
+  segmentWordItor(text: string) {
+    return this._wordSegmenter.segment(text)[Symbol.iterator]()
+  }
+
+  /**
    * 获取当前光标左侧(Backspace方向)的第一个“视觉字符” (双码点字符会视为一个视觉字符, 四码点字符会被视为两个视觉字符)
    * @returns 若anchorText为空, 或anchorOffset=0, 返回 undefined
    */
