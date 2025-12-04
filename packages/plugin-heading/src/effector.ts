@@ -1,6 +1,6 @@
 import type { Dropdown } from '@effitor/assist-dropdown'
 import type { Et } from '@effitor/core'
-import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
+import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon, HtmlCharEnum } from '@effitor/shared'
 
 import { HeadingEnum } from './config'
 import { inHeadingHandler, replaceParagraphWithHeading } from './handler'
@@ -9,9 +9,10 @@ const checkAtxToHeading = (ctx: Et.UpdatedContext) => {
   // import.meta.env.DEV && console.error('check heading start')
   if (!ctx.selection.isCollapsed || !ctx.focusEtElement || !ctx.selection.anchorText) return false
   // 只在纯段落内生效
-  if (!ctx.isPlainParagraph(ctx.focusParagraph) || ctx.focusParagraph.childNodes.length > 1) return false
-  const data = ctx.focusParagraph.textContent
+  if (!ctx.isPlainParagraph(ctx.focusParagraph) || ctx.focusParagraph.childElementCount > 1) return false
+  let data = ctx.focusParagraph.textContent
   if (data.length > 6) return false
+  data = data.trim().replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
   let level = -1
   if (/^#{1,6}$/.test(data)) {
     level = data.length
