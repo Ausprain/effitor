@@ -11,7 +11,6 @@ import { checkInsertLink } from './handler'
 export const linkEffector: Et.Effector = {
   afterInputSolver: {
     insertText: (ev, ctx) => {
-      if (!ev.data || ev.data.length > 1) return
       if (!ev.data || ev.data.length > 1
         || (ev.data.charCodeAt(0) !== 41 /** ) */ && ev.data.charCodeAt(0) !== 65289 /** ） */)) {
         return

@@ -1,13 +1,13 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, dom } from '@effitor/core'
-import { HtmlCharEnum } from '@effitor/shared'
+import { cmd, cr } from '@effitor/core'
+import { checkParseMarkdownReference, HtmlCharEnum } from '@effitor/shared'
 
 import { MediaType } from './config'
 import { parseMediaUrl } from './utils'
 
 export const markMediaHandler: Et.EffectHandler = {
   markMedia(ctx, tc) {
-    const out = dom.checkParseMarkdownReference('image', tc.container.data, tc.offset)
+    const out = checkParseMarkdownReference('image', tc.container.data, tc.offset)
     if (!out) {
       return
     }

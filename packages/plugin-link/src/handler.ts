@@ -1,5 +1,6 @@
 import type { Et } from '@effitor/core'
-import { cmd, cr, dom } from '@effitor/core'
+import { cmd, cr } from '@effitor/core'
+import { checkParseMarkdownReference } from '@effitor/shared'
 
 export const checkInsertLink = (
   ctx: Et.EditorContext, tc: Et.ValidTargetCaret,
@@ -52,7 +53,7 @@ export const markLinkHandler: Et.EffectHandler = {
     return checkInsertLink(ctx, targetRange.toTargetCaret(), link)
   },
   markLink(ctx, tc) {
-    const out = dom.checkParseMarkdownReference('link', tc.container.data, tc.offset)
+    const out = checkParseMarkdownReference('link', tc.container.data, tc.offset)
     if (!out) {
       return false
     }
