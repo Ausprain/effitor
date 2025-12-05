@@ -3,7 +3,8 @@
 ## Bugfix
 
 - [ ] core
-  - [ ] macOS使用`opt+e`快捷键插入带音标的字符的“输入法”行为未正确处理
+  - [x] macOS使用`opt+e`快捷键插入带重音符的拉丁字母的“输入法”行为未正确处理
+    - tgr. compositionend中延迟commit导致的 [Composition.onEnd()](../packages/core/src/context/Composition.ts#L202)
   - [x] 打包构建时对变量重命名导致内联效应器找不到 ectx 变量的问题
   - [ ] 逐级全选有时会失败，页面显示已经是全选当前行的状态，但实际的选区却定位到了文档末尾; 即页面上选区 Range，而实际选区 collapsed；这可能跟开发是 vite 代码缓存有关
     - [x] 纯文本段落中间enter，变为两个段落，第二个段落出现两个文本节点，第二个是零宽字符；导致选区判断时对多个矩形框进行了误判

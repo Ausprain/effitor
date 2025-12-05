@@ -279,6 +279,12 @@ const checkMergeCmds = (cmds: ExecutedCmd[]) => {
     out.push(_cmd)
   } // for end
 
+  if (import.meta.env.DEV) {
+    if (out.some(c => c.type === CmdType.Insert_Composition_Text)) {
+      throw new Error('mergeCmds: 命令合并后存在 Insert_Composition_Text 命令')
+    }
+  }
+
   return out
 }
 /**
@@ -295,15 +301,20 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
       continue
     }
     let j = i + 1
-    let composeData = _cmd.data
+    let composedData = _cmd.data
     let lastCmd: ExecutedInsertCompositionText | null = null
     while (j < cmds.length) {
       const nextCmd = cmds[j]
-      if (nextCmd.type !== CmdType.Insert_Composition_Text) {
+      if (nextCmd.type !== CmdType.Insert_Composition_Text
+        // fixed. 除输入法会话的第一个命令外, 后续输入法命令必定存在text节点
+        // 如果下一个连续的输入法命令无test属性, 说明这是下一次输入法会话的第一个命令
+        // 但被意外的被 commit 到当前 Transaction 中了; 这里不应纳入本次合并
+        || !nextCmd.text
+      ) {
         break
       }
       lastCmd = nextCmd as ExecutedInsertCompositionText
-      composeData = nextCmd.data // 输入法构造串是每次全部覆盖的, 因此无需累加, 最新的命令的data 就是输入法最终插入的文本
+      composedData = nextCmd.data // 输入法构造串是每次全部覆盖的, 因此无需累加, 最新的命令的data 就是输入法最终插入的文本
       j++
     }
     const srcCaret = _cmd.srcCaretRange?.toCaret() // composition命令的起始光标位置必须存在
@@ -314,10 +325,11 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
       }
       return out
     }
+    // 多个连续输入法命令
     if (lastCmd) {
       // for 下一个从 j 开始
       i = j - 1
-      if (composeData === '') {
+      if (composedData === '') {
         // backspace取消输入法构造串, 直接丢弃输入法命令
         continue
       }
@@ -339,11 +351,11 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
         // 转为插入文本命令
         out.push(cmd.insertText({
           text,
-          data: composeData,
+          data: composedData,
           offset: srcCaret.offset,
           srcCaretRange: srcCaret,
           // 转换后需要设置destCaretRange, 否则重做时无法定位光标位置
-          destCaretRange: cr.caret(text, srcCaret.offset + composeData.length),
+          destCaretRange: cr.caret(text, srcCaret.offset + composedData.length),
         }))
       }
     }
@@ -354,16 +366,16 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
         // 有 text 节点, 转为 Insert_Text
         out.push(cmd.insertText({
           text: text as Et.Text,
-          data: composeData,
+          data: composedData,
           offset: srcCaret.offset,
           srcCaretRange: srcCaret,
-          destCaretRange: cr.caret(text, srcCaret.offset + composeData.length),
+          destCaretRange: cr.caret(text, srcCaret.offset + composedData.length),
         }))
       }
       else {
-        // 无text节点, 需新插入一个text节点, 该节点需更新光标获得
-        // 需配合undoEffector, 在输入法会话结束后此时立即commit命令, 以立即调用pushTransaction
-        // 才能获取正确的光标位置
+        // 输入法启动时不在text节点上, 需新插入一个text节点, 该节点需更新光标获得
+        // 需配合undoEffector, 在输入法会话结束后此时立即commit命令, 以立即调用pushTransaction(将执行此处代码)
+        // 才能获取当前的正确的光标位置
         ctx.selection.update()
         text = ctx.selection.anchorText as Et.Text
         if (!text || text.nodeType !== 3) {

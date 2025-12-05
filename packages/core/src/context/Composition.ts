@@ -203,10 +203,13 @@ export class Composition {
     // fixed. Windows 下 Chromium, 采用页面内失焦方式结束输入法会话, 会在compositionend后
     // 发送一个不可取消的 deleteContentBackward 因此需要延迟 inCompositionSession = false,
     // 让beforeinput跳过这个 deleteContentBackward
+    // fixed. 但必须先同步执行commit, 将前一个输入法会话内的所有命令提交;
+    // 否则可能将下一次输入法会话的第一个命令也包含到当前事务中, 导致输入法命令合并错误
+    // 如 macOS 下, 使用 opt+e 快捷键 (该快捷键是系统级的, 以insertCompositionText的方式插入带"重音符"的拉丁字母)
+    // 正常使用没有问题, 但如果连续连按 opt+e 组合键, 会产生多个输入法会话, 若这里异步提交, 就会导致此问题
+    this._ctx.commandManager.commit() // 输入法结束, 记录一次命令事务
     setTimeout(() => {
       this._inSession = false
-      // 输入法结束, 记录一次命令事务
-      this._ctx.commandManager.commit()
     }, 0)
 
     if (this._ctx.selection.rawEl) {

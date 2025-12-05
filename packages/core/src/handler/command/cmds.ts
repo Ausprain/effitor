@@ -339,7 +339,7 @@ const execInsertCompositionText = function (this: CmdInsertCompositionText, ctx:
     }
     // 非输入法会话的第一个输入, 光标必定在文本节点上
     // 记录该节点, 用于合并转为 Insert_Text 命令
-    this.text = ctx.selection.anchorText as Et.Text
+    this.text = ctx.selection.anchorText
   }
 
   return true
