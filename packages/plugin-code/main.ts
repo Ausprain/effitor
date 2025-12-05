@@ -5,7 +5,18 @@ import { useCodePlugin } from './src/index'
 
 const editor = new Effitor({
   plugins: [
-    await useCodePlugin(),
+    await useCodePlugin({
+      shikiOptions: {
+        langs: [
+          import('@shikijs/langs/jsx'),
+          import('@shikijs/langs/sql'),
+        ],
+        alias: {
+          jsx: 'jsx',
+          sql: 'sql',
+        },
+      },
+    }),
     useCodeAreaPlugin(),
   ],
   callbacks: {

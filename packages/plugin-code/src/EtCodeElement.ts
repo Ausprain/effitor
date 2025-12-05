@@ -194,8 +194,8 @@ export class EtCodeElement extends EtComponent {
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     div: (el, ctx) => {
-      let lang = ctx.pctx.$codePx.parseLangFromNativeElement(el)
-      if (!lang) {
+      let alias = ctx.pctx.$codePx.parseLangFromNativeElement(el)
+      if (!alias) {
         return null
       }
       const pre = el.querySelector('pre')
@@ -206,13 +206,14 @@ export class EtCodeElement extends EtComponent {
       if (!value) {
         return null
       }
-      if (lang === 'template') {
-        lang = 'html'
+      if (alias === 'template') {
+        alias = 'vue'
       }
+      const lang = ctx.pctx.$codePx.highlighter.langs[alias] ?? ''
       return () => EtCodeElement.withDefaultDecoration(
         ctx,
         value,
-        ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : '',
+        lang,
         true,
       )
     },
@@ -226,10 +227,8 @@ export class EtCodeElement extends EtComponent {
         return null
       }
       let lang = ctx.pctx.$codePx.parseLangFromNativeElement(el)
-      if (!lang) {
-        lang = ctx.pctx.$codePx.parseLangFromNativeElement(code)
-      }
-      lang = lang && ctx.pctx.$codePx.highlighter.langs.includes(lang) ? lang : ''
+        || ctx.pctx.$codePx.parseLangFromNativeElement(code)
+      lang = lang ? (ctx.pctx.$codePx.highlighter.langs[lang] || '') : ''
       return () => EtCodeElement.withDefaultDecoration(ctx, value, lang, true)
     },
   }
@@ -246,7 +245,8 @@ export class EtCodeElement extends EtComponent {
 
   static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     code: (node, ctx) => {
-      const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), node.lang ?? '', true)
+      const lang = node.lang ? (ctx.pctx.$codePx.highlighter.langs[node.lang] ?? '') : ''
+      const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), lang, true)
       return el
     },
     html: (node, ctx) => {

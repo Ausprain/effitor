@@ -13,8 +13,9 @@ const checkMarkCode = (ctx: Et.EditorContext) => {
   if (!data.startsWith('```')) {
     return false
   }
-  const [lang, metaStr] = data.slice(3).split(' ')
-  if (ctx.pctx.$codePx.highlighter.langs.includes(lang)) {
+  const [alias, metaStr] = data.slice(3).split(' ')
+  const lang = ctx.pctx.$codePx.highlighter.langs[alias]
+  if (lang !== undefined) {
     const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
     codeEl.meta = metaStr
     ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)

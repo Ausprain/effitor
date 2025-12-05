@@ -118,14 +118,14 @@ export class CodeContext<L extends string = string> {
   }
 
   setLang(value: L) {
-    if (this.__lang === value || !this._highlighter.langs.includes(value)) {
+    if (this.__lang === value || !this._highlighter.langs[value]) {
       return
     }
     this.__lang = value
   }
 
   supportsLang(lang: L) {
-    return this._highlighter.langs.includes(lang)
+    return this._highlighter.langs[lang] !== undefined
   }
 
   get tab() {

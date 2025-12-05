@@ -1,6 +1,6 @@
-import { createHighlighter } from 'shiki'
+import { createHighlighterCore, ThemeRegistrationAny } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
-import { BundledLanguage, BundledTheme } from 'shiki/types'
+import { BundledLanguage, LanguageInput, ThemeInput } from 'shiki/types'
 
 import { CodeEnum } from './config'
 
@@ -8,7 +8,7 @@ import { CodeEnum } from './config'
  * 代码高亮器
  */
 export interface EtCodeHighlighter<L extends string> {
-  langs: readonly L[]
+  langs: Record<string, L>
   /**
    * 高亮代码, 返回高亮后的 html 字符串; 仅在复制代码时用于向剪切板写入高亮代码 html
    */
@@ -26,36 +26,125 @@ export interface EtCodeHighlighter<L extends string> {
 
 export interface ShikiHighlighterOptions {
   themes?: {
-    light: BundledTheme
-    dark: BundledTheme
+    light: ThemeInput
+    dark: ThemeInput
   }
-  langs?: BundledLanguage[]
+  /**
+   * 支持的语言模块, 每个元素是一个语言模块`import('@shikijs/langs/xxx')`或导入函数 `() => import()`;
+   * * 必须在alias中配置对应语言的“别名”, 否则无法通过 \`\`\`lang 创建代码块;
+   * 已内置导入语言(始终导入):
+   * ```
+   * javascript
+   * typescript
+   * html
+   * css
+   * java
+   * kotlin
+   * python
+   * go
+   * rust
+   * json
+   * markdown
+   * sql
+   * ```
+   */
+  langs?: LanguageInput[]
+  /**
+   * 语言别名, `键`是通过markdown: \`\`\`lang 创建代码块中的 lang, `值`是 shiki 支持的语言名;
+   * 也即 `langs` 中导入到语言模块id; 不在alias键中的语言无法通过 \`\`\`lang 创建代码块;
+   * 若对应值的语言没有导入(不在 `langs` 中), 创建对应语言代码块时, shiki则会报错;
+   *
+   * 已内置别名:
+   * ```
+   * javascript: 'javascript',
+   * typescript: 'typescript',
+   * js: 'javascript',
+   * ts: 'typescript',
+   * html: 'html',
+   * css: 'css',
+   * java: 'java',
+   * kotlin: 'kotlin',
+   * py: 'python',
+   * go: 'go',
+   * rust: 'rust',
+   * rs: 'rust',
+   * json: 'json',
+   * md: 'markdown',
+   * sql: 'sql',
+   * vue: 'vue',
+   * ```
+   */
+  alias?: Record<string, BundledLanguage>
 }
 export const defaultOptions: Required<ShikiHighlighterOptions> = {
   themes: {
-    light: 'github-light',
-    dark: 'github-dark',
+    light: () => import(`@shikijs/themes/github-light`),
+    dark: () => import(`@shikijs/themes/github-dark`),
   },
   langs: [
-    'bat', 'powershell', 'ps1', 'shell', 'sh', 'zsh', 'c', 'c++', 'cmake', 'c#', 'dart', 'go', 'java', 'kotlin', 'kt', 'groovy',
-    'json', 'javascript', 'js', 'jsx', 'typescript', 'ts', 'tsx', 'html', 'css', 'less', 'scss', 'sass',
-    'latex', 'lua', 'matlab', 'markdown', 'md',
-    'nginx', 'php', 'perl', 'python', 'py', 'r', 'ruby', 'rust', 'rs', 'sql', 'swift', 'yaml', 'toml',
+    () => import(`@shikijs/langs/javascript`),
+    () => import(`@shikijs/langs/typescript`),
+    () => import(`@shikijs/langs/html`),
+    () => import(`@shikijs/langs/css`),
+    () => import(`@shikijs/langs/java`),
+    () => import(`@shikijs/langs/kotlin`),
+    () => import(`@shikijs/langs/python`),
+    () => import(`@shikijs/langs/go`),
+    () => import(`@shikijs/langs/rust`),
+    () => import(`@shikijs/langs/json`),
+    () => import(`@shikijs/langs/markdown`),
+    () => import(`@shikijs/langs/sql`),
+    () => import(`@shikijs/langs/vue`),
   ],
+  alias: {
+    javascript: 'javascript',
+    typescript: 'typescript',
+    js: 'javascript',
+    ts: 'typescript',
+    html: 'html',
+    css: 'css',
+    java: 'java',
+    kotlin: 'kotlin',
+    py: 'python',
+    go: 'go',
+    rust: 'rust',
+    rs: 'rust',
+    json: 'json',
+    markdown: 'markdown',
+    md: 'markdown',
+    sql: 'sql',
+    vue: 'vue',
+  },
+  // langs: [
+  //   'bat', 'ps1', 'shell', 'c', 'c++', 'cmake', 'c#',
+  //   'html', 'css', 'latex',
+  //   'javascript', 'js', 'jsx', 'typescript', 'ts', 'tsx',
+  //   'java', 'kotlin', 'python', 'py', 'go', 'rust', 'swift',
+  //   'json', 'markdown', 'md', 'yaml', 'toml',
+  //   'sql', 'nginx',
+  // ],
 }
 export const createShikiHighlighter = async (
   options?: ShikiHighlighterOptions,
 ): Promise<EtCodeHighlighter<BundledLanguage>> => {
-  const { langs } = options || defaultOptions
-  const themes = options?.themes || defaultOptions.themes
-  const shiki = await createHighlighter({
-    langs: langs || defaultOptions.langs,
-    themes: [themes.light, themes.dark],
-    engine: createJavaScriptRegexEngine(),
+  const langs = [...(options?.langs || []), ...defaultOptions.langs]
+  const themeModules = options?.themes || defaultOptions.themes
+  const shiki = await createHighlighterCore({
+    langs,
+    themes: [themeModules.light, themeModules.dark],
+    engine: createJavaScriptRegexEngine({ forgiving: true }), // 抑制解析报错
   })
+  const themes = {
+    light: (await (typeof themeModules.light === 'function' ? themeModules.light() : themeModules.light) as {
+      default: ThemeRegistrationAny
+    }).default,
+    dark: (await (typeof themeModules.dark === 'function' ? themeModules.dark() : themeModules.dark) as {
+      default: ThemeRegistrationAny
+    }).default,
+  }
 
   return {
-    langs: [...(langs || defaultOptions.langs)],
+    langs: { ...options?.alias, ...defaultOptions.alias },
     onInit(pre, lang) {
       const { themeName, bg, fg } = shiki.codeToTokens('', {
         lang,
