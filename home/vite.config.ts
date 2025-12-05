@@ -18,7 +18,17 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'i18n-vendor': ['i18next', 'react-i18next'],
           'code-highlight': ['shiki', 'katex'],
-          // 'effitor': ['effitor'],
+          'effitor': ['effitor'],
+          'mdast-util': [
+            'mdast-util-from-markdown',
+            'mdast-util-frontmatter',
+            'mdast-util-gfm',
+            'mdast-util-newline-to-break',
+            'mdast-util-to-markdown',
+            'micromark-extension-frontmatter',
+            'micromark-extension-gfm',
+            'unist-util-visit',
+          ],
         },
         // 配置 chunk 文件名
         chunkFileNames: 'assets/[name]-[hash].js',
