@@ -1,5 +1,5 @@
-import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
-import { EtRichText, trimAndCleanZWS } from '@effitor/core'
+import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult, ToNativeHTMLPrefers } from '@effitor/core'
+import { dom, EtRichText, trimAndCleanZWS } from '@effitor/core'
 import { CssClassEnum, EtTypeEnum, HtmlAttrEnum } from '@effitor/shared'
 
 import { LINK_ET_TYPE, LinkEnum } from './config'
@@ -72,11 +72,13 @@ export class EtLinkElement extends EtRichText {
     this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const link = document.createElement('a')
-    link.href = this.linkUrl
-    link.title = this.linkTitle
-    return link
+  toNativeElement(_ctx: EditorContext, prefers: ToNativeHTMLPrefers): null | HTMLElement | (() => HTMLElement) {
+    const el = prefers === 'class'
+      ? dom.elementByEtEl('a', this, ['link-url', 'link-title'])
+      : document.createElement('a')
+    el.href = this.linkUrl
+    el.title = this.linkTitle
+    return el
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

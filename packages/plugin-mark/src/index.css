@@ -1,3 +1,4 @@
+.et-editor,
 et-editor,
 :host {
   --et-mark-color__marker: var(--et-color-hinting);
@@ -8,107 +9,100 @@ et-editor,
   --et-mark-font__code: 'monospace';
 }
 
+.et-editor.dark,
 et-editor.dark,
 :host(.dark) {
   --et-mark-color__code_text: #97b7dc;
   --et-mark-color__code_bg: #24292e;
 }
 
+.et-mark,
 et-mark {
   display: inline;
-  /* 
-    margin: 0px 2px; 
-    padding: 0 3px;
-  */
   border-radius: 2px;
   word-break: break-all;
-}
-
-et-mark.Et--caret-in {
-  padding: 0;
-}
-
-et-mark::after, et-mark::before {
-  display: none;
-  color: var(--et-mark-color__marker);
-  font-weight: normal;
-}
-et-mark::after {
-  padding-left: 1px;
-  padding-right: 3px;
-}
-et-mark::before {
-  padding-left: 3px;
-  padding-right: 1px;
-}
-et-mark.Et--caret-in::after, et-mark:has(.Et--caret-in)::after, 
-et-mark.Et--caret-in::before, et-mark:has(.Et--caret-in)::before {
-  display: inline;
-}
-.ET_cls-hinting_hidden et-mark::after, 
-.ET_cls-hinting_hidden et-mark::before {
-  display: none !important;
-}
-et-mark.marking::after {
-  color: #ddddee
-}
-
-.Et--selection-range et-mark::before,
-.Et--selection-range et-mark::after {
-  display: none;
-}
-
-
-et-mark.ET_cls-code {
-  margin: 0px 2px; 
-  padding: 3px 3px 2px;
-  background-color: var(--et-mark-color__code_bg);
-  color: var(--et-mark-color__code_text);
-  font-size: 14px;
-  font-family: var(--et-mark-font__code), monospace ;
-  transition-property: color, background-color;
-  transition-duration: var(--et-transition-duration);
-  transition-timing-function: var(--et-transition-timing-function);
-}
-et-mark.ET_cls-code.Et--caret-in {
-  padding: 3px 0 2px;
-}
-et-mark.ET_cls-code::after, et-mark.ET_cls-code::before {
-  content: "`";
-}
-
-
-et-mark.ET_cls-bold {
-  font-weight: bold;
-}
-et-mark.ET_cls-bold::after, et-mark.ET_cls-bold::before {
-  content: "**";
-}
-
-
-et-mark.ET_cls-italic {
-  font-style: italic;
-  /* 斜体右边增加一点间距 避免字符顶部重叠 */
-  margin-inline-end: 0.12em;
-}
-et-mark.ET_cls-italic::after, et-mark.ET_cls-italic::before {
-  content: "*";
-}
-
-
-et-mark.ET_cls-delete {
-  text-decoration: line-through;
-}
-et-mark.ET_cls-delete::after, et-mark.ET_cls-delete::before {
-  content: "~~";
-}
-
-
-et-mark.ET_cls-highlight {
-  color: var(--et-mark-color__hl_text);
-  background-color: var(--et-mark-color__hl_bg);
-  padding: 1px 2px;
-}
-et-mark.ET_cls-highlight::after, et-mark.ET_cls-highlight::before {
-  content: "==";
+  
+  &.Et--caret-in {
+    padding: 0;
+  }
+  &::after, &::before {
+    display: none;
+    color: var(--et-mark-color__marker);
+    font-weight: normal;
+  }
+  &::after {
+    padding-left: 1px;
+    padding-right: 3px;
+  }
+  &::before {
+    padding-left: 3px;
+    padding-right: 1px;
+  }
+  &.Et--caret-in::after, &:has(.Et--caret-in)::after, 
+  &.Et--caret-in::before, &:has(.Et--caret-in)::before {
+    display: inline;
+  }
+  .ET_cls-hinting_hidden &,
+  .Et--selection-range & {
+    &::after, &::before {
+      display: none !important;
+    }
+  }
+  &.ET_cls-marking::after {
+    color: #ddddee
+  }
+  
+  &.ET_cls-code {
+    margin: 0px 2px; 
+    padding: 3px 3px 2px;
+    background-color: var(--et-mark-color__code_bg);
+    color: var(--et-mark-color__code_text);
+    font-size: 14px;
+    font-family: var(--et-mark-font__code), monospace ;
+    transition-property: color, background-color;
+    transition-duration: var(--et-transition-duration);
+    transition-timing-function: var(--et-transition-timing-function);
+  }
+  &.ET_cls-code.Et--caret-in {
+    padding: 3px 0 2px;
+  }
+  &.ET_cls-code::after, &.ET_cls-code::before {
+    content: "`";
+  }
+  
+  
+  &.ET_cls-bold {
+    font-weight: bold;
+  }
+  &.ET_cls-bold::after, &.ET_cls-bold::before {
+    content: "**";
+  }
+  
+  
+  &.ET_cls-italic {
+    font-style: italic;
+    /* 斜体右边增加一点间距 避免字符顶部重叠 */
+    margin-inline-end: 0.12em;
+  }
+  &.ET_cls-italic::after, &.ET_cls-italic::before {
+    content: "*";
+  }
+  
+  
+  &.ET_cls-delete {
+    text-decoration: line-through;
+  }
+  &.ET_cls-delete::after, &.ET_cls-delete::before {
+    content: "~~";
+  }
+  
+  
+  &.ET_cls-highlight {
+    color: var(--et-mark-color__hl_text);
+    background-color: var(--et-mark-color__hl_bg);
+    padding: 1px 2px;
+  }
+  &.ET_cls-highlight::after, &.ET_cls-highlight::before {
+    content: "==";
+  }
 }

@@ -63,10 +63,6 @@ export class EtBodyElement extends EffectElement {
     }
   }
 
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('div')
-  }
-
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
     return mdastNode('root', this.childNodes, {})
   }

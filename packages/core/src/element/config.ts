@@ -20,3 +20,9 @@ export interface EtCode extends EtCodeTarget {
   /** 该元素内部直接子节点`不`允许的效应类型; 该值只能使用位运算 */
   readonly notInEtCode: number
 }
+
+/**
+ * 转换为原生 html 元素时样式偏好, 优先使用 class 还是 style 来表示样式;
+ * 大多数情况(如复制)都应使用 style, 而如果希望导入为html文档, 则应使用 class
+ */
+export type ToNativeHTMLPrefers = 'class' | 'style'

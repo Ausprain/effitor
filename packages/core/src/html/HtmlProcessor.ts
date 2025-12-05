@@ -8,8 +8,10 @@ import type { HtmlProcessorOptions, HtmlToEtElementTransformer, HtmlToEtElementT
 type TransformersMap = Record<string, HtmlToEtElementTransformer[]>
 
 export class HtmlProcessor {
+  private _prefers: Et.ToNativeHTMLPrefers = 'style'
   private readonly transformersMap: TransformersMap
   private readonly sanitizer?: (html: string) => string
+
   constructor(
     transformerMaps: HtmlToEtElementTransformerMap[],
     options?: HtmlProcessorOptions,
@@ -127,19 +129,26 @@ export class HtmlProcessor {
    * 获取一个以目标效应元素为根的子树的原生 html 字符串,
    * 缺省时将输出整个编辑区子树(根节点et-body)
    */
-  toHtml(ctx: Et.EditorContext, etel?: Et.EtElement): string
+  toHtml(ctx: Et.EditorContext, etel?: Et.EtElement, prefers?: Et.ToNativeHTMLPrefers): string
   /**
    * 获取一个片段对应的 html 字符串;
    * 若效应元素依赖 computedStyle 则从片段中提取转化的 html 元素将不带样式,
    * 因为片段中的元素计算样式为空
    */
-  toHtml(ctx: Et.EditorContext, fragment: Et.Fragment): string
+  toHtml(ctx: Et.EditorContext, fragment: Et.Fragment, prefers?: Et.ToNativeHTMLPrefers): string
   /**
    * 获取一个目标选区对应的 html 字符串, 传入 null 则以当前选区为目标;
    * 当前选区 collapsed, 则返回空串
    */
-  toHtml(ctx: Et.EditorContext, targetRange: Et.StaticRange | null): string
-  toHtml(ctx: Et.EditorContext, target?: Et.EtElement | Et.Fragment | Et.StaticRange | null): string {
+  toHtml(ctx: Et.EditorContext, targetRange: Et.StaticRange | null, prefers?: Et.ToNativeHTMLPrefers): string
+  toHtml(
+    ctx: Et.EditorContext,
+    target?: Et.EtElement | Et.Fragment | Et.StaticRange | null,
+    prefers?: Et.ToNativeHTMLPrefers,
+  ): string {
+    if (prefers) {
+      this._prefers = prefers
+    }
     let res
     if (target === void 0 || target instanceof EffectElement) {
       res = this.#parseEtElement(ctx, target ?? ctx.bodyEl)
@@ -173,7 +182,7 @@ export class HtmlProcessor {
   }
 
   #parseEtElement(ctx: Et.EditorContext, etel: Et.EtElement) {
-    const native = etel.toNativeElement(ctx)
+    const native = etel.toNativeElement(ctx, this._prefers)
     if (!native) {
       return document.createDocumentFragment() as Et.Fragment
     }

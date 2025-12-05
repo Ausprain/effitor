@@ -473,6 +473,15 @@ export class CodeContext<L extends string = string> {
     return pre
   }
 
+  cloneWrapper() {
+    const pre = this.pre.cloneNode(true) as HTMLPreElement
+    const wrapper = this.wrapper.cloneNode() as HTMLDivElement
+    const container = this._container.cloneNode()
+    container.appendChild(pre)
+    wrapper.appendChild(container)
+    return wrapper
+  }
+
   codeHTML() {
     return this.clonePre().outerHTML
   }

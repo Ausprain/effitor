@@ -1,45 +1,57 @@
-et-editor, :host {
+.et-editor,
+et-editor,
+:host {
   --et-table-border-color: #888;
   --et-table-border-radius: 8px;
   --et-table-odd-row-bg-color: #f7f8f9;
 }
-et-editor.dark, :host.dark {
+.et-editor.dark, 
+et-editor.dark, 
+:host.dark {
   --et-table-odd-row-bg-color: #171819;
 }
 
-/* 等宽表格 */
-et-table[data-even="1"] {
-  table-layout: fixed;
-  & > et-tr > et-tc {
-    width: 100%;
+.et-table,
+et-table {
+  /* 等宽表格 */
+  &[data-even="1"] {
+    table-layout: fixed;
+    & et-tc,
+    & .et-tc {
+      width: 100%;
+    }
   }
+
+  /* 表格对齐 */
+  &[data-align="left"] {
+    text-align: left;
+  }
+  &[data-align="right"] {
+    text-align: right;
+  }
+  &[data-align="center"] {
+    text-align: center;
+  }
+
+  /* 表格标题 */
+  &[data-head="rc"],
+  &[data-head="r"] {
+    & > .et-tr:first-child,
+    & > et-tr:first-child {
+      font-weight: bold;
+    }
+  }
+  &[data-head="rc"],
+  &[data-head="c"] {
+    & .et-tc:first-child,
+    & et-tc:first-child {
+      font-weight: bold;
+    }
+  }
+
 }
 
-/* 表格对齐 */
-et-table[data-align="left"] {
-  text-align: left;
-}
-et-table[data-align="right"] {
-  text-align: right;
-}
-et-table[data-align="center"] {
-  text-align: center;
-}
-
-/* 表格标题 */
-et-table[data-head="rc"],
-et-table[data-head="r"] {
-  & > et-tr:first-child {
-    font-weight: bold;
-  }
-}
-et-table[data-head="rc"],
-et-table[data-head="c"] {
-  & > et-tr > et-tc:first-child {
-    font-weight: bold;
-  }
-}
-
+.et-table,
 et-table {
   display: table !important;
   /* collapse 会导致 border-radius 失效；但不 collapse 又太丑了 */
@@ -71,6 +83,7 @@ et-table {
   }
 }
 
+.et-tr,
 et-tr {
   display: table-row !important;
 
@@ -95,6 +108,7 @@ et-tr {
   }
 }
 
+.et-tc,
 et-tc {
   display: table-cell !important;
   padding: 6px;
@@ -109,18 +123,23 @@ et-tc {
   &:not(:first-child) {
     border-inline-start: 1px solid var(--et-table-border-color);
   }
+  .et-tr:not(:first-child) > &,
   et-tr:not(:first-child) > & {
     border-block-start: 1px solid var(--et-table-border-color);
   }
+  .et-tr:first-child > &:first-child,
   et-tr:first-child > &:first-child {
     border-top-left-radius: var(--et-table-border-radius);
   }
+  .et-tr:first-child > &:last-child,
   et-tr:first-child > &:last-child {
     border-top-right-radius: var(--et-table-border-radius);
   }
+  .et-tr:last-child > &:first-child,
   et-tr:last-child > &:first-child {
     border-bottom-left-radius: var(--et-table-border-radius);
   }
+  .et-tr:last-child > &:last-child,
   et-tr:last-child > &:last-child {
     border-bottom-right-radius: var(--et-table-border-radius);
   }

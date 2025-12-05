@@ -1,9 +1,10 @@
-
-et-editor {
+et-editor,
+.et-editor {
   padding: 16px;
 }
 /* 编辑区内置样式 */
-et-body {
+et-body,
+.et-body {
   display: block !important;
   min-height: 128px;
   margin: 8px auto;
@@ -25,6 +26,7 @@ et-body.Et--selection-all {
   }
 }
 
+.et-p.etp,
 et-p.etp {
   /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
   /* position: relative; */

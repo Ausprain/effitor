@@ -1,19 +1,20 @@
-import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
-import { EtEmbedment } from '@effitor/core'
+import type { CreateMdastNode, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, MdastNodeTransformerMap, ToMdastResult } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
-import type { IEtMediaElement, ImageUrlMetadata } from './config'
+import type { ImageUrlMetadata } from './config'
 import { MEDIA_ET_TYPE, MediaEnum, MediaState, MediaType } from './config'
+import { EtMediaElement } from './EtMediaElement'
 import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 图片效应元素
  */
-export class EtImageElement extends EtEmbedment implements IEtMediaElement {
+export class EtImageElement extends EtMediaElement {
   static readonly elName: string = MediaEnum.Image
   static readonly etType: number = super.etType | MEDIA_ET_TYPE
   static readonly inEtType: number = 0
   mediaType = MediaType.Image
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'img'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -62,7 +63,7 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
     initMediaElementSrc(img, url, meta)
 
     const el = document.createElement(MediaEnum.Image)
-    el.classList.add(MediaEnum.Media)
+    el.classList.add(MediaEnum.Class_Media)
     el.setAttribute(MediaEnum.Alt, alt)
     el.setAttribute(MediaEnum.State, state)
     el.setAttribute(HtmlAttrEnum.Popup_Key, MediaEnum.Popup_Key)
@@ -74,14 +75,6 @@ export class EtImageElement extends EtEmbedment implements IEtMediaElement {
     }
 
     return el
-  }
-
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const img = this.firstElementChild
-    if (!img || img.nodeName !== 'IMG') {
-      return null
-    }
-    return img.cloneNode() as HTMLElement
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

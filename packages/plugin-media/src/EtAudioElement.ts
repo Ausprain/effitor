@@ -1,19 +1,20 @@
-import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
-import { EtEmbedment } from '@effitor/core'
+import type { CreateMdastNode, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
-import type { AudioUrlMetadata, IEtMediaElement } from './config'
+import type { AudioUrlMetadata } from './config'
 import { MEDIA_ET_TYPE, MediaEnum, MediaState, MediaType } from './config'
+import { EtMediaElement } from './EtMediaElement'
 import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 音频效应元素
  */
-export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
+export class EtAudioElement extends EtMediaElement {
   static readonly elName: string = MediaEnum.Audio
   static readonly etType: number = super.etType | MEDIA_ET_TYPE
   static readonly inEtType: number = 0
   mediaType = MediaType.Audio
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'audio'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -54,7 +55,7 @@ export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
     initMediaElementSrc(audio, url, meta)
 
     const el = document.createElement(MediaEnum.Audio)
-    el.classList.add(MediaEnum.Media)
+    el.classList.add(MediaEnum.Class_Media)
     el.setAttribute(MediaEnum.Alt, '$audio')
     el.setAttribute(MediaEnum.State, state)
     el.setAttribute(HtmlAttrEnum.Popup_Key, MediaEnum.Popup_Key)
@@ -66,14 +67,6 @@ export class EtAudioElement extends EtEmbedment implements IEtMediaElement {
     }
 
     return el
-  }
-
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const audio = this.firstElementChild
-    if (!audio || audio.nodeName !== 'AUDIO') {
-      return null
-    }
-    return audio.cloneNode() as HTMLElement
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

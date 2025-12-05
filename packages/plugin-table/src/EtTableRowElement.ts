@@ -12,6 +12,8 @@ import { TABLE_CELL_ET_TYPE, TABLE_ROW_ET_TYPE, TableName } from './config'
 import { EtTableCellElement } from './EtTableCellElement'
 
 export class EtTableRowElement extends EtParagraph {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'tr'
+
   static readonly elName = TableName.TableRow
   static readonly etType = super.etType | TABLE_ROW_ET_TYPE
   static readonly inEtType = TABLE_CELL_ET_TYPE
@@ -75,11 +77,6 @@ export class EtTableRowElement extends EtParagraph {
       return null
     }
     return this
-  }
-
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const tr = document.createElement('tr')
-    return tr
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

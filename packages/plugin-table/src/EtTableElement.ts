@@ -13,6 +13,8 @@ import { EtTableRowElement } from './EtTableRowElement'
 
 // FIXME 现阶段范围删除算法尚未完善，选区不允许跨越表格选择，因此继承组件，使用嵌套可编辑
 export class EtTableElement extends EtComponent {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'table'
+
   static readonly elName = TableName.Talbe
   static readonly etType = super.etType | TABLE_ET_TYPE
   static readonly inEtType = TABLE_ROW_ET_TYPE
@@ -64,14 +66,6 @@ export class EtTableElement extends EtComponent {
       el.appendChild(row)
     }
     return el
-  }
-
-  toNativeElement(_ctx: EditorContext): HTMLDivElement {
-    const tb = document.createElement('table')
-    tb.align = this.tableAlign
-    // 不浮动
-    tb.style.float = 'none'
-    return tb
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

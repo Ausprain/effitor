@@ -20,10 +20,6 @@ export abstract class EtComponent extends EtParagraph {
     return false
   }
 
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('div')
-  }
-
   onAfterCopy(_ctx: Et.EditorContext): this | null {
     return this
   }

@@ -46,9 +46,11 @@ export class EtListElement extends EtParagraph {
 
   set ordered(ordered: boolean) {
     if (ordered) {
+      this.nativeTag = 'ol'
       this.setAttribute(ListAttr.Ordered, '')
     }
     else {
+      this.nativeTag = 'ul'
       this.removeAttribute(ListAttr.Ordered)
     }
   }
@@ -98,11 +100,6 @@ export class EtListElement extends EtParagraph {
 
   createForInsertParagraph(): EtParagraph | null {
     return EtListItemElement.create()
-  }
-
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const list = document.createElement(this.ordered ? 'ol' : 'ul')
-    return list
   }
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
@@ -212,6 +209,8 @@ export class EtListElement extends EtParagraph {
 }
 
 export class EtListItemElement extends EtParagraphElement {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'li'
+
   static readonly elName = ListEnum.Li
   static readonly etType = super.etType | LIST_ITEM_ET_TYPE
 
@@ -237,10 +236,6 @@ export class EtListItemElement extends EtParagraphElement {
       li.appendChild(document.createElement('br'))
     }
     return li
-  }
-
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('li')
   }
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

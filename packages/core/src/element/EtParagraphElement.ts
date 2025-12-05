@@ -10,6 +10,7 @@ import { EtParagraph } from './EtParagraph'
  * 调用该方法只返回一个包含内容的段落节点，不会改变dom树
  */
 export class EtParagraphElement extends EtParagraph {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'p'
   /**
    * @internal 这是一个无意义值, 用于区分EtParagraph 和 EtParagraphElement这两个类型, 便于在一些类型谓词函数进行类型区分
    */
@@ -55,10 +56,6 @@ export class EtParagraphElement extends EtParagraph {
     p: () => {
       return this.create()
     },
-  }
-
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('p')
   }
 
   toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {

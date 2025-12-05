@@ -25,6 +25,38 @@ export const el = <K extends keyof HTMLElementTagNameMap>(tagName: K, className?
   }
   return el as HTMLElementTagNameMap[K] & Et.HTMLElement
 }
+export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, attrs: Record<string, string> | NamedNodeMap, omitList: string[] = []): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+  const el = document.createElement(tagName)
+  if (attrs.item) {
+    for (const item of (attrs as NamedNodeMap)) {
+      if (omitList.includes(item.name)) {
+        continue
+      }
+      el.setAttribute(item.name, item.value)
+    }
+  }
+  else {
+    for (const key in attrs) {
+      if (omitList.includes(key)) {
+        continue
+      }
+      el.setAttribute(key, (attrs as Record<string, string>)[key])
+    }
+  }
+  return el as HTMLElementTagNameMap[K] & Et.HTMLElement
+}
+/**
+ * 使用效应元素创建一个新的元素节点, 并复制其属性到新元素, 同时添加其 localName 到新元素css类名
+ * @param el 效应元素
+ * @param tagName 新元素的标签名
+ * @param omitAttrList 要省略复制的属性名列表; 默认为 ['contenteditable']
+ * @returns 新元素节点
+ */
+export const elementByEtEl = <K extends keyof HTMLElementTagNameMap>(tagName: K, el: Et.EtElement, omitAttrList: string[] = ['contenteditable']): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+  const c = elWithAttrs(tagName, el.attributes, omitAttrList)
+  c.classList.add(el.localName)
+  return c
+}
 /** 创建一个可编辑的 div 元素, 禁用拼写检查、自动修正、自动大写 */
 export const pureEditableDiv = (plaintextOnly: boolean) => {
   const div = document.createElement('div')

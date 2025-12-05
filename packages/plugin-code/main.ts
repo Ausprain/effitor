@@ -193,13 +193,6 @@ export class EtCodeElement extends EtComponent {
     return newEl as this
   }
 
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    if (this.codeCtx) {
-      return () => this.codeCtx.clonePre()
-    }
-    return null
-  }
-
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     div: (el, ctx) => {
       let lang = ctx.pctx.$codePx.parseLangFromNativeElement(el)

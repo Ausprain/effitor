@@ -102,6 +102,8 @@ export abstract class EffectElement
     return el
   }
 
+  /** 原生标签名, 若非空, 表示该效应元素对应的原生标签名 */
+  protected nativeTag?: keyof HTMLElementTagNameMap
   declare readonly [ETCODE]: number
   declare readonly [IN_ETCODE]: number
   declare readonly [NOT_IN_ETCODE]: number
@@ -336,18 +338,25 @@ export abstract class EffectElement
    * - `() => HTMLElement`, 声明以该效应元素为根的子树, 将以何种形式被
    *   复制到 `text/html` 中; 即包括后代处理
    */
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    // TODO 测试, 复制大量内容时, getComputedStyle是否会, 以及会如何影响性能
-    // TODO 获取样式并记录到 style 属性中
-    const cssValues = window.getComputedStyle(this)
-    let el
-    if (['block', 'flex'].includes(cssValues.display)) {
-      el = document.createElement('div')
+  toNativeElement(_ctx: Et.EditorContext, prefers: Et.ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
+    // 块效应或允许块子效应, 则转为div, 否则转为span
+    let toTag = this.nativeTag
+    if (!toTag) {
+      toTag = ((this.etCode | this.inEtCode) & (EtTypeEnum.Block | EtTypeEnum.Paragraph)) ? 'div' : 'span'
+    }
+    if (prefers === 'style') {
+      // TODO 测试, 复制大量内容时, getComputedStyle是否会, 以及会如何影响性能
+      // TODO 获取样式并记录到 style 属性中
+      // const cssValues = window.getComputedStyle(this)
+      const el = document.createElement(toTag)
+      el.style.backgroundColor = this.style.backgroundColor
+      el.style.color = this.style.color
+      return el
     }
     else {
-      el = document.createElement('span')
+      const el = dom.elementByEtEl(toTag, this)
+      return el
     }
-    return el
   }
 
   /**

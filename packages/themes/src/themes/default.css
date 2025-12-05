@@ -3,6 +3,7 @@
 
 
 /* 默认编辑器外框样式 */
+.et-editor[et-theme="default"],
 et-editor[et-theme="default"],
 :host([et-theme="default"]) {
 

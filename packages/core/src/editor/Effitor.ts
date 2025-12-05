@@ -72,6 +72,7 @@ export type PluginConfigs = Omit<Et.Effector, 'enforce' | 'onMounted' | 'onBefor
 export class Effitor {
   private __host: HTMLDivElement | undefined
   private __root: ShadowRoot | Et.EtEditorElement | undefined
+  private __editorEl: Et.EtEditorElement | undefined
   private __body: Et.EtBodyElement | undefined
   private __context: Et.EditorContext | null = null
   private __ac: AbortController | undefined
@@ -145,6 +146,13 @@ export class Effitor {
     return this.__body
   }
 
+  get editorEl() {
+    if (!this.__editorEl) {
+      throw new EffitorNotMountedError()
+    }
+    return this.__editorEl
+  }
+
   /**
    * 编辑器所在滚动容器`document.documentElement`
    * * [NB]: 该值不是`document.documentElement`时, 监听 scroll 事件的 scrollTarget 等于该值
@@ -160,6 +168,14 @@ export class Effitor {
    */
   get scrollTarget() {
     return this.__scrollContainer === document.documentElement ? document : this.__scrollContainer
+  }
+
+  /**
+   * 编辑器内部的样式文本(包含插件携带的样式); 在编辑器mount时, 这些样式文本会添加到文档的 adoptedStyleSheets 中;
+   * 启用shadow模式时, 根节点是编辑器创建的 shadowRoot 对象, 否则是 document 对象
+   */
+  get cssText() {
+    return this.__meta.cssText
   }
 
   constructor({
@@ -302,7 +318,7 @@ export class Effitor {
     }
     const { contextMeta, mainEffector, pluginConfigs, hotstringOptions } = this.__meta
     const ac = new AbortController()
-    const [root, bodyEl] = this.#formatEffitorStructure(host, customStyleLinks, ac.signal)
+    const [root, bodyEl, editorEl] = this.#formatEffitorStructure(host, customStyleLinks, ac.signal)
     const context = new EditorContext({
       contextMeta,
       root,
@@ -317,6 +333,7 @@ export class Effitor {
     this.__ac = ac
     this.__root = root
     this.__host = host
+    this.__editorEl = editorEl
     this.__body = bodyEl
     this.__context = context
 
@@ -470,8 +487,19 @@ export class Effitor {
   //   }
   // }
 
-  toHTML() {
-    return this.htmlProcessor.toHtml(this.context)
+  /**
+   * 将编辑器内容输出为原生html文本;
+   * @param [prefers='style'] 样式保留输出偏好, 默认为 'style'
+   *   * class: 效应元素替换为原生html元素, 并将效应元素名添加到html元素classList中; 并复制效应元素的属性;
+   *   * style: 效应元素替换为原生html元素, 并将效应元素样式添加到html元素style属性中; 不保留属性;
+   * @param [withEditor=false] 是否包含编辑器元素, 默认为 false
+   */
+  toHTML(prefers: Et.ToNativeHTMLPrefers = 'style', withEditor = false) {
+    const html = this.htmlProcessor.toHtml(this.context, this.bodyEl, prefers)
+    if (!withEditor) {
+      return html
+    }
+    return this.editorEl.toNativeHTML(this.context, prefers, html)
   }
 
   fromHTML(html: string) {
@@ -729,6 +757,6 @@ export class Effitor {
     // todo 如果能处理好输入法位置的话，使用editcontext也是可以的
     // body.contentEditable = 'false'
     // body.editContext = new EditContext()
-    return [root, body] as const
+    return [root, body, editorEl] as const
   }
 }

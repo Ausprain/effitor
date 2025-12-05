@@ -185,11 +185,14 @@ export class EtCodeElement extends EtComponent {
     return newEl as this
   }
 
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    if (this.codeCtx) {
+  toNativeElement(_ctx: Et.EditorContext, prefers: Et.ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
+    if (!this.codeCtx) {
+      return null
+    }
+    if (prefers === 'style') {
       return () => this.codeCtx.clonePre()
     }
-    return null
+    return () => this.codeCtx.cloneWrapper()
   }
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

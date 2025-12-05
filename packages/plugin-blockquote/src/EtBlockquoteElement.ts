@@ -6,6 +6,8 @@ import { BlockquoteEnum, BlockquoteMeta, BlockquotePluginContext } from './confi
 import { blockquoteMetaParser } from './util'
 
 export class EtBlockquoteElement extends EtBlockquote {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'blockquote'
+
   static readonly elName: string = BlockquoteEnum.ElName
 
   get bqType() {
@@ -53,10 +55,6 @@ export class EtBlockquoteElement extends EtBlockquote {
       return null
     }
     return this
-  }
-
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('blockquote')
   }
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

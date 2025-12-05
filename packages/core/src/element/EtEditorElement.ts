@@ -1,5 +1,8 @@
 import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
 
+import type { EditorContext } from '../context'
+import { dom } from '../utils'
+import type { ToNativeHTMLPrefers } from './config'
 import { EffectElement } from './EffectElement'
 
 /**
@@ -20,5 +23,13 @@ export abstract class EtEditorElement extends EffectElement {
     // const h2 = document.createElement('h2')
     // h2.innerText = 'Effitor Edit Body'
     // this.appendChild(h2)
+  }
+
+  toNativeHTML(_ctx: EditorContext, prefers: ToNativeHTMLPrefers, bodyHTML = ''): string {
+    if (prefers === 'style') {
+      return `<div>${bodyHTML}</div>`
+    }
+    const el = dom.elementByEtEl('div', this)
+    return el.outerHTML.slice(0, -6) + bodyHTML + '</div>'
   }
 }

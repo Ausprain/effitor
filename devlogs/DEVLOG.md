@@ -36,9 +36,17 @@
   - [x] 复制网页的内容, 粘贴过来被识别为了粘贴链接
 - plugin-list
   - [x] 使用 dropdown 插入列表后光标闪烁却无法输入内容
+- plugin-media
+  - [ ] markdown互转时记录浮动状态
 
 ## Todo
 
+- [x] Effitor.toHTML 可选输出带cssText
+  - 返回 {html, cssText};
+  - 效应元素在实现toNativeHtml时, 根据toHTML的参数, 选择插入css到style, 或者将自身效应元素名添加到返回的原生html元素class上;
+  - toHTML将编辑器的\_\_cssText进行解析, 将其中的效应元素名选择器如(et-p)替换为(.et-p), 这样输出的内容就能保留原有样式, 又能使用原生html元素了
+  - 选择器更名可遍历schema进行, 如有链入cssLink, 则也许读取替换并返回 { html, cssText, linkCssTexts: [] }
+- [x] plugin-code 优化shiki导入, 使用动态方式导入语言, 减小打包体积
 - [x] 移除效应器内联, 现阶段内联的效应器已不再带来性能提升, 属于冗余代码
 - [x] 代码块添加切换"换行显示"按钮
 - [x] 去除 dom 导出的 isEtElement 方法，统一由 etcode 来判断

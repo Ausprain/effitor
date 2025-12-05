@@ -26,6 +26,7 @@ export class EtHeadingElement extends EtHeading {
     v = Math.max(1, Math.min(Math.floor(v), 6)) as Et.HeadingLevel
     this.dataset.level = v.toString()
     this.addCssClass(levelClass(v))
+    this.nativeTag = `h${v}`
   }
 
   get headingLevel() {
@@ -46,15 +47,6 @@ export class EtHeadingElement extends EtHeading {
     const heading = EtHeadingElement.create(this.headingLevel)
     heading.textContent = plainParagraph.textContent
     return heading
-  }
-
-  toNativeElement(_ctx: Et.EditorContext): null | HTMLElement | (() => HTMLElement) {
-    let level = this.headingLevel
-    if (level < 1 || level > 6) {
-      level = 1
-    }
-    const tag = `h${Math.floor(level)}`
-    return document.createElement(tag)
   }
 
   static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {

@@ -168,7 +168,7 @@ export const enum MediaType {
 }
 export const enum MediaEnum {
   // css class
-  Media = 'et-media',
+  Class_Media = 'et-media',
   // el name
   Image = 'et-image',
   Audio = 'et-audio',
@@ -188,4 +188,4 @@ export const enum MediaState {
   Collapsed = 'collapsed',
   Expanded = 'expanded',
 }
-export const MEDIA_ET_TYPE = etcode.get(MediaEnum.Media)
+export const MEDIA_ET_TYPE = etcode.get(MediaEnum.Class_Media)

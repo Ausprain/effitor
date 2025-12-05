@@ -1,6 +1,7 @@
 
 /* 深色模式, 指向 et-editor.dark (编辑器非 shadow 时) */
 et-editor.dark,
+.et-editor.dark,
 /* 该 css会插入 shadowRoot, 而 et-editor 是 shadowRoot 的 host, 访问不到, 内部需要用 :host 来访问 host */
 :host(.dark) {
   color-scheme: dark;
@@ -34,6 +35,7 @@ et-editor.dark,
 }
 
 et-editor,
+.et-editor,
 /* 在 shadowDOM 内部, :host指向宿主元素, 即 et-editor */
 :host {
   color-scheme: light;
@@ -100,6 +102,7 @@ et-editor,
 }
 
 et-editor,
+.et-editor,
 :host {
   *,
   ::before,
@@ -112,6 +115,7 @@ et-editor,
 }
 
 et-editor,
+.et-editor,
 :host {
   /* 应由 et-editor 父容器定位 */
   /* position: relative; */

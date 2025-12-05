@@ -1,19 +1,20 @@
-import type { CreateMdastNode, EditorContext, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
-import { EtEmbedment } from '@effitor/core'
+import type { CreateMdastNode, HtmlToEtElementTransformerMap, MdastNodeHandlerMap, ToMdastResult } from '@effitor/core'
 import { HtmlAttrEnum, HtmlCharEnum } from '@effitor/shared'
 
-import type { IEtMediaElement, VideoUrlMetadata } from './config'
+import type { VideoUrlMetadata } from './config'
 import { MEDIA_ET_TYPE, MediaEnum, MediaState, MediaType } from './config'
+import { EtMediaElement } from './EtMediaElement'
 import { initMediaElementSrc, parseMediaUrl } from './utils'
 
 /**
  * 视频效应元素
  */
-export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
+export class EtVideoElement extends EtMediaElement {
   static readonly elName: string = MediaEnum.Video
   static readonly etType: number = super.etType | MEDIA_ET_TYPE
   static readonly inEtType: number = 0
   mediaType = MediaType.Video
+  nativeTag?: keyof HTMLElementTagNameMap | undefined = 'video'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -66,7 +67,7 @@ export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
     initMediaElementSrc(video, url, meta)
 
     const el = document.createElement(MediaEnum.Video)
-    el.classList.add(MediaEnum.Media)
+    el.classList.add(MediaEnum.Class_Media)
     el.setAttribute(MediaEnum.Alt, '$video')
     el.setAttribute(MediaEnum.State, state)
     el.setAttribute(HtmlAttrEnum.Popup_Key, MediaEnum.Popup_Key)
@@ -82,14 +83,6 @@ export class EtVideoElement extends EtEmbedment implements IEtMediaElement {
     }
 
     return el
-  }
-
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    const video = this.firstElementChild
-    if (!video || video.nodeName !== 'VIDEO') {
-      return null
-    }
-    return video.cloneNode() as HTMLElement
   }
 
   static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {

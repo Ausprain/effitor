@@ -1,4 +1,5 @@
 et-editor,
+.et-editor,
 :host {
   --et-code-radius: 8px;
   --et-code-max-height: 49vh;
@@ -17,6 +18,7 @@ et-editor,
 }
 
 et-editor.dark,
+.et-editor.dark,
 :host(.dark) {
   .shiki,
   .shiki span {
@@ -34,6 +36,7 @@ et-editor.dark,
   }
 }
 
+.et-code,
 et-code {
   position: relative;
   margin: 8px 0;
@@ -234,6 +237,7 @@ et-code {
   }
 }
 /* 渲染后的代码块(html, latex), 不显示边框和语言 */
+.et-code.et-code--rendered,
 et-code.et-code--rendered {
   border: none;
   min-height: 48px;
@@ -250,6 +254,7 @@ et-code.et-code--rendered {
 }
 
 /* 异步高亮 */
+.et-code.et-code--loading ,
 et-code.et-code--loading {
   .et-code__btn-group {
     display: none;

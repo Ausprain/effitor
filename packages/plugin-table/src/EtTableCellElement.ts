@@ -11,6 +11,8 @@ import { EtTypeEnum } from '@effitor/shared'
 import { TABLE_CELL_ET_TYPE, TableName } from './config'
 
 export class EtTableCellElement extends EffectElement {
+  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'td'
+
   static readonly elName = TableName.TableCell
   static readonly etType = super.etType
     | TABLE_CELL_ET_TYPE
@@ -28,10 +30,6 @@ export class EtTableCellElement extends EffectElement {
     td: (_el) => {
       return this.create()
     },
-  }
-
-  toNativeElement(_ctx: EditorContext): null | HTMLElement | (() => HTMLElement) {
-    return document.createElement('td')
   }
 
   static fromMarkdownHandlerMap: MdastNodeHandlerMap = {

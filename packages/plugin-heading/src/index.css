@@ -1,10 +1,4 @@
-
-.heading-marker--hidden et-heading {
-  &::before {
-    content: none;
-  }
-}
-
+.et-heading,
 et-heading {
   position: relative;
   margin: 1em 0 0.2em;
@@ -33,33 +27,38 @@ et-heading {
   &:hover::before, &:hover::after {
     opacity: 1;
   }
+  .heading-marker--hidden & {
+    &::before {
+      content: none;
+    }
+  }
 }
-et-heading.ET_cls-h1,
-et-heading.ET_cls-h2 {
+.ET_cls-h1,
+.ET_cls-h2 {
   border-bottom: 1px solid var(--et-color-border-1);
   transition: border-color 0.3s ease-in;
 }
-et-heading.ET_cls-h1 {
+.ET_cls-h1 {
   font-size: 2rem;
   --semi-line-height: calc(1.5 * 2rem / 2);
 }
-et-heading.ET_cls-h2 {
+.ET_cls-h2 {
   font-size: 1.8rem;
   --semi-line-height: calc(1.5 * 1.8rem / 2);
 }
-et-heading.ET_cls-h3 {
+.ET_cls-h3 {
   font-size: 1.6rem;
   --semi-line-height: calc(1.5 * 1.6rem / 2);
 }
-et-heading.ET_cls-h4 {
+.ET_cls-h4 {
   font-size: 1.4rem;
   --semi-line-height: calc(1.5 * 1.4rem / 2);
 }
-et-heading.ET_cls-h5 {
+.ET_cls-h5 {
   font-size: 1.2rem;
   --semi-line-height: calc(1.5 * 1.2rem / 2);
 }
-et-heading.ET_cls-h6 {
+.ET_cls-h6 {
   font-size: 1rem;
   --semi-line-height: calc(1.5 * 1rem / 2);
 }

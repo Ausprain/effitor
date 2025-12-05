@@ -1,55 +1,60 @@
+.et-editor,
 et-editor,
 :host {
   --et-list-checkMark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 20 20'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' stroke%3D'rgb(190 12 12)' fill%3D'rgb(190 12 12)' /%3E%3C/svg%3E");
   --et-list-indent: 22px;
 }
 
-et-list[style-type="dash"] {
-  list-style-type: disc;
+.et-list, et-list {
+  &[style-type="dash"] {
+    list-style-type: disc;
 
-  & et-li {
-    &::marker {
-      content: '-  ';
+    &>.et-li,
+    &>et-li {
+      &::marker {
+        content: '-  ';
+      }
     }
+  }
+
+  &[style-type="disc"] {
+    list-style-type: disc;
+  }
+
+  &[style-type="decimal"] {
+    list-style-type: decimal;
+  }
+
+  &[style-type="cjk-ideographic"] {
+    list-style-type: cjk-ideographic;
+  }
+
+  &[style-type="cjk-heavenly-stem"] {
+    list-style-type: cjk-heavenly-stem;
+  }
+
+  &[style-type="cjk-earthly-branch"] {
+    list-style-type: cjk-earthly-branch;
+  }
+
+  &[style-type="lower-alpha"] {
+    list-style-type: lower-alpha;
+  }
+
+  &[style-type="upper-alpha"] {
+    list-style-type: upper-alpha;
+  }
+
+  &[style-type="lower-roman"] {
+    list-style-type: lower-roman;
+  }
+
+  &[style-type="upper-roman"] {
+    list-style-type: upper-roman;
   }
 }
 
-et-list[style-type="disc"] {
-  list-style-type: disc;
-}
-
-et-list[style-type="decimal"] {
-  list-style-type: decimal;
-}
-
-et-list[style-type="cjk-ideographic"] {
-  list-style-type: cjk-ideographic;
-}
-
-et-list[style-type="cjk-heavenly-stem"] {
-  list-style-type: cjk-heavenly-stem;
-}
-
-et-list[style-type="cjk-earthly-branch"] {
-  list-style-type: cjk-earthly-branch;
-}
-
-et-list[style-type="lower-alpha"] {
-  list-style-type: lower-alpha;
-}
-
-et-list[style-type="upper-alpha"] {
-  list-style-type: upper-alpha;
-}
-
-et-list[style-type="lower-roman"] {
-  list-style-type: lower-roman;
-}
-
-et-list[style-type="upper-roman"] {
-  list-style-type: upper-roman;
-}
-
+.et-list,
 et-list {
   contain: style;
   display: block;
@@ -65,16 +70,16 @@ et-list {
     border-left: 1px solid transparent;
     translate: 2px 0;
   }
-}
-
-et-list:has(> et-li.Et--caret-in) {
-  position: relative;
-  &::before {
-    border-color: var(--et-color-border-3);
-    transition: border-color 0.2s ease-out;
+  &:has(>.Et--caret-in) {
+    position: relative;
+    &::before {
+      border-color: var(--et-color-border-3);
+      transition: border-color 0.2s ease-out;
+    }
   }
 }
 
+.et-li.etp,
 et-li.etp {
   display: list-item;
   position: relative;
