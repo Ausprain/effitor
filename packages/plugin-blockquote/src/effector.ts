@@ -2,7 +2,7 @@ import type { Et } from '@effitor/core'
 import { cmd, cr, dom } from '@effitor/core'
 import { HtmlCharEnum, quoteBlockIcon } from '@effitor/shared'
 
-import { BlockquoteMeta } from './config'
+import { type BlockquoteMeta } from './config'
 import { blockquoteMetaParser } from './util'
 
 const checkQuitBlockquote = (ctx: Et.EditorContext, currP: Et.EtParagraphElement) => {

@@ -293,7 +293,7 @@ export class EtCaret extends CaretRange {
    * @example
    * <p>AA<b>BB</b>|</p>  ->  <p>AA<b>BB|</b></p>
    */
-  toTextAffinity() {
+  override toTextAffinity() {
     if (this._isTextAffinity) {
       return this
     }

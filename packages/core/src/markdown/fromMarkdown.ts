@@ -113,7 +113,8 @@ const handleMdastNode = <T extends mdast.Nodes>(ctx: Et.EditorContext, node: T, 
 }
 const handleMdastChildren = (ctx: Et.EditorContext, parent: mdast.Parents, htmlparent: ParentNode, handlersMap: MdastHandlersMap) => {
   for (let i = 0; i < parent.children.length; i++) {
-    const child = parent.children[i]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const child = parent.children[i]!
     const out = handleMdastNode(ctx, child, parent, i, handlersMap)
     if (out) {
       htmlparent.appendChild(out)

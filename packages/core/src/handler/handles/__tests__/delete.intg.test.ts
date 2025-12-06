@@ -22,7 +22,7 @@ suite('delete backward at caret', async () => {
     })
     expect(p.innerHTML).toBe(`ABC<b>bold</b>`)
 
-    ctx.setSelection(cr.caretInEnd(p.children[0].firstChild as any))
+    ctx.setSelection(cr.caretInEnd(p.children[0]!.firstChild as any))
     ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'deleteWordBackward',
     })

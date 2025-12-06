@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { MarkEnum, MarkPluginContext, MarkType } from './config'
+import { MarkEnum, type MarkPluginContext, MarkType } from './config'
 import type { MarkActionMap } from './effector'
 import type { EtMarkElement } from './EtMarkElement'
 

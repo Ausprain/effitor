@@ -1,3 +1,5 @@
+import type { OmitStringIndexSignature } from '@effitor/shared'
+
 import { defaultConfig } from '../config'
 import type { EditorConfig } from '../editor'
 

@@ -10,11 +10,11 @@ import { initMediaElementSrc, parseMediaUrl } from './utils'
  * 视频效应元素
  */
 export class EtVideoElement extends EtMediaElement {
-  static readonly elName: string = MediaEnum.Video
-  static readonly etType: number = super.etType | MEDIA_ET_TYPE
-  static readonly inEtType: number = 0
+  static override readonly elName: string = MediaEnum.Video
+  static override readonly etType: number = super.etType | MEDIA_ET_TYPE
+  static override readonly inEtType: number = 0
   mediaType = MediaType.Video
-  nativeTag?: keyof HTMLElementTagNameMap | undefined = 'video'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'video'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -28,7 +28,7 @@ export class EtVideoElement extends EtMediaElement {
    * 创建一个视频效应元素
    * @param options [mdn](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video)
    */
-  static create(url: string | Promise<string> = '', {
+  static override create(url: string | Promise<string> = '', {
     title = '',
     state = MediaState.Center,
     controls = true,
@@ -85,7 +85,7 @@ export class EtVideoElement extends EtMediaElement {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     video: (el) => {
       return EtVideoElement.create(el.src)
     },
@@ -100,7 +100,7 @@ export class EtVideoElement extends EtMediaElement {
     })
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
       if (!ctx.pctx.$mediaPx.video?.exts.has(meta.ext)) {

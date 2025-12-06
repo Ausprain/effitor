@@ -6,7 +6,7 @@ import type { EditorBody } from '../context/EditorBody'
 import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
 import { cr } from './cr'
-import { getTargetRangeCtor, ValidTargetCaret, ValidTargetRange } from './EtTargetRange'
+import { getTargetRangeCtor, type ValidTargetCaret, type ValidTargetRange } from './EtTargetRange'
 
 const enum SelectAllLevel {
   No_Select_All = 0,
@@ -1062,7 +1062,7 @@ export class EtSelection {
           else {
             // 第一个矩形框和最后一个矩形框垂直距离小于 10px 时, 视为选中一行, 否则视为选中多行
             // 因为在同一行内有其他行内元素时, 矩形框会存在多个
-            if (Math.abs(rects[0].y - rects[rects.length - 1].y) < 10) {
+            if (Math.abs((rects[0] as DOMRect).y - (rects[rects.length - 1] as DOMRect).y) < 10) {
               level = SelectAllLevel.Select_Soft_Line
             }
             else {
@@ -1175,7 +1175,7 @@ class SelectionHistory {
     if (this.pos <= 0) {
       return
     }
-    const r = this.stack[--this.pos].toRange()
+    const r = (this.stack[--this.pos] as Et.CaretRange).toRange()
     if (!r) {
       this.stack.splice(this.pos, 1)
       return
@@ -1187,7 +1187,7 @@ class SelectionHistory {
     if (this.pos >= this.stack.length) {
       return
     }
-    const r = this.stack[this.pos++].toRange()
+    const r = (this.stack[this.pos++] as Et.CaretRange).toRange()
     if (!r) {
       this.stack.splice(this.pos - 1, 1)
       return

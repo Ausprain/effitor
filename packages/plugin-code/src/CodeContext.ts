@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Et } from '@effitor/core'
 import { dom, traversal } from '@effitor/core'
 import { CssClassEnum, HtmlCharEnum } from '@effitor/shared'
@@ -161,7 +162,7 @@ export class CodeContext<L extends string = string> {
   updateIndent(startLine: number, endLine: number) {
     const lines = this.area.value.split('\n')
     for (let i = startLine; i <= endLine; i++) {
-      const lineCode = lines[i]
+      const lineCode = lines[i] as string
       let j = 0
       while (j < lineCode.length && lineCode[j] === ' ') {
         j++
@@ -218,10 +219,10 @@ export class CodeContext<L extends string = string> {
    * @param index 行索引
    * @returns 行的代码
    */
-  getLineCode(index: number) {
+  getLineCode(index: number): string {
     const lines = this.area.value.split('\n')
     if (index < lines.length) {
-      return index === lines.length - 1 ? lines[index] : lines[index] + '\n'
+      return index === lines.length - 1 ? lines[index] as string : lines[index] + '\n'
     }
     return ''
   }
@@ -248,20 +249,20 @@ export class CodeContext<L extends string = string> {
   getLineOffset(index: number): [number, number] {
     const lines = this.area.value.split('\n')
     if (index >= lines.length) {
-      return [this.area.value.length - lines[lines.length - 1].length, this.area.value.length]
+      return [this.area.value.length - lines[lines.length - 1]!.length, this.area.value.length]
     }
     let offset = 0
     for (let i = 0; i < index; i++) {
-      offset += lines[i].length + 1
+      offset += lines[i]!.length + 1
     }
-    return [offset, offset + lines[index].length + 1] // 这里会超出value 长度
+    return [offset, offset + lines[index]!.length + 1] // 这里会超出value 长度
   }
 
   /**
    * 获取当前选区范围选中的代码行索引
    * @returns 选中行索引范围 [起始行, 结束行]
    */
-  selectedLineIndices() {
+  selectedLineIndices(): [number, number] {
     const { selectionStart, selectionEnd } = this.area
     const selectedText = this.area.value.slice(selectionStart, selectionEnd)
     const startLine = this.getLineIndexByOffset(selectionStart)
@@ -280,12 +281,12 @@ export class CodeContext<L extends string = string> {
       const el = this._lineWrapper.childNodes.item(index) as HTMLElement
       if (el) {
         // 保留行原有装饰信息
-        codeLines[0].className = el.className
-        codeLines[0].style = el.style.cssText
-        el.replaceWith(codeLines[0])
+        codeLines[0]!.className = el.className
+        codeLines[0]!.style = el.style.cssText
+        el.replaceWith(codeLines[0]!)
       }
       else {
-        this._lineWrapper.appendChild(codeLines[0])
+        this._lineWrapper.appendChild(codeLines[0]!)
       }
     }
   }
@@ -321,14 +322,17 @@ export class CodeContext<L extends string = string> {
     }
     else {
       const lines = this.area.value.split('\n')
-      code = lines[index]
+      if (index >= lines.length) {
+        return
+      }
+      code = lines[index] as string
       for (let i = 0; i < count - 1 && index + i + 1 < lines.length; i++) {
         code += '\n' + lines[index + i + 1]
       }
     }
     const codeLines = this._highlighter.codeToLines(code, this.__lang)
     if (count === 1 && codeLines.length) {
-      this._lineWrapper.insertBefore(codeLines[0], this._lineWrapper.childNodes.item(index))
+      this._lineWrapper.insertBefore(codeLines[0]!, this._lineWrapper.childNodes.item(index))
       return
     }
     const df = document.createDocumentFragment()

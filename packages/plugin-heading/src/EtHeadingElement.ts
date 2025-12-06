@@ -8,9 +8,12 @@ import { HeadingEnum } from './config'
 const levelClass = (hl: Et.HeadingLevel) => `h${hl}`
 
 export class EtHeadingElement extends EtHeading {
-  static readonly elName = HeadingEnum.ElName
+  static override readonly elName = HeadingEnum.ElName
 
-  static create(level: Et.HeadingLevel = 1, content: string | HTMLBRElement | Text = HtmlCharEnum.ZERO_WIDTH_SPACE) {
+  static override create(
+    level: Et.HeadingLevel = 1,
+    content: string | HTMLBRElement | Text = HtmlCharEnum.ZERO_WIDTH_SPACE,
+  ) {
     const el = document.createElement(HeadingEnum.ElName)
     el.changeLevel(level)
     if (typeof content === 'string') {
@@ -43,13 +46,13 @@ export class EtHeadingElement extends EtHeading {
     this.headingLevel = hl
   }
 
-  fromPlainParagraph(plainParagraph: Et.EtParagraph): Et.EtParagraph {
+  override fromPlainParagraph(plainParagraph: Et.EtParagraph): Et.EtParagraph {
     const heading = EtHeadingElement.create(this.headingLevel)
     heading.textContent = plainParagraph.textContent
     return heading
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     // 返回函数, 标题不处理后代
     h1: el => () => EtHeadingElement.create(1, el.textContent.trim()),
     h2: el => () => EtHeadingElement.create(2, el.textContent.trim()),
@@ -65,7 +68,7 @@ export class EtHeadingElement extends EtHeading {
     })
   }
 
-  static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     heading: (node) => {
       return EtHeadingElement.create(node.depth)
     },

@@ -1,3 +1,5 @@
+import type { OmitStringIndexSignature, TrueOrVoid } from '@effitor/shared'
+
 import type { EditorContext, EditorContextMeta } from '../context'
 import type { Effector, MainEffector } from '../effector'
 import type {
@@ -10,8 +12,8 @@ import type {
   EtParagraphCtor,
 } from '../element'
 import type { MountEtHandler } from '../element/register'
-import { HotstringManagerOptions } from '../hotstring/HotstringManager'
-import { HtmlProcessorOptions } from '../html'
+import type { HotstringManagerOptions } from '../hotstring/HotstringManager'
+import type { HtmlProcessorOptions } from '../html'
 import type { CaretRange } from '../selection'
 import { ConfigManager } from './ConfigManager'
 

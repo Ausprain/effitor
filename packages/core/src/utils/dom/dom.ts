@@ -3,6 +3,7 @@
  * DOM 相关的工具函数, 通过 dom 工具对象统一导出,\
  * 构建时, 通过 babel 插件, 将 dom.isText(el) 等直接转为 el.nodeType === 3
  */
+import type { OmitNumberIndexSignature } from '@effitor/shared'
 import { BuiltinElName, CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'
@@ -48,7 +49,7 @@ export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, a
       if ((omitList as string[]).includes(key)) {
         continue
       }
-      el.setAttribute(key, (attrs as Record<string, string>)[key])
+      el.setAttribute(key, (attrs as Record<string, string>)[key] as string)
     }
   }
   return el as HTMLElementTagNameMap[K] & Et.HTMLElement

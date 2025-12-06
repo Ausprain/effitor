@@ -1,6 +1,8 @@
+import type { Prettify } from '@effitor/shared'
+
 import type { Et } from '../../@types'
 import { cr } from '../../selection'
-import { cmd, cmdHandler, CmdType, type Command, ExecutedCmd } from './cmds'
+import { cmd, cmdHandler, CmdType, type Command, type ExecutedCmd } from './cmds'
 import { UndoStack } from './UndoStack'
 
 export interface CommandQueue {

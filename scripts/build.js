@@ -21,13 +21,7 @@ const TSCONFIG_BUILD_JSON = `
 }
 `.trimStart()
 
-const { PACKAGES_DIR_PATH, MAIN_PKG_DIR_PATH, OUTPUT_DIR } = config
-const HELPER_DTS_PATH = resolve(PACKAGES_DIR_PATH, 'shared/helper.d.ts')
-
-const copyHelperDts = (pkgDir) => {
-  const distPath = resolve(pkgDir, OUTPUT_DIR)
-  fs.copySync(HELPER_DTS_PATH, resolve(distPath, 'helper.d.ts'))
-}
+const { PACKAGES_DIR_PATH, MAIN_PKG_DIR_PATH } = config
 
 const logTsupResult = (stdout) => {
   if (stdout) {
@@ -35,7 +29,7 @@ const logTsupResult = (stdout) => {
   }
 }
 
-const tsupPkg = async (pkgDir, copyHelper = true) => {
+const tsupPkg = async (pkgDir) => {
   return new Promise((res, rej) => {
     exec(`cd ${pkgDir} && npx tsup`, (err, stdout, stderr) => {
       if (err) {
@@ -45,9 +39,6 @@ const tsupPkg = async (pkgDir, copyHelper = true) => {
       res(stdout)
     })
   }).then((stdout) => {
-    if (copyHelper) {
-      copyHelperDts(pkgDir)
-    }
     logTsupResult(stdout)
   }).catch((err) => {
     console.log(styleText('red', `build [${basename(pkgDir)}] error ${err}`))

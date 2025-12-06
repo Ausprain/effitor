@@ -1,3 +1,4 @@
+import type { NodeHasParent, TupleOfLength } from '@effitor/shared'
 import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'

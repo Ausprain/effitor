@@ -1,3 +1,4 @@
+import type { OmitIndexSignature } from '@effitor/shared'
 import { KeyMod } from '@effitor/shared'
 
 import { platform } from '../config'

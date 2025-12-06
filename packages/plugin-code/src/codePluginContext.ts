@@ -19,13 +19,13 @@ export const initCodePluginContext = (
   const _codeRenderer = createCodeRenderer(renderOptions)
   const renderCodeBlock = (ctx: Et.EditorContext, el: EtCodeElement) => {
     const codeRenderer = ctx.pctx.$codePx.codeRenderer
-    if (!el.lang || !el.codeCtx) {
+    if (!el.codeLang || !el.codeCtx) {
       ctx.assists.logger?.logError('code block render fail: no lang or codeCtx', 'et-code')
       return
     }
-    const parser = codeRenderer[el.lang]
+    const parser = codeRenderer[el.codeLang]
     if (!parser) {
-      ctx.assists.logger?.logError(`code block render fail: no parser for lang '${el.lang}'`, 'et-code')
+      ctx.assists.logger?.logError(`code block render fail: no parser for lang '${el.codeLang}'`, 'et-code')
       return
     }
     const cc = el.codeCtx
@@ -44,7 +44,7 @@ export const initCodePluginContext = (
       const section = document.createElement('section')
       const html = cc.code
       section.innerHTML = html ? parser.codeToHTML(html) : ''
-      if (el.lang === 'latex') {
+      if (el.codeLang === 'latex') {
         section.style.textAlign = 'center'
       }
       el.appendChild(section)
@@ -59,7 +59,7 @@ export const initCodePluginContext = (
     parseLangFromNativeElement: (el) => {
       for (const cls of el.classList) {
         if (cls.startsWith('lang-') || cls.startsWith('language-')) {
-          return cls.split('-')[1]
+          return cls.split('-')[1] as string
         }
       }
       return null

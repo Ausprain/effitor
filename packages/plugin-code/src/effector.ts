@@ -14,10 +14,10 @@ const checkMarkCode = (ctx: Et.EditorContext) => {
     return false
   }
   const [alias, metaStr] = data.slice(3).split(' ')
-  const lang = ctx.pctx.$codePx.highlighter.langs[alias]
+  const lang = ctx.pctx.$codePx.highlighter.langs[alias as string]
   if (lang !== undefined) {
     const codeEl = ctx.schema.code.withDefaultDecoration(ctx, '', lang)
-    codeEl.meta = metaStr
+    codeEl.meta = metaStr || ''
     ctx.commandManager.handleReplaceNode(ctx.commonEtElement, codeEl)
     codeEl.focusToInnerEditable(ctx, true)
     return true

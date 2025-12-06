@@ -71,7 +71,7 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
       if (data in Brackets) {
         ctx.commandManager.pushHandleCallback(() => {
           this.InsertTextInRawEl(ctx, {
-            rawEl, data: Brackets[data], offset: rawEl.selectionStart, focus: false,
+            rawEl, data: Brackets[data] as string, offset: rawEl.selectionStart, focus: false,
           })
           ctx.commandManager.handle()
         })
@@ -301,7 +301,7 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
       let endOffset = startOffset
       let code = '', startBias = -1
       for (let i = startLine; i <= endLine; i++) {
-        const line = lines[i]
+        const line = lines[i] as string
         let j = 0
         while (j < line.length && line[j] === ' ') {
           j++
@@ -362,7 +362,7 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
     let endOffset = startOffset
     let code = '', startBias = -1
     for (let i = startLine; i <= endLine; i++) {
-      const line = lines[i]
+      const line = lines[i] as string
       let j = 0
       while (j < line.length && line[j] === ' ') {
         j++

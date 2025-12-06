@@ -1,6 +1,7 @@
 import type { PopupItem } from '@effitor/assist-popup'
 import type { Et } from '@effitor/core'
 import { etcode } from '@effitor/core'
+import type { TrueOrVoid } from '@effitor/shared'
 
 import type { MediaActionMap } from './effector'
 import type { EtAudioElement } from './EtAudioElement'
@@ -24,7 +25,7 @@ declare module '@effitor/core' {
   }
   interface EditorPluginContext {
     /** 用于mediaPlugin的上下文 */
-    $mediaPx: MediaPluginContext
+    $mediaPx: Readonly<MediaPluginContext>
   }
   interface EffectHandleDeclaration {
     /** 当前光标所在文本节点内容符合markdown图片语法时, 将文本转为media元素 */
@@ -46,9 +47,9 @@ declare module '@effitor/core' {
 }
 
 export interface MediaPluginContext {
-  readonly MEDIA_ET_TYPE: number
+  MEDIA_ET_TYPE: number
   // 将popup暴露出去, 以供编辑器开发者自定义增删popup item
-  readonly popupOptions?: {
+  popupOptions?: {
     /**
      * hover媒体元素将显示 popup, 显示前调用该函数, 可对popup的items进行过滤 \
      * 也可用 ctx.assists.popup.createPopupItem 创建新item并插入items实现新增功能 \
@@ -67,9 +68,9 @@ export interface MediaPluginContext {
       contentEl: HTMLElement, items: PopupItem<IEtMediaElement>[],
     ) => TrueOrVoid
   }
-  readonly image: Omit<ImageOptions, 'exts'> & { type: MediaType.Image, exts: Set<string>, maxSize: number }
-  readonly audio?: Omit<AudioOptions, 'exts'> & { type: MediaType.Audio, exts: Set<string>, maxSize: number }
-  readonly video?: Omit<VideoOptions, 'exts'> & { type: MediaType.Video, exts: Set<string>, maxSize: number }
+  image: Omit<ImageOptions, 'exts'> & { type: MediaType.Image, exts: Set<string>, maxSize: number }
+  audio?: Omit<AudioOptions, 'exts'> & { type: MediaType.Audio, exts: Set<string>, maxSize: number }
+  video?: Omit<VideoOptions, 'exts'> & { type: MediaType.Video, exts: Set<string>, maxSize: number }
 }
 
 type CreateMediaOptions<T extends MediaUrlMetadata> = Omit<T, 'type'> & {

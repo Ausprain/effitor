@@ -1,9 +1,9 @@
-import { MediaEnum, MediaUrlMetadata } from './config'
+import { MediaEnum, type MediaUrlMetadata } from './config'
 
 /** 解析媒体内容的src */
 export const parseMediaUrl = (url: string) => {
   if (url.startsWith('data:')) {
-    const ext = url.split('/')[1].split(';')[0]
+    const ext = url.split('/')[1]?.split(';')[0]
     return {
       path: url,
       fileName: '',
@@ -27,7 +27,9 @@ export const parseMediaUrl = (url: string) => {
 const parseQuery = (queryString: string) => {
   return queryString.split('&').reduce((acc, cur) => {
     const [key, value] = cur.split('=')
-    acc[key] = value
+    if (key && value) {
+      acc[key] = value
+    }
     return acc
   }, {} as Record<string, string>)
 }
@@ -45,7 +47,7 @@ const addQueryToUrl = (url: string, query: Record<string, string>) => {
   let hash = ''
   if (queryAndHash) {
     const [queryString, hashString] = queryAndHash.split('#')
-    const newQuery = queryAndHash ? parseQuery(queryString) : {}
+    const newQuery = queryString ? parseQuery(queryString) : {}
     query = Object.assign(newQuery, query)
     if (hashString) {
       hash = '#' + hashString

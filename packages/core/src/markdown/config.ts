@@ -1,4 +1,5 @@
 /* eslint-disable @stylistic/max-len */
+import type { TrueOrVoid } from '@effitor/shared'
 import type * as mdast from 'mdast'
 import type { Handlers } from 'mdast-util-to-markdown'
 

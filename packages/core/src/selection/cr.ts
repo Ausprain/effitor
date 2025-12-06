@@ -2,6 +2,7 @@
  * 使用 Caret and Range 管理编辑器命令的光标位置
  */
 
+import type { NodeHasParent } from '@effitor/shared'
 import { HtmlCharEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'

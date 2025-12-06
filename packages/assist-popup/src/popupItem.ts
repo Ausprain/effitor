@@ -1,7 +1,7 @@
 import { dom, type Et } from '@effitor/core'
 import { clearFormatIcon, copyDocIcon, CssClassEnum, HtmlAttrEnum, markdownIcon } from '@effitor/shared'
 
-import { ChoseItemCallback, PopupEnum, PopupItem, PopupItemFilter } from './config'
+import { type ChoseItemCallback, PopupEnum, type PopupItem, type PopupItemFilter } from './config'
 
 export const createPopupItem = <T extends Et.EtElement>(
   icon: SVGElement,

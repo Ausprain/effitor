@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Et } from '../../@types'
 import { cr } from '../../selection'
 import type {
@@ -128,7 +129,7 @@ export class UndoStack {
       // this.pos = 0
       return
     }
-    const tranx = this.transactionStack[--this._pos]
+    const tranx = this.transactionStack[--this._pos] as UndoTransaction
     cmdHandler.handleUndo(tranx.cmds, ctx)
   }
 
@@ -137,33 +138,33 @@ export class UndoStack {
       // this.pos = this.transactionStack.length
       return
     }
-    const tranx = this.transactionStack[this._pos++]
+    const tranx = this.transactionStack[this._pos++] as UndoTransaction
     cmdHandler.handleRedo(tranx.cmds, ctx)
   }
 
-  /**
-   * 获取下一个undo操作的光标基准位置, 即上一个事务的光标结束位置destCaretRange,
-   * 因为执行undo前, srcCaretRange可能不在页面上(获取该位置没有意义) \
-   * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
-   */
-  undoCaretRange() {
-    if (this._pos <= 0) {
-      return null
-    }
-    return this.transactionStack[this._pos - 1].destCaretRange // 这里应该拿dest, 而非src
-  }
+  // /**
+  //  * 获取下一个undo操作的光标基准位置, 即上一个事务的光标结束位置destCaretRange,
+  //  * 因为执行undo前, srcCaretRange可能不在页面上(获取该位置没有意义) \
+  //  * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
+  //  */
+  // undoCaretRange() {
+  //   if (this._pos <= 0) {
+  //     return null
+  //   }
+  //   return this.transactionStack[this._pos - 1].destCaretRange // 这里应该拿dest, 而非src
+  // }
 
-  /**
-   * 获取下一个redo操作的光标基准位置, 即下一个事务的光标起始位置srcCaretRange,
-   * 因为执行redo前, destCaretRange可能不在页面上(获取该位置没有意义) \
-   * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
-   */
-  redoCaretRange() {
-    if (this._pos >= this.transactionStack.length) {
-      return null
-    }
-    return this.transactionStack[this._pos].srcCaretRange
-  }
+  // /**
+  //  * 获取下一个redo操作的光标基准位置, 即下一个事务的光标起始位置srcCaretRange,
+  //  * 因为执行redo前, destCaretRange可能不在页面上(获取该位置没有意义) \
+  //  * 仅用于虚拟滚动判断撤销操作的内容是否在虚拟片段里
+  //  */
+  // redoCaretRange() {
+  //   if (this._pos >= this.transactionStack.length) {
+  //     return null
+  //   }
+  //   return this.transactionStack[this._pos].srcCaretRange
+  // }
 }
 
 const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTransaction | null => {
@@ -175,8 +176,8 @@ const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTrans
     : {
         cmds,
         length: cmds.length,
-        srcCaretRange: cmds[0].srcCaretRange,
-        destCaretRange: cmds[cmds.length - 1].destCaretRange,
+        srcCaretRange: cmds[0]!.srcCaretRange,
+        destCaretRange: cmds[cmds.length - 1]!.destCaretRange,
         tranxFinalCallback(ctx) {
           for (const cmd of cmds) {
             cmd.finalCallback?.(ctx)
@@ -304,7 +305,7 @@ const checkMergeCmdInsertCompositionText = (cmds: ExecutedCmd[], ctx: Et.EditorC
     let composedData = _cmd.data
     let lastCmd: ExecutedInsertCompositionText | null = null
     while (j < cmds.length) {
-      const nextCmd = cmds[j]
+      const nextCmd = cmds[j]!
       if (nextCmd.type !== CmdType.Insert_Composition_Text
         // fixed. 除输入法会话的第一个命令外, 后续输入法命令必定存在text节点
         // 如果下一个连续的输入法命令无test属性, 说明这是下一次输入法会话的第一个命令

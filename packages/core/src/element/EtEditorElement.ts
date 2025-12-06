@@ -11,14 +11,14 @@ import { EffectElement } from './EffectElement'
  * 由于et-editor不参与markdown转换, 因此无需实现toMdast, 继承时可继续使用 abstract类
  */
 export abstract class EtEditorElement extends EffectElement {
-  static readonly elName: string = BuiltinElName.ET_EDITOR
-  static readonly etType: number = EtTypeEnum.Uneditable | EtTypeEnum.Block
+  static override readonly elName: string = BuiltinElName.ET_EDITOR
+  static override readonly etType: number = EtTypeEnum.Uneditable | EtTypeEnum.Block
 
-  static create() {
+  static override create() {
     return document.createElement(BuiltinElName.ET_EDITOR) as EtEditorElement
   }
 
-  connectedCallback(this: EffectElement): void {
+  override connectedCallback(this: EffectElement): void {
     // 插入一个标题
     // const h2 = document.createElement('h2')
     // h2.innerText = 'Effitor Edit Body'

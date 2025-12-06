@@ -3,20 +3,36 @@
   "include": ["./packages", "./main"],
   "exclude": ["**/dist"],
   "compilerOptions": {
-    "strict": true,
+    // Environment setup & latest features
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "esnext",
     "module": "esnext",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    // "jsxImportSource": "preact"
+    // "allowJs": true,
+
+    // Bundler mode
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    // "preserveConstEnums": true,
-    "skipLibCheck": true,
     "noEmit": true,
-    "lib": ["esnext", "DOM", "dom.iterable"],
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    // // Some stricter flags (disabled by default)
+    // "noUnusedLocals": false,
+    // "noUnusedParameters": false,
+    // "noPropertyAccessFromIndexSignature": false
+
     "paths": {
       "@effitor/*": ["./packages/*/src/index.ts"]
-    },
-
-    "jsx": "react-jsx"
-    // "jsxImportSource": "preact"
+    }
   }
 }

@@ -55,7 +55,8 @@ export const normalizeAndCleanEtFragment = (
   df: Et.Fragment, etElement?: Et.EtElement | null, cleanZWS = true,
 ) => {
   // 只有一个br, 直接返回
-  if (df.childNodes.length === 0 || (df.childNodes.length === 1 && df.childNodes[0].localName === 'br')) {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  if (df.childNodes.length === 0 || (df.childNodes.length === 1 && df.childNodes[0]!.localName === 'br')) {
     return df
   }
   df.normalize()
@@ -206,7 +207,8 @@ const filterToNormalize = (
  */
 export const cleanEtFragment = (df: Et.Fragment) => {
   // 只有一个br, 直接返回
-  if (df.childNodes.length === 0 || (df.childNodes.length === 1 && df.childNodes[0].localName === 'br')) {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  if (df.childNodes.length === 0 || (df.childNodes.length === 1 && df.childNodes[0]!.localName === 'br')) {
     return df
   }
   // 先清除空文本节点并合并相邻文本节点

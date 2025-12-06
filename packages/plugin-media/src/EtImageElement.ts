@@ -10,11 +10,11 @@ import { initMediaElementSrc, parseMediaUrl } from './utils'
  * 图片效应元素
  */
 export class EtImageElement extends EtMediaElement {
-  static readonly elName: string = MediaEnum.Image
-  static readonly etType: number = super.etType | MEDIA_ET_TYPE
-  static readonly inEtType: number = 0
+  static override readonly elName: string = MediaEnum.Image
+  static override readonly etType: number = super.etType | MEDIA_ET_TYPE
+  static override readonly inEtType: number = 0
   mediaType = MediaType.Image
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'img'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'img'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -28,7 +28,7 @@ export class EtImageElement extends EtMediaElement {
    * 创建一个图片效应元素
    * @param options [mdn](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img)
    */
-  static create(url: string | Promise<string> = '', {
+  static override create(url: string | Promise<string> = '', {
     alt = '',
     title = '',
     state = MediaState.Center,
@@ -77,7 +77,7 @@ export class EtImageElement extends EtMediaElement {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     img: (el) => {
       return EtImageElement.create(el.src, {
         alt: el.alt,
@@ -95,7 +95,7 @@ export class EtImageElement extends EtMediaElement {
     })
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
       if (!ctx.pctx.$mediaPx.image.exts.has(meta.ext)) {
@@ -109,7 +109,7 @@ export class EtImageElement extends EtMediaElement {
   }
 
   // TODO url处理, 需要判断媒体类型
-  static toMarkdownTransformerMap: MdastNodeTransformerMap = {
+  static override readonly toMarkdownTransformerMap: MdastNodeTransformerMap = {
     image: (node, ctx) => {
       node.url = ctx.pctx.$mediaPx.image.urlMapping?.toMarkdown?.(node.url) ?? node.url
     },

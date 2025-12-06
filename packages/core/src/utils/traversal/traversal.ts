@@ -1,3 +1,4 @@
+import type { TrueOrVoid } from '@effitor/shared'
 import { BuiltinElName, EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../../@types'

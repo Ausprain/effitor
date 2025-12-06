@@ -7,6 +7,7 @@ import { type MarkActionMap, markActions, markEffector } from './effector'
 import { EtMarkElement, MARK_ET_TYPE } from './EtMarkElement'
 import { inMarkHandler } from './handler/inMarkHandler'
 import { markHandler, markInputTypeHandler } from './handler/markHandler'
+import markCssText from './index.css?raw'
 
 export interface MarkPluginOptions {
   /** 是否开启标记符hinting */
@@ -24,6 +25,7 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
   options?.useActions?.(markActions)
   return {
     name: '@effitor/plugin-mark',
+    cssText: markCssText,
     effector: markEffector,
     elements: [EtMarkElement],
     register(ctxMeta, setSchema, mountEtHandler) {

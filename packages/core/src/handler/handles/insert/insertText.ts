@@ -88,7 +88,7 @@ const insertTextAtCaretByTyping = (
   }
   // 尝试将前一个全角字符替换为半角
   const replaceChar = ctx.composition.getWritableKey(
-    anchorText.data[offset - 1],
+    anchorText.data[offset - 1] as string,
   )
   if (replaceChar) {
     ctx.commandManager.push(cmd.replaceText({

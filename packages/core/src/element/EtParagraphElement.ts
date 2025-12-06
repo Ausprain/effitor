@@ -10,25 +10,25 @@ import { EtParagraph } from './EtParagraph'
  * 调用该方法只返回一个包含内容的段落节点，不会改变dom树
  */
 export class EtParagraphElement extends EtParagraph {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'p'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'p'
   /**
    * @internal 这是一个无意义值, 用于区分EtParagraph 和 EtParagraphElement这两个类型, 便于在一些类型谓词函数进行类型区分
    */
   declare private readonly __T: string
 
-  static readonly elName: string = BuiltinElName.ET_PARAGRAPH
-  static readonly etType = super.etType
-  static readonly inEtType: number = EtTypeEnum.PlainText | EtTypeEnum.RichText
+  static override readonly elName: string = BuiltinElName.ET_PARAGRAPH
+  static override readonly etType: number = super.etType
+  static override readonly inEtType: number = EtTypeEnum.PlainText | EtTypeEnum.RichText
   // 普通段落元素下不允许一切段落
-  static readonly notInEtType: number = EtTypeEnum.Paragraph
+  static override readonly notInEtType: number = EtTypeEnum.Paragraph
   /**
    * ctx.createParagraph会调用该方法创建一个段落
    */
-  static create() {
+  static override create() {
     return document.createElement(BuiltinElName.ET_PARAGRAPH) as EtParagraphElement
   }
 
-  isEqualTo(el: Et.Element) {
+  override isEqualTo(el: Et.Element) {
     return this.localName === el.localName
   }
 
@@ -52,7 +52,7 @@ export class EtParagraphElement extends EtParagraph {
     return cr.caretInEnd(this)
   }
 
-  static readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     p: () => {
       return this.create()
     },
@@ -73,7 +73,7 @@ export class EtParagraphElement extends EtParagraph {
     return mdastNode('paragraph', this.childNodes, {})
   }
 
-  static readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     paragraph: () => {
       const p = EtParagraphElement.create()
       return p

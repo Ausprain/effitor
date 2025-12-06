@@ -10,11 +10,11 @@ import { initMediaElementSrc, parseMediaUrl } from './utils'
  * 音频效应元素
  */
 export class EtAudioElement extends EtMediaElement {
-  static readonly elName: string = MediaEnum.Audio
-  static readonly etType: number = super.etType | MEDIA_ET_TYPE
-  static readonly inEtType: number = 0
+  static override readonly elName: string = MediaEnum.Audio
+  static override readonly etType: number = super.etType | MEDIA_ET_TYPE
+  static override readonly inEtType: number = 0
   mediaType = MediaType.Audio
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'audio'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'audio'
 
   get mediaState() {
     return this.getAttribute(MediaEnum.State) as MediaState
@@ -28,7 +28,7 @@ export class EtAudioElement extends EtMediaElement {
    * 创建一个音频效应元素
    * @param options [mdn](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio)
    */
-  static create(url: string | Promise<string> = '', {
+  static override create(url: string | Promise<string> = '', {
     title = '',
     state = MediaState.Center,
     controls = true,
@@ -69,7 +69,7 @@ export class EtAudioElement extends EtMediaElement {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     audio: (el) => {
       return EtAudioElement.create(el.src)
     },
@@ -84,7 +84,7 @@ export class EtAudioElement extends EtMediaElement {
     })
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     image: (node, ctx) => {
       const meta = parseMediaUrl(node.url)
       if (!ctx.pctx.$mediaPx.audio?.exts.has(meta.ext)) {

@@ -92,10 +92,10 @@ export const reduceMappings = <T>(
   for (const mapping of mappings) {
     for (const key in mapping) {
       if (record[key]) {
-        record[key].push(mapping[key])
+        record[key].push(mapping[key] as T)
       }
       else {
-        record[key] = [mapping[key]]
+        record[key] = [mapping[key] as T]
       }
     }
   }
@@ -117,7 +117,8 @@ export const reduceFnMappings = <P extends any[], R>(
   const _fns = reduceMappings(mappings)
   const record = {} as any
   for (const key in _fns) {
-    const fs = _fns[key]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const fs = _fns[key]!
     if (stopBy === true) {
       record[key] = (...a: P) => {
         let r
@@ -142,9 +143,11 @@ export const reduceFnMappings = <P extends any[], R>(
       record[key] = (...a: P) => {
         for (let i = 0; i < fs.length; i++) {
           if (i === fs.length - 1) {
-            return fs[i](...a)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            return fs[i]!(...a)
           }
-          fs[i](...a)
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          fs[i]!(...a)
         }
       }
     }

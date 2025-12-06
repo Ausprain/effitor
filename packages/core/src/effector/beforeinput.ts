@@ -18,7 +18,8 @@ const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
         }
         return
       }
-      effect = ev.data[0].toUpperCase() === ev.data[0]
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      effect = ev.data[0]!.toUpperCase() === ev.data[0]
         ? ev.data
         : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
     }

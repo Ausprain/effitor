@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { dom, type Et, etcode } from '@effitor/core'
 import {
   chevronRightIcon,
@@ -422,18 +423,21 @@ export class Dropdown {
       return
     }
     const currMenus = this.menuItemsOnCurrentInput
-    if (!currMenus.length) {
+    let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
+    const menuAndItems = currMenus[mIndex]
+    if (!menuAndItems) {
+      this.currentMenuIndex = 0
+      this.currentItemIndex = 0
       return
     }
-    let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
     const currItemIndex = iIndex
-    let { menu, items } = currMenus[mIndex], item: DropdownMenuItem
+    let { menu, items } = menuAndItems, item: DropdownMenuItem | undefined
     if (items && (item = items[iIndex])) {
       // 当前选择item
       this.#unselectMenuOrItem(item)
       iIndex += itemStep
       if (iIndex < items.length) {
-        item = items[iIndex]
+        item = items[iIndex]!
         this.#selectMenuOrItem(item)
         this.currentMenuIndex = mIndex
         this.currentItemIndex = iIndex
@@ -449,12 +453,12 @@ export class Dropdown {
     if (mIndex > currMenus.length - 1) {
       mIndex = 0
     }
-    menu = currMenus[mIndex].menu
-    items = currMenus[mIndex].items
+    menu = currMenus[mIndex]!.menu
+    items = currMenus[mIndex]!.items
     if (items && items.length) {
       // 有item, 选择item
       const idx = itemStep > 1 && currItemIndex < items.length ? currItemIndex : 0
-      item = items[idx]
+      item = items[idx]!
       this.#selectMenuOrItem(item)
       this.currentMenuIndex = mIndex
       this.currentItemIndex = idx
@@ -477,12 +481,15 @@ export class Dropdown {
       return
     }
     const currMenus = this.menuItemsOnCurrentInput
-    if (!currMenus.length) {
+    let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
+    const menuAndItems = currMenus[mIndex]
+    if (!menuAndItems) {
+      this.currentMenuIndex = 0
+      this.currentItemIndex = 0
       return
     }
-    let mIndex = this.currentMenuIndex, iIndex = this.currentItemIndex
     const currItemIndex = iIndex
-    let { menu, items } = currMenus[mIndex], item: DropdownMenuItem
+    let { menu, items } = menuAndItems, item: DropdownMenuItem | undefined
     if (items && (item = items[iIndex])) {
       // 当前选择item, 解除选择状态
       this.#unselectMenuOrItem(item)
@@ -490,7 +497,7 @@ export class Dropdown {
       iIndex -= itemStep
       if (iIndex >= 0) {
         item = items[iIndex]
-        this.#selectMenuOrItem(item)
+        this.#selectMenuOrItem(item!)
         this.currentItemIndex = iIndex
         return
       }
@@ -503,14 +510,17 @@ export class Dropdown {
     mIndex--
     if (mIndex < 0) {
       mIndex = currMenus.length - 1
+      if (mIndex < 0) {
+        return
+      }
     }
-    menu = currMenus[mIndex].menu
-    items = currMenus[mIndex].items
+    menu = currMenus[mIndex]!.menu
+    items = currMenus[mIndex]!.items
     // 上一个menu有item,
     if (items && items.length) {
       // 尝试视觉上一个, 没有则选择最后一个
-      const idx = itemStep > 1 && currItemIndex < items.length ? currItemIndex : items.length - 1
-      item = items[idx]
+      const idx = (itemStep > 1 && currItemIndex < items.length) ? currItemIndex : items.length - 1
+      item = items[idx]!
       this.#selectMenuOrItem(item)
       this.currentMenuIndex = mIndex
       this.currentItemIndex = idx
@@ -556,9 +566,9 @@ export class Dropdown {
     if (this.currentSelectedMenuOrItem) {
       this.#unselectMenuOrItem(this.currentSelectedMenuOrItem)
     }
-    const { menu, items } = this.menuItemsOnCurrentInput[0]
+    const { menu, items } = this.menuItemsOnCurrentInput[0]!
     if (items && items.length) {
-      this.#selectMenuOrItem(items[0])
+      this.#selectMenuOrItem(items[0]!)
     }
     else {
       this.#selectMenuOrItem(menu)

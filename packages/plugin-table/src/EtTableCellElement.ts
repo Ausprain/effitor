@@ -11,28 +11,20 @@ import { EtTypeEnum } from '@effitor/shared'
 import { TABLE_CELL_ET_TYPE, TableName } from './config'
 
 export class EtTableCellElement extends EffectElement {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'td'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'td'
 
-  static readonly elName = TableName.TableCell
-  static readonly etType = super.etType
+  static override readonly elName: string = TableName.TableCell
+  static override readonly etType: number = super.etType
     | TABLE_CELL_ET_TYPE
     | EtTypeEnum.AllowEmpty /** etcode.Em.AllowEmpty */
 
-  /**
-   * 创建一个 tc 元素
-   */
-  static create() {
-    const el = document.createElement(this.elName)
-    return el
-  }
-
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     td: (_el) => {
       return this.create()
     },
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     tableCell: () => {
       return this.create()
     },
@@ -42,7 +34,7 @@ export class EtTableCellElement extends EffectElement {
     return mdastNode('tableCell', this.childNodes, {})
   }
 
-  onAfterCopy(ctx: EditorContext): this | null {
+  override onAfterCopy(ctx: EditorContext): this | null {
     // 禁止单独复制单元格
     if (!ctx.schema.table.is(this.parentNode?.parentNode)) {
       return null

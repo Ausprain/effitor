@@ -47,10 +47,10 @@ export class CodeHeader {
       }
     })
 
-    if (ctx.pctx.$codePx.codeRenderer[el.lang]) {
+    if (ctx.pctx.$codePx.codeRenderer[el.codeLang]) {
       this.addBtn((renderBtn) => {
         renderBtn.classList.add(CodeEnum.Class_Btn_Render)
-        renderBtn.setAttribute(HtmlAttrEnum.HintTitle, `Render ${el.lang.toUpperCase()}`)
+        renderBtn.setAttribute(HtmlAttrEnum.HintTitle, `Render ${el.codeLang.toUpperCase()}`)
         renderBtn.onclick = () => {
           const render = ctx.pctx.$codePx.renderCodeBlock
           if (!render) {

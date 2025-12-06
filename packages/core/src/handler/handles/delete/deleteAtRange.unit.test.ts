@@ -23,7 +23,7 @@ test('removeInSameTextNode', async () => {
   expect(removeInSameTextNode(ctx, ctx.selection.getTargetRange()!, p, p.firstChild! as Et.Text)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
   expect(p.innerHTML).toBe('He A78<b>bold<i>I123</i></b>B12')
-  const i = p.children[0].children[0]
+  const i = p.children[0]!.children[0]!
   ctx.setSelection(cr.range(i.firstChild as Et.Text, 0, i.firstChild as Et.Text, (i.firstChild! as Et.Text).length))
   expect(removeInSameTextNode(ctx, ctx.selection.getTargetRange()!, p, i.firstChild as Et.Text)).toBe(true)
   expect(ctx.commandManager.handleAndUpdate()).toBe(true)
@@ -74,7 +74,7 @@ describe('removeInSameParagraph', () => {
     expect(b.innerHTML).toBe(`<i>I123</i>`)
     expect(p.innerHTML).toBe('Hello A78<b><i>I123</i></b>B12')
     // 验证连带删除祖先
-    const i = p.children[0].firstChild as Et.HTMLElement
+    const i = p.children[0]!.firstChild as Et.HTMLElement
     expect(i.localName).toBe('i')
     ctx.setSelection(cr.rangeAllIn(i))
     expect(removeInSameParagraph(ctx, ctx.selection.getTargetRange()!, p)).toBe(true)
@@ -171,8 +171,8 @@ describe('removeInDifferentParagraphWithSameParent', () => {
     expect(ctx.commandManager.discard()).toBe(true)
     expect(body.childNodes.length).toBe(2)
 
-    expect(body.children[0].innerHTML).toBe('Hello A78<b>bold<i>I123</i></b>B12')
-    expect(body.children[1].innerHTML).toBe('Hello A78<b>bold<i>I123</i></b>B12')
+    expect(body.children[0]!.innerHTML).toBe('Hello A78<b>bold<i>I123</i></b>B12')
+    expect(body.children[1]!.innerHTML).toBe('Hello A78<b>bold<i>I123</i></b>B12')
 
     // <et-p>Hello A78<b>bold<i>I123</i></b>B^12</et-p>
     // <et-p>Hello A78<b>bold<i>I123</i></b>B1|2</et-p>
@@ -212,13 +212,13 @@ describe('removeInDifferentParagraphWithSameParent', () => {
     const body = ctx.bodyEl
     const p1 = body.children[0] as Et.EtParagraphElement
     const p2 = body.children[1] as Et.EtParagraphElement
-    const i1 = p1.children[0].lastChild as any
-    const i2 = p2.children[0].lastChild as any
+    const i1 = p1.children[0]!.lastChild as any
+    const i2 = p2.children[0]!.lastChild as any
     ctx.setSelection(cr.range(i1.firstChild!, 1, i2.firstChild!, 1))
     expect(removeInDifferentParagraphWithSameParent(ctx, ctx.selection.getTargetRange()!, p1, p2)).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     expect(p1.innerHTML).toBe('Hello A78<b>bold<i>I456</i></b>B12')
-    expect(body.children[1].innerHTML).toBe(`Hello A78<b>bold</b>B12`)
+    expect(body.children[1]!.innerHTML).toBe(`Hello A78<b>bold</b>B12`)
   })
 })
 
@@ -238,7 +238,7 @@ describe('removeInDifferentParagraphWithSameTopElement', () => {
     const body = ctx.bodyEl
     const top = body.children[0] as Et.Paragraph
     const p1 = top.children[0] as Et.EtParagraphElement
-    const p2 = top.children[1].children[0] as Et.EtParagraphElement
+    const p2 = top.children[1]!.children[0] as Et.EtParagraphElement
 
     // <et-bq>
     //     <et-p>Hello^ A78<b>bold<i>I123</i></b>B12</et-p>
@@ -378,11 +378,11 @@ describe('removeInDifferentTopElement', () => {
     // <et-bq>
     //   <et-p>Hello A78<b>bo</b>llo A78<b>bold</b>B12</et-p>
     // </et-bq>
-    ctx.setSelection(cr.range(p1.children[0].firstChild!, 2, top2.firstChild!, 2))
+    ctx.setSelection(cr.range(p1.children[0]!.firstChild!, 2, top2.firstChild!, 2))
     expect(removeInDifferentTopElement(ctx, ctx.selection.getTargetRange()!, p1, top2)).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     // top2 是孤立简单段落, 且与p1相同, 应当并入p1
-    expect(top1.children[0].innerHTML).toBe('Hello A78<b>bo</b>llo A78<b>bold</b>B12')
+    expect(top1.children[0]!.innerHTML).toBe('Hello A78<b>bo</b>llo A78<b>bold</b>B12')
     expect(top2.innerHTML).toBe('')
   })
   test('merge top element', async () => {
@@ -416,16 +416,16 @@ describe('removeInDifferentTopElement', () => {
     //   <et-p>Hello A78<b>bold|789<i>I123</i></b>IJK</et-p>
     //   <et-p>Hello A78<b>bold</b>B12</et-p>
     // </et-bq>
-    ctx.setSelection(cr.range(p1.children[0].firstChild!, 4, p2.children[0].firstChild!, 4))
+    ctx.setSelection(cr.range(p1.children[0]!.firstChild!, 4, p2.children[0]!.firstChild!, 4))
     expect(removeInDifferentTopElement(ctx, ctx.selection.getTargetRange()!, p1, p2)).toBe(true)
     expect(ctx.commandManager.handleAndUpdate()).toBe(true)
     // 若顶层节点可合并, 则范围起始位置的顶层节点保留在页面上, 末尾位置的顶层节点被移除
     expect(top1.isConnected).toBe(true)
     expect(top2.isConnected).toBe(false)
     expect(body.childNodes.length).toBe(1)
-    expect(body.children[0].localName).toBe('et-bq')
-    expect(body.children[0].childNodes.length).toBe(2)
-    expect(body.children[0].children[0].innerHTML).toBe('Hello A78<b>bold789<i>I123</i></b>IJK')
-    expect(body.children[0].children[1].innerHTML).toBe('Hello A78<b>bold</b>B12')
+    expect(body.children[0]!.localName).toBe('et-bq')
+    expect(body.children[0]!.childNodes.length).toBe(2)
+    expect(body.children[0]!.children[0]!.innerHTML).toBe('Hello A78<b>bold789<i>I123</i></b>IJK')
+    expect(body.children[0]!.children[1]!.innerHTML).toBe('Hello A78<b>bold</b>B12')
   })
 })

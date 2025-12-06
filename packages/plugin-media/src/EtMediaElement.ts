@@ -1,4 +1,4 @@
-import { dom, EditorContext, EtEmbedment, ToNativeHTMLPrefers } from '@effitor/core'
+import { dom, EditorContext, EtEmbedment, type ToNativeHTMLPrefers } from '@effitor/core'
 
 import { MediaEnum, MediaState, MediaType } from './config'
 
@@ -6,7 +6,7 @@ export abstract class EtMediaElement extends EtEmbedment {
   abstract mediaState: MediaState
   abstract mediaType: MediaType
 
-  toNativeElement(_ctx: EditorContext, prefers: ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
+  override toNativeElement(_ctx: EditorContext, prefers: ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
     const media = this.firstElementChild
     if (!media || media.localName !== this.nativeTag) {
       return null

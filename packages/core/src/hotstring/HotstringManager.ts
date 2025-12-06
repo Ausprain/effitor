@@ -1,5 +1,5 @@
 import type { Et } from '../@types'
-import { HotstringData, HotstringEnum } from './config'
+import { type HotstringData, HotstringEnum } from './config'
 import { Hotstring, type HotstringOptions } from './Hotstring'
 
 export interface HotstringManagerOptions {

@@ -3,9 +3,9 @@ import { KeyMod } from '@effitor/shared'
 import type { Et } from '../@types'
 import {
   BuiltinHotkeyActionMap,
+  type IModKeyDownEffectMap,
   ModKeyDownBuiltinMap,
   ModKeyDownDefaultMap,
-  ModKeyDownEffectMap,
 } from './builtin'
 import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
 import { CtrlCmd } from './Mod'
@@ -31,8 +31,8 @@ interface HotkeyData {
  * 快捷键管理器
  */
 export class HotkeyManager {
-  private readonly _builtinModKeyEffect: ModKeyDownEffectMap
-  private readonly _defaultModKeyEffect: ModKeyDownEffectMap
+  private readonly _builtinModKeyEffect: IModKeyDownEffectMap
+  private readonly _defaultModKeyEffect: IModKeyDownEffectMap
 
   /** 快捷键配置, 快捷键-> 动作名; 用于自定义绑定动作的快捷键, 以及持久化配置 */
   private readonly _hotkeyActionKeyMap: HotkeyActionKeyMapping
@@ -66,7 +66,7 @@ export class HotkeyManager {
    */
   checkWithMod(modifier?: Omit<KeyMod, KeyMod.None>, modkey = this._modkey) {
     const [_, mod] = modkey.split(HotkeyEnum.Connector)
-    const num = parseInt(mod)
+    const num = parseInt(mod as string)
     if (typeof modifier === 'number') {
       return (num & modifier) === modifier
     }
@@ -142,7 +142,7 @@ export class HotkeyManager {
    * @param effectActionMap modkey 到 effectAction 的映射, effectAction 可以是 inputType 字符串, 或带一个 ctx 参数的函数
    * @returns 是否监听成功, 如果 effectAction 是函数, 则返回的是函数执行结果
    */
-  listenEffect(effectActionMap: ModKeyDownEffectMap) {
+  listenEffect(effectActionMap: IModKeyDownEffectMap) {
     const effect = effectActionMap[this._modkey]
     if (!effect) {
       return false

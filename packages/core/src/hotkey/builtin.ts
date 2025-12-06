@@ -14,7 +14,7 @@ type InputTypeOrEditorAction = Et.InputType | Et.EditorAction
 /**
  * keydown中按下组合键对应行为
  */
-export type ModKeyDownEffectMap = Record<string, InputTypeOrEditorAction>
+export type IModKeyDownEffectMap = Record<string, InputTypeOrEditorAction>
 
 /**
  * 内置快捷键操作列表 \
@@ -56,7 +56,7 @@ export const BuiltinHotkeyActionMap: Record<string, HotkeyAction> = {
 /**
  * 系统级(不受输入法影响的)按键行为, keydown事件开始时执行, 执行返回 true 则结束keydown事件周期
  */
-export const ModKeyDownBuiltinMap: ModKeyDownEffectMap = {
+export const ModKeyDownBuiltinMap: IModKeyDownEffectMap = {
   ...ModKeyDownModifySelectionMap,
 
   // ctrl+a 逐级全选
@@ -101,7 +101,7 @@ const tryMoveOrCopyCurrentParagraph = (ctx: Et.EditorContext, effect: ParagraphM
 /**
  * 默认的编辑行为按键映射, 在 MainKeydownSolver 之后执行
  */
-export const ModKeyDownDefaultMap: ModKeyDownEffectMap = {
+export const ModKeyDownDefaultMap: IModKeyDownEffectMap = {
 
   /* -------------------------------------------------------------------------- */
   /*                                   编辑行为                                  */

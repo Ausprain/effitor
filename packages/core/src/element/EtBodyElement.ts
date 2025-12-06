@@ -12,23 +12,23 @@ import { EffectElement } from './EffectElement'
  * mountEtHandler(EtBodyElement, {}, [ EtListElement ])
  */
 export class EtBodyElement extends EffectElement {
-  static readonly elName: string = BuiltinElName.ET_BODY
-  static readonly etType: number = 0
+  static override readonly elName: string = BuiltinElName.ET_BODY
+  static override readonly etType: number = 0
   /** body子节点允许一切段落 */
-  static readonly inEtType: number = EtTypeEnum.Paragraph
+  static override readonly inEtType: number = EtTypeEnum.Paragraph
 
-  static create() {
+  static override create() {
     return document.createElement(BuiltinElName.ET_BODY) as EtBodyElement
   }
 
-  connectedCallback(): void {
+  override connectedCallback(): void {
     this.setAttribute('contenteditable', '')
     this.setAttribute('autocorrect', 'off')
     this.autocapitalize = 'off'
     this.spellcheck = false
   }
 
-  focusinCallback(ctx: Et.EditorContext): void {
+  override focusinCallback(ctx: Et.EditorContext): void {
     // et-body 获得焦点，判断编辑区是否为空，为空则插入一个段落, 否则聚焦到首段落
     if (!ctx.isCaretIn(this)) {
       return

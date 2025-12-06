@@ -13,11 +13,11 @@ import { EtTableRowElement } from './EtTableRowElement'
 
 // FIXME 现阶段范围删除算法尚未完善，选区不允许跨越表格选择，因此继承组件，使用嵌套可编辑
 export class EtTableElement extends EtComponent {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'table'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'table'
 
-  static readonly elName = TableName.Talbe
-  static readonly etType = super.etType | TABLE_ET_TYPE
-  static readonly inEtType = TABLE_ROW_ET_TYPE
+  static override readonly elName: string = TableName.Talbe
+  static override readonly etType: number = super.etType | TABLE_ET_TYPE
+  static override readonly inEtType: number = TABLE_ROW_ET_TYPE
 
   // 表格标题, 当设置为 'r'（首行）、'c'（首列）时，会加粗该行/列
   get tableHead() {
@@ -59,8 +59,8 @@ export class EtTableElement extends EtComponent {
    * 否则，返回：`<et-table></et-table>`
    * @param withRow 是否自带一表格行, 默认为false
    */
-  static create(withRow = false) {
-    const el = document.createElement(this.elName)
+  static override create(withRow = false) {
+    const el = document.createElement(this.elName) as EtTableElement
     if (withRow) {
       const row = EtTableRowElement.create(true)
       el.appendChild(row)
@@ -68,7 +68,7 @@ export class EtTableElement extends EtComponent {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     table: (el) => {
       const tb = this.create()
       if (el.align) {
@@ -88,7 +88,7 @@ export class EtTableElement extends EtComponent {
     })
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     table: () => {
       return this.create()
     },

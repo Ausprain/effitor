@@ -53,8 +53,8 @@ export const checkParseMarkdownReference = (type: 'link' | 'image', data: string
   const text = data.slice(leftSquareIndex + 2, rightSquareIndex)
 
   const urlTitleArr = data.slice(leftBracketIndex + 1, offset - 1).split(' ')
-  if (urlTitleArr.length > 2) return null
-  const url = urlTitleArr[0]
+  if (!urlTitleArr.length || urlTitleArr.length > 2) return null
+  const url = urlTitleArr[0] as string
   let title = urlTitleArr[1]
   if (title) {
     if (title.startsWith('“')) title = title.slice(1)

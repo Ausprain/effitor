@@ -3,7 +3,7 @@ import { MIMETypeEnum } from '@effitor/shared'
 
 import type { Effitor } from '../editor/Effitor'
 import type { EtEditorElement, EtParagraph } from '../element'
-import { EtCodeTarget } from '../element/config'
+import type { EtCodeTarget } from '../element/config'
 import type { EffectElement, EffectElementCtor } from '../element/EffectElement'
 import { InputTypeEnum, KeyboardCodeEnum, KeyboardKeyEnum } from './declare-enums'
 /* -------------------------------------------------------------------------- */

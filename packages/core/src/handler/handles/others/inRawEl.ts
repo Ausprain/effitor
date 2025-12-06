@@ -1,7 +1,7 @@
 import type { Et } from '../../../@types'
 import { platform } from '../../../config'
 import { cmd } from '../../command'
-import { CommandFunctional } from '../../command/cmds'
+import type { CommandFunctional } from '../../command/cmds'
 import { createEffectHandle } from '../../utils'
 
 const solveInsertCompositionTextInRawEl = platform.isSupportInsertFromComposition
@@ -129,7 +129,7 @@ export const deleteInRawEl = createEffectHandle('DeleteInRawEl', function (ctx, 
       if (deleteWord) {
         const tmp = deleteWord.split('\n')
         if (tmp[tmp.length - 1]) {
-          deleteWord = tmp[tmp.length - 1]
+          deleteWord = tmp[tmp.length - 1] as string
         }
         else {
           // \n分割末项为空, 说明末尾是一个换行符, 则仅删除换行符

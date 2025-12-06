@@ -29,7 +29,7 @@ export const solveInputInRawEl = (
           data: ev.data,
         })
       }
-    // eslint-disable-next-line no-fallthrough
+      break
     case 'insertFromDrop':
     case 'insertFromPaste':
     case 'insertText': {

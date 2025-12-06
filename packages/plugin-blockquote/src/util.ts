@@ -1,4 +1,4 @@
-import { BlockquoteMeta, BlockquotePluginContext } from './config'
+import type { BlockquoteMeta, BlockquotePluginContext } from './config'
 
 export const blockquoteMetaParser = {
   /**

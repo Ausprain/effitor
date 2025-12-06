@@ -8,15 +8,13 @@ import { EffectElement } from './EffectElement'
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export abstract class EtParagraph extends EffectElement {
-  static readonly etType = EtTypeEnum.Paragraph | EtTypeEnum.Block
+  static override readonly etType: number = EtTypeEnum.Paragraph | EtTypeEnum.Block
 
-  static create() { return document.createElement(this.elName) as EtParagraph }
+  /** 当前段落内部可编辑开始边界 (段落必须主动实现) */
+  abstract override innerStartEditingBoundary(): Et.EtCaret
 
-  /** 当前段落内部可编辑开始边界 */
-  abstract innerStartEditingBoundary(): Et.EtCaret
-
-  /** 当前段落内部可编辑末尾边界 */
-  abstract innerEndEditingBoundary(): Et.EtCaret
+  /** 当前段落内部可编辑末尾边界 (段落必须主动实现) */
+  abstract override innerEndEditingBoundary(): Et.EtCaret
 
   /**
    * 为 [由当前'段落'元素激活的插入段落效应] 提供要插入的新段落元素

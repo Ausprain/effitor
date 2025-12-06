@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { join, resolve } from 'node:path'
 
 import * as esbuild from 'esbuild'
-import { Plugin } from 'esbuild'
+import type { Plugin } from 'esbuild'
 
 export interface ImportCssRawOptions {
   /**
@@ -69,6 +69,9 @@ export function importCssRawPlugin(options?: ImportCssRawOptions): Plugin {
     // 递归处理每个导入
     for (const match of importMatches) {
       const importPath = match[1] || match[2]
+      if (!importPath) {
+        continue
+      }
       const fullImportPath = resolve(normalizedPath, '..', importPath.endsWith('.css') ? importPath : `${importPath}.css`)
 
       try {

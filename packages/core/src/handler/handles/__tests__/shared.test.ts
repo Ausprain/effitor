@@ -6,7 +6,7 @@ export const initContentsAndSetSelection = (ctx: Et.EditorContext, html: string)
   ctx.commandManager.commitAll()
   const { df, range } = getHtmlFragmentAndRange(html)
   ctx.bodyEl.textContent = ''
-  ctx.bodyEl.appendChild(df)
+  ctx.bodyEl.appendChild(df!)
   ctx.selection.selectRange(range)
   ctx.forceUpdate()
   return handleWither(ctx)
@@ -136,7 +136,7 @@ export const getHtmlFragmentAndRange = (html: string) => {
   let setStarted = false
   const range = document.createRange()
   const removeNodes = [] as ChildNode[]
-  traversal.traverseNode(df, (node) => {
+  traversal.traverseNode(df!, (node) => {
     let idx = node.data.indexOf('^')
     if (idx >= 0) {
       setStarted = true

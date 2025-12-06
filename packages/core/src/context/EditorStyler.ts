@@ -1,6 +1,6 @@
 import { BuiltinConfig } from '@effitor/shared'
 
-import { Et } from '../@types'
+import type { Et } from '../@types'
 
 export class EditorStyler {
   constructor(

@@ -10,12 +10,12 @@ import { EtParagraph } from './EtParagraph'
  * mountEtHandler(EtBlockquote, {}, [ EtListElement ])
  */
 export abstract class EtBlockquote extends EtParagraph {
-  static readonly elName: string = BuiltinElName.ET_BLOCKQUOTE
-  static readonly etType = super.etType | EtTypeEnum.Blockquote
+  static override readonly elName: string = BuiltinElName.ET_BLOCKQUOTE
+  static override readonly etType: number = super.etType | EtTypeEnum.Blockquote
   /** blockquote 下允许一切段落效应 */
-  static readonly inEtType: number = EtTypeEnum.Paragraph
+  static override readonly inEtType: number = EtTypeEnum.Paragraph
   /** blockquote 不允许自身嵌套, 内联文本元素 或内嵌元素 */
-  static readonly notInEtType: number = EtTypeEnum.Blockquote
+  static override readonly notInEtType: number = EtTypeEnum.Blockquote
     | EtTypeEnum.Embedment
     | EtTypeEnum.PlainText
     | EtTypeEnum.RichText

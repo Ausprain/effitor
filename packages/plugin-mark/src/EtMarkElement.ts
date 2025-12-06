@@ -1,18 +1,17 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Et } from '@effitor/core'
 import { cr, dom, etcode, EtRichText } from '@effitor/core'
 import { CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/shared'
 import type { PhrasingContent } from 'mdast'
 
 import { MarkEnum, MarkStatus, MarkType } from './config'
-import markCssText from './index.css?raw'
 
 export const MARK_ET_TYPE = etcode.get(MarkEnum.ElName)
 
 export class EtMarkElement extends EtRichText {
-  static readonly etType = super.etType | MARK_ET_TYPE
-  static readonly inEtType = EtTypeEnum.PlainText | MARK_ET_TYPE
-  static readonly elName = MarkEnum.ElName
-  static readonly cssText: string = markCssText
+  static override readonly etType: number = super.etType | MARK_ET_TYPE
+  static override readonly inEtType: number = EtTypeEnum.PlainText | MARK_ET_TYPE
+  static override readonly elName: string = MarkEnum.ElName
 
   get markType() {
     return this.dataset.type as `${MarkType}` | ''
@@ -30,7 +29,7 @@ export class EtMarkElement extends EtRichText {
     this.nativeTag = tag ?? 'span'
   }
 
-  static create(markType?: `${MarkType}`): EtMarkElement {
+  static override create(markType?: `${MarkType}`): EtMarkElement {
     const el = document.createElement(MarkEnum.ElName) as EtMarkElement
     if (markType) {
       el.markType = markType ?? ''
@@ -50,7 +49,7 @@ export class EtMarkElement extends EtRichText {
     }
   }
 
-  focusoutCallback(ctx: Et.EditorContext): void {
+  override focusoutCallback(ctx: Et.EditorContext): void {
     super.focusoutCallback(ctx)
     // 已不在dom上, 跳过
     if (!this.isConnected) return
@@ -66,12 +65,12 @@ export class EtMarkElement extends EtRichText {
     }
   }
 
-  isEqualTo(el: Element): boolean {
+  override isEqualTo(el: Element): boolean {
     // 去掉hinting状态再比较
     return dom.isEqualElement(this, el, [MarkStatus.HINTING])
   }
 
-  mergeWith(el: this,
+  override mergeWith(el: this,
     mergeHtmlNode: (former: Et.NodeOrNull, latter: Et.NodeOrNull, affinityToFormer?: boolean | undefined) => Et.EtCaret,
   ): Et.EtCaret {
     // 去掉hinting状态
@@ -80,7 +79,7 @@ export class EtMarkElement extends EtRichText {
     return super.mergeWith(el, mergeHtmlNode)
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     b: () => EtMarkElement.create(MarkType.BOLD),
     strong: () => EtMarkElement.create(MarkType.BOLD),
     i: () => EtMarkElement.create(MarkType.ITALIC),
@@ -125,20 +124,20 @@ export class EtMarkElement extends EtRichText {
     }
   }
 
-  static readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap = {
+  static override readonly toMarkdownTransformerMap: Et.MdastNodeTransformerMap = {
     // 将所有文本节点中的==用\==代替
     text: (node) => {
       node.value = node.value.replaceAll('==', '\\==')
     },
   }
 
-  static readonly toMarkdownHandlerMap: Et.ToMarkdownHandlerMap = {
+  static override readonly toMarkdownHandlerMap: Et.ToMarkdownHandlerMap = {
     highlight: (node, _, state, info) => {
       return `==${state.containerPhrasing(node, info)}==`
     },
   }
 
-  static readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     strong: () => EtMarkElement.create(MarkType.BOLD),
     delete: () => EtMarkElement.create(MarkType.DELETE),
     emphasis: () => EtMarkElement.create(MarkType.ITALIC),
@@ -166,9 +165,9 @@ export class EtMarkElement extends EtRichText {
 
       // 该文本节点有有成对==，即高亮节点内无嵌套其他节点
       function hasCloseNode() {
-        const headText = value.slice(0, start.indices[0][0])
-        const innerText = value.slice(start.indices[0][1], end.indices[0][0])
-        const tailText = value.slice(end.indices[0][1])
+        const headText = value.slice(0, start.indices[0]![0]!)
+        const innerText = value.slice(start.indices[0]![1]!, end.indices[0]![0]!)
+        const tailText = value.slice(end.indices[0]![1]!)
         const replaceNodes = [manager.newNode({
           type: 'highlight',
           children: [
@@ -186,7 +185,7 @@ export class EtMarkElement extends EtRichText {
       function onlyStartNode() {
         let nextValue, nextIndex, nextRegResult
         for (let i = index + 1; i < parent.children.length; i++) {
-          const child = parent.children[i]
+          const child = parent.children[i]!
           // 中间含有不适我们允许的PhrasingContent, 则返回, 无法构成 highlight 节点
           if (!['text', 'break', 'delete', 'strong', 'emphasis'].includes(child.type)) {
             break
@@ -206,10 +205,10 @@ export class EtMarkElement extends EtRichText {
           return new Text(value)
         }
         // 有闭合，提取中间节点为高亮节点后代
-        const headText = value.slice(0, start.indices[0][0])
-        const innerHeadText = value.slice(start.indices[0][1])
-        const innerTailText = nextValue.slice(0, nextRegResult.indices[0][0])
-        const tailText = nextValue.slice(nextRegResult.indices[0][1])
+        const headText = value.slice(0, start.indices[0]![0]!)
+        const innerHeadText = value.slice(start.indices[0]![1]!)
+        const innerTailText = nextValue.slice(0, nextRegResult.indices[0]![0]!)
+        const tailText = nextValue.slice(nextRegResult.indices[0]![1]!)
         const children = parent.children.slice(index + 1, nextIndex) as PhrasingContent[]
         checkAddLeadingAndTrailingTextNode(children, innerHeadText, innerTailText)
         const replaceNodes: Et.MdastNodes[] = [

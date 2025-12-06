@@ -1,6 +1,6 @@
 import { Effitor } from '@effitor/core'
 
-import { useCodeAreaPlugin } from './src/ca'
+// import { useCodeAreaPlugin } from './src/ca'
 import { useCodePlugin } from './src/index'
 
 const editor = new Effitor({
@@ -17,7 +17,7 @@ const editor = new Effitor({
         },
       },
     }),
-    useCodeAreaPlugin(),
+    // useCodeAreaPlugin(),
   ],
   callbacks: {
     firstInsertedParagraph: (ctx) => {
@@ -73,8 +73,8 @@ export interface CodeDecorateOptions<L extends string> extends CodeContextOption
  */
 export class EtCodeElement extends EtComponent {
   static readonly elName = CodeEnum.ElName
-  static readonly etType = super.etType | CODE_ET_TYPE
-  static readonly inEtType = EtTypeEnum.PlainText
+  static override readonly etType: number = super.etType | CODE_ET_TYPE
+  static override readonly inEtType: number = EtTypeEnum.PlainText
 
   // eslint-disable-next-line @typescript-eslint/class-literal-property-style
   get contentText() {
@@ -88,7 +88,7 @@ export class EtCodeElement extends EtComponent {
   declare codeCtx: CodeContext
   declare codeHeader: CodeHeader
 
-  static create(): EtCodeElement {
+  static override create(): EtCodeElement {
     throw Error('EtCodeElement.create is not implemented')
   }
 

@@ -1,6 +1,6 @@
-import { createHighlighterCore, ThemeRegistrationAny } from 'shiki/core'
+import { createHighlighterCore, type ThemeRegistrationAny } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
-import { BundledLanguage, LanguageInput, ThemeInput } from 'shiki/types'
+import type { BundledLanguage, LanguageInput, ThemeInput } from 'shiki/types'
 
 import { CodeEnum } from './config'
 

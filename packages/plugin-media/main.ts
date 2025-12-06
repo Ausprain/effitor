@@ -4,7 +4,7 @@ import { usePopupAssist } from '@effitor/assist-popup'
 import { Effitor } from '@effitor/core'
 
 import { useMediaPlugin } from './src'
-import { CreateImageOptions, MediaType } from './src/config'
+import { type CreateImageOptions, MediaType } from './src/config'
 
 const editor = new Effitor({
   plugins: [

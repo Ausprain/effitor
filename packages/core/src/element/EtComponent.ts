@@ -8,19 +8,19 @@ import { EtParagraph } from './EtParagraph'
  * * 现（v0.2.0）组件默认不支持复制粘贴，复制内容中包含组件节点，将会丢失组件节点
  */
 export abstract class EtComponent extends EtParagraph {
-  static readonly elName: string = BuiltinElName.ET_COMPONENT
-  static readonly etType = super.etType
+  static override readonly elName: string = BuiltinElName.ET_COMPONENT
+  static override readonly etType: number = super.etType
     | EtTypeEnum.Component
     | EtTypeEnum.Uneditable
 
   /**
    * component比较始终为false
    */
-  isEqualTo(_el: Et.Element) {
+  override isEqualTo(_el: Et.Element) {
     return false
   }
 
-  onAfterCopy(_ctx: Et.EditorContext): this | null {
+  override onAfterCopy(_ctx: Et.EditorContext): this | null {
     return this
   }
 

@@ -1,12 +1,13 @@
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { OmitStringIndexSignature, TrueOrVoid, TupleFirst, TupleTail } from '@effitor/shared'
 import { BuiltinConfig } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import type { InputType } from '../@types/declare'
 import type { EditorContext, UpdatedContext } from '../context'
 import type { EffectElement, EtParagraph, EtParagraphElement } from '../element'
-import { CommandFunctional } from './command/cmds'
+import type { CommandFunctional } from './command/cmds'
 
 export type EffectHandleReturnType = TrueOrVoid | number | object | string
 /**

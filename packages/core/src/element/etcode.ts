@@ -1,6 +1,6 @@
-import { EtType, EtTypeEnum } from '@effitor/shared'
+import { type EtType, EtTypeEnum } from '@effitor/shared'
 
-import { ETCODE, EtCodeTarget } from './config'
+import { ETCODE, type EtCodeTarget } from './config'
 import type { EffectElement } from './EffectElement'
 import type { EtBlockquote } from './EtBlockquote'
 import type { EtComponent } from './EtComponent'

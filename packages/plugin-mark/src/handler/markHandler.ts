@@ -227,7 +227,7 @@ const markChildNodes = (cmds: Et.CommandQueue | null, childNodes: NodeListOf<Et.
     }
     else {
       cmds.push(
-        cmd.insertNode({ node: markNode, execAt: cr.caretOutStartFuture(childs[0]) }),
+        cmd.insertNode({ node: markNode, execAt: cr.caretOutStartFuture(childs[0] as Et.Node) }),
         cmd.moveNodes(
           moveRange,
           cr.caret(markNode, 0),

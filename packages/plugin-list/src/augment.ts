@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { ListEnum, ListType } from './config'
+import { ListEnum, type ListType } from './config'
 import type { ListActionMap } from './effector'
 import type { EtListElement, EtListItemElement } from './EtListElement'
 

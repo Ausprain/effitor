@@ -2,13 +2,13 @@ import type { Et } from '@effitor/core'
 import { cr, EtBlockquote } from '@effitor/core'
 import { CssClassEnum, HtmlCharEnum } from '@effitor/shared'
 
-import { BlockquoteEnum, BlockquoteMeta, BlockquotePluginContext } from './config'
+import { BlockquoteEnum, type BlockquoteMeta, type BlockquotePluginContext } from './config'
 import { blockquoteMetaParser } from './util'
 
 export class EtBlockquoteElement extends EtBlockquote {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'blockquote'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'blockquote'
 
-  static readonly elName: string = BlockquoteEnum.ElName
+  static override readonly elName: string = BlockquoteEnum.ElName
 
   get bqType() {
     return this.dataset.type ?? ''
@@ -18,17 +18,17 @@ export class EtBlockquoteElement extends EtBlockquote {
     this.dataset.type = value
   }
 
-  static create(type = '') {
+  static override create(type = '') {
     const el = new EtBlockquoteElement()
     el.bqType = type
     return el
   }
 
-  connectedCallback(): void {
+  override connectedCallback(): void {
     this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
-  focusinCallback(ctx: Et.EditorContext): void {
+  override focusinCallback(ctx: Et.EditorContext): void {
     super.focusinCallback(ctx)
     if (!ctx.isCaretIn(this)) {
       return
@@ -43,21 +43,21 @@ export class EtBlockquoteElement extends EtBlockquote {
     }
   }
 
-  onAfterCopy(_ctx: Et.EditorContext): this | null {
+  override onAfterCopy(_ctx: Et.EditorContext): this | null {
     if (!this.hasChildNodes()) {
       return null
     }
     return this
   }
 
-  onBeforePaste(_ctx: Et.EditorContext): this | null {
+  override onBeforePaste(_ctx: Et.EditorContext): this | null {
     if (!this.hasChildNodes()) {
       return null
     }
     return this
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     blockquote: () => {
       return EtBlockquoteElement.create()
     },
@@ -68,9 +68,9 @@ export class EtBlockquoteElement extends EtBlockquote {
       return null
     }
     const node = mdastNode('blockquote', this.childNodes, {})
-    if (this.bqType) {
-      const firstP = node.children[0]
-      if (firstP.type === 'paragraph' && firstP.children.length === 1 && firstP.children[0].type === 'text') {
+    if (this.bqType && node.children.length > 0) {
+      const firstP = node.children[0] as Et.MdastNodes
+      if (firstP.type === 'paragraph' && firstP.children.length === 1 && firstP.children[0]?.type === 'text') {
         // 给第一个段落文本加上blockquote元信息
         const type = this.bqType.toUpperCase()
         if (type === firstP.children[0].value) {
@@ -95,7 +95,7 @@ export class EtBlockquoteElement extends EtBlockquote {
     return node
   }
 
-  static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     blockquote: (node, ctx, _, __, manager) => {
       const children = node.children
       if (children.length === 0) {
@@ -167,7 +167,7 @@ const checkBlockquoteMeta = (node: Et.MdastNode<'blockquote'>, bqCtx: Blockquote
       // 移除提取信息后为空的文本节点
       firstChild.children.shift()
       // 如果后一个是换行，继续移除
-      if (firstChild.children[0].type === 'break') {
+      if (firstChild.children[0]?.type === 'break') {
         firstChild.children.shift()
       }
     }

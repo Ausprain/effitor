@@ -3,7 +3,7 @@ import { cr, EtParagraph, EtParagraphElement } from '@effitor/core'
 import { EtTypeEnum } from '@effitor/shared'
 import type { List, ListItem, Paragraph } from 'mdast'
 
-import { commonMarkdownSupportStyle, LIST_ET_TYPE, LIST_ITEM_ET_TYPE, ListAttr, ListEnum, ListType, styleTypeMapping } from './config'
+import { commonMarkdownSupportStyle, LIST_ET_TYPE, LIST_ITEM_ET_TYPE, ListAttr, ListEnum, type ListType, styleTypeMapping } from './config'
 
 /**
 列表元素层级结构
@@ -39,10 +39,10 @@ list {
 ```
 */
 export class EtListElement extends EtParagraph {
-  static readonly elName = ListEnum.List
-  static readonly etType = LIST_ET_TYPE | EtTypeEnum.Paragraph // list 属于段落
+  static override readonly elName: string = ListEnum.List
+  static override readonly etType: number = LIST_ET_TYPE | EtTypeEnum.Paragraph // list 属于段落
   /** list下只允许list和listItem */
-  static readonly inEtType = LIST_ITEM_ET_TYPE | LIST_ET_TYPE
+  static override readonly inEtType: number = LIST_ITEM_ET_TYPE | LIST_ET_TYPE
 
   set ordered(ordered: boolean) {
     if (ordered) {
@@ -70,7 +70,7 @@ export class EtListElement extends EtParagraph {
   /**
    * 创建一个list元素, 默认里边有一个li元素
    */
-  static create(listType?: ListType, withLi = true, liWithBr = true) {
+  static override create(listType?: ListType, withLi = true, liWithBr = true) {
     const el = document.createElement(ListEnum.List)
     if (withLi) {
       const li = EtListItemElement.create(liWithBr)
@@ -98,11 +98,11 @@ export class EtListElement extends EtParagraph {
     return lastLi.innerEndEditingBoundary()
   }
 
-  createForInsertParagraph(): EtParagraph | null {
+  override createForInsertParagraph(): EtParagraph | null {
     return EtListItemElement.create()
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     ol: (el) => {
       if (el.firstElementChild?.nodeName !== 'LI') {
         return () => null
@@ -123,9 +123,12 @@ export class EtListElement extends EtParagraph {
     },
   }
 
-  static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     list: (node) => {
       const firstLi = node.children[0]
+      if (!firstLi) {
+        return null
+      }
       // todo 暂不支持不是段落 也不是 list 的listItem表项 (如 code, heading, 等)
       firstLi.children = firstLi.children.filter(node => node.type === 'paragraph' || node.type === 'list')
       if (!firstLi.children.length) {
@@ -149,7 +152,7 @@ export class EtListElement extends EtParagraph {
         return null
       }
 
-      const marker = node.ordered ? firstData.slice(0, 2) : firstData[0]
+      const marker = node.ordered ? firstData.slice(0, 2) : firstData[0] as string
       const styleType = styleTypeMapping[marker]
       // 无对应styleType, 使用默认list样式
       if (!styleType) {
@@ -209,10 +212,10 @@ export class EtListElement extends EtParagraph {
 }
 
 export class EtListItemElement extends EtParagraphElement {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'li'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'li'
 
-  static readonly elName = ListEnum.Li
-  static readonly etType = super.etType | LIST_ITEM_ET_TYPE
+  static override readonly elName: string = ListEnum.Li
+  static override readonly etType: number = super.etType | LIST_ITEM_ET_TYPE
 
   set checked(checked: boolean | null | undefined) {
     if (typeof checked === 'boolean') {
@@ -230,7 +233,7 @@ export class EtListItemElement extends EtParagraphElement {
     return checked === 'true'
   }
 
-  static create(withBr = true) {
+  static override create(withBr = true) {
     const li = document.createElement(ListEnum.Li)
     if (withBr) {
       li.appendChild(document.createElement('br'))
@@ -238,13 +241,13 @@ export class EtListItemElement extends EtParagraphElement {
     return li
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     li: () => {
       return EtListItemElement.create(false)
     },
   }
 
-  static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     listItem: () => {
       // listItem无对应html节点, 返回一个片段以收集后代节点
       return document.createDocumentFragment()
@@ -263,7 +266,7 @@ export class EtListItemElement extends EtParagraphElement {
    * 将列表号插入到第一个列表项的文本开头
    * {@link styleTypeMapping}
    */
-  toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
+  override toMdast(mdastNode: Et.CreateMdastNode): Et.ToMdastResult {
     const currList = this.parentElement
     if (!EtListElement.is(currList)) {
       if (import.meta.env.DEV) {

@@ -1,4 +1,5 @@
 import type { Et } from '@effitor/core'
+import type { TrueOrVoid } from '@effitor/shared'
 
 export const enum PopupEnum {
   Class_Popup = 'et-popup',

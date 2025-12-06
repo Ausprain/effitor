@@ -72,7 +72,7 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
     ],
 
     register(ctxMeta, setSchema, mountEtHandler) {
-      const media: Mutable<MediaPluginContext> = { MEDIA_ET_TYPE } as Mutable<MediaPluginContext>
+      const media: MediaPluginContext = { MEDIA_ET_TYPE } as MediaPluginContext
       const els = [], schemaInit = {} as Et.EditorSchema
       if (!options) {
         media.image = defaultOptions.image

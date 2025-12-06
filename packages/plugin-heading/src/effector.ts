@@ -18,7 +18,7 @@ const checkAtxToHeading = (ctx: Et.UpdatedContext) => {
     level = data.length
   }
   else if (/^#[1-6]$/.test(data)) {
-    level = parseInt(data[1])
+    level = parseInt(data[1] as string)
   }
   if (level === -1) return false
   return replaceParagraphWithHeading(ctx, {

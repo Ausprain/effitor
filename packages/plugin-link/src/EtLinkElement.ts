@@ -20,16 +20,16 @@ import { LINK_ET_TYPE, LinkEnum } from './config'
 
 */
 export class EtLinkElement extends EtRichText {
-  static readonly elName = LinkEnum.ElName
-  static readonly etType = super.etType | LINK_ET_TYPE
-  static readonly inEtType = EtTypeEnum.PlainText
+  static override readonly elName: string = LinkEnum.ElName
+  static override readonly etType: number = super.etType | LINK_ET_TYPE
+  static override readonly inEtType: number = EtTypeEnum.PlainText
 
   /**
    * 构建一个et-list节点
    * @param showText 决定et-list的内容: 传入空串时, 有一个子节点, 内容为url; 否则无子节点
    * @returns
    */
-  static create(url?: string, title?: string | null, showText?: string): EtLinkElement {
+  static override create(url?: string, title?: string | null, showText?: string): EtLinkElement {
     const link = document.createElement(LinkEnum.ElName)
     if (!url) url = 'null'
     link.linkUrl = url
@@ -68,11 +68,14 @@ export class EtLinkElement extends EtRichText {
     window.open(url, target, windowFeatures)
   }
 
-  connectedCallback(): void {
+  override connectedCallback(): void {
     this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
-  toNativeElement(_ctx: EditorContext, prefers: ToNativeHTMLPrefers): null | HTMLElement | (() => HTMLElement) {
+  override toNativeElement(
+    _ctx: EditorContext,
+    prefers: ToNativeHTMLPrefers): null | HTMLElement | (() => HTMLElement
+  ) {
     const el = prefers === 'class'
       ? dom.elementAsEtEl('a', this, ['link-url', 'link-title'])
       : document.createElement('a')
@@ -81,7 +84,7 @@ export class EtLinkElement extends EtRichText {
     return el
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     a: (el) => {
       // 去除空文本链接
       if (!trimAndCleanZWS(el.textContent)) {
@@ -91,7 +94,7 @@ export class EtLinkElement extends EtRichText {
     },
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     link: (node, ctx) => {
       if (!node.url || !node.children.length) {
         return null
@@ -102,7 +105,7 @@ export class EtLinkElement extends EtRichText {
     },
   }
 
-  static toMarkdownTransformerMap: MdastNodeTransformerMap = {
+  static override readonly toMarkdownTransformerMap: MdastNodeTransformerMap = {
     link: (node, ctx) => {
       node.url = ctx.pctx.$linkPx.mdUrlMapping.toMarkdown?.(node.url) ?? node.url
     },

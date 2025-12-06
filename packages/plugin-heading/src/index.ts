@@ -5,6 +5,7 @@ import { type HeadingActionMap, headingActions, headingEffector } from './effect
 import { EtHeadingElement } from './EtHeadingElement'
 import cssText from './index.css?raw'
 
+export { HeadingEnum }
 export interface HeadingPluginOptions {
   /**
    * 是否隐藏标题前的`#1`标记符

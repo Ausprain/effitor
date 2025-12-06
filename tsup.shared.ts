@@ -9,7 +9,7 @@
  *
  */
 
-import { defineConfig, Options } from 'tsup'
+import { defineConfig, type Options } from 'tsup'
 
 import { importCssRawPlugin } from './tsup-plugin-import-css-raw'
 
@@ -19,10 +19,7 @@ export default defineConfig({
   ],
   outDir: './dist',
   format: ['esm'],
-  dts: {
-    // 引入全局 dts 工具类到产物 dts 中
-    banner: 'import "./helper"',
-  },
+  dts: true,
   clean: true,
   minify: false,
   define: {

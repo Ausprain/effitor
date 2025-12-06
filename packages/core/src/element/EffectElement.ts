@@ -3,7 +3,7 @@ import { BuiltinConfig, CssClassEnum, EtTypeEnum, HtmlCharEnum } from '@effitor/
 import type { Et } from '../@types'
 import { cr } from '../selection'
 import { dom } from '../utils'
-import { ETCODE, EtCode, IN_ETCODE, NOT_IN_ETCODE } from './config'
+import { ETCODE, type EtCode, IN_ETCODE, NOT_IN_ETCODE } from './config'
 import { etcode } from './etcode'
 
 interface HTMLElementCallbacks {
@@ -109,7 +109,7 @@ export abstract class EffectElement
   declare readonly [NOT_IN_ETCODE]: number
 
   /** 效应码，绑在this上以判断该效应元素内部拥有何种效应 */
-  get etCode() {
+  override get etCode() {
     return this[ETCODE]
   }
 

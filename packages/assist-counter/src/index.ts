@@ -1,6 +1,6 @@
 import type * as Et from '@effitor/core'
 
-import { CounterAssistOptions, TextCounter } from './TextCounter'
+import { type CounterAssistOptions, TextCounter } from './TextCounter'
 
 declare module '@effitor/core' {
   interface EditorAssists {

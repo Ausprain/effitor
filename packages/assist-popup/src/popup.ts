@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /**
  * popup助手
  * todo 重构, 结合dropdown和dialog的思路重构
@@ -360,7 +361,7 @@ export class Popup {
       let rect = target.getBoundingClientRect()
       if (rect.x === 0 && rect.y === 0 && rect.height === 0) {
         // target无位置; 尝试使用第一个元素孩子定位
-        rect = target.children[0]?.getBoundingClientRect()
+        rect = target.children[0]?.getBoundingClientRect() as DOMRect
         if (!rect) {
           return { x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, bottom: 0, right: 0 } as DOMRect
         }
@@ -459,16 +460,16 @@ export class Popup {
       this.initSelectionRangePopupContent()
 
       if (this._ctx.selection.isForward) {
-        targetRect = rects[rects.length - 1]
+        targetRect = rects[rects.length - 1]!
         this._relocate = () => {
           const rects = range.getClientRects()
-          return this.locate(rects[rects.length - 1], false, false, true)
+          return this.locate(rects[rects.length - 1]!, false, false, true)
         }
         this.locate(targetRect, false, false, true)?.show()
       }
       else {
-        targetRect = rects[0]
-        this._relocate = () => this.locate(range.getClientRects()[0], true, true, false)
+        targetRect = rects[0]!
+        this._relocate = () => this.locate(range.getClientRects()[0]!, true, true, false)
         this.locate(targetRect, true, true, false)?.show()
       }
     }, 100)
@@ -477,13 +478,13 @@ export class Popup {
   /** 选择当前popup 的下一个item; 仅在selection popup和hover popup下有item时有效 */
   selectNextItem() {
     if (this.currentPopupItemIndex !== -1) {
-      this.currentPopupItemList[this.currentPopupItemIndex].el.classList.remove(CssClassEnum.Selected)
+      this.currentPopupItemList[this.currentPopupItemIndex]?.el.classList.remove(CssClassEnum.Selected)
     }
     this.currentPopupItemIndex++
     if (this.currentPopupItemIndex >= this.currentPopupItemList.length) {
       this.currentPopupItemIndex = 0
     }
-    this.currentPopupItemList[this.currentPopupItemIndex].el.classList.add(CssClassEnum.Selected)
+    this.currentPopupItemList[this.currentPopupItemIndex]?.el.classList.add(CssClassEnum.Selected)
   }
 
   /** 选择当前select的item并执行其回调 */

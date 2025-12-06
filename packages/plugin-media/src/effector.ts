@@ -17,7 +17,7 @@ import {
   videoFileIcon,
 } from '@effitor/shared'
 
-import { type IEtMediaElement, MEDIA_ET_TYPE, MediaEnum, MediaPluginContext, MediaState, MediaType } from './config'
+import { type IEtMediaElement, MEDIA_ET_TYPE, MediaEnum, type MediaPluginContext, MediaState, MediaType } from './config'
 
 const filterFiles = (media: MediaPluginContext['image' | 'audio' | 'video'], files: File[]) => {
   if (!media) {
@@ -28,7 +28,7 @@ const filterFiles = (media: MediaPluginContext['image' | 'audio' | 'video'], fil
       return false
     }
     const [kind, ext] = file.type.split('/')
-    return kind === media.type && media.exts.has(ext)
+    return kind === media.type && media.exts.has(ext as string)
   })
 }
 const tryAlignMedia = (ctx: Et.EditorContext, anchorText: Et.Text, atEnd: boolean) => {

@@ -1,6 +1,6 @@
 import type { Et } from '@effitor/core'
 
-import { BlockquoteMeta, initBlockquotePluginContext } from './config'
+import { type BlockquoteMeta, initBlockquotePluginContext } from './config'
 import { type BlockquoteActionMap, blockquoteActions, blockquoteEffector } from './effector'
 import { EtBlockquoteElement } from './EtBlockquoteElement'
 import { blockquoteHandler } from './handler'

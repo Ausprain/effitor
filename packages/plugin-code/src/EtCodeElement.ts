@@ -1,5 +1,5 @@
-import type { Et } from '@effitor/core'
-import { cr, CreateMdastNode, EtComponent, ToMdastResult } from '@effitor/core'
+import type { CreateMdastNode, Et, ToMdastResult } from '@effitor/core'
+import { cr, EtComponent } from '@effitor/core'
 import { CssClassEnum, EtTypeEnum } from '@effitor/shared'
 
 import { CodeContext, type CodeContextOptions } from './CodeContext'
@@ -33,23 +33,22 @@ export interface CodeDecorateOptions<L extends string> extends CodeContextOption
  * 代码块组件, 最后一个子节点为一个textarea
  */
 export class EtCodeElement extends EtComponent {
-  static readonly elName = CodeEnum.ElName
-  static readonly etType = super.etType | CODE_ET_TYPE
-  static readonly inEtType = EtTypeEnum.PlainText
+  static override readonly elName: string = CodeEnum.ElName
+  static override readonly etType: number = super.etType | CODE_ET_TYPE
+  static override readonly inEtType: number = EtTypeEnum.PlainText
 
-  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-  get contentText() {
+  override get contentText() {
     return ''
   }
 
-  async contentTextAsync(): Promise<string> {
+  override async contentTextAsync(): Promise<string> {
     return ''
   }
 
   declare codeCtx: CodeContext
   declare codeHeader: CodeHeader
 
-  static create(): EtCodeElement {
+  static override create(): EtCodeElement {
     throw Error('EtCodeElement.create is not implemented')
   }
 
@@ -63,10 +62,10 @@ export class EtCodeElement extends EtComponent {
    */
   static withDefaultDecoration(ctx: Et.EditorContext, value = '', lang = '', async = false) {
     const el = document.createElement(CodeEnum.ElName)
-    el.lang = lang
+    el.codeLang = lang
     el.decorate({
       value,
-      lang: el.lang,
+      lang: el.codeLang,
       tabSize: ctx.pctx.$codePx.defaultTabSize,
       highlighter: ctx.pctx.$codePx.highlighter,
       async,
@@ -90,11 +89,11 @@ export class EtCodeElement extends EtComponent {
     return this.classList.contains(CodeEnum.Class_CodeWrap)
   }
 
-  set lang(value: string) {
+  set codeLang(value: string) {
     this.setAttribute(CodeAttr.Lang, value)
   }
 
-  get lang() {
+  get codeLang() {
     return this.getAttribute(CodeAttr.Lang) || ''
   }
 
@@ -153,7 +152,7 @@ export class EtCodeElement extends EtComponent {
     })
   }
 
-  connectedCallback(): void {
+  override connectedCallback(): void {
     this.classList.add(CssClassEnum.TransitionColorScheme)
   }
 
@@ -172,20 +171,20 @@ export class EtCodeElement extends EtComponent {
     return null
   }
 
-  onAfterCopy(_ctx: Et.EditorContext): this | null {
+  override onAfterCopy(_ctx: Et.EditorContext): this | null {
     this.setAttribute(CodeAttr.Code_Value, this.querySelector('textarea')?.value || '')
     this.textContent = ''
     return this
   }
 
-  onBeforePaste(ctx: Et.EditorContext): this | null {
-    const newEl = EtCodeElement.withDefaultDecoration(ctx, this.getAttribute(CodeAttr.Code_Value) || '', this.lang)
+  override onBeforePaste(ctx: Et.EditorContext): this | null {
+    const newEl = EtCodeElement.withDefaultDecoration(ctx, this.getAttribute(CodeAttr.Code_Value) || '', this.codeLang)
     newEl.meta = this.meta
     newEl.wrapping = this.wrapping
     return newEl as this
   }
 
-  toNativeElement(_ctx: Et.EditorContext, prefers: Et.ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
+  override toNativeElement(_ctx: Et.EditorContext, prefers: Et.ToNativeHTMLPrefers = 'style'): null | HTMLElement | (() => HTMLElement) {
     if (!this.codeCtx) {
       return null
     }
@@ -195,7 +194,7 @@ export class EtCodeElement extends EtComponent {
     return () => this.codeCtx.cloneWrapper()
   }
 
-  static fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: Et.HtmlToEtElementTransformerMap = {
     div: (el, ctx) => {
       let alias = ctx.pctx.$codePx.parseLangFromNativeElement(el)
       if (!alias) {
@@ -241,12 +240,12 @@ export class EtCodeElement extends EtComponent {
     return mdastNode({
       type: 'code',
       value: this.codeCtx.code,
-      lang: this.lang,
+      lang: this.codeLang,
       meta: Object.keys(meta).length ? JSON.stringify(meta) : undefined,
     })
   }
 
-  static fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: Et.MdastNodeHandlerMap = {
     code: (node, ctx) => {
       const lang = node.lang ? (ctx.pctx.$codePx.highlighter.langs[node.lang] ?? '') : ''
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), lang, true)

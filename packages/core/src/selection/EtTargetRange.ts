@@ -751,20 +751,20 @@ class TargetRange implements _SelectionTarget {
 export const getTargetRangeCtor = (etBody: Et.EditorBody) => {
   class _TargetCaret extends TargetCaret {
     constructor(
-      public readonly container: Et.HTMLNode,
-      public readonly offset: number,
+      override readonly container: Et.HTMLNode,
+      override readonly offset: number,
     ) {
       super(container, offset)
     }
   }
   class _TargetRange extends TargetRange {
     private constructor(
-      public readonly startNode: Et.HTMLNode,
-      public readonly startOffset: number,
-      public readonly endNode: Et.HTMLNode,
-      public readonly endOffset: number,
-      public readonly collapsed: boolean,
-      public readonly commonAncestor: Et.HTMLNode,
+      override readonly startNode: Et.HTMLNode,
+      override readonly startOffset: number,
+      override readonly endNode: Et.HTMLNode,
+      override readonly endOffset: number,
+      override readonly collapsed: boolean,
+      override readonly commonAncestor: Et.HTMLNode,
     ) {
       super(startNode, startOffset, endNode, endOffset, collapsed, commonAncestor)
     }

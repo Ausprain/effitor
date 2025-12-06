@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import type { NodeHasParent } from '@effitor/shared'
 
 import type { Et } from '../../@types'
 import { cr } from '../../selection'
@@ -852,18 +855,20 @@ const cmdHandler = {
     }
     // 为首个命令设置初始光标位置; 仅当第一个命令未设置srcCaretRange(为undefined)时, 才设置;
     // 若为 null, 说明命令本身不要设置初始光标位置, 即撤回时不要改变光标
-    if (recordCmds.length && recordCmds[0].srcCaretRange === void 0) {
-      recordCmds[0].srcCaretRange = ctx.selection.getCaretRange()
-    }
-    if (destCaretRange) {
-      recordCmds[recordCmds.length - 1].destCaretRange = destCaretRange
-      lastCaretRange = destCaretRange
-    }
-    else if (destCaretRange === null) {
-      recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange = null
-    }
-    else {
-      recordCmds[recordCmds.length - 1].destCaretRange = lastCaretRange
+    if (recordCmds.length) {
+      if (recordCmds[0]!.srcCaretRange === void 0) {
+        recordCmds[0]!.srcCaretRange = ctx.selection.getCaretRange()
+      }
+      if (destCaretRange) {
+        recordCmds[recordCmds.length - 1]!.destCaretRange = destCaretRange
+        lastCaretRange = destCaretRange
+      }
+      else if (destCaretRange === null) {
+        recordCmds[recordCmds.length - 1]!.destCaretRange = lastCaretRange = null
+      }
+      else {
+        recordCmds[recordCmds.length - 1]!.destCaretRange = lastCaretRange
+      }
     }
     return lastCaretRange
   },
@@ -874,9 +879,10 @@ const cmdHandler = {
    */
   handleUndo(cmds: readonly ExecutedCmd[], ctx: Et.EditorContext) {
     for (let i = cmds.length - 1; i >= 0; i--) {
-      cmds[i].undo(ctx)
+      cmds[i]!.undo(ctx)
     }
-    const srcCaretRange = cmds[0].srcCaretRange
+    // 调用者判定cmds非空
+    const srcCaretRange = cmds[0]!.srcCaretRange
     if (srcCaretRange) {
       return ctx.setSelection(srcCaretRange)
     }
@@ -896,7 +902,8 @@ const cmdHandler = {
     for (const cmd of cmds) {
       cmd.exec(ctx)
     }
-    const destCaretRange = cmds[cmds.length - 1].destCaretRange
+    // 调用者判定cmds非空
+    const destCaretRange = cmds[cmds.length - 1]!.destCaretRange
 
     if (destCaretRange) {
       return ctx.setSelection(destCaretRange)

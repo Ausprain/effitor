@@ -12,7 +12,7 @@ import './augment'
 import type { Et } from '@effitor/core'
 
 import { initCodePluginContext } from './codePluginContext'
-import { RenderOptions } from './codeRenderer'
+import type { RenderOptions } from './codeRenderer'
 import type { CodeBlockRenderOptions } from './config'
 import { type CodeActionMap, codeActions, codeEffector } from './effector'
 import { EtCodeElement } from './EtCodeElement'

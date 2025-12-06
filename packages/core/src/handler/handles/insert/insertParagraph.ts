@@ -148,8 +148,9 @@ export const insertParagraphAtRange = (
         }))
       }
       // endP 未被删除, 光标置于其开头
-      if (endAncestorPartial) {
-        cmds[cmds.length - 1].destCaretRange = cr.caretInStart(endP)
+      if (endAncestorPartial && cmds.length) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        cmds[cmds.length - 1]!.destCaretRange = cr.caretInStart(endP)
       }
       // 否则, start 后插入新段落
       else {

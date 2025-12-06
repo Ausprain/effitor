@@ -52,7 +52,8 @@ export const formatTable = (ctx: Et.EditorContext, table: EtTableElement) => {
         maxCol = row.childElementCount
       }
       if (colMap[row.childElementCount]) {
-        colMap[row.childElementCount].push(row)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        colMap[row.childElementCount]!.push(row)
       }
       else {
         colMap[row.childElementCount] = [row]
@@ -70,7 +71,7 @@ export const formatTable = (ctx: Et.EditorContext, table: EtTableElement) => {
       continue
     }
     const addCount = maxCol - col
-    const rows = colMap[col]
+    const rows = colMap[col] || []
     if (addCount === 1) {
       for (const row of rows) {
         cmds.push(cmd.insertNode({

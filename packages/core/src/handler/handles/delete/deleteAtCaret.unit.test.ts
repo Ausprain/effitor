@@ -222,9 +222,9 @@ describe('checkBackspaceAtCaretDeleteParagraph', () => {
     // 撤回
     ctx.commandManager.commit()
     ctx.commandManager.undoTransaction()
-    expect(body.children[0].innerHTML).toBe('First<b>paragraph9</b>')
-    expect(body.children[1].innerHTML).toBe('<b>Second</b>paragraph')
-    expect(body.children[2].innerHTML).toBe('third paragraph')
+    expect(body.children[0]!.innerHTML).toBe('First<b>paragraph9</b>')
+    expect(body.children[1]!.innerHTML).toBe('<b>Second</b>paragraph')
+    expect(body.children[2]!.innerHTML).toBe('third paragraph')
   })
 
   // TODO with top element
@@ -472,9 +472,9 @@ describe('checkDeleteAtCaretDeleteParagraph', () => {
     // 撤回
     ctx.commandManager.commit()
     ctx.commandManager.undoTransaction()
-    expect(body.children[0].innerHTML).toBe('First<b>paragraph9</b>')
-    expect(body.children[1].innerHTML).toBe('<b>Second</b>paragraph')
-    expect(body.children[2].innerHTML).toBe('third paragraph')
+    expect(body.children[0]!.innerHTML).toBe('First<b>paragraph9</b>')
+    expect(body.children[1]!.innerHTML).toBe('<b>Second</b>paragraph')
+    expect(body.children[2]!.innerHTML).toBe('third paragraph')
   })
 })
 

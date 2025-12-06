@@ -1,3 +1,5 @@
+import type { NodeHasParent } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import { dom } from '../utils'
 import { EtCaret } from './EtCaret'

@@ -1,5 +1,5 @@
 import { HotstringEnum } from './config'
-import { Hotstring, HotstringOptions } from './Hotstring'
+import { Hotstring, type HotstringOptions } from './Hotstring'
 
 /**
  * 创建一个热字符串对象实例

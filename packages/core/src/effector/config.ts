@@ -1,3 +1,5 @@
+import type { TrueOrVoid } from '@effitor/shared'
+
 import type { Et } from '../@types'
 import type { EditorContext, UpdatedContext } from '../context'
 import type { EditorCallbacks } from '../editor'

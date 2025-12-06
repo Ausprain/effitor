@@ -12,13 +12,13 @@ import { TABLE_CELL_ET_TYPE, TABLE_ROW_ET_TYPE, TableName } from './config'
 import { EtTableCellElement } from './EtTableCellElement'
 
 export class EtTableRowElement extends EtParagraph {
-  protected nativeTag?: keyof HTMLElementTagNameMap | undefined = 'tr'
+  protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'tr'
 
-  static readonly elName = TableName.TableRow
-  static readonly etType = super.etType | TABLE_ROW_ET_TYPE
-  static readonly inEtType = TABLE_CELL_ET_TYPE
+  static override readonly elName: string = TableName.TableRow
+  static override readonly etType: number = super.etType | TABLE_ROW_ET_TYPE
+  static override readonly inEtType: number = TABLE_CELL_ET_TYPE
 
-  connectedCallback(): void {
+  override connectedCallback(): void {
     this.setAttribute('contenteditable', '')
   }
 
@@ -33,8 +33,8 @@ export class EtTableRowElement extends EtParagraph {
    * 否则，返回：`<et-tr></et-tr>`
    * @param withCell 是否自带一个单元格, 默认为false
    */
-  static create(withCell = false) {
-    const el = document.createElement(this.elName)
+  static override create(withCell = false) {
+    const el = document.createElement(this.elName) as EtTableRowElement
     if (withCell) {
       const cell = EtTableCellElement.create()
       el.appendChild(cell)
@@ -58,7 +58,7 @@ export class EtTableRowElement extends EtParagraph {
     return cr.caretInEnd(lastCell)
   }
 
-  focusinCallback(ctx: EditorContext): void {
+  override focusinCallback(ctx: EditorContext): void {
     if (!ctx.isCaretIn(this)) {
       return
     }
@@ -71,7 +71,7 @@ export class EtTableRowElement extends EtParagraph {
     ctx.commonHandler.emptyElAndInsert(this, cell, cr.caretInEnd(cell))
   }
 
-  onAfterCopy(ctx: EditorContext): this | null {
+  override onAfterCopy(ctx: EditorContext): this | null {
     // 禁止单独复制行
     if (!ctx.schema.table.is(this.parentNode)) {
       return null
@@ -79,7 +79,7 @@ export class EtTableRowElement extends EtParagraph {
     return this
   }
 
-  static fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
+  static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     tr: (_el) => {
       return this.create()
     },
@@ -89,7 +89,7 @@ export class EtTableRowElement extends EtParagraph {
     return mdastNode('tableRow', this.childNodes, {})
   }
 
-  static fromMarkdownHandlerMap: MdastNodeHandlerMap = {
+  static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
     tableRow: () => {
       return this.create()
     },

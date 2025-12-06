@@ -185,8 +185,11 @@ const removeSpanningSimpleParagraph = (
       }))
       destCaretRange = cr.caretEndAuto(startUnselected.lastChild as Et.Node)
     }
-    cmds[cmds.length - 1].destCaretRange = destCaretRange
-    ctx.commandManager.push(...cmds)
+    if (cmds.length) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      cmds[cmds.length - 1]!.destCaretRange = destCaretRange
+      ctx.commandManager.push(...cmds)
+    }
     return true
   }
 
@@ -201,8 +204,11 @@ const removeSpanningSimpleParagraph = (
     if (!destCaretRange) {
       return false
     }
-    cmds[cmds.length - 1].destCaretRange = destCaretRange
-    ctx.commandManager.push(...cmds)
+    if (cmds.length) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      cmds[cmds.length - 1]!.destCaretRange = destCaretRange
+      ctx.commandManager.push(...cmds)
+    }
     return true
   }
 
@@ -220,8 +226,11 @@ const removeSpanningSimpleParagraph = (
       execAt: cr.caretInStart(endP),
     }))
   }
-  cmds[cmds.length - 1].destCaretRange = destCaretRange
-  ctx.commandManager.push(...cmds)
+  if (cmds.length) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    cmds[cmds.length - 1]!.destCaretRange = destCaretRange
+    ctx.commandManager.push(...cmds)
+  }
   return true
 }
 const removeSpanningComplexParagraph = (
@@ -262,8 +271,11 @@ const removeSpanningComplexParagraph = (
       }))
       destCaretRange = cr.caretEndAuto(startUnselected.lastChild as Et.Node)
     }
-    cmds[cmds.length - 1].destCaretRange = destCaretRange
-    ctx.commandManager.push(...cmds)
+    if (cmds.length) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      cmds[cmds.length - 1]!.destCaretRange = destCaretRange
+      ctx.commandManager.push(...cmds)
+    }
     return true
   }
   const endNext = endPartial ? endPartial.nextSibling : endP.firstChild
@@ -314,8 +326,11 @@ const removeSpanningComplexParagraph = (
     }
     tryToMoveNodes(cmds, endPartialOuter, endAncestor.lastChild, cr.caretOutEnd(startPartialOuter))
   }
-  cmds[cmds.length - 1].destCaretRange = destCaretRange
-  ctx.commandManager.push(...cmds)
+  if (cmds.length) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    cmds[cmds.length - 1]!.destCaretRange = destCaretRange
+    ctx.commandManager.push(...cmds)
+  }
   return true
 }
 

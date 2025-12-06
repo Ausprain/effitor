@@ -1,7 +1,7 @@
 import { KeyMod } from '@effitor/shared'
 
 import { type A_hotkey, type ActionGroupMap_, type HotkeyAction, HotkeyEnum } from './config'
-import { Key, keyChars } from './Key'
+import { type Key, keyChars } from './Key'
 import { CtrlCmd, modChar, type ModType } from './Mod'
 
 /**
@@ -44,7 +44,7 @@ export const modKey = (ev: KeyboardEvent) => {
  */
 export const parseHotkey = (modKey: string) => {
   const [key, mod] = modKey.split(HotkeyEnum.Connector)
-  const num = parseInt(mod)
+  const num = parseInt(mod as string)
   const parts = [
     (num & KeyMod.Ctrl) ? modChar.ctrl : '',
     (num & KeyMod.Shift) ? modChar.shift : '',
