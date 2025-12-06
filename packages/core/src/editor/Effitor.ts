@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/max-len */
 import { BuiltinConfig, BuiltinElName, CssClassEnum } from '@effitor/shared'
 import type { Options as FmOptions } from 'mdast-util-from-markdown'
 import type { Options as TmOptions } from 'mdast-util-to-markdown'
@@ -20,7 +19,6 @@ import { mountEtHandler, registerEtElement } from '../element/register'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, type MdProcessor } from '../markdown/processor'
 import { useUndo } from '../plugins'
-import { cssStyle2cssText } from '../utils'
 import type { EditorMountOptions } from './config'
 import { ConfigManager } from './ConfigManager'
 import { addListenersToEditorBody, initListeners } from './listeners'
@@ -234,10 +232,11 @@ export class Effitor {
     const toMdTransformerMapList: Et.MdastNodeTransformerMap[] = []
     const fromMdHandlerMapList: Et.MdastNodeHandlerMap[] = []
     const toMdHandlerMap: Et.ToMarkdownHandlerMap = {}
-    // 注册EtElement 加载mdast处理器 并获取内联样式; plugin的el必须先于内置的进行处理, 否则markdown处理顺序将可能与预期不符
-    const allCtorCssText = new Set([...pluginElCtors, ...Object.values(schema)]).values().reduce<string[]>((css, ctor) => {
-      if (!ctor) {
-        return css
+    // 注册EtElement 加载mdast处理器; plugin的元素类必须先于内置的进行处理, 否则markdown处理顺序将可能与预期不符
+    const registeredCtors = new WeakSet<Et.EtElementCtor>()
+    pluginElCtors.concat(Object.values(schema)).forEach((ctor) => {
+      if (registeredCtors.has(ctor)) {
+        return
       }
       registerEtElement(ctor)
       if (ctor.fromNativeElementTransformerMap) {
@@ -250,19 +249,12 @@ export class Effitor {
         toMdTransformerMapList.push(ctor.toMarkdownTransformerMap)
       }
       Object.assign(toMdHandlerMap, ctor.toMarkdownHandlerMap)
-
-      css.push(
-        ctor.cssStyle === undefined
-          ? ctor.cssText
-          : ctor.cssText + '\n' + cssStyle2cssText(ctor.cssStyle, ctor.elName),
-      )
-      return css
-    }, []).join('\n') + pluginConfigs.cssText + '\n' + customStyleText
+    })
 
     this.__meta = {
       contextMeta,
       mainEffector,
-      cssText: baseCss + builtinCss + allCtorCssText,
+      cssText: baseCss + builtinCss + pluginConfigs.cssText + customStyleText,
       pluginConfigs,
       customStyleLinks,
       hotstringOptions,

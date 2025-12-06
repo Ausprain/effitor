@@ -63,15 +63,8 @@ export abstract class EffectElement
   static inEtType = 0
   /** 该效应元素直接子节点不允许的效应元素类型 */
   static notInEtType = 0
-  /** 元素名, 必须是小写字母且是`et-`开头的kebab形式, 实例的nodeName和tagName是其大写形式, 而localName与该值相同 */
+  /** 元素名, 必须是小写字母且是kebab形式, 实例的nodeName和tagName是其大写形式, 而localName与该值相同 */
   static readonly elName: string
-  /**
-   * style对象, 用于构建css字符串, 插入到shadowRoot中的内置样式表, 为元素设置内定样式;
-   * 最终会以`${elName} { ... }`形式追加到cssText中
-   */
-  static readonly cssStyle: Partial<CSSStyleDeclaration> = {}
-  /** style字符串, 作为cssStyle的补充, 如添加:focus等的样式 */
-  static readonly cssText: string = ''
   /** 观察的属性列表，列表内属性改变时触发 attributeChangedCallback */
   static readonly observedAttributes: string[] = []
 
