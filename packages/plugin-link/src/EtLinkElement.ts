@@ -74,7 +74,7 @@ export class EtLinkElement extends EtRichText {
 
   toNativeElement(_ctx: EditorContext, prefers: ToNativeHTMLPrefers): null | HTMLElement | (() => HTMLElement) {
     const el = prefers === 'class'
-      ? dom.elementByEtEl('a', this, ['link-url', 'link-title'])
+      ? dom.elementAsEtEl('a', this, ['link-url', 'link-title'])
       : document.createElement('a')
     el.href = this.linkUrl
     el.title = this.linkTitle

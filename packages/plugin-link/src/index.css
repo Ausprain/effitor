@@ -1,3 +1,4 @@
+.et-editor,
 et-editor,
 :host {
   --et-link-color__text: hsl(240 66% 57%);
@@ -5,6 +6,7 @@ et-editor,
   --et-link-color__bg--hover: hsl(240 66% 95%);
 }
 
+.et-editor.dark,
 et-editor.dark,
 :host(.dark) {
   --et-link-color__text: hsl(240 100% 77%);
@@ -13,6 +15,7 @@ et-editor.dark,
 }
 
 
+.et-link,
 et-link {
   /* 设置position的同时设置background-color, 光标会被其吞掉(看不见) */
   /* position: relative; */

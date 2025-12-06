@@ -11,25 +11,33 @@ import { etcode } from '../../element/etcode'
 /* -------------------------------------------------------------------------- */
 /*                                  node utils                                */
 /* -------------------------------------------------------------------------- */
+type CSSDeclareObject = OmitNumberIndexSignature<Omit<{
+  [k in keyof CSSStyleDeclaration as CSSStyleDeclaration[k] extends string ? k : never]?: CSSStyleDeclaration[k]
+}, 'cssText'>>
 
 /** 创建一个只有一个零宽字符的文本节点 */
 export const zwsText = () => document.createTextNode(HtmlCharEnum.ZERO_WIDTH_SPACE) as Et.Text
 export const createText = (data: string) => document.createTextNode(data) as Et.Text
-export const el = <K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string, cssText?: string): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+export const el = <K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string | string[], cssTextOrObject?: string | CSSDeclareObject): HTMLElementTagNameMap[K] & Et.HTMLElement => {
   const el = document.createElement(tagName)
   if (className) {
-    el.className = className
+    el.className = typeof className === 'string' ? className : className.join(' ')
   }
-  if (cssText) {
-    el.style.cssText = cssText
+  if (cssTextOrObject) {
+    if (typeof cssTextOrObject === 'string') {
+      el.style.cssText = cssTextOrObject
+    }
+    else {
+      Object.assign(el.style, cssTextOrObject)
+    }
   }
   return el as HTMLElementTagNameMap[K] & Et.HTMLElement
 }
-export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, attrs: Record<string, string> | NamedNodeMap, omitList: string[] = []): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, attrs: Record<string, string> | NamedNodeMap, omitList: string[] | ('contenteditable')[] = []): HTMLElementTagNameMap[K] & Et.HTMLElement => {
   const el = document.createElement(tagName)
   if (attrs.item) {
     for (const item of (attrs as NamedNodeMap)) {
-      if (omitList.includes(item.name)) {
+      if ((omitList as string[]).includes(item.name)) {
         continue
       }
       el.setAttribute(item.name, item.value)
@@ -37,7 +45,7 @@ export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, a
   }
   else {
     for (const key in attrs) {
-      if (omitList.includes(key)) {
+      if ((omitList as string[]).includes(key)) {
         continue
       }
       el.setAttribute(key, (attrs as Record<string, string>)[key])
@@ -47,14 +55,14 @@ export const elWithAttrs = <K extends keyof HTMLElementTagNameMap>(tagName: K, a
 }
 /**
  * 使用效应元素创建一个新的元素节点, 并复制其属性到新元素, 同时添加其 localName 到新元素css类名
- * @param el 效应元素
+ * @param etel 效应元素
  * @param tagName 新元素的标签名
  * @param omitAttrList 要省略复制的属性名列表; 默认为 ['contenteditable']
  * @returns 新元素节点
  */
-export const elementByEtEl = <K extends keyof HTMLElementTagNameMap>(tagName: K, el: Et.EtElement, omitAttrList: string[] = ['contenteditable']): HTMLElementTagNameMap[K] & Et.HTMLElement => {
-  const c = elWithAttrs(tagName, el.attributes, omitAttrList)
-  c.classList.add(el.localName)
+export const elementAsEtEl = <K extends keyof HTMLElementTagNameMap>(tagName: K, etel: Et.EtElement, omitAttrList: string[] = ['contenteditable']): HTMLElementTagNameMap[K] & Et.HTMLElement => {
+  const c = elWithAttrs(tagName, etel.attributes, omitAttrList)
+  c.classList.add(etel.localName)
   return c
 }
 /** 创建一个可编辑的 div 元素, 禁用拼写检查、自动修正、自动大写 */

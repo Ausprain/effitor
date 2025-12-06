@@ -354,7 +354,7 @@ export abstract class EffectElement
       return el
     }
     else {
-      const el = dom.elementByEtEl(toTag, this)
+      const el = dom.elementAsEtEl(toTag, this)
       return el
     }
   }

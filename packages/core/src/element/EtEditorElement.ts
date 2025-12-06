@@ -29,7 +29,7 @@ export abstract class EtEditorElement extends EffectElement {
     if (prefers === 'style') {
       return `<div>${bodyHTML}</div>`
     }
-    const el = dom.elementByEtEl('div', this)
+    const el = dom.elementAsEtEl('div', this)
     return el.outerHTML.slice(0, -6) + bodyHTML + '</div>'
   }
 }

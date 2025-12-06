@@ -75,7 +75,7 @@ const initLinkPopup = (popup: Popup) => {
     }),
   ]
   popup.addHoverPopup<EtLinkElement>(LinkEnum.Popup_Key, () => {
-    const div = dom.el('div', LinkEnum.Class_Popup, CssClassEnum.Card)
+    const div = dom.el('div', `${LinkEnum.Class_Popup} ${CssClassEnum.Card}`)
     const urlInput = dom.pureEditableDiv(true)
     urlInput.tabIndex = 0
     urlInput.className = LinkEnum.Class_Popup_Input
