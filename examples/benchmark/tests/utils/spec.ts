@@ -61,8 +61,12 @@ const testEditorPerf = ({ editor, testItem, pageUrl, testStart, testEnd, testAct
 
     // 滚动页面至底部
     await page.evaluate(() => {
-      document.documentElement.scrollTop = document.documentElement.scrollHeight
+      document.documentElement.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'instant',
+      })
     })
+    await page.waitForTimeout(500)
 
     // 聚焦编辑区, 光标移动至末段落
     const lastP = editor.locator('>:last-child')
@@ -72,6 +76,8 @@ const testEditorPerf = ({ editor, testItem, pageUrl, testStart, testEnd, testAct
     else {
       await editor.click()
     }
+    // 等待光标位置稳定, 避免脚本太快导致光标位置滞留在上一个位置
+    await page.waitForTimeout(500)
 
     await testAction(page)
 

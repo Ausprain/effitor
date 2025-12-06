@@ -1,0 +1,210 @@
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [effitor]
+duration: 35.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1688      │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 36.0      │ good                │ 
+│ Memory     │ total: 43 MB, used: 24 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 44.3s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 584       │ good                │
+│ LCP        │ 584       │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 104.0     │ good                │ 
+│ Memory     │ total: 46 MB, used: 32 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 48.9s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1704      │ good                │
+│ LCP        │ 1704      │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 80        │ good                │
+│ INPs (avg) │ 115.4     │ good                │ 
+│ Memory     │ total: 35 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [effitor]
+duration: 35.3s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1520      │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 40.0      │ good                │ 
+│ Memory     │ total: 41 MB, used: 25 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 45.3s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 512       │ good                │
+│ LCP        │ 512       │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 104.0     │ good                │ 
+│ Memory     │ total: 47 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 50.1s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1764      │ good                │
+│ LCP        │ 1764      │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 80        │ good                │
+│ INPs (avg) │ 146.0     │ good                │ 
+│ Memory     │ total: 35 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [effitor]
+duration: 33.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1220      │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 48.0      │ good                │ 
+│ Memory     │ total: 42 MB, used: 25 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 44.6s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 476       │ good                │
+│ LCP        │ 476       │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 120.0     │ good                │ 
+│ Memory     │ total: 46 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 50.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1840      │ needs-improvement   │
+│ LCP        │ 1840      │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 80        │ good                │
+│ INPs (avg) │ 176.0     │ good                │ 
+│ Memory     │ total: 33 MB, used: 31 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [effitor]
+duration: 34.5s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1720      │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 76.0      │ good                │ 
+│ Memory     │ total: 44 MB, used: 25 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 45.2s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 500       │ good                │
+│ LCP        │ 500       │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 120.0     │ good                │ 
+│ Memory     │ total: 47 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 50.8s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1740      │ good                │
+│ LCP        │ 1740      │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 88        │ good                │
+│ INPs (avg) │ 134.4     │ good                │ 
+│ Memory     │ total: 34 MB, used: 30 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的空编辑器中输入 1000 个字符 by [effitor]
+duration: 34.5s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1220      │ good                │
+│ LCP        │ undefined │ undefined           │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 40        │ good                │
+│ INPs (avg) │ 56.0      │ good                │ 
+│ Memory     │ total: 41 MB, used: 25 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 30 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 45.2s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 492       │ good                │
+│ LCP        │ 492       │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 56        │ good                │
+│ INPs (avg) │ 120.0     │ good                │ 
+│ Memory     │ total: 47 MB, used: 32 MB       │
+└────────────┴───────────┴─────────────────────┘
+
+Metrics for: 支持基础 markdown 的编辑器, 加载 100 万字符 HTML (无表格和代码块), 并在末段落输入 1000 个字符 by [effitor]
+duration: 50.9s
+env: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36
+┌────────────┬───────────┬─────────────────────┐
+│ metric     │ value     │ rating              │
+├────────────┼───────────┼─────────────────────┤
+│ FCP        │ 1752      │ good                │
+│ LCP        │ 1752      │ good                │
+│ CLS        │ 0.0000    │ good                │
+│ INP        │ 80        │ good                │
+│ INPs (avg) │ 193.6     │ good                │ 
+│ Memory     │ total: 39 MB, used: 33 MB       │
+└────────────┴───────────┴─────────────────────┘
+

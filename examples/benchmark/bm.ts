@@ -13,7 +13,7 @@ const OUT_DIR = resolve(__dirname, './tests/output')
 
 const runTest = async () => {
   return new Promise((resolve, reject) => {
-    const child = spawn('npx', ['playwright', 'test'], {
+    const child = spawn('npx', ['playwright', 'test', '--headed'], {
       stdio: 'inherit', // 继承父进程的 I/O
       cwd: process.cwd(),
       env: { ...process.env, FORCE_COLOR: '1' }, // 保持颜色输出
@@ -41,7 +41,8 @@ const clearOutputDir = () => {
 
 async function startDevServer() {
   const server = await createServer({
-    root: __dirname, // 项目根目录（含 index.html）
+    root: resolve(__dirname, './dist'),
+    // root: __dirname, // 项目根目录（含 index.html）
     server: {
       port: DEV_PORT,
     },
