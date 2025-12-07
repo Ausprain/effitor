@@ -239,6 +239,7 @@ export class Effitor {
         return
       }
       registerEtElement(ctor)
+      registeredCtors.add(ctor)
       if (ctor.fromNativeElementTransformerMap) {
         htmlTransformerMaps.push(ctor.fromNativeElementTransformerMap)
       }
