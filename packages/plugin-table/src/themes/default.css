@@ -1,0 +1,77 @@
+
+.et-table, et-table,
+:where(.et-editor, et-editor)[et-theme="default"] :where(.et-table, et-table){
+  width: 100%;
+  border-collapse: separate;
+  border: 1px solid var(--et-table-border-color);
+
+  &:has(> :only-child) {
+    border-radius: 4px;
+    --et-table-border-radius: 4px;
+  }
+  &:has(> :nth-child(2)) {
+    border-radius: 6px;
+    --et-table-border-radius: 6px;
+  }
+  &:has(> :nth-child(3)) {
+    border-radius: 8px;
+    --et-table-border-radius: 8px;
+  }
+}
+
+.et-tr, et-tr,
+:where(.et-editor, et-editor)[et-theme="default"] :where(.et-tr, et-tr){
+  &:nth-child(odd) {
+    background-color: var(--et-table-odd-row-bg-color);
+    transition-property: background-color;
+    transition-duration: var(--et-transition-duration);
+    transition-timing-function: var(--et-transition-timing-function);
+  }
+  &:first-child {
+    border-top-left-radius: var(--et-table-border-radius);
+    border-top-right-radius: var(--et-table-border-radius);
+  }
+  &:last-child {
+    border-bottom-left-radius: var(--et-table-border-radius);
+    border-bottom-right-radius: var(--et-table-border-radius);
+  }
+
+  .Et--selection-all & {
+    background-color: transparent;
+    transition: none;
+  }
+}
+
+
+.et-tc, et-tc,
+:where(.et-editor, et-editor)[et-theme="default"] :where(.et-tc, et-tc){
+  border: none;
+  
+  transition-property: border-color;
+  transition-duration: var(--et-transition-duration);
+  transition-timing-function: var(--et-transition-timing-function);
+
+  &:not(:first-child) {
+    border-inline-start: 1px solid var(--et-table-border-color);
+  }
+  .et-tr:not(:first-child) > &,
+  et-tr:not(:first-child) > & {
+    border-block-start: 1px solid var(--et-table-border-color);
+  }
+  .et-tr:first-child > &:first-child,
+  et-tr:first-child > &:first-child {
+    border-top-left-radius: var(--et-table-border-radius);
+  }
+  .et-tr:first-child > &:last-child,
+  et-tr:first-child > &:last-child {
+    border-top-right-radius: var(--et-table-border-radius);
+  }
+  .et-tr:last-child > &:first-child,
+  et-tr:last-child > &:first-child {
+    border-bottom-left-radius: var(--et-table-border-radius);
+  }
+  .et-tr:last-child > &:last-child,
+  et-tr:last-child > &:last-child {
+    border-bottom-right-radius: var(--et-table-border-radius);
+  }
+}

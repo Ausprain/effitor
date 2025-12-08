@@ -52,19 +52,21 @@ const pkgDirPaths = [
   ...(await fs.readdir(PACKAGES_DIR_PATH)).map(name => resolve(PACKAGES_DIR_PATH, name)),
   ...(await fs.readdir(EXAMPLES_DIR_PATH)).map(name => resolve(EXAMPLES_DIR_PATH, name)),
 ]
+// 获取所有package.json路径
 const pkgJsonPaths = await Promise.all(pkgDirPaths.map(async (dir) => {
   return await fs.stat(resolve(dir, 'package.json')).then(
     stat => stat.isFile() ? resolve(dir, 'package.json') : '',
     () => '',
   )
 })).then(paths => paths.filter(Boolean))
+// 读取所有package.json内容
 const packageJsonList = await Promise.all(pkgJsonPaths.map(async (path) => {
   return {
     path,
     json: (await import(path)).default,
   }
 }))
-
+// 更新所有package.json
 packageJsonList.forEach(({ path: jsonPath, json }) => {
   let pkgName = basename(dirname(jsonPath))
   if (!pkgName) {

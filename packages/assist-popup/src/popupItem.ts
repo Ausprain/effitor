@@ -10,7 +10,7 @@ export const createPopupItem = <T extends Et.EtElement>(
   filter?: PopupItemFilter,
 ): PopupItem<T> => {
   const span = dom.el('span', `${CssClassEnum.BgItem} ${PopupEnum.Class_Popup_Item}`)
-  span.setAttribute(HtmlAttrEnum.HintTitle, tip)
+  span.setAttribute(HtmlAttrEnum.EtTitle, tip)
   span.appendChild(icon)
   return {
     el: span,

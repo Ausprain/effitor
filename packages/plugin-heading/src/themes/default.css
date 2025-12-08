@@ -1,0 +1,31 @@
+
+.et-heading, et-heading,
+:where(.et-editor, et-editor)[et-theme="default"] :where(.et-heading, et-heading){
+  &::before, &::after {
+    position: absolute;
+    top: var(--semi-line-height);
+    left: -8px;
+    color: var(--et-color-hinting);
+    opacity: 0.1;
+    transition: opacity 0.2s ease-out;
+  }
+  &::before {
+    content: "H";
+    translate: -100% -50%;
+    font-size: 1rem;
+  }
+  &::after {
+    content: attr(data-level);
+    translate: 0 -30%;
+    font-size: 0.6rem;
+  }
+  &.Et--caret-in::before,&.Et--caret-in::after,
+  &:hover::before, &:hover::after {
+    opacity: 1;
+  }
+  .Et--heading-nomarker & {
+    &::before {
+      content: none;
+    }
+  }
+}

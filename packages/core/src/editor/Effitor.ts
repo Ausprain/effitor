@@ -377,14 +377,14 @@ export class Effitor {
    */
   setColorScheme(isDark: boolean) {
     const root = this.isShadow ? (this.__root as ShadowRoot).host : (this.__root as HTMLElement)
-    if (!root || root.classList.contains('dark') === isDark) {
+    if (!root || root.classList.contains(CssClassEnum.DarkMode) === isDark) {
       return
     }
     if (isDark) {
-      root.classList.add('dark')
+      root.classList.add(CssClassEnum.DarkMode)
     }
     else {
-      root.classList.remove('dark')
+      root.classList.remove(CssClassEnum.DarkMode)
     }
     Object.assign(this.status, { isDark })
     this.callbacks.onDarkModeChanged?.(this.context, isDark)
@@ -691,6 +691,11 @@ export class Effitor {
   ) {
     const editorEl = document.createElement(BuiltinElName.ET_EDITOR)
     const body = document.createElement(BuiltinElName.ET_BODY)
+
+    if (!this.config.INSERT_BR_FOR_LINE_BREAK) {
+      // 换行不使用<br>时, 设置pre, 以支持段落内文本换行符来换行
+      body.style.whiteSpace = 'pre-wrap'
+    }
 
     // 链接自定义样式文件
     const linkStyleCss = () => {

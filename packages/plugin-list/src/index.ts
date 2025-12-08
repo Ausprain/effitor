@@ -35,13 +35,13 @@
  * ```
  */
 import './augment'
+import './index.css'
 
 import { type Et } from '@effitor/core'
 
 import { type ListActionMap, listActions, listEffector } from './effector'
 import { EtListElement, EtListItemElement } from './EtListElement'
 import { inListHandler } from './handler/inListHandler'
-import listCss from './index.css?raw'
 
 export interface ListPluginOptions {
   /**
@@ -55,7 +55,6 @@ export const useListPlugin = (options?: ListPluginOptions): Et.EditorPlugin => {
   options?.useActions?.(listActions)
   return {
     name: '@effitor/plugin-list',
-    cssText: listCss,
     effector: listEffector,
     elements: [EtListElement, EtListItemElement],
     register(_ctxMeta, setSchema, mountEtHandler) {

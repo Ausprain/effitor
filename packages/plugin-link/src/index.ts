@@ -10,13 +10,14 @@
  *  3.1 粘贴时需校验当前效应元素是否允许插入链接
  */
 
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import { initLinkPluginContext, LINK_ET_TYPE, type LinkPluginContextOptions } from './config'
 import { type LinkActionMap, linkActions, linkEffector } from './effector'
 import { EtLinkElement } from './EtLinkElement'
 import { markLinkHandler } from './handler'
-import cssText from './index.css?raw'
 
 export interface LinkPluginOptions extends LinkPluginContextOptions {
   /** 允许插入链接的效应元素的构造器列表, 默认仅有shcema段落 */
@@ -32,7 +33,6 @@ export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPlugin => {
   options?.useActions?.(linkActions)
   return {
     name: '@effitor/plugin-link',
-    cssText,
     effector: linkEffector,
     elements: [EtLinkElement],
     register(ctx, setSchema, mountEtHandler) {

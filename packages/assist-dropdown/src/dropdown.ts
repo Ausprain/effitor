@@ -355,7 +355,7 @@ export class Dropdown {
       onchosen(this._ctx)
     }
     if (options?.tip) {
-      icon.setAttribute(HtmlAttrEnum.HintTitle, options.tip)
+      icon.setAttribute(HtmlAttrEnum.EtTitle, options.tip)
     }
     return {
       el: icon,

@@ -8,6 +8,8 @@ import { MarkEnum, MarkStatus, MarkType } from './config'
 
 export const MARK_ET_TYPE = etcode.get(MarkEnum.ElName)
 
+const markCssClass = (type: string) => `Et_${type}`
+
 export class EtMarkElement extends EtRichText {
   static override readonly etType: number = super.etType | MARK_ET_TYPE
   static override readonly inEtType: number = EtTypeEnum.PlainText | MARK_ET_TYPE
@@ -33,7 +35,7 @@ export class EtMarkElement extends EtRichText {
     const el = document.createElement(MarkEnum.ElName) as EtMarkElement
     if (markType) {
       el.markType = markType ?? ''
-      el.addCssClass(markType)
+      el.classList.add(markCssClass(markType))
     }
     return el
   }
@@ -42,9 +44,9 @@ export class EtMarkElement extends EtRichText {
     const currType = this.markType
     if (currType !== markType) {
       if (currType) {
-        this.removeCssClass(currType)
+        this.classList.remove(markCssClass(currType))
       }
-      this.addCssClass(markType)
+      this.classList.add(markCssClass(markType))
       this.markType = markType
     }
   }
@@ -74,8 +76,8 @@ export class EtMarkElement extends EtRichText {
     mergeHtmlNode: (former: Et.NodeOrNull, latter: Et.NodeOrNull, affinityToFormer?: boolean | undefined) => Et.EtCaret,
   ): Et.EtCaret {
     // 去掉hinting状态
-    this.removeCssClass(MarkStatus.HINTING)
-    el.removeCssClass(MarkStatus.HINTING)
+    this.classList.remove(MarkStatus.HINTING)
+    el.classList.remove(MarkStatus.HINTING)
     return super.mergeWith(el, mergeHtmlNode)
   }
 
@@ -248,7 +250,7 @@ export const createMarkNode = (markType: `${MarkType}`, data = ''): [EtMarkEleme
   markEl.appendChild(text)
   // 没有data, 标记临时节点
   if (!data) {
-    markEl.addCssClass(MarkStatus.MARKING)
+    markEl.classList.add(MarkStatus.MARKING)
   }
   return [markEl, text]
 }

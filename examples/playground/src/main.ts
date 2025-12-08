@@ -2,35 +2,37 @@
 
 import 'rect-visualizer'
 
-import '@effitor/themes/default.min.css'
+// import '@effitor/themes/default.min.css'
+import '@effitor/themes/default/index.css'
 
 import './assets/main.css'
 
 import * as icons from '../../../packages/shared/src/icons'
 
-import { Effitor, etcode } from '@effitor/core'
+import { Effitor, etcode, EtParagraphElement } from '@effitor/core'
 import { HtmlAttrEnum } from '@effitor/shared'
 
-import { useMarkPlugin } from '@effitor/plugin-mark'
-import { useHeadingPlugin } from '@effitor/plugin-heading'
-import { useListPlugin } from '@effitor/plugin-list'
+// import { useAIAssist } from '@effitor/assist-ai'
 import { useCounterAssist } from '@effitor/assist-counter'
 import { useDialogAssist } from '@effitor/assist-dialog'
 import { useDropdownAssist } from '@effitor/assist-dropdown'
 import { useMessageAssist } from '@effitor/assist-message'
 import { usePopupAssist } from '@effitor/assist-popup'
-import { useCodePlugin } from '@effitor/plugin-code'
-import { useLinkPlugin } from '@effitor/plugin-link'
-import { CreateImageOptions, useMediaPlugin } from '@effitor/plugin-media'
 import { useBlockquotePlugin } from '@effitor/plugin-blockquote'
-import { useTablePlugin } from '@effitor/plugin-table'
+import { useCodePlugin } from '@effitor/plugin-code'
+import { useHeadingPlugin } from '@effitor/plugin-heading'
+import { useLinkPlugin } from '@effitor/plugin-link'
+import { useListPlugin } from '@effitor/plugin-list/'
+import { useMarkPlugin } from '@effitor/plugin-mark'
+import { type CreateImageOptions, useMediaPlugin } from '@effitor/plugin-media'
+import { EtTableCellElement, useTablePlugin } from '@effitor/plugin-table'
 // import { renderExcalidraw } from '@effitor/plugin-excalidraw'
 // import css from '@excalidraw/excalidraw/index.css?raw'
 // console.log(css.length)  // 186452
 
 // import md from '../../../README_zh.md?raw'
-import md from '../demo.md?raw'
 import DOMPurify from 'dompurify'
+import md from '../demo.md?raw'
 
 const onMediaFileSelected = (files: File[]) => {
   const opts: CreateImageOptions[] = []
@@ -72,6 +74,7 @@ const editor = new Effitor({
     sanitizer: html => DOMPurify.sanitize(html),
   },
   assists: [
+    // useAIAssist(),
     useCounterAssist({
       onUpdated: (count) => {
         countSpan.textContent = JSON.stringify(count)
@@ -83,7 +86,9 @@ const editor = new Effitor({
     usePopupAssist(),
   ],
   plugins: [
-    useMarkPlugin(),
+    useMarkPlugin({
+      needMarkEffectElementCtors: [EtTableCellElement, EtParagraphElement],
+    }),
     useHeadingPlugin(),
     useBlockquotePlugin(),
     useListPlugin(),
@@ -123,6 +128,53 @@ const host = document.getElementById('effitor-host') as HTMLDivElement
 editor.mount(host)
 editor.fromMarkdown(md)
 
+// editor.context.commonHandler.initEditorContents(true)
+// editor.bodyEl.dispatchEvent(new KeyboardEvent('keydown', {
+//   key: '#AAA',
+// }))
+// requestAnimationFrame(() => {
+//   editor.bodyEl.dispatchEvent(new KeyboardEvent('keydown', {
+//     key: ' ',
+//   }))
+// })
+// editor.bodyEl.contentEditable = 'false'
+
+// aa\`bbb\`dde\\\`f
+// \`\`\`js
+// const a = 3;
+// \`\`\`
+// aa
+
+// - 司法界
+// - 上飞机诶
+
+// 1. 的撒娇佛额
+// 2. 的撒娇佛IE
+
+// * 的sjfie
+// * 是的就发i饿哦
+// const mmd = `# 这是一个标题
+
+// aaa[www](www.cc.com)gg
+// `
+
+// // 这是一个段落**aabb**DDeff==www==kkll*abbc*ddef**bold*italic*end**。
+// editor.context.assists.ai.typingMarkdown(mmd, 50)
+
+// const btn = dom.el('button', '', `
+//   position: fixed;
+//   top: 100px;
+//   right: 100px;
+//   z-index: 1000;
+//   background-color: wheat;
+//   width: 50px;
+//   height: 50px;
+//   `)
+// document.body.appendChild(btn)
+// btn.onclick = () => {
+//   editor.context.actions.table.insertNewRowBottom(editor.context)
+// }
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 window.ctx = editor.context
@@ -143,7 +195,7 @@ flex-wrap: wrap;`
       const span = document.createElement('span')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       span.appendChild((icons[key as keyof typeof icons] as any)())
-      span.setAttribute(HtmlAttrEnum.HintTitle, key)
+      span.setAttribute(HtmlAttrEnum.EtTitle, key)
       span.style.margin = '8px'
       iconsHost.appendChild(span)
     }

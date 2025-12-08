@@ -5,7 +5,7 @@ import type { Nodes } from 'mdast'
 
 import { HeadingEnum } from './config'
 
-const levelClass = (hl: Et.HeadingLevel) => `h${hl}`
+const levelClass = (hl: Et.HeadingLevel) => `Et_h${hl}`
 
 export class EtHeadingElement extends EtHeading {
   static override readonly elName = HeadingEnum.ElName
@@ -28,7 +28,7 @@ export class EtHeadingElement extends EtHeading {
   set headingLevel(v: Et.HeadingLevel) {
     v = Math.max(1, Math.min(Math.floor(v), 6)) as Et.HeadingLevel
     this.dataset.level = v.toString()
-    this.addCssClass(levelClass(v))
+    this.classList.add(levelClass(v))
     this.nativeTag = `h${v}`
   }
 
@@ -41,7 +41,7 @@ export class EtHeadingElement extends EtHeading {
     if (hl === curr) return
     if (!~curr) {
       // 不是初始化-1，移除之前的class
-      this.removeCssClass(levelClass(curr))
+      this.classList.remove(levelClass(curr))
     }
     this.headingLevel = hl
   }

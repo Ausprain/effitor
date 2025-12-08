@@ -1,0 +1,21 @@
+
+
+.et-list, et-list,
+:where(.et-editor, et-editor)[et-theme="default"] :where(.et-list, et-list){
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-left: 1px solid transparent;
+    translate: 2px 0;
+  }
+  &:has(>.Et--caret-in) {
+    position: relative;
+    &::before {
+      border-color: var(--et-color-border-3);
+      transition: border-color 0.2s ease-out;
+    }
+  }
+}

@@ -1,9 +1,10 @@
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import type { DropdownTrigger } from './config'
 import { Dropdown } from './dropdown'
 import { getDropdownEffector } from './effector'
-import cssText from './index.css?raw'
 
 declare module '@effitor/core' {
   interface EditorAssists {
@@ -36,7 +37,6 @@ export const useDropdownAssist = (options?: DropdownAssistOptions): Et.EditorPlu
   }
   return {
     name: '@effitor/assist-dropdown',
-    cssText,
     effector: getDropdownEffector(options as Required<DropdownAssistOptions>),
   }
 }

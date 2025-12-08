@@ -9,9 +9,9 @@ et-editor,
   --et-mark-font__code: 'monospace';
 }
 
-.et-editor.dark,
-et-editor.dark,
-:host(.dark) {
+.et-editor.Et--dark,
+et-editor.Et--dark,
+:host(.Et--dark) {
   --et-mark-color__code_text: #97b7dc;
   --et-mark-color__code_bg: #24292e;
 }
@@ -42,17 +42,17 @@ et-mark {
   &.Et--caret-in::before, &:has(.Et--caret-in)::before {
     display: inline;
   }
-  .ET_cls-hinting_hidden &,
+  .Et--hinting_hidden &,
   .Et--selection-range & {
     &::after, &::before {
       display: none !important;
     }
   }
-  &.ET_cls-marking::after {
+  &.Et_marking::after {
     color: #ddddee
   }
   
-  &.ET_cls-code {
+  &.Et_code {
     margin: 0px 2px; 
     padding: 3px 3px 2px;
     background-color: var(--et-mark-color__code_bg);
@@ -63,46 +63,46 @@ et-mark {
     transition-duration: var(--et-transition-duration);
     transition-timing-function: var(--et-transition-timing-function);
   }
-  &.ET_cls-code.Et--caret-in {
+  &.Et_code.Et--caret-in {
     padding: 3px 0 2px;
   }
-  &.ET_cls-code::after, &.ET_cls-code::before {
+  &.Et_code::after, &.Et_code::before {
     content: "`";
   }
   
   
-  &.ET_cls-bold {
+  &.Et_bold {
     font-weight: bold;
   }
-  &.ET_cls-bold::after, &.ET_cls-bold::before {
+  &.Et_bold::after, &.Et_bold::before {
     content: "**";
   }
   
   
-  &.ET_cls-italic {
+  &.Et_italic {
     font-style: italic;
     /* 斜体右边增加一点间距 避免字符顶部重叠 */
     margin-inline-end: 0.12em;
   }
-  &.ET_cls-italic::after, &.ET_cls-italic::before {
+  &.Et_italic::after, &.Et_italic::before {
     content: "*";
   }
   
   
-  &.ET_cls-delete {
+  &.Et_delete {
     text-decoration: line-through;
   }
-  &.ET_cls-delete::after, &.ET_cls-delete::before {
+  &.Et_delete::after, &.Et_delete::before {
     content: "~~";
   }
   
   
-  &.ET_cls-highlight {
+  &.Et_highlight {
     color: var(--et-mark-color__hl_text);
     background-color: var(--et-mark-color__hl_bg);
     padding: 1px 2px;
   }
-  &.ET_cls-highlight::after, &.ET_cls-highlight::before {
+  &.Et_highlight::after, &.Et_highlight::before {
     content: "==";
   }
 }

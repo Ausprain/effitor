@@ -1,3 +1,5 @@
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import type {
@@ -12,7 +14,6 @@ import { EtAudioElement } from './EtAudioElement'
 import { EtImageElement } from './EtImageElement'
 import { EtVideoElement } from './EtVideoElement'
 import { markMediaHandler } from './handler'
-import cssText from './index.css?raw'
 
 const defaultOptions = {
   image: {
@@ -61,7 +62,6 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
   options?.useActions?.(mediaActions)
   return {
     name: '@effitor/plugin-media',
-    cssText,
     effector: mediaEffector,
     elements: [
       EtImageElement,

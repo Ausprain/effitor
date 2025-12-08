@@ -61,22 +61,6 @@ et-list {
   margin: 4px 0;
   list-style-type: disc;
   padding-inline-start: var(--et-list-indent);
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    border-left: 1px solid transparent;
-    translate: 2px 0;
-  }
-  &:has(>.Et--caret-in) {
-    position: relative;
-    &::before {
-      border-color: var(--et-color-border-3);
-      transition: border-color 0.2s ease-out;
-    }
-  }
 }
 
 .et-li.etp,

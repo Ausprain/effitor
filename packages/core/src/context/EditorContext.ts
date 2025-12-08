@@ -21,7 +21,6 @@ import type { EditorContextMeta, EditorPluginContext } from './config'
 import { EditorBody } from './EditorBody'
 import { EditorLogger } from './EditorLogger'
 import { EditorMode } from './EditorMode'
-import { EditorStyler } from './EditorStyler'
 
 type PickKeyOfRange
   = | keyof AbstractRange
@@ -76,8 +75,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   readonly body: EditorBody
   /** 编辑器模式转换器 // TODO */
   readonly mode: EditorMode
-  /** 编辑器样式器 */
-  readonly styler: EditorStyler
   /** 编辑器选区对象, 在 mount 之前为 null */
   readonly selection: ContextSelection
   /** 文本分词器 */
@@ -166,7 +163,6 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.root = options.root
     this.body = new EditorBody(options.bodyEl, this.editor.scrollContainer)
     this.mode = new EditorMode(this)
-    this.styler = new EditorStyler(options.bodyEl)
     this.selection = new EtSelection(this.body)
     this.segmenter = new Segmenter(options.locale)
     this.composition = new Composition(this, platform.isSupportInsertFromComposition)

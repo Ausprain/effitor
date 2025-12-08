@@ -49,7 +49,7 @@ export class EtImageElement extends EtMediaElement {
       alt = `$image`
     }
     if (title) {
-      img.setAttribute(HtmlAttrEnum.HintTitle, meta.title = title)
+      img.setAttribute(HtmlAttrEnum.EtTitle, meta.title = title)
     }
     if (loading) {
       img.loading = meta.loading = loading
@@ -91,7 +91,7 @@ export class EtImageElement extends EtMediaElement {
       type: 'image',
       url: img.src,
       alt: img.alt,
-      title: img.getAttribute(HtmlAttrEnum.HintTitle),
+      title: img.getAttribute(HtmlAttrEnum.EtTitle),
     })
   }
 

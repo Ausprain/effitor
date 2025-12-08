@@ -5,8 +5,8 @@ et-editor,
   --et-table-border-radius: 8px;
   --et-table-odd-row-bg-color: #f7f8f9;
 }
-.et-editor.dark, 
-et-editor.dark, 
+.et-editor.Et--dark, 
+et-editor.Et--dark, 
 :host.dark {
   --et-table-odd-row-bg-color: #171819;
 }
@@ -48,7 +48,6 @@ et-table {
       font-weight: bold;
     }
   }
-
 }
 
 .et-table,
@@ -58,10 +57,8 @@ et-table {
   /* border-collapse: collapse; */
   /* border-spacing: 0; */
   /* table-layout: fixed; */
-  width: 100%;
+  border-collapse: collapse;
   margin-block: 10px;
-  overflow: auto;
-  border: 1px solid var(--et-table-border-color);
   /* 阻止表格在分栏时被分割 */
   break-inside: avoid-column;
 
@@ -69,78 +66,19 @@ et-table {
   transition-duration: var(--et-transition-duration);
   transition-timing-function: var(--et-transition-timing-function);
 
-  &:has(> :only-child) {
-    border-radius: 4px;
-    --et-table-border-radius: 4px;
-  }
-  &:has(> :nth-child(2)) {
-    border-radius: 6px;
-    --et-table-border-radius: 6px;
-  }
-  &:has(> :nth-child(3)) {
-    border-radius: 8px;
-    --et-table-border-radius: 8px;
-  }
 }
 
 .et-tr,
 et-tr {
   display: table-row !important;
-
-  &:nth-child(odd) {
-    background-color: var(--et-table-odd-row-bg-color);
-    transition-property: background-color;
-    transition-duration: var(--et-transition-duration);
-    transition-timing-function: var(--et-transition-timing-function);
-  }
-  &:first-child {
-    border-top-left-radius: var(--et-table-border-radius);
-    border-top-right-radius: var(--et-table-border-radius);
-  }
-  &:last-child {
-    border-bottom-left-radius: var(--et-table-border-radius);
-    border-bottom-right-radius: var(--et-table-border-radius);
-  }
-
-  .Et--selection-all & {
-    background-color: transparent;
-    transition: none;
-  }
 }
 
 .et-tc,
 et-tc {
+  border: 1px solid;
   display: table-cell !important;
   padding: 6px;
   line-height: 1.5;
   /* 设置最小高度, 避免空内容时高度坍缩; 表格中使用 height 而非 min-height, 后者无效 */
   height: calc(1.5em + 12px);
-
-  transition-property: border-color;
-  transition-duration: var(--et-transition-duration);
-  transition-timing-function: var(--et-transition-timing-function);
-
-  &:not(:first-child) {
-    border-inline-start: 1px solid var(--et-table-border-color);
-  }
-  .et-tr:not(:first-child) > &,
-  et-tr:not(:first-child) > & {
-    border-block-start: 1px solid var(--et-table-border-color);
-  }
-  .et-tr:first-child > &:first-child,
-  et-tr:first-child > &:first-child {
-    border-top-left-radius: var(--et-table-border-radius);
-  }
-  .et-tr:first-child > &:last-child,
-  et-tr:first-child > &:last-child {
-    border-top-right-radius: var(--et-table-border-radius);
-  }
-  .et-tr:last-child > &:first-child,
-  et-tr:last-child > &:first-child {
-    border-bottom-left-radius: var(--et-table-border-radius);
-  }
-  .et-tr:last-child > &:last-child,
-  et-tr:last-child > &:last-child {
-    border-bottom-right-radius: var(--et-table-border-radius);
-  }
 }

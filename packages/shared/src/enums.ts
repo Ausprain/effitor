@@ -4,11 +4,6 @@ export const enum BuiltinConfig {
   BUILTIN_UNDO_PLUGIN_NAME = '__et_plugin_$undo',
   /** 内置Effect前缀, 便于effectBlocker过滤 */
   BUILTIN_EFFECT_PREFFIX = 'E',
-  /**
-   * 编辑器内部元素 css 类名前缀\
-   * 效应元素使用 add/removeCssClass 方法添加/删除类名自动添加此前缀
-   */
-  EDITOR_CSS_CLASS_PREFIX = 'ET_cls-',
   /** 一个粘贴效应名, 定义在这里, 而不是效应列表中, 目的是隐藏内部粘贴行为入口 */
   INSERT_FROM_ET_HTML = 'InsertFromEtHtml',
   /** 编辑器主题属性名 */
@@ -51,7 +46,7 @@ export const enum HtmlAttrEnum {
   Popup_Key = 'popup-key',
   PlaceHolder = 'et-placeholder',
   /** 悬浮提示词 */
-  HintTitle = 'hint-title',
+  EtTitle = 'et-title',
 }
 /** css类名 */
 export const enum CssClassEnum {
@@ -60,6 +55,8 @@ export const enum CssClassEnum {
   /** 段落类节点 */
   ParagraphLike = 'etp',
 
+  /** 暗模式, 用在et-editor上 */
+  DarkMode = 'Et--dark',
   /** 表示光标在该效应元素内部, 且光标所在节点与该效应元素之间无其他效应元素; 在 ctx.update 更新效应元素时添加/移除 */
   CaretIn = 'Et--caret-in',
   /** 当前活跃, 对于效应元素而言, 在 focusinCallback 中添加, 在 focusoutCallback 中移除 */

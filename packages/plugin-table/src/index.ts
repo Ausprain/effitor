@@ -13,6 +13,8 @@
  *
  */
 
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import { type TableActionMap, tableActions } from './ectx'
@@ -21,7 +23,6 @@ import { EtTableCellElement } from './EtTableCellElement'
 import { EtTableElement } from './EtTableElement'
 import { EtTableRowElement } from './EtTableRowElement'
 import { inTableCellHandler, inTableRowHandler, tableHandler } from './handler'
-import cssText from './index.css?raw'
 
 const defaultOptions: TablePluginOptions = {
   tabToTableAfterShortText: true,
@@ -44,7 +45,6 @@ export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPlugin =>
   options = { ...defaultOptions, ...options }
   return {
     name: '@effitor/plugin-table',
-    cssText,
     effector: options.tabToTableAfterShortText
       ? [tableEffector, tabToTableEffector]
       : tableEffector,

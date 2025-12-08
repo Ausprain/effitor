@@ -3,7 +3,7 @@
 // import { codeAreaEffector } from './effector'
 // import { CODE_LINE_TYPE, EtCodeAreaElement, EtCodeLineElement } from './EtCodeAreaElement'
 // import { codeAreaHandler, codeLineHandler } from './handler'
-// import cssText from './index.css?raw'
+// import './index.css'
 
 // export const useCodeAreaPlugin = (): Et.EditorPlugin => {
 //   return {

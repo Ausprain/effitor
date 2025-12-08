@@ -4,61 +4,33 @@ et-heading {
   margin: 1em 0 0.2em;
   line-height: 1.5;
   font-weight: bold;
-
-  &::before, &::after {
-    position: absolute;
-    top: var(--semi-line-height);
-    left: -8px;
-    color: var(--et-color-hinting);
-    opacity: 0.1;
-    transition: opacity 0.2s ease-out;
-  }
-  &::before {
-    content: "H";
-    translate: -100% -50%;
-    font-size: 1rem;
-  }
-  &::after {
-    content: attr(data-level);
-    translate: 0 -30%;
-    font-size: 0.6rem;
-  }
-  &.Et--caret-in::before,&.Et--caret-in::after,
-  &:hover::before, &:hover::after {
-    opacity: 1;
-  }
-  .heading-marker--hidden & {
-    &::before {
-      content: none;
-    }
-  }
 }
-.ET_cls-h1,
-.ET_cls-h2 {
+.Et_h1,
+.Et_h2 {
   border-bottom: 1px solid var(--et-color-border-1);
   transition: border-color 0.3s ease-in;
 }
-.ET_cls-h1 {
+.Et_h1 {
   font-size: 2rem;
   --semi-line-height: calc(1.5 * 2rem / 2);
 }
-.ET_cls-h2 {
+.Et_h2 {
   font-size: 1.8rem;
   --semi-line-height: calc(1.5 * 1.8rem / 2);
 }
-.ET_cls-h3 {
+.Et_h3 {
   font-size: 1.6rem;
   --semi-line-height: calc(1.5 * 1.6rem / 2);
 }
-.ET_cls-h4 {
+.Et_h4 {
   font-size: 1.4rem;
   --semi-line-height: calc(1.5 * 1.4rem / 2);
 }
-.ET_cls-h5 {
+.Et_h5 {
   font-size: 1.2rem;
   --semi-line-height: calc(1.5 * 1.2rem / 2);
 }
-.ET_cls-h6 {
+.Et_h6 {
   font-size: 1rem;
   --semi-line-height: calc(1.5 * 1rem / 2);
 }

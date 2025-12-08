@@ -3,7 +3,6 @@ import './index.css'
 import type { Et } from '@effitor/core'
 
 import { type DialogAssistOptions, DialogManager } from './DialogManager'
-// import cssText from './index.css?raw'
 
 declare module '@effitor/core' {
   interface EditorAssists {
@@ -28,7 +27,6 @@ export type * from './DialogManager'
  */
 export const useDialogAssist = (options?: DialogAssistOptions): Et.EditorPlugin => ({
   name: '@effitor/assist-dialog',
-  // cssText,
   effector: {
     onMounted(ctx) {
       ctx.assists.dialog = new DialogManager(ctx, options)

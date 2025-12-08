@@ -12,6 +12,8 @@
 import { defineConfig, type Options } from 'tsup'
 
 import { importCssRawPlugin } from './tsup-plugin-import-css-raw'
+import { resolve } from 'path'
+import fs from 'fs-extra'
 
 export default defineConfig({
   entry: [
@@ -21,7 +23,6 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  minify: false,
   define: {
     // 移除开发环境代码
     'import.meta.env.DEV': JSON.stringify(false),
@@ -29,11 +30,24 @@ export default defineConfig({
   esbuildPlugins: [
     importCssRawPlugin(),
   ],
-  onSuccess: async () => {
-    // fixed. 构建完成后将 helper.d.ts 复制到 dist 中
-    // 但由于该回调是在构建 js 结束就执行, 而随后的构建 dts 的过程又会将 dist 下的所有 dts 删除
-    // 所以不在这里复制, 在 build 脚本中复制;
-    // 因此仅在测试时可在某个子包内使用 bun tsup 单独打包, 最终构建时应在全局使用 bun run build 执行 build 脚本打包
+  esbuildOptions(options) {
+    options.assetNames = '[name]'
+  },
+  loader: {
+    '.css': 'copy',
+  },
+  async onSuccess() {
+    const themesDir = resolve(import.meta.dirname, './src/themes')
+    console.log('theme dir', themesDir)
+    if (!fs.existsSync(themesDir)) {
+      return
+    }
+    if (!fs.existsSync(resolve(import.meta.dirname, './dist/themes/'))) {
+      fs.mkdirSync(resolve(import.meta.dirname, './dist/themes/'))
+    }
+    fs.copy(themesDir, resolve(import.meta.dirname, './dist/themes/'), {
+      overwrite: true,
+    })
   },
 
   tsconfig: './tsconfig.build.json',

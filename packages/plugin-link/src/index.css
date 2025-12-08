@@ -6,9 +6,9 @@ et-editor,
   --et-link-color__bg--hover: hsl(240 66% 95%);
 }
 
-.et-editor.dark,
-et-editor.dark,
-:host(.dark) {
+.et-editor.Et--dark,
+et-editor.Et--dark,
+:host(.Et--dark) {
   --et-link-color__text: hsl(240 100% 77%);
   --et-link-color__bg: hsl(0 0 3%);
   --et-link-color__bg--hover: hsl(0 0 6%);

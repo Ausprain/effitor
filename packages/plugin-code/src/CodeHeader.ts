@@ -19,7 +19,7 @@ export class CodeHeader {
 
     this.addBtn((copyBtn) => {
       copyBtn.classList.add(CodeEnum.Class_Btn_Copy)
-      copyBtn.setAttribute(HtmlAttrEnum.HintTitle, 'Copy Code')
+      copyBtn.setAttribute(HtmlAttrEnum.EtTitle, 'Copy Code')
       copyBtn.onclick = () => {
         if (copyBtn.classList.contains(CodeEnum.Class_Btn_Copied)) {
           return
@@ -33,7 +33,7 @@ export class CodeHeader {
     })
     this.addBtn((btn) => {
       btn.classList.add(CodeEnum.Class_Btn_CodeWrap)
-      btn.setAttribute(HtmlAttrEnum.HintTitle, 'Toggle Code Wrap')
+      btn.setAttribute(HtmlAttrEnum.EtTitle, 'Toggle Code Wrap')
       btn.onclick = (ev) => {
         let node = ev.target as HTMLElement | null
         while (node) {
@@ -50,7 +50,7 @@ export class CodeHeader {
     if (ctx.pctx.$codePx.codeRenderer[el.codeLang]) {
       this.addBtn((renderBtn) => {
         renderBtn.classList.add(CodeEnum.Class_Btn_Render)
-        renderBtn.setAttribute(HtmlAttrEnum.HintTitle, `Render ${el.codeLang.toUpperCase()}`)
+        renderBtn.setAttribute(HtmlAttrEnum.EtTitle, `Render ${el.codeLang.toUpperCase()}`)
         renderBtn.onclick = () => {
           const render = ctx.pctx.$codePx.renderCodeBlock
           if (!render) {

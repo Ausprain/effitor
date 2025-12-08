@@ -50,7 +50,7 @@ export class EtVideoElement extends EtMediaElement {
       video.crossOrigin = meta.crossorigin = crossorigin
     }
     if (title) {
-      video.setAttribute(HtmlAttrEnum.HintTitle, meta.title = title)
+      video.setAttribute(HtmlAttrEnum.EtTitle, meta.title = title)
     }
     if (poster) {
       video.poster = meta.poster = poster
@@ -96,7 +96,7 @@ export class EtVideoElement extends EtMediaElement {
     return mdastNode({
       type: 'image',
       url: video.src,
-      title: video.getAttribute(HtmlAttrEnum.HintTitle),
+      title: video.getAttribute(HtmlAttrEnum.EtTitle),
     })
   }
 

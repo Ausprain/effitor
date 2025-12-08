@@ -228,7 +228,7 @@ const showMediaUploadDialog = (dialog: DialogManager, ctx: Et.EditorContext, typ
   dialog.open<FileList | null>(async (container, resolve) => {
     const dropArea = document.createElement('div')
     dropArea.className = 'et-media__upload-area'
-    dropArea.setAttribute(HtmlAttrEnum.HintTitle, `拖拽${{ image: '图片', audio: '音频', video: '视频' }[type]}到此处上传`)
+    dropArea.setAttribute(HtmlAttrEnum.EtTitle, `拖拽${{ image: '图片', audio: '音频', video: '视频' }[type]}到此处上传`)
 
     const icon = uploadIcon(40)
     icon.style = 'position: absolute; left: 50%; top: 50%; translate: -50% -50%;'

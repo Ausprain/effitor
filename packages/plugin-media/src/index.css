@@ -3,17 +3,26 @@
     url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.33335 14.6667L12.6667 14.6667C13.0349 14.6667 13.3334 14.3682 13.3334 14L13.3334 4.66668L10 4.66668L10 1.33334L3.33335 1.33334C2.96516 1.33334 2.66669 1.63182 2.66669 2.00001L2.66669 14C2.66669 14.3682 2.96516 14.6667 3.33335 14.6667Z" stroke="currentColor" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round" ></path><path stroke="currentColor" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"  d="M10 1.33334L13.3333 4.66668"></path><path stroke="currentColor" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"  d="M6 7.33334L10 11.3333"></path><path stroke="currentColor" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"  d="M10 7.33334L6 11.3333"></path></svg>');
 }
 .et-media {
+  position: relative;
+  /* 使用flex而不用block, 因为block时, 若高度不够line-height的整数倍 会存在类似padding-bottom的填充高度 */
+  display: flex;
   /* 高度最大为半个视口 */
   max-height: 50vh;
+  min-width: 32%;
+  max-width: 90%;
+  width: fit-content;
+  margin: 4px auto;
+
   & > img,
   & > audio,
   & > video {
+    min-width: 100%;
+    margin: 0 auto;
     z-index: 1;
     /* 图片居中不拉伸显示 */
     object-fit: contain;
   }
   
-
   & > audio,
   & > video {
     min-width: 256px;
@@ -24,21 +33,6 @@
   & > video {
     /* video最大宽度根据宽高比与最大高度计算, 避免宽度不够时出现左右渐变背景 */
     max-width: calc(50vh / var(--et-video_h_w_ratio));
-  }
-
-  &:not([media-state="failed"]):hover::after {
-    /* 右上角点击拖拽调整大小 */
-    content: "";
-    cursor: nesw-resize;
-    display: block;
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 4px;
-    width: 4px;
-    /* background-color: #fff8; */
-    background-color: red;
-    z-index: 2;
   }
 
   /* 无 src (延迟初始化的资源) */
@@ -61,201 +55,6 @@
     }
     &:has(> video)::before {
       content: 'video loading...';
-    }
-  }
-}
-.et-media[media-state="failed"] {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 3px;
-  border-radius: 3px;
-  background-color: var(--et-color-bg--hover);
-
-  &::before {
-    content: "$" !important;
-  }
-  &:hover::before {
-    content: "$src not found";
-  }
-  &::after {
-    content: "";
-    display: inline-block !important;
-    width: 16px;
-    height: 16px;
-    background: var(--et-media-src-failed-background);
-  }
-}
-.et-media[media-state="collapsed"],
-.et-media[media-state="float-left"],
-.et-media[media-state="float-right"] {
-  &::before {
-    content: attr(media-alt);
-    padding: 1px 3px;
-    border-radius: 3px;
-    background-color: var(--et-color-bg--hover);
-    display: inline-block;
-    max-width: 100px;
-    font-family: monospace;
-    font-style: italic;
-    font-size: 0.8em;
-    overflow: hidden;
-    white-space: pre;
-    text-overflow: ellipsis;
-    vertical-align: middle;
-    transition-property: var(--et-transition-property);
-    transition-duration: var(--et-transition-duration);
-    transition-timing-function: var(--et-transition-timing-function);
-  }
-}
-
-.et-media[media-state="float-left"],
-.et-media[media-state="float-right"] {
-  /* 使用contents布局, 让子元素浮动, 而自身停留在文档流原本位置 */
-  display: contents;
-
-  &::before {
-    content: "$";
-  }
-
-  &:hover::after {
-    position: relative;
-  }
-
-  & > img,
-  & > audio,
-  & > video {
-    max-width: 64%;
-  }
-  & > img {
-    min-width: 32%;
-  }
-}
-
-.et-media[media-state="float-left"] {
-  &:hover::after {
-    float: left;
-    /* 加上margin, 所以偏移8 */
-    right: 8px;
-  }
-
-  & > img,
-  & > audio,
-  & > video {
-    float: left;
-    margin: 0 4px 4px 0;
-  }
-}
-
-.et-media[media-state="float-right"] {
-  &:hover::after {
-    cursor: nwse-resize;
-    float: right;
-    /* 加上margin, 所以偏移8 */
-    left: 8px;
-  }
-
-  & > img,
-  & > audio,
-  & > video {
-    float: right;
-    margin: 0 0 4px 4px;
-  }
-}
-
-.et-media[media-state="center"] {
-  position: relative;
-  /* 使用flex而不用block, 因为block时, 若高度不够line-height的整数倍 会存在类似padding-bottom的填充高度 */
-  display: flex;
-  min-width: 32%;
-  max-width: 100%;
-  width: fit-content;
-  margin: 4px auto;
-
-  & > img,
-  & > audio,
-  & > video {
-    min-width: 100%;
-    margin: 0 auto;
-  }
-}
-
-/* expand */
-.et-media[media-state="expanded"] {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  max-width: unset;
-  max-height: unset;
-  background-color: rgb(0 0 0 / 0.9);
-  z-index: 100;
-
-  & > img,
-  & > video {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 88vw;
-    max-height: 88vh;
-    border-radius: 4px;
-
-    &:hover {
-      outline: 1px solid var(--et-color-hinting);
-    }
-  }
-  & > video {
-    max-width: min(88vw, calc(88vh / var(--et-video_h_w_ratio)));
-  }
-}
-
-/* for those not support anchor */
-.et-media[media-state="collapsed"] {
-  display: inline-block;
-  min-width: auto;
-
-  &::before {
-    content: attr(media-alt);
-  }
-  &:hover::after {
-    display: none;
-  }
-
-  & > img,
-  & > audio,
-  & > video {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: 100%;
-    /* hover时显示, 最大宽度50vw */
-    max-width: 50vw;
-    margin: 0 16px;
-    border-radius: 4px;
-
-    .et-media:hover & {
-      display: initial;
-    }
-  }
-}
-
-/* support anchor */
-@supports (anchor-name: --media-host) {
-  .et-media[media-state="collapsed"] {
-    anchor-name: --media-host;
-    /* relative会导致anchor定位失效 */
-    position: unset;
-
-    & > img,
-    & > audio,
-    & > video {
-      left: unset;
-      top: unset;
-      position: absolute;
-      position-anchor: --media-host;
-      position-area: bottom;
-      position-try-fallbacks: flip-block, flip-inline;
     }
   }
 }

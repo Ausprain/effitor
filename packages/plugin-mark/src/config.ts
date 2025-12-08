@@ -14,10 +14,10 @@ export const enum MarkType {
   HIGHLIGHT = 'highlight',
 }
 export const enum MarkStatus {
-  HINTING = 'hinting',
-  MARKING = 'marking',
+  HINTING = 'Et--hinting',
+  MARKING = 'Et--marking',
   /** 添加到et-body上以禁用mark节点的标记符提示 */
-  HINTING_HIDDEN = 'hinting_hidden',
+  HINTING_HIDDEN = 'Et--hinting_hidden',
 }
 export const markerMap = {
   [MarkType.CODE]: { type: MarkType.CODE, char: '`', marker: '`' },
@@ -65,7 +65,7 @@ export const createMarkState = () => ({
   endMarking(success = true) {
     this.isMarking = false
     if (success) {
-      this.markEl?.removeCssClass(MarkStatus.MARKING)
+      this.markEl?.classList.remove(MarkStatus.MARKING)
     }
     this.markEl = null
   },

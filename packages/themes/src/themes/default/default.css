@@ -1,0 +1,32 @@
+@import "../../fonts/ubuntu.css";
+@import "../../fonts/cascadia_code.css";
+
+
+
+.et-editor,
+et-editor,
+.et-editor[et-theme="default"],
+et-editor[et-theme="default"]
+{
+  --et-mark-font__code: var(--et-font-cascadia_code);
+  font-family: var(--et-font-ubuntu);
+
+  min-height: 300px;
+  padding: 40px;
+  margin: 8px auto;
+  border: 1px solid var(--et-color-border-3);
+  border-radius: 8px;
+
+  et-body,
+  .et-body {
+    min-height: 128px;
+    margin: 8px auto;
+  }
+}
+
+/* 深色模式 */
+/* 
+et-editor[et-theme="default"].Et--dark,
+:host([et-theme="default"].Et--dark) {
+
+} */

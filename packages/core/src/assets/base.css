@@ -1,9 +1,9 @@
 
 /* 深色模式, 指向 et-editor.dark (编辑器非 shadow 时) */
-et-editor.dark,
-.et-editor.dark,
+et-editor.Et--dark,
+.et-editor.Et--dark,
 /* 该 css会插入 shadowRoot, 而 et-editor 是 shadowRoot 的 host, 访问不到, 内部需要用 :host 来访问 host */
-:host(.dark) {
+:host(.Et--dark) {
   color-scheme: dark;
 
   --et-color-theme: #9971e7;

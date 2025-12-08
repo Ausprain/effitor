@@ -22,7 +22,7 @@ export const markEffector: Et.Effector = {
         if (ctx.schema.mark.is(ctx.focusEtElement)) {
           return
         }
-        ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
+        ctx.bodyEl.classList.add(MarkStatus.HINTING_HIDDEN)
       }
       if (ctx.pctx.$markPx.markState.checkAndEndMarking(false)) {
         ctx.commandManager.discard()
@@ -30,7 +30,7 @@ export const markEffector: Et.Effector = {
     },
     mouseup: (_ev, ctx) => {
       if (ctx.pctx.$markPx.enableHinting) {
-        ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
+        ctx.bodyEl.classList.remove(MarkStatus.HINTING_HIDDEN)
       }
     },
   },
@@ -101,14 +101,14 @@ export const markActions = {
    */
   toggleHintingMarker: (ctx: Et.EditorContext, enable: boolean) => {
     if (enable === void 0) {
-      enable = !ctx.bodyEl.hasCssClass(MarkStatus.HINTING_HIDDEN)
+      enable = !ctx.bodyEl.classList.contains(MarkStatus.HINTING_HIDDEN)
     }
     ctx.pctx.$markPx.enableHinting = enable
     if (enable) {
-      ctx.bodyEl.removeCssClass(MarkStatus.HINTING_HIDDEN)
+      ctx.bodyEl.classList.remove(MarkStatus.HINTING_HIDDEN)
     }
     else {
-      ctx.bodyEl.addCssClass(MarkStatus.HINTING_HIDDEN)
+      ctx.bodyEl.classList.add(MarkStatus.HINTING_HIDDEN)
     }
   },
 }

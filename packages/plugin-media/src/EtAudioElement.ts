@@ -41,7 +41,7 @@ export class EtAudioElement extends EtMediaElement {
     const audio = new Audio()
     const meta = {} as AudioUrlMetadata
     if (title) {
-      audio.setAttribute(HtmlAttrEnum.HintTitle, meta.title = title)
+      audio.setAttribute(HtmlAttrEnum.EtTitle, meta.title = title)
     }
     if (controls) {
       audio.controls = meta.controls = true
@@ -80,7 +80,7 @@ export class EtAudioElement extends EtMediaElement {
     return mdastNode({
       type: 'image',
       url: audio.src,
-      title: audio.getAttribute(HtmlAttrEnum.HintTitle),
+      title: audio.getAttribute(HtmlAttrEnum.EtTitle),
     })
   }
 

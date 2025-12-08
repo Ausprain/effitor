@@ -1,9 +1,10 @@
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import { HeadingEnum } from './config'
 import { type HeadingActionMap, headingActions, headingEffector } from './effector'
 import { EtHeadingElement } from './EtHeadingElement'
-import cssText from './index.css?raw'
 
 export { HeadingEnum }
 export interface HeadingPluginOptions {
@@ -18,7 +19,6 @@ export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPlugi
   options?.useActions?.(headingActions)
   return {
     name: '@effitor/plugin-heading',
-    cssText,
     effector: [headingEffector, {
       onMounted(ctx) {
         if (options?.hiddenHeadingLevelMarker) {

@@ -17,9 +17,9 @@ et-editor,
   }
 }
 
-et-editor.dark,
-.et-editor.dark,
-:host(.dark) {
+et-editor.Et--dark,
+.et-editor.Et--dark,
+:host(.Et--dark) {
   .shiki,
   .shiki span {
     color: var(--shiki-dark) !important;
@@ -77,7 +77,7 @@ et-code {
   max-height: var(--et-code-max-height);
   border-radius: inherit;
   overflow: auto;
-  contain: content;
+  /* contain: content; */
 }
 .et-code__container {
   position: relative;

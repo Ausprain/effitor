@@ -1,17 +1,12 @@
-et-editor,
-.et-editor {
+:where(.et-editor, et-editor) {
   padding: 16px;
 }
 /* 编辑区内置样式 */
 et-body,
 .et-body {
   display: block !important;
-  min-height: 128px;
-  margin: 8px auto;
   outline: none;
-  border: none;
   hyphens: auto;  /* 末尾单词自动连接符 */
-  white-space: pre-wrap !important; /* 支持段落内文本换行符来换行 */
   /* 容器查询, 仅关心宽度; 该属性会隐式设置 contain: style, 导致嵌套有序列表无法重新计数 */
   container: et-body / inline-size;
 }
@@ -26,33 +21,29 @@ et-body.Et--selection-all {
   }
 }
 
-.et-p.etp,
-et-p.etp {
-  /* 段落不定位, 若定位, 会影响其后代的position-anchor定位 */
-  /* position: relative; */
-  padding-block: 0.25em;
-  min-height: 2em;
-  /* 分栏在需要时, 设置在段落上 */
-  /* column-count: 2; */
-}
 .etp {
   display: block;
   /* 段落最小高度, 防止段落空内容时高度坍缩 */
   min-height: 1.5em;
   line-height: 1.5;
 }
+:where(.et-p, et-p).etp {
+  /* 段落不定位, 否则会影响其后代的position-anchor定位 */
+  /* position: relative; */
+  padding-block: 0.25em;
+  min-height: 2em;
+}
 
 .Et--hidden {
   display: none !important;
 }
 
-/* 鼠标悬浮提示元素的 hint-title属性值 */
-.hint-title,
-[hint-title] {
+/* 鼠标悬浮提示元素的 et-title属性值 */
+[et-title] {
   position: relative;
 
   &::before {
-    content: attr(hint-title);
+    content: attr(et-title);
     display: none;
     position: absolute;
     top: -8px;

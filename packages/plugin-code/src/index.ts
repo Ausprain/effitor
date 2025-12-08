@@ -8,6 +8,7 @@
  * * render: 渲染代码, 即将代码块内的代码渲染到页面上, 仅支持部分语言, 如 html, katex, markdown
  */
 import './augment'
+import './index.css'
 
 import type { Et } from '@effitor/core'
 
@@ -18,7 +19,6 @@ import { type CodeActionMap, codeActions, codeEffector } from './effector'
 import { EtCodeElement } from './EtCodeElement'
 import { inCodeHandler } from './handler'
 import { createShikiHighlighter, type ShikiHighlighterOptions } from './highlighter'
-import cssText from './index.css?raw'
 
 export interface CodePluginOptions extends CodeBlockRenderOptions {
   /**
@@ -101,7 +101,6 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
 
   return {
     name: '@effitor/plugin-code',
-    cssText: cssText,
     effector: [codeEffector],
     elements: [EtCodeElement],
     register(ctxMeta, setSchema, mountEtHandler) {

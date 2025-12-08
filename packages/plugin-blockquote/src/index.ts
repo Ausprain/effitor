@@ -1,10 +1,11 @@
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
 import { type BlockquoteMeta, initBlockquotePluginContext } from './config'
 import { type BlockquoteActionMap, blockquoteActions, blockquoteEffector } from './effector'
 import { EtBlockquoteElement } from './EtBlockquoteElement'
 import { blockquoteHandler } from './handler'
-import cssText from './index.css?raw'
 
 export interface BlockquotePluginOptions {
   /**
@@ -37,7 +38,6 @@ export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.Edito
   }
   return {
     name: '@effitor/plugin-blockquote',
-    cssText: cssText,
     effector: blockquoteEffector,
     elements: [EtBlockquoteElement],
     register(ctxMeta, setSchema, mountEtHandler) {

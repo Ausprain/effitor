@@ -4,4 +4,5 @@ import sharedConfig from '../../tsup.shared'
 
 export default defineConfig({
   ...sharedConfig,
+  external: ['@shikijs'],
 })
