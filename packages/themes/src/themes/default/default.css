@@ -2,11 +2,8 @@
 @import "../../fonts/cascadia_code.css";
 
 
-
-.et-editor,
-et-editor,
-.et-editor[et-theme="default"],
-et-editor[et-theme="default"]
+:where(.et-editor, et-editor),
+:where(.et-editor, et-editor)[et-theme="default"]
 {
   --et-mark-font__code: var(--et-font-cascadia_code);
   font-family: var(--et-font-ubuntu);
@@ -17,8 +14,7 @@ et-editor[et-theme="default"]
   border: 1px solid var(--et-color-border-3);
   border-radius: 8px;
 
-  et-body,
-  .et-body {
+  &>:where(.et-body, et-body) {
     min-height: 128px;
     margin: 8px auto;
   }

@@ -93,6 +93,7 @@
       column-count: 1 !important;
     }
     .Et--pg-outlining & {
+      margin-inline: 0;
       outline-color: var(--et-bq-color-semantic);
     }
   }
