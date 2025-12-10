@@ -1,11 +1,4 @@
-import { hotstring, type Et } from 'effitor'
-
-export interface HotstringInfo {
-  title?: string
-  descr?: string
-  repl?: string
-  action: (ctx: Et.EditorContext) => void
-}
+import { hotstring } from 'effitor'
 
 export const hotstrings = [
   hotstring.create('>dark', void 0, {

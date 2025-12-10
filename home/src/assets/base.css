@@ -2,11 +2,11 @@
   color-scheme: light;
   --tw-ease: ease-in;
   --tw-duration: 0.3s;
-  --color-primary: #6671e7;
+  /* --color-primary: #6671e7; */
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-primary: #9921e7;
+  /* --color-primary: #9921e7; */
 }
 
 

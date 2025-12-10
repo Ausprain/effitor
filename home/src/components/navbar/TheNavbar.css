@@ -1,0 +1,32 @@
+@reference "tailwindcss";
+
+#et-h-navbar {
+  @apply fixed top-4 left-0 right-0 z-50 mx-auto w-4/5 p-4 max-w-[960px] bg-white/50 backdrop-blur-md rounded-lg shadow-lg transition-colors;
+
+  &.navbar--attached {
+    @apply top-0 max-w-full w-full;
+  }
+
+  [data-theme="dark"] & {
+    @apply bg-gray-800/50;
+  }
+}
+
+
+.et-h-navbar__btn {
+  @apply p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors;
+  transition-property: background-color;
+}
+
+[data-theme="dark"] .et-h-navbar__btn {
+  @apply bg-gray-800 hover:bg-gray-700;
+}
+
+.et-h-navbar__tip {
+  @apply absolute inset-0 pl-20 -ml-16 mr-3 pt-5 -mt-5 overflow-x-auto select-none;
+
+  mask-image: linear-gradient(to right, #000), linear-gradient(to right, transparent 80px, #000 80px);
+  mask-repeat: no-repeat;
+  mask-size: 100% 54px, 100% 54px;
+  mask-position: left 0 bottom 54px, bottom;
+}

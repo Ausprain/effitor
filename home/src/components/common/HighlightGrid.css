@@ -1,0 +1,32 @@
+
+.highlight-grid {
+  position: relative;
+  
+  &>div {
+    border-radius: 8px;
+    overflow: hidden;
+    &>* {
+      z-index: 2;
+    }
+    position: relative;
+    padding: 2px;
+  }
+  &>div::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.2s ease-in-out;
+    background: conic-gradient(#9921e7, #6671e7, #9921e7);
+    mask-image: radial-gradient(#000, #0000 70%);
+    transform: translate(calc(var(--x) - 50%), calc(var(--y) - 50%));
+  }
+  &:hover>div::before {
+    opacity: 1;
+  }
+}  
+

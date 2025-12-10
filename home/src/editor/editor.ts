@@ -1,7 +1,7 @@
 import dompurify from 'dompurify'
 
+import '@effitor/themes/default/index.css'
 import { EtTableCellElement } from '@effitor/plugin-table'
-import '@effitor/themes/default.min.css'
 import { Effitor, EtParagraphElement, type Et } from 'effitor'
 import {
   useCounterAssist,
@@ -33,7 +33,7 @@ export const createEditor = async ({
       sanitizer: html => dompurify.sanitize(html),
     },
     config: {
-      // AUTO_CREATE_FIRST_PARAGRAPH: false,
+      AUTO_CREATE_FIRST_PARAGRAPH: false,
       ...config,
     },
     assists: [

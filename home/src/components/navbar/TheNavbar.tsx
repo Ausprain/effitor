@@ -1,51 +1,53 @@
-import './Navbar.css'
-import React from 'react'
-import type { HotstringInfo, KeyState } from '../editor/plugins/typingTipAssist'
-import KeyCombination from './HotkeyTip'
-import type { ColorScheme } from '../hooks/useColorScheme'
-import HotstringTip from './HotstringTip'
+import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import i18n, { i18nLangMap } from '../i18n'
+import { Link, useLocation } from 'react-router-dom'
+import { useNavbar } from '../../context/NavbarContext'
+import { i18nLangMap } from '../../i18n'
+import TheHotkeyTip from './TheHotkeyTip'
+import TheHotstringTip from './TheHotstringTip'
+import { Logo1 } from './Logos'
+import './TheNavbar.css'
 
-const Navbar: React.FC<{
-  hotstringState: HotstringInfo[]
-  keyState: KeyState
-  isEditorFocused: boolean
-  colorMode: ColorScheme
-  onChangeColorMode: (mode: ColorScheme) => void
-}> = ({
-  hotstringState,
-  keyState,
-  isEditorFocused,
-  colorMode,
-  onChangeColorMode,
-}) => {
+const Navbar: React.FC = () => {
+  const { pathname } = useLocation()
   const { t } = useTranslation()
+  const {
+    keyState,
+    hotstringState,
+    isEditorFocused,
+    colorMode,
+    changeMode,
+    setNavbarBottom,
+    changeLanguage,
+  } = useNavbar()
 
-  const changeLanguage = (value: string) => {
-    i18n.changeLanguage(value)
-  }
+  const navbarRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!navbarRef.current) return
+    setNavbarBottom(navbarRef.current.getBoundingClientRect().bottom)
+  }, [navbarRef])
 
   return (
-    <div className="p-4">
+    <div ref={navbarRef} id="et-h-navbar" className={pathname === '/' ? '' : 'navbar--attached'}>
       {/* 导航栏 */}
       <section className={`${isEditorFocused ? 'opacity-0' : 'relative z-10'} flex items-center justify-between transition-opacity`}>
         {/* 左侧：Logo 和名称 */}
         <div className="flex items-center gap-2">
+          <Logo1 className="w-8 h-8" />
           <div className="text-2xl font-bold bg-linear-to-tr from-[#6671e7]  to-[#9921e7] bg-clip-text text-transparent">
-            ✨Effitor
+            Effitor
           </div>
         </div>
 
         {/* 中间：导航链接 */}
         <div className="text-gray-700 transition-colors dark:text-gray-300 hidden md:flex items-center gap-6">
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+          <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">
             {t('navbar.playground')}
-          </a>
+          </Link>
           <span className="text-gray-400 dark:text-gray-600">|</span>
-          <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">
+          <Link to="/docs/getting-started" className="hover:text-blue-600 dark:hover:text-blue-400 font-medium">
             {t('navbar.docs')}
-          </a>
+          </Link>
         </div>
 
         {/* 右侧：语言切换、github图标和主题切换按钮 */}
@@ -82,7 +84,7 @@ const Navbar: React.FC<{
           </a>
           {/* 主题切换按钮 */}
           <button
-            onClick={() => onChangeColorMode(colorMode === 'auto' ? 'dark' : colorMode === 'dark' ? 'light' : 'auto')}
+            onClick={() => changeMode(colorMode === 'auto' ? 'dark' : colorMode === 'dark' ? 'light' : 'auto')}
             className="et-h-navbar__btn"
             aria-label="Toggle theme"
           >
@@ -125,14 +127,14 @@ const Navbar: React.FC<{
         </div>
       </section>
       {/* 按键跟踪 */}
-      <section className={`${isEditorFocused ? 'opacity-100' : ''} opacity-0 absolute inset-0 pl-12 -ml-9 mr-3 pt-5 -mt-5 overflow-x-auto transition-opacity select-none`}>
+      <section className={`${isEditorFocused ? 'opacity-100' : ''} et-h-navbar__tip hide-scrollbar opacity-0 transition-opacity`}>
         {
           hotstringState.length
             ? (
-                <HotstringTip hotstringState={hotstringState} />
+                <TheHotstringTip hotstringState={hotstringState} />
               )
             : (
-                <KeyCombination keyState={keyState} />
+                <TheHotkeyTip keyState={keyState} />
               )
         }
       </section>

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react'
-import './index.css'
-import { createEditor } from './editor'
 
-import './plugins/keymap'
-import { useTypingTipAssist, type HotstringInfo, type KeyState } from './plugins/typingTipAssist'
+import './index.css'
 import type { Et } from 'effitor'
-import { useDarkAssist } from './plugins/darkAssist'
-import { useColorScheme } from '../hooks/useColorScheme'
+import { createEditor } from '../../editor/editor'
+import { useNavbar } from '../../context/NavbarContext'
+import { useDarkAssist } from '../../editor/plugins/darkAssist'
+import { useTypingTipAssist } from '../../editor/plugins/typingTipAssist'
 
 // 监听编辑器focusin/focusout回调, 而不是简单的监听focus/blur事件
 // 因为编辑器内部跨越contenteditable会导致编辑器失去焦点, 从而focus或blur
@@ -33,26 +32,20 @@ const editor = await createEditor({
   ],
 })
 
-const Editor: React.FC<{
-  // 当编辑器获得焦点时的回调函数
-  onFocus?: () => void
-  // 当编辑器失去焦点时的回调函数
-  onBlur?: () => void
-  onKeymodChange?: (state: KeyState) => void
-  onHotstringProgress?: (state: HotstringInfo[]) => void
-}
-> = ({
-  onFocus,
-  onBlur,
-  onKeymodChange = void 0,
-  onHotstringProgress = void 0,
-}) => {
-  const { isDark, toggleDark } = useColorScheme()
+const HomeEditor: React.FC = () => {
+  const {
+    isEditorFocused,
+    setIsEditorFocused,
+    setKeyState,
+    setHotstringState,
+    isDark,
+    toggleDark,
+  } = useNavbar()
 
   // 获取 editor-host 元素的引用
   const editorHostRef = useRef<HTMLDivElement>(null)
-  editorFocusCallbacks.onFocus = onFocus
-  editorFocusCallbacks.onBlur = onBlur
+  editorFocusCallbacks.onFocus = () => setIsEditorFocused(true)
+  editorFocusCallbacks.onBlur = () => setIsEditorFocused(false)
 
   useEffect(() => {
     if (!editorHostRef.current || editor.isMounted) {
@@ -62,12 +55,18 @@ const Editor: React.FC<{
     editor.context.assists.darkAssist.toggleDark = () => {
       toggleDark()
     }
-    editor.context.assists.typingTip.onModChange = onKeymodChange
-    editor.context.assists.typingTip.onHotstringProgress = onHotstringProgress
+    editor.context.assists.typingTip.onModChange = setKeyState
+    editor.context.assists.typingTip.onHotstringProgress = setHotstringState
     return () => {
       editor.unmount()
     }
   }, [])
+  useEffect(() => {
+    if (isEditorFocused) {
+      editor.focus()
+      return
+    }
+  }, [isEditorFocused])
   useEffect(() => {
     if (editor) {
       editor.setColorScheme(isDark)
@@ -76,10 +75,8 @@ const Editor: React.FC<{
   }, [isDark])
 
   return (
-    <div className="w-full h-full">
-      <div ref={editorHostRef} className="editor-host overflow-auto max-h-[600px]"></div>
-    </div>
+    <div ref={editorHostRef} className="editor-host overflow-auto max-h-[600px]"></div>
   )
 }
 
-export default Editor
+export default HomeEditor

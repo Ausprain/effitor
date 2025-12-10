@@ -9,6 +9,7 @@ declare module 'effitor' {
 }
 
 export interface KeyState {
+  index: number
   key: string
   mods: string[]
   nextMods: string[]
@@ -23,6 +24,7 @@ export interface HotstringInfo {
 class TypingTipAssist {
   private prevScope = ''
   private prevModkey = ''
+  private prevKeyState?: KeyState | null = null
   public onModChange?: (state: KeyState) => void
   public onHotstringProgress?: (his: HotstringInfo[]) => void
 
@@ -35,24 +37,31 @@ class TypingTipAssist {
     if (!routeMap) {
       return
     }
-    if (scope !== this.prevScope || modkey !== this.prevModkey) {
+    if (modkey === this.prevModkey && scope === this.prevScope) {
+      if (!this.prevKeyState || this.prevKeyState.keys.some(k => k.key === this.prevKeyState?.key)) {
+        return
+      }
+      this.prevKeyState.index = (this.prevKeyState.index + 1) % this.prevKeyState.keys.length
+    }
+    else {
       this.prevScope = scope
       this.prevModkey = modkey
       const parts = hotkey.parseHotkey(modkey)
       const key = parts.pop() || ''
       const keyBind = parts.length ? parts.join(KEY_CONNECTOR) : ''
       const route = routeMap[keyBind]
-
       if (!route) {
         return
       }
-      this.onModChange?.({
+      this.prevKeyState = {
+        index: -1,
         key,
         mods: parts,
         nextMods: route.nextMods,
         keys: route.keys,
-      })
+      }
     }
+    this.onModChange?.(this.prevKeyState)
   }
 
   checkHotstring(hss: readonly hotstring.Hotstring[]) {

@@ -1,14 +1,15 @@
 const MainSlogan = () => (
   <div className="text-center py-8
-    @max-lg:text-6xl
-    @max-2xl:text-7xl
-    @2xl:text-8xl
+    text-6xl
+    md:text-7xl
+    lg:text-8xl
+    xl:text-9xl
     italic font-bold"
   >
-    <p className="leading-[1.2] @max-lg:-my-8">
+    <p className="leading-[1.2] -my-8 md:my-0">
       An elegant and
     </p>
-    <p className=" @2xl:my-8 scale-[1.1]">
+    <p className="lg:my-8 scale-[1.1]">
       <svg
         width="100%"
         height="100"

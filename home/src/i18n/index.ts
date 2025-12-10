@@ -25,3 +25,6 @@ export const i18nLangMap: Record<string, string> = {
 }
 
 export default i18n
+// efficient: /ɪˈfɪʃ(ə)nt/
+// editor:    /ˈedɪtə(r)/
+// effitor:   /ɪˈfɪtə(r)/

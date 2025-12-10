@@ -5,7 +5,8 @@
     "github": "Github"
   },
   "main": {
-    "try": "Try Now"
+    "try": "Try Now",
+    "features": "Features"
   },
   "keymap": {
     "撤回": "Undo",

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import type { HotstringInfo } from '../editor/plugins/typingTipAssist'
+import type { HotstringInfo } from '../../editor/plugins/typingTipAssist'
 
-const HotstringTip = ({ hotstringState }: { hotstringState: HotstringInfo[] }) => {
+const TheHotstringTip = ({ hotstringState }: { hotstringState: HotstringInfo[] }) => {
   const { t } = useTranslation()
   return (
     <div className="w-full h-full flex flex-nowrap justify-start items-center font-mono">
@@ -29,4 +29,4 @@ const HotstringTip = ({ hotstringState }: { hotstringState: HotstringInfo[] }) =
   )
 }
 
-export default HotstringTip
+export default TheHotstringTip
