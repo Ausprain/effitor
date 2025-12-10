@@ -1,7 +1,7 @@
 dist/src/tiptap-rich.html                                         0.39 kB │ gzip:   0.25 kB
 dist/src/lexical-rich.html                                        0.40 kB │ gzip:   0.25 kB
 dist/src/effitor-rich.html                                        0.55 kB │ gzip:   0.28 kB
-dist/effitor-rich/effitor-rich.css                                0.67 kB │ gzip:   0.31 kB
+dist/effitor-rich/effitor-rich.css                               36.96 kB │ gzip:   6.19 kB
 dist/lexical-rich/lexical-rich.js                               230.45 kB │ gzip:  72.62 kB
 dist/tiptap-rich/tiptap-rich.js                                 400.73 kB │ gzip: 126.87 kB
-dist/effitor-rich/effitor-rich.js                               445.01 kB │ gzip: 122.58 kB
+dist/effitor-rich/effitor-rich.js                               422.06 kB │ gzip: 116.02 kB

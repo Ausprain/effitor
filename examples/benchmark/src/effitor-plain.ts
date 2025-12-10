@@ -2,7 +2,7 @@
 
 import dompurify from 'dompurify'
 
-import '@effitor/themes/default.min.css'
+import '@effitor/themes/default/index.css'
 import { Effitor } from 'effitor'
 import { useHeadingPlugin } from 'effitor/plugins'
 
