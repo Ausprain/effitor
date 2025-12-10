@@ -1,5 +1,11 @@
 import type { Et } from '@effitor/core'
 
+export enum AIEnum {
+  Id_Deco = 'Et_ai-deco',
+  Class_Mask = 'Et_ai-mask',
+  Class_Caret = 'Et_ai-caret',
+}
+
 export type MarkdownTextMapping = Record<string, MarkdownTextMappingFn> & {
   beforeStart?: (ctx: Et.EditorContext) => null
   afterEnd?: (ctx: Et.EditorContext) => null
@@ -31,6 +37,10 @@ export type MarkdownTextMappingFnResult = null | ((ctx: Et.EditorContext) => num
 }
 
 export interface CreateEffitorAIOptions {
+  /** 是否显示打字机效果的mask */
+  typingMask?: boolean
+  /** 是否显示打字机效果的光标 */
+  typingCaret?: boolean
   /** 要添加的Markdown特殊字符的映射函数 */
   markdownTextMappings?: MarkdownTextMapping[]
 }

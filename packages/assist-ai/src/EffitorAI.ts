@@ -1,7 +1,7 @@
 import type { Et } from '@effitor/core'
 import { reduceFnMappings } from '@effitor/core'
 
-import type { CreateEffitorAIOptions, MarkdownTextMapping, MarkdownTextMappingFn } from './config'
+import { AIEnum, type CreateEffitorAIOptions, type MarkdownTextMapping, type MarkdownTextMappingFn } from './config'
 import { mappingForCode, mappingForList, mappingForMark } from './mapping'
 import { builtinMapping } from './mapping/builtin'
 
@@ -31,8 +31,13 @@ export class EffitorAI {
     )
 
     const mask = document.createElement('div')
-    mask.id = 'ai-typing-mask'
-    mask.className = 'caret-blink'
+    mask.id = AIEnum.Id_Deco
+    if (options.typingCaret) {
+      mask.classList.add(AIEnum.Class_Caret)
+    }
+    if (options.typingMask) {
+      mask.classList.add(AIEnum.Class_Mask)
+    }
     this._ctx.root.appendChild(mask)
     this._maskEl = mask
   }
@@ -59,6 +64,11 @@ export class EffitorAI {
    */
   setMarkdownTextMapping(char: string, mappingFn: MarkdownTextMappingFn) {
     this._markdownTextMapping[char] = mappingFn
+  }
+
+  setTypingDeco(typingCaret = false, typingMask = false) {
+    this._maskEl.classList.toggle(AIEnum.Class_Caret, typingCaret)
+    this._maskEl.classList.toggle(AIEnum.Class_Mask, typingMask)
   }
 
   /**
@@ -147,11 +157,11 @@ export class EffitorAI {
       this._maskEl.style.display = 'none'
       return
     }
-    this._maskEl.style.display = 'block'
     const rect = this._ctx.selection.range?.getClientRects()[0]
     if (rect) {
       this._maskEl.style.height = `${rect.height}px`
       this._maskEl.style.translate = `${rect.left + 5}px ${rect.top}px`
+      this._maskEl.style.display = 'block'
     }
   }
 

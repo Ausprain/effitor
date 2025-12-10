@@ -1,16 +1,19 @@
 
-#ai-typing-mask {
+#Et_ai-deco {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
   min-height: 1em;
-  width: 108px;
-  background-color: var(--et-color-bg);
-  mask-image: linear-gradient(to right, transparent, #000 107px);  /* 最右侧留出1px给光标*/
-  transform: translateX(-100px);
-  z-index: 1000;
+  z-index: 9999;
 
-  &.caret-blink {
+  &.Et_ai-mask {
+    width: 48px;
+    background-image: linear-gradient(to right, transparent, var(--et-color-bg));
+    transform: translateX(-36px);
+  }
+
+  &.Et_ai-caret {
     /* 需给编辑器设置 caret-color: transparent 隐藏原生光标 */
     &::after {
       content: '';
