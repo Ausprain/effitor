@@ -1,0 +1,36 @@
+{
+  "name": "@effitor/assist-ai",
+  "version": "0.2.0",
+  "description": "A lightweight AI assistant for Effitor.",
+  "keywords": [
+    "editor",
+    "wysiwyg",
+    "markdown"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "author": "Henvn Leaf",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ausprain/effitor.git",
+    "directory": "packages/assist-ai"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@effitor/core": "workspace:*"
+  }
+}
