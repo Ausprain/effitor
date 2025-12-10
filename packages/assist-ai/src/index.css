@@ -1,0 +1,32 @@
+
+#ai-typing-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-height: 1em;
+  width: 108px;
+  background-color: var(--et-color-bg);
+  mask-image: linear-gradient(to right, transparent, #000 107px);  /* 最右侧留出1px给光标*/
+  transform: translateX(-100px);
+  z-index: 1000;
+
+  &.caret-blink {
+    /* 需给编辑器设置 caret-color: transparent 隐藏原生光标 */
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      border-right: 1px solid;
+      filter: brightness(2);
+      animation: caret-blink 1s steps(1) infinite;
+    }
+  }
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}

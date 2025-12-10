@@ -1,6 +1,9 @@
 import type { Et } from '@effitor/core'
 
-export type MarkdownTextMapping = Record<string, MarkdownTextMappingFn>
+export type MarkdownTextMapping = Record<string, MarkdownTextMappingFn> & {
+  beforeStart?: (ctx: Et.EditorContext) => null
+  afterEnd?: (ctx: Et.EditorContext) => null
+}
 export interface MarkdownTextMappingFn {
   /**
    * 处理markdown特殊字符; 如连续的**, 要转为加粗, 而不是插入两个*

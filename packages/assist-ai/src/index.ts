@@ -1,6 +1,8 @@
+import './index.css'
+
 import type { Et } from '@effitor/core'
 
-import { CreateEffitorAIOptions } from './config'
+import type { CreateEffitorAIOptions } from './config'
 import { EffitorAI } from './EffitorAI'
 
 declare module '@effitor/core' {
@@ -13,7 +15,7 @@ export type AIAssistOptions = {
   // apiKey: string
 } & CreateEffitorAIOptions
 
-export const useAIAssist = (options: AIAssistOptions): Et.EditorPlugin => {
+export const useAIAssist = (options?: AIAssistOptions): Et.EditorPlugin => {
   return {
     name: '@effitor/assist-ai',
     effector: [{

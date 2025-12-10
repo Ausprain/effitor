@@ -7,17 +7,34 @@ import { builtinMapping } from './mapping/builtin'
 
 export class EffitorAI {
   private _markdownTextMapping: MarkdownTextMapping
+  private readonly _beforeCallbacks: Required<MarkdownTextMapping>['beforeStart'][] = []
+  private readonly _afterCallbacks: Required<MarkdownTextMapping>['afterEnd'][] = []
+  private readonly _maskEl: HTMLDivElement
 
   constructor(
     private readonly _ctx: Et.EditorContext,
     options: CreateEffitorAIOptions = {},
   ) {
+    const mappings = [
+      ...(options.markdownTextMappings || []),
+      mappingForCode, mappingForMark, mappingForList,
+      builtinMapping,
+    ].map((map) => {
+      const { beforeStart, afterEnd, ...rest } = map
+      if (beforeStart) this._beforeCallbacks.push(beforeStart)
+      if (afterEnd) this._afterCallbacks.push(afterEnd)
+      return rest
+    })
     this._markdownTextMapping = reduceFnMappings(
-      [...(options.markdownTextMappings || []),
-        mappingForCode, mappingForMark, mappingForList,
-        builtinMapping],
+      mappings,
       true,
     )
+
+    const mask = document.createElement('div')
+    mask.id = 'ai-typing-mask'
+    mask.className = 'caret-blink'
+    this._ctx.root.appendChild(mask)
+    this._maskEl = mask
   }
 
   /**
@@ -29,7 +46,10 @@ export class EffitorAI {
       Object.assign(this._markdownTextMapping, mapping)
       return
     }
-    this._markdownTextMapping = reduceFnMappings([this._markdownTextMapping, mapping], true)
+    const { beforeStart, afterEnd, ...rest } = mapping
+    if (beforeStart) this._beforeCallbacks.push(beforeStart)
+    if (afterEnd) this._afterCallbacks.push(afterEnd)
+    this._markdownTextMapping = reduceFnMappings([this._markdownTextMapping, rest], true)
   }
 
   /**
@@ -43,6 +63,8 @@ export class EffitorAI {
 
   /**
    * 将Markdown内容依次输入到编辑器中
+   * * 目前此方法直接触发相关事件，依据当前光标位置插入内容；调用者需保证整个typing过程中，
+   *   编辑器内的光标不被意外的干扰，否则可能导致插入内容错误
    * @param mdText Markdown文本
    * @param delay 每个字符之间的延迟时间（毫秒）,最小值为30
    */
@@ -51,9 +73,10 @@ export class EffitorAI {
       delay = 30
     }
     const graphemes = this._ctx.segmenter.segmentGraphemeItor(mdText)
-    let timer: number, nextIdx = 0
     return new Promise((res) => {
-      timer = window.setInterval(() => {
+      let nextIdx = 0
+      this._startTyping()
+      const timer = window.setInterval(() => {
         const next = graphemes.next()
         if (next.done) {
           res(true)
@@ -65,11 +88,11 @@ export class EffitorAI {
           return
         }
         if (segment.length > 1 || segment.charCodeAt(0) > 127) {
-          return this.#typeText(segment)
+          return this.typeText(segment)
         }
         const ret = this._markdownTextMapping[segment]?.(this._ctx, index, mdText)
         if (!ret) {
-          return this.#typeKey({ key: segment, code: segment })
+          return this.typeKey({ key: segment, code: segment })
         }
         if (typeof ret === 'function') {
           nextIdx = ret(this._ctx)
@@ -81,24 +104,68 @@ export class EffitorAI {
           return
         }
         if (type === 'key') {
-          this.#typeKey({ key: value, code: value })
+          this.typeKey({ key: value, code: value })
         }
         else {
-          this.#typeText(value)
+          this.typeText(value)
         }
       }, delay)
+    }).finally(() => {
+      this._stopTyping()
     })
   }
 
-  #typeKey(init: KeyboardEventInit) {
-    this._ctx.bodyEl.dispatchEvent(new KeyboardEvent('keydown', init))
-    this._ctx.bodyEl.dispatchEvent(new KeyboardEvent('keyup', init))
+  private _startTyping() {
+    this._runBeforeCallbacks()
+    this._startMask()
   }
 
-  #typeText(data: string) {
+  private _stopTyping() {
+    this._runAfterCallbacks()
+    this._stopMask()
+  }
+
+  private _runBeforeCallbacks() {
+    this._beforeCallbacks.forEach(cb => cb(this._ctx))
+  }
+
+  private _runAfterCallbacks() {
+    this._afterCallbacks.forEach(cb => cb(this._ctx))
+  }
+
+  private _startMask() {
+    this._ctx.bodyEl.style.caretColor = 'transparent'
+  }
+
+  private _stopMask() {
+    this._ctx.bodyEl.style.caretColor = ''
+    this._maskEl.style.display = 'none'
+  }
+
+  private _updateMask() {
+    if (this._ctx.selection.rawEl) {
+      this._maskEl.style.display = 'none'
+      return
+    }
+    this._maskEl.style.display = 'block'
+    const rect = this._ctx.selection.range?.getClientRects()[0]
+    if (rect) {
+      this._maskEl.style.height = `${rect.height}px`
+      this._maskEl.style.translate = `${rect.left + 5}px ${rect.top}px`
+    }
+  }
+
+  typeKey(init: KeyboardEventInit) {
+    this._ctx.bodyEl.dispatchEvent(new KeyboardEvent('keydown', init))
+    this._ctx.bodyEl.dispatchEvent(new KeyboardEvent('keyup', init))
+    this._updateMask()
+  }
+
+  typeText(data: string) {
     this._ctx.body.dispatchInputEvent('beforeinput', {
       data,
       inputType: 'insertText',
     })
+    this._updateMask()
   }
 }
