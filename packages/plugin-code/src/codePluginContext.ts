@@ -9,9 +9,11 @@ export const initCodePluginContext = (
   ctxMeta: Et.EditorContextMeta,
   highlighter: EtCodeHighlighter<string>,
   {
+    autoComplete = true,
     defaultTabSize = 2,
     renderOptions = {},
   }: {
+    autoComplete?: boolean
     defaultTabSize?: number
     renderOptions?: RenderOptions
   } = {},
@@ -52,6 +54,7 @@ export const initCodePluginContext = (
   }
 
   ctxMeta.pctx.$codePx = {
+    autoComplete,
     highlighter,
     defaultTabSize,
     codeRenderer: _codeRenderer,

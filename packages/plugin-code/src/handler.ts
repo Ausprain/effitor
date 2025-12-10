@@ -45,41 +45,43 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
       || rawEl.value[rawEl.selectionEnd] === '\n'
     )
     // 插入换行, 对齐缩进
-    if (data === '\n') {
-      let indent = codeCtx.getLineIndent(row)
-      if (focus === false) {
+    if (ctx.pctx.$codePx.autoComplete) {
+      if (data === '\n') {
+        let indent = codeCtx.getLineIndent(row)
+        if (focus === false) {
         // 不带 focus, 说明是下面回调中插入的换行符, 缩进需要减一层
-        indent = Math.max(0, indent - codeCtx.tabSize)
+          indent = Math.max(0, indent - codeCtx.tabSize)
+        }
+        data += ' '.repeat(indent)
+        // 括号后插入换行, 增加一层缩进
+        const precedingChar = codeCtx.precedingChar
+        if (precedingChar in Brackets) {
+          data += codeCtx.tab
+          if (codeCtx.followingChar === Brackets[precedingChar]) {
+            ctx.commandManager.pushHandleCallback(() => {
+              this.InsertTextInRawEl(ctx, {
+                rawEl, data: '\n', offset: rawEl.selectionStart, focus: false,
+              })
+              ctx.commandManager.handle()
+            })
+          }
+        }
       }
-      data += ' '.repeat(indent)
-      // 括号后插入换行, 增加一层缩进
-      const precedingChar = codeCtx.precedingChar
-      if (precedingChar in Brackets) {
-        data += codeCtx.tab
-        if (codeCtx.followingChar === Brackets[precedingChar]) {
+      else if (data.length === 1) {
+      // 插入左括号, 自动添加右括号
+        if (data in Brackets) {
           ctx.commandManager.pushHandleCallback(() => {
             this.InsertTextInRawEl(ctx, {
-              rawEl, data: '\n', offset: rawEl.selectionStart, focus: false,
+              rawEl, data: Brackets[data] as string, offset: rawEl.selectionStart, focus: false,
             })
             ctx.commandManager.handle()
           })
         }
-      }
-    }
-    else if (data.length === 1) {
-      // 插入左括号, 自动添加右括号
-      if (data in Brackets) {
-        ctx.commandManager.pushHandleCallback(() => {
-          this.InsertTextInRawEl(ctx, {
-            rawEl, data: Brackets[data] as string, offset: rawEl.selectionStart, focus: false,
-          })
-          ctx.commandManager.handle()
-        })
-      }
-      // 插入右括号, 且与 followingChar 匹配, 则光标后移一位
-      else if (Object.values(Brackets).includes(data) && codeCtx.followingChar === data) {
-        rawEl.setSelectionRange(rawEl.selectionEnd + 1, rawEl.selectionEnd + 1)
-        return true
+        // 插入右括号, 且与 followingChar 匹配, 则光标后移一位
+        else if (Object.values(Brackets).includes(data) && codeCtx.followingChar === data) {
+          rawEl.setSelectionRange(rawEl.selectionEnd + 1, rawEl.selectionEnd + 1)
+          return true
+        }
       }
     }
     // 插入内容含换行符, 需要记录一次撤回栈事务; 否则导致命令合并, tailCmd丢失从而无法及时更新渲染

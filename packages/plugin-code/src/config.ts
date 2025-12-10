@@ -72,6 +72,7 @@ export interface CodeBlockRenderOptions {
 }
 
 export interface CodePluginContext {
+  autoComplete: boolean
   readonly highlighter: EtCodeHighlighter<string>
   readonly defaultTabSize: number
   readonly codeRenderer: CodeRenderer

@@ -22,6 +22,11 @@ import { createShikiHighlighter, type ShikiHighlighterOptions } from './highligh
 
 export interface CodePluginOptions extends CodeBlockRenderOptions {
   /**
+   * 是否开启自动完成; 开启后, 会根据当前代码位置自动插入缩进/闭括号等
+   * @default true
+   */
+  autoComplete?: boolean
+  /**
    * Shiki 配置项; 由于 shiki 高亮必须指定已加载的语言或'', 因为未配置的语言默认以 '' 处理
    */
   shikiOptions?: ShikiHighlighterOptions
