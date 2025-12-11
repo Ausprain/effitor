@@ -17,10 +17,6 @@ export abstract class EtHeading extends EtParagraph { // 标题属于段落
   abstract get headingLevel(): HeadingLevel
   abstract set headingLevel(val: HeadingLevel)
 
-  override connectedCallback(): void {
-    this.setAttribute('contenteditable', 'plaintext-only')
-  }
-
   innerStartEditingBoundary(): Et.EtCaret {
     const child = this.firstChild
     if (child) {

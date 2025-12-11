@@ -81,9 +81,7 @@ export class Effitor {
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
 
-  public readonly status: Readonly<Et.EditorStatus> = {
-    isDark: false,
-  }
+  public readonly status: Readonly<Et.EditorStatus>
 
   public readonly isShadow: boolean
   public readonly theme: string
@@ -179,6 +177,7 @@ export class Effitor {
   constructor({
     shadow = false,
     theme = 'default',
+    readonly = false,
     schemaInit = {},
     mainEffector = getMainEffector(),
     assists = [],
@@ -252,6 +251,10 @@ export class Effitor {
       Object.assign(toMdHandlerMap, ctor.toMarkdownHandlerMap)
     })
 
+    this.status = {
+      readonly,
+      isDark: false,
+    }
     this.__meta = {
       contextMeta,
       mainEffector,
@@ -338,6 +341,9 @@ export class Effitor {
     if (this.isShadow) {
       context.selection.setSelectionGetter(root as Et.ShadowRoot)
     }
+    if (this.status.readonly) {
+      this.setReadonly(true)
+    }
 
     /** 编辑器事件监听器 */
     const listeners = initListeners(context, mainEffector, pluginConfigs)
@@ -390,8 +396,20 @@ export class Effitor {
     this.callbacks.onDarkModeChanged?.(this.context, isDark)
   }
 
-  changeLocale(locale: string) {
+  setLocale(locale: string) {
     this.context.segmenter.setLocale(locale)
+  }
+
+  setReadonly(readonly: boolean) {
+    if (readonly) {
+      this.bodyEl.style.pointerEvents = 'none'
+      this.context.isolateSelection(true)
+    }
+    else {
+      this.bodyEl.style.pointerEvents = ''
+      this.context.isolateSelection(false)
+    }
+    Object.assign(this.status, { readonly })
   }
 
   /**
