@@ -90,7 +90,7 @@
   
     &:has(>[data-type="pg2"]),
     &:has(>[data-type="pg3"]) {
-      column-count: 1 !important;
+      column-count: 1;
     }
     .Et--pg-outlining & {
       margin-inline: 0;
@@ -101,28 +101,41 @@
 }
 
 
-@container et-body (min-width: 520px) {
-  et-bq,
-  .et-bq {
+@container et-body (max-width: 520px) {
+  :where(.et-bq, et-bq) {
     &[data-type="pg2"],
     &[data-type="pg3"] {
-      column-count: 2;
-      &:has(>.et-bq,>et-bq),
-      &:has(>.et-code,>et-code),
-      &:has(>.et-table,>et-table) {
+      &:where(:has(>.et-bq,>et-bq)),
+      &:where(:has(>.et-code,>et-code)),
+      &:where(:has(>.et-table,>et-table)) {
         column-count: 1;
       }
     }
   }
 }
-@container et-body (min-width: 760px) {
-  et-bq[data-type="pg3"],
-  .et-bq[data-type="pg3"] {
+
+@container et-body (min-width: 520px) {
+  :where(.et-bq, et-bq) {
+    &[data-type="pg2"],
+    &[data-type="pg3"] {
+      column-count: 2;
+    }
+  }
+}
+@container et-body (min-width: 720px) {
+  :where(.et-bq, et-bq)[data-type="pg3"] {
     column-count: 3;
     &:has(>.et-bq,>et-bq),
     &:has(>.et-code,>et-code),
     &:has(>.et-table,>et-table) {
       column-count: 2;
+    }
+  }
+}
+@container et-body (min-width: 920px) {
+  .et-bq, et-bq {
+    &[data-type="pg3"] {
+      column-count: 3;
     }
   }
 }
