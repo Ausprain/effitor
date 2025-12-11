@@ -166,8 +166,7 @@ export class EtCodeElement extends EtComponent {
   }
 
   focusToInnerEditable(ctx: Et.EditorContext, toStart: boolean) {
-    this.codeCtx.focus(toStart)
-    ctx.forceUpdate()
+    ctx.setSelection(cr.inRaw(this.codeCtx.area, toStart ? 0 : this.codeCtx.area.value.length))
     return null
   }
 

@@ -8,7 +8,7 @@ const mainKeyupSolver: MainKeyboardSolver = {
   ' ': (_ev, ctx) => {
     if (ctx.prevUpKey === ' ') {
       const tc = ctx.selection.getTargetCaret()
-      if (!tc) {
+      if (!tc || ctx.selIsolated) { // 隔离选区时禁用双空格效应
         return
       }
       ctx.getEtHandler(tc.anchorEtElement).dblSpace?.(ctx, tc)

@@ -84,7 +84,7 @@ export const addListenersToEditorBody = (
     if (body.childElementCount === 0) {
       ctx.editor.initBody(void 0, false)
     }
-    else if (dom.isRawEditElement(ev.target as Node)) {
+    else if (dom.isRawEditElement(ev.target as Node) && !ctx.selIsolated) {
       ctx.selection.setInRaw(ev.target as Et.HTMLRawEditElement)
       ctx.forceUpdate()
     }
@@ -114,7 +114,7 @@ export const addListenersToEditorBody = (
   body.addEventListener('focusout', (ev) => {
     // import.meta.env.DEV && console.error('body blur', ev.target, ev.relatedTarget)
 
-    if (dom.isRawEditElement(ev.target as Node)) {
+    if (dom.isRawEditElement(ev.target as Node) && !ctx.selIsolated) {
       ctx.selection.setInRaw(null)
     }
     // 当编辑区失去焦点, 且焦点并非落入编辑区内的嵌套 contenteditable 内时

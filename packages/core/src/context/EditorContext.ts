@@ -15,6 +15,7 @@ import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { HotstringManager } from '../hotstring/HotstringManager'
 import { Segmenter } from '../intl/Segmenter'
 import { EtSelection } from '../selection/EtSelection'
+import { EtSelectionIsolated } from '../selection/EtSelectionIsolated'
 import { traversal } from '../utils'
 import { Composition } from './Composition'
 import type { EditorContextMeta, EditorPluginContext } from './config'
@@ -76,7 +77,9 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   /** 编辑器模式转换器 // TODO */
   readonly mode: EditorMode
   /** 编辑器选区对象, 在 mount 之前为 null */
-  readonly selection: ContextSelection
+  private _selection: ContextSelection
+  private _connectedSel: EtSelection
+  private _isolatedSel?: EtSelectionIsolated
   /** 文本分词器 */
   readonly segmenter: Segmenter
   /** 编辑器输入法对象 */
@@ -163,7 +166,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.root = options.root
     this.body = new EditorBody(options.bodyEl, this.editor.scrollContainer)
     this.mode = new EditorMode(this)
-    this.selection = new EtSelection(this.body)
+    this._selection = new EtSelection(this.body)
+    this._connectedSel = this._selection as EtSelection
     this.segmenter = new Segmenter(options.locale)
     this.composition = new Composition(this, platform.isSupportInsertFromComposition)
     this.effectInvoker = effectInvoker
@@ -186,34 +190,34 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 更新编辑器上下文
    */
   update() {
-    const prevSelType = this.selection.isCollapsed
-    if (!this.selection.update()) {
+    const prevSelType = this._selection.isCollapsed
+    if (!this._selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
       return (this._updated = false)
     }
     // 文本节点没有变更新, 说明效应元素/段落都没变, 可结束更新
-    if (this._oldNode && this._oldNode === this.selection.anchorText && this._focusEtElement?.isConnected) {
+    if (this._oldNode && this._oldNode === this._selection.anchorText && this._focusEtElement?.isConnected) {
       return (this._updated = true)
     }
-    this._oldNode = this.selection.anchorText
+    this._oldNode = this._selection.anchorText
 
     // topElement 非空, 则 paragraph 非空, 则 etElement 非空
-    if (!this.selection.commonEffectElement) {
+    if (!this._selection.commonEffectElement) {
       // 更新上下文后, commonEffectElement 必须存在, 因为光标选区必须在 et-body 内, 而 et-body 是效应元素, 即兜底的最外层 commonEffectElement
       this.assists.logger?.logError('ctx update failed: common effect element not found. ', 'EditorContext')
       this.editor.blur()
       return (this._updated = false)
     }
-    this._selectionTypeChanged = prevSelType === this.selection.isCollapsed
+    this._selectionTypeChanged = prevSelType === this._selection.isCollapsed
     // 更新上下文效应元素
     // 特别的, 若 focusEtElement === focusParagraph === focusTopElement, 则
     // focusinCallback 由 focusEtElement 调用
     // focusoutCallback 由 focusTopElement 调用
-    this._commonEtElement = this.selection.commonEffectElement
-    this.focusEtElement = this.selection.focusEffectElement
-    this.focusParagraph = this.selection.focusParagraph
-    this.focusTopElement = this.selection.focusTopElement
+    this._commonEtElement = this._selection.commonEffectElement
+    this.focusEtElement = this._selection.focusEffectElement
+    this.focusParagraph = this._selection.focusParagraph
+    this.focusTopElement = this._selection.focusTopElement
     return (this._updated = true)
   }
 
@@ -310,7 +314,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * * 若选区非collapsed, 该值与选区结束(focus)位置对齐
    */
   get focusTopElement() {
-    return this.selection.focusTopElement
+    return this._selection.focusTopElement
   }
 
   private set focusTopElement(v) {
@@ -334,14 +338,48 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 编辑区失去焦点时调用
    */
   private _blurCallback() {
+    if (this.selIsolated) {
+      return
+    }
     this._updated = false
     this._oldNode = null
     this.focusEtElement = null
     this.focusParagraph = null
     this.focusTopElement = null
     this._commonEtElement = null
-    this.selection.clear()
+    this._selection.clear()
     this.commandManager.closeTransaction()
+  }
+
+  /** 编辑器选区对象, 在 mount 之前为 null */
+  get selection() {
+    return this._selection
+  }
+
+  /**
+   * 选区是否隔离; 隔离的选区将于页面原生的 Selection 对象解绑
+   */
+  get selIsolated() {
+    return this._selection.isolated
+  }
+
+  /**
+   * 隔离选区; 隔离的选区将于页面原生的 Selection 对象解绑
+   * @param enable 是否隔离选区
+   */
+  isolateSelection(enable: boolean) {
+    if (enable) {
+      if (!this._isolatedSel) {
+        this._isolatedSel = new EtSelectionIsolated(this.body)
+      }
+      if (this.selection.range) {
+        this._isolatedSel.selectRange(this.selection.range as unknown as Range)
+      }
+      this._selection = this._isolatedSel
+    }
+    else {
+      this._selection = this._connectedSel
+    }
   }
 
   /**
@@ -417,10 +455,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     // selectRange 必然会导致selectionchagne, 进而调用ctx.forceUpdate()
     // 如若selchange加了防抖, 快速编辑情况下, 可能导致更新延误, 因此需要手动更新ctx;
     if (caretRange) {
-      const range = caretRange.toRange()
-      if (range) {
-        this.selection.selectRange(range)
-      }
+      this._selection.selectCaretRange(caretRange)
     }
     // TODO 尝试使用 selection.collapse 来定位到空节点内部看是否有效
     if (this.editor.isShadow) {
@@ -428,10 +463,10 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       // 如 <et-p>aaa<et-p> 后边插入一个列表 `<et-list><et-li>|</et-li></et-list>`
       // 期望光标落于 li 内即`|`处, 但使用`forceUpdate`时, 光标会落在`<et-p>aaa|<et-p>`
       // 手动触发selectionchange事件, 以更新通过 selchange 回调来更新上下文和选区
-      this.selection.dispatchChange()
+      this._selection.dispatchChange()
       // fixed. selectionchange事件是异步的, 即时手动触发也不会立即执行, 这里需要保底更新选区
       // 因为 setSelection() 方法的语义上同步更新选区
-      this.selection.update()
+      this._selection.update()
       return true
     }
     return this.forceUpdate()
@@ -510,7 +545,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 检查光标是否***直接***在指定效应元素内；当且仅当选区 collapsed 且 focusEtElement 等于 el 时返回 true
    */
   isCaretIn(el: Et.EtElement) {
-    return this.selection.isCollapsed && this._focusEtElement === el
+    return this._selection.isCollapsed && this._focusEtElement === el
   }
 
   isEtElement(node: Node | null): node is Et.EtElement {

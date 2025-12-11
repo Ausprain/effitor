@@ -24,7 +24,7 @@ export class CodeContext<L extends string = string> {
   //        textarea
   public readonly wrapper: HTMLDivElement
   private readonly _container: HTMLDivElement
-  public readonly area: HTMLTextAreaElement
+  public readonly area: Et.HTMLRawEditElement
   public readonly pre: HTMLPreElement
   private readonly _lineWrapper: HTMLElement
   private __lang: L
@@ -35,7 +35,7 @@ export class CodeContext<L extends string = string> {
     this.__lang = lang
     this.__tab = ' '.repeat(tabSize)
     this._highlighter = highlighter
-    this.area = document.createElement('textarea')
+    this.area = document.createElement('textarea') as Et.HTMLRawEditElement
     this.area.name = 'codearea'
     this.area.autocomplete = 'off'
     this.area.autocapitalize = 'off'

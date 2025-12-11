@@ -2,6 +2,7 @@ import type { Et } from '../@types'
 import { CaretRange } from './CaretRange'
 import { type AnchorOffset } from './config'
 import { EtCaret } from './EtCaret'
+import type { EtInRaw } from './EtInRaw'
 
 /**
  * 选区范围, 用于编辑器命令标识一个编辑器内容范围
@@ -69,8 +70,8 @@ export class EtRange extends CaretRange {
     return false
   }
 
-  isEqualTo(other: EtCaret | EtRange): boolean {
-    return !other.isCaret()
+  isEqualTo(other: EtCaret | EtRange | EtInRaw): boolean {
+    return !other.isCaret() && !other.isInRaw()
       && this.startAnchor === other.startAnchor
       && this.startOffset === other.startOffset
       && this.endAnchor === other.endAnchor

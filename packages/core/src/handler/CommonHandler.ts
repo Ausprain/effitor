@@ -105,7 +105,7 @@ export class CommonHandler {
       newP = out
     }
     if (!dest) {
-      dest = cr.caretInStart(newP)
+      dest = cr.caretInAuto(newP)
     }
     if (isFirstInit) {
       bodyEl.appendChild(newP)

@@ -10,6 +10,7 @@ import { dom } from '../utils'
 import type { CaretRange } from './CaretRange'
 import { CrEnum } from './config'
 import { EtCaret } from './EtCaret'
+import { EtInRaw } from './EtInRaw'
 import { EtRange } from './EtRange'
 import { SpanRange } from './SpanRange'
 
@@ -211,6 +212,13 @@ export const cr = {
       return this.caretOutStart(lastChild)
     }
     return this.caretEndAuto(lastChild)
+  },
+
+  /**
+   * 创建一个指向原生编辑节点内的光标范围对象
+   */
+  inRaw(rawEl: Et.HTMLRawEditElement, start: number, end = start) {
+    return new EtInRaw(rawEl, start, end)
   },
 
   /**

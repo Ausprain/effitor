@@ -19,9 +19,18 @@ const enum SelectAllLevel {
  * 编辑器选区
  */
 export class EtSelection {
+  /**
+   * 是否为隔离的选区, 隔离的选区更新时不依赖 DOM 原生的 Selection对象
+   */
+  public readonly isolated: boolean = false
+  /** 选区历史记录 */
+  public readonly history = new SelectionHistory(this)
+  /** 当前选择的 Range 列表; 仅在多选区场景非空, 最后一项恒等于 range; */
+  public readonly ranges: Et.TargetRange[] = []
+  /** 选区是否在 shadowDOM 内 */
+  private _inShadow: boolean
   private _selection: Selection | null = null
   private _getSelection: () => Selection | null
-  private readonly _body: EditorBody
   private readonly TargetRange: ReturnType<typeof getTargetRangeCtor>
 
   /**
@@ -41,28 +50,26 @@ export class EtSelection {
   private _focusParagraph: Et.Paragraph | null | undefined
   private _focusTopElement: Et.Paragraph | null | undefined
   /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
-  private _rawEl: Et.HTMLRawEditElement | null = null
+  protected _rawEl: Et.HTMLRawEditElement | null = null
   private _revealIdleCallbackId = 0
 
-  /** 选区是否在 shadowDOM 内 */
-  public inShadow: boolean
-  /** 选区历史记录 */
-  public history = new SelectionHistory(this)
-  /** 当前选择的 Range 列表; 仅在多选区场景非空, 最后一项恒等于 range; */
-  public ranges: Et.TargetRange[] = []
   /** 当前选区对应的 Range */
-  public range: Et.Range | null = null
-  private _collapsed = true
+  protected _range: Et.Range | null = null
+  protected _collapsed = true
 
   /**
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
    * getSelection 函数需要 bind 在 ShadowRoot或 Document 上, 否则调用时报错
    */
-  constructor(body: EditorBody) {
-    this._body = body
-    this.inShadow = false
+  constructor(protected readonly _body: EditorBody) {
+    this._inShadow = false
     this._getSelection = document.getSelection.bind(document)
-    this.TargetRange = getTargetRangeCtor(body)
+    this.TargetRange = getTargetRangeCtor(this._body)
+  }
+
+  /** 当前选区对应的 Range */
+  get range() {
+    return this._range
   }
 
   get selection() {
@@ -73,7 +80,7 @@ export class EtSelection {
   }
 
   get commonAncestor() {
-    return this.range ? this.range.commonAncestorContainer : null
+    return this._range ? this._range.commonAncestorContainer : null
   }
 
   /**
@@ -96,8 +103,8 @@ export class EtSelection {
    * 当 anchorText 为空时, 返回 0
    */
   get anchorOffset() {
-    if (this.range) {
-      return this.range.startOffset
+    if (this._range) {
+      return this._range.startOffset
     }
     return 0
   }
@@ -109,6 +116,10 @@ export class EtSelection {
   get focusNode() {
     return this.anchorText || this.selection?.focusNode?.childNodes.item(
       this.selection.focusOffset) as Et.NodeOrNull | undefined
+  }
+
+  get inShadow() {
+    return this._inShadow
   }
 
   /** 选区是否 collapsed */
@@ -135,7 +146,7 @@ export class EtSelection {
     if (s.direction !== 'none') {
       return this._isForward = (s.direction === 'forward')
     }
-    const r = this.range
+    const r = this._range
     return this._isForward = (
       !!r && r.startContainer === s.anchorNode && r.startOffset === s.anchorOffset
     )
@@ -146,38 +157,46 @@ export class EtSelection {
    */
   setSelectionGetter(root: Et.ShadowRoot) {
     if (!root.getSelection) {
-      this.inShadow = false
+      this._inShadow = false
       return
     }
     this._getSelection = root.getSelection.bind(root)
-    this.inShadow = true
+    this._inShadow = true
   }
 
   /**
    * 更新选区信息, 除输入法会话内, 除处理输入法行为需要时, 该方法不可单独调用, 只能通过 ctx.updateUpdate() 间接调用
    */
   update() {
+    // this._caretRange = null
+    if (this._rawEl) {
+      const r = document.createRange() as Et.Range
+      r.setStart(this._rawEl, 0)
+      r.setEnd(this._rawEl, 0)
+      this.updateSelCtx(r)
+      return true
+    }
+    return this._update()
+  }
+
+  protected _update() {
     const sel = this.selection
     if (!sel || sel.rangeCount === 0) {
       return false
     }
-    const oldText = this._anchorText
-    this._anchorText = null
-    if (this._rawEl) {
-      const r = document.createRange()
-      r.setStart(this._rawEl, 0)
-      r.setEnd(this._rawEl, 0)
-      this.range = r as Et.Range
-    }
-    else {
-      this.range = sel.getRangeAt(0) as Et.Range
-      // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
-      this._collapsed = this.range.collapsed
-    }
-    this._caretRange = cr.fromRange(this.range).markConnected()
-    this._targetRange = this.TargetRange.fromRange(this.range)
-    this._validTargetRange = void 0
+    this.updateSelCtx(sel.getRangeAt(0) as Et.Range)
+    return true
+  }
 
+  protected updateSelCtx(range: Et.Range) {
+    const oldText = this._anchorText
+    this._range = range
+    this._anchorText = null
+    this._caretRange = this._setCaretRange()
+    this._targetRange = this.TargetRange.fromRange(range)
+    this._validTargetRange = void 0
+    // 使用 range.collapsed 而非 selection.isCollapsed; 后者在 ShadowDOM 内不准（chromium 120)
+    this._collapsed = range.collapsed
     this._isForward = void 0
     if (!oldText || oldText !== this.anchorText || !this._focusEtElement?.isConnected) {
       this._commonEtElement = void 0
@@ -195,15 +214,13 @@ export class EtSelection {
         this._body.el.classList.add(CssClassEnum.SelectionAll)
       }
     }
-    return true
   }
 
   /**
    * 清除选区上下文
    */
   clear() {
-    this.range = null
-    // this._caretRange = null
+    this._range = null
     this._targetRange = null
     this._validTargetRange = void 0
     this._commonEtElement = void 0
@@ -215,14 +232,9 @@ export class EtSelection {
   /** 尝试恢复选区 */
   restore() {
     if (!this._caretRange) {
-      return
-    }
-    const r = this._caretRange.toRange()
-    // 恢复的选区需要再次判断是否已连接, 因为_caretRange在赋值时被标记为 connected, 但在恢复选区时, 选区可能已被修改
-    if (!r || !r.startContainer.isConnected || !r.endContainer.isConnected) {
       return false
     }
-    return this.selectRange(r)
+    return this.selectCaretRange(this._caretRange)
   }
 
   /**
@@ -232,10 +244,10 @@ export class EtSelection {
     if (this._rawEl) {
       return this._rawEl.value.slice(this._rawEl.selectionStart, this._rawEl.selectionEnd)
     }
-    if (this.isCollapsed || !this.range) {
+    if (this.isCollapsed || !this._range) {
       return ''
     }
-    return this.range.toString()
+    return this._range.toString()
   }
 
   /**
@@ -309,11 +321,11 @@ export class EtSelection {
 
   /** 是否全选编辑区 */
   get isRangingBody() {
-    return (!this.isCollapsed && this.range
-      && this.range.startContainer === this.range.endContainer
-      && this.range.startContainer === this._body.el
-      && this.range.startOffset === 0
-      && this.range.endOffset === this._body.el.childNodes.length)
+    return (!this.isCollapsed && this._range
+      && this._range.startContainer === this._range.endContainer
+      && this._range.startContainer === this._body.el
+      && this._range.startOffset === 0
+      && this._range.endOffset === this._body.el.childNodes.length)
   }
 
   /**
@@ -367,6 +379,21 @@ export class EtSelection {
     return null
   }
 
+  private _setCaretRange() {
+    if (this._rawEl) {
+      return this._caretRange = cr.inRaw(
+        this._rawEl, this._rawEl.selectionStart, this._rawEl.selectionEnd,
+      ).markConnected()
+    }
+    return this._caretRange = cr.fromRange(this._range ?? {
+      collapsed: true,
+      startContainer: this._body.el,
+      startOffset: 0,
+      endContainer: this._body.el,
+      endOffset: 0,
+    }).markConnected()
+  }
+
   /**
    * 获取光标位置对应的 CaretRange 对象
    * @returns 一个 CaretRange 对象; 若 this.isCollapsed==true, 返回的是 EtCaret, 否则 EtRange
@@ -376,13 +403,7 @@ export class EtSelection {
     if (this._caretRange) {
       return this._caretRange
     }
-    return cr.fromRange(this.range ?? {
-      collapsed: true,
-      startContainer: this._body.el,
-      startOffset: 0,
-      endContainer: this._body.el,
-      endOffset: 0,
-    }).markConnected()
+    return this._setCaretRange()
   }
 
   /**
@@ -601,6 +622,25 @@ export class EtSelection {
     return this._rawEl
   }
 
+  selectCaretRange(caretRange: Et.CaretRange) {
+    const range = caretRange.toRange()
+    if (!range?.startContainer.isConnected) {
+      return false
+    }
+    this.selectRange(range)
+    if (caretRange.isInRaw()) {
+      if (!this.isolated) {
+        caretRange.rawEl.focus()
+      }
+      caretRange.rawEl.setSelectionRange(caretRange.start, caretRange.end)
+      this.setInRaw(caretRange.rawEl)
+    }
+    else {
+      this.setInRaw(null)
+    }
+    return true
+  }
+
   /** 选择一个范围更新到当前选区; 此方法不执行 EtSelection.update */
   selectRange(range: Range) {
     const sel = this.selection
@@ -612,6 +652,16 @@ export class EtSelection {
     return true
   }
 
+  protected _collapseInRawEl(rawEl: Et.HTMLRawEditElement, toStart = true) {
+    if (toStart) {
+      rawEl.selectionEnd = rawEl.selectionStart
+    }
+    else {
+      rawEl.selectionStart = rawEl.selectionEnd
+    }
+    return true
+  }
+
   /**
    * 折叠选区, 使光标位置位于选区开头或结尾
    * @param [toStart=true] 是否折叠到选区开头, 默认 true
@@ -619,13 +669,7 @@ export class EtSelection {
    */
   collapse(toStart = true, reveal = true) {
     if (this._rawEl) {
-      if (toStart) {
-        this._rawEl.selectionEnd = this._rawEl.selectionStart
-      }
-      else {
-        this._rawEl.selectionStart = this._rawEl.selectionEnd
-      }
-      return true
+      return this._collapseInRawEl(this._rawEl, toStart)
     }
     if (this.isCollapsed) {
       return true
@@ -660,28 +704,28 @@ export class EtSelection {
    * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
    * @returns 是否成功更新光标位置
    */
-  caretTo(node: Et.Node, offset: number): boolean {
-    const sel = this.selection
-    if (!sel || !node || !node.isConnected || !this._body.isNodeInBody(node)) {
-      return false
-    }
+  // caretTo(node: Et.Node, offset: number): boolean {
+  //   const sel = this.selection
+  //   if (!sel || !node || !node.isConnected || !this._body.isNodeInBody(node)) {
+  //     return false
+  //   }
 
-    const r = document.createRange() as Et.Range
-    if (offset < 0) {
-      r.selectNode(node)
-      r.collapse(true)
-    }
-    else if (offset === Infinity || offset > dom.nodeLength(node)) {
-      r.selectNode(node)
-      r.collapse(false)
-    }
-    else {
-      r.setStart(node, offset)
-    }
-    sel.removeAllRanges()
-    sel.addRange(r)
-    return true
-  }
+  //   const r = document.createRange() as Et.Range
+  //   if (offset < 0) {
+  //     r.selectNode(node)
+  //     r.collapse(true)
+  //   }
+  //   else if (offset === Infinity || offset > dom.nodeLength(node)) {
+  //     r.selectNode(node)
+  //     r.collapse(false)
+  //   }
+  //   else {
+  //     r.setStart(node, offset)
+  //   }
+  //   sel.removeAllRanges()
+  //   sel.addRange(r)
+  //   return true
+  // }
 
   /**
    * 扩展当前选区至某位置\
@@ -691,25 +735,25 @@ export class EtSelection {
    * * 若后续行为依赖最新的上下文或光标选区信息, 必须手动调用 ctx.forceUpdate
    * @returns 是否成功扩展选区
    */
-  rangeTo(node: Et.Node, offset: number): boolean {
-    const sel = this.selection
-    const originR = this.range
-    if (!sel || !originR || !this._body.isNodeInBody(node)) {
-      return false
-    }
-    const destR = originR.cloneRange()
-    if (!this.isValidPosition(node, offset)) {
-      return false
-    }
-    destR.setEnd(node, offset)
-    if (destR.collapsed) {
-      // 范围坍缩，说明文档树中node在 focusNode 前面
-      destR.setEnd(originR.endContainer, originR.endOffset)
-    }
-    sel.removeAllRanges()
-    sel.addRange(destR)
-    return true
-  }
+  // rangeTo(node: Et.Node, offset: number): boolean {
+  //   const sel = this.selection
+  //   const originR = this._range
+  //   if (!sel || !originR || !this._body.isNodeInBody(node)) {
+  //     return false
+  //   }
+  //   const destR = originR.cloneRange()
+  //   if (!this.isValidPosition(node, offset)) {
+  //     return false
+  //   }
+  //   destR.setEnd(node, offset)
+  //   if (destR.collapsed) {
+  //     // 范围坍缩，说明文档树中node在 focusNode 前面
+  //     destR.setEnd(originR.endContainer, originR.endOffset)
+  //   }
+  //   sel.removeAllRanges()
+  //   sel.addRange(destR)
+  //   return true
+  // }
 
   isValidPosition(node: Et.Node, offset: number) {
     if (!node.isConnected) return false
@@ -794,7 +838,7 @@ export class EtSelection {
       return
     }
     if (!range) {
-      range = this.range
+      range = this._range
       if (!range) {
         return
       }
@@ -955,29 +999,33 @@ export class EtSelection {
     dummy.remove()
   }
 
+  protected _selectSoftLineInRawEl(rawEl: Et.HTMLRawEditElement) {
+    const { selectionStart: start, selectionEnd: end, value } = rawEl
+    const len = value.length
+    let i = start, j = end
+    for (; i > 0; i--) {
+      if (value[i - 1] === '\n') {
+        break
+      }
+    }
+    for (; j < len; j++) {
+      if (value[j] === '\n') {
+        break
+      }
+    }
+    if (value[j] === '\n') {
+      j++
+    }
+    rawEl.setSelectionRange(i, j, 'forward')
+    return true
+  }
+
   /**
    * 扩展选区至选中当前行, 若调用时选区非 collapsed, 可能选中多行
    */
   selectSoftLine() {
     if (this._rawEl) {
-      const { selectionStart: start, selectionEnd: end, value } = this._rawEl
-      const len = value.length
-      let i = start, j = end
-      for (; i > 0; i--) {
-        if (value[i - 1] === '\n') {
-          break
-        }
-      }
-      for (; j < len; j++) {
-        if (value[j] === '\n') {
-          break
-        }
-      }
-      if (value[j] === '\n') {
-        j++
-      }
-      this._rawEl.setSelectionRange(i, j, 'forward')
-      return true
+      return this._selectSoftLineInRawEl(this._rawEl)
     }
     return !!this._selection && selectSoftLine(this._selection)
   }
@@ -1125,10 +1173,10 @@ export class EtSelection {
   }
 
   cloneContents() {
-    if (this.isCollapsed || !this.range) {
+    if (this.isCollapsed || !this._range) {
       return document.createDocumentFragment() as Et.Fragment
     }
-    return this.range.cloneContents()
+    return this._range.cloneContents()
   }
 
   /**
@@ -1143,7 +1191,7 @@ export class EtSelection {
 // firefox 的 selectionmodify 在Range 状态下按 lineboundary 扩展选区时, 会先 collapse 到对应方向边缘, 再 extend
 // 据 mdn 的说法, 早期 webkit 也是这么做的, 但后来改了, 现在是从指定方向远端开始扩展, 即'backward', 'forward'一来一回
 // 就能选中当前行, 为对齐 chrome 和 Safari, 我们这里对 firefox 单独处理
-const selectSoftLine = platform.isFirefox
+export const selectSoftLine = platform.isFirefox
   ? (sel: Selection) => {
       sel.modify('extend', 'backward', 'lineboundary')
       sel.collapseToStart()
@@ -1175,23 +1223,19 @@ class SelectionHistory {
     if (this.pos <= 0) {
       return
     }
-    const r = (this.stack[--this.pos] as Et.CaretRange).toRange()
-    if (!r) {
+    if (!this._sel.selectCaretRange(this.stack[--this.pos] as Et.CaretRange)) {
       this.stack.splice(this.pos, 1)
       return
     }
-    this._sel.selectRange(r)
   }
 
   forward() {
     if (this.pos >= this.stack.length) {
       return
     }
-    const r = (this.stack[this.pos++] as Et.CaretRange).toRange()
-    if (!r) {
+    if (!this._sel.selectCaretRange(this.stack[this.pos++] as Et.CaretRange)) {
       this.stack.splice(this.pos - 1, 1)
       return
     }
-    this._sel.selectRange(r)
   }
 }

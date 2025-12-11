@@ -8,7 +8,8 @@ import { HtmlCharEnum } from '@effitor/shared'
 import type { Et } from '../@types'
 import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
-import { type AnchorOffset } from './config'
+import type { AnchorOffset } from './config'
+import type { EtInRaw } from './EtInRaw'
 import type { EtRange } from './EtRange'
 
 /**
@@ -172,7 +173,7 @@ export class EtCaret extends CaretRange {
     return true
   }
 
-  isEqualTo(other: EtCaret | EtRange) {
+  isEqualTo(other: EtCaret | EtRange | EtInRaw) {
     return other.isCaret()
       && this.anchor === other.anchor
       && this.offset === other.offset

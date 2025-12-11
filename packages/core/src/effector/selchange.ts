@@ -21,11 +21,6 @@ export const getSelectionChangeListener = (ctx: Et.EditorContext, callback?: Et.
 
     // 光标不连续, 重置热字符串判断
     ctx.hotstringManager.needResetBeforeJudge()
-    // activeElement 不是效应元素, 跳过更新上下文, 因为这是全局的 selectionchange 事件
-    // TODO 是否可用`editor.isFocused`代替
-    // if (!document.activeElement || !etcode.check(document.activeElement)) {
-    //   return
-    // }
     ctx.update()
     callback?.(ev, ctx)
   }
