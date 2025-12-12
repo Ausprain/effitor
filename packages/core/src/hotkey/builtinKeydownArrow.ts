@@ -27,7 +27,7 @@ const moveToDocumentEnd = (ctx: Et.EditorContext) => {
     return true
   }
   ctx.setCaretToAParagraph(lastParagraph, false, true)
-  ctx.selection.dispatchChange()
+  ctx.forceUpdate()
   ctx.selection.scrollIntoView(false)
   return true
 }
@@ -39,7 +39,7 @@ const moveToDocumentStart = (ctx: Et.EditorContext) => {
     return true
   }
   ctx.setCaretToAParagraph(firstParagraph, true, true)
-  ctx.selection.dispatchChange()
+  ctx.forceUpdate()
   ctx.selection.scrollIntoView(true)
   return true
 }
@@ -56,7 +56,7 @@ const extendToDocumentEnd = (ctx: Et.EditorContext) => {
   }
   newRange.setStart(ctx.selection.range.endContainer, ctx.selection.range.endOffset)
   ctx.selection.selectRange(newRange)
-  ctx.selection.dispatchChange()
+  ctx.forceUpdate()
   ctx.selection.scrollIntoView(false)
   return true
 }
@@ -73,7 +73,7 @@ const extendToDocumentStart = (ctx: Et.EditorContext) => {
   }
   newRange.setEnd(ctx.selection.range.startContainer, ctx.selection.range.startOffset)
   ctx.selection.selectRange(newRange)
-  ctx.selection.dispatchChange()
+  ctx.forceUpdate()
   ctx.selection.scrollIntoView(true)
   return true
 }

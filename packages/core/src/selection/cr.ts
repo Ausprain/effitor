@@ -237,7 +237,7 @@ export const cr = {
   /**
    * 创建一个 EtRange 对象, 范围边缘定位到节点`外`开头和结尾
    */
-  // rangeAllOut: (node: Et.Node) => {
+  // rangeAllOutFuture: (node: Et.Node) => {
   //   return new EtRange(node, -Infinity, node, Infinity)
   // },
 

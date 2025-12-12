@@ -2,7 +2,6 @@ import { CssClassEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { platform } from '../config'
-import type { EditorBody } from '../context/EditorBody'
 import { dom, traversal } from '../utils'
 import { CaretRange } from './CaretRange'
 import { cr } from './cr'
@@ -33,6 +32,11 @@ export class EtSelection {
   private _getSelection: () => Selection | null
   private readonly TargetRange: ReturnType<typeof getTargetRangeCtor>
 
+  /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
+  protected _rawEl: Et.HTMLRawEditElement | null = null
+  /** 当前选区对应的 Range */
+  protected _range: Et.Range | null = null
+  protected _collapsed = true
   /**
    * 光标位置缓存
    * 编辑器 focusout 时, 缓存光标位置; 当主动调用编辑器的 focus方法时,
@@ -43,28 +47,37 @@ export class EtSelection {
   private _targetRange: Et.TargetRange | null = null
   private _validTargetRange?: Et.ValidTargetRange | null = void 0
 
-  private _anchorText: Et.Text | null = null
   private _isForward: boolean | undefined
+  private _anchorText: Et.Text | null = null
+  private _selectedNode: Et.Node | null = null
   private _commonEtElement: Et.EtElement | null | undefined
   private _focusEtElement: Et.EtElement | null | undefined
   private _focusParagraph: Et.Paragraph | null | undefined
   private _focusTopElement: Et.Paragraph | null | undefined
-  /** 光标若在原生 input/textarea 内, 则该属性为该 input/textarea 节点; 否则为 null */
-  protected _rawEl: Et.HTMLRawEditElement | null = null
-  private _revealIdleCallbackId = 0
 
-  /** 当前选区对应的 Range */
-  protected _range: Et.Range | null = null
-  protected _collapsed = true
+  private _revealIdleCallbackId = 0
 
   /**
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
    * getSelection 函数需要 bind 在 ShadowRoot或 Document 上, 否则调用时报错
    */
-  constructor(protected readonly _body: EditorBody) {
+  constructor(
+    protected readonly _ctx: Et.EditorContext,
+    protected readonly _body: Et.EditorBody,
+  ) {
     this._inShadow = false
     this._getSelection = document.getSelection.bind(document)
     this.TargetRange = getTargetRangeCtor(this._body)
+  }
+
+  /**
+   * 当前选区类型, 选区collapsed时为'Caret', 刚好Range一个节点时为'Node', 否则为'Range'
+   */
+  get type() {
+    if (this.selectedNode) {
+      return 'Node'
+    }
+    return this.isCollapsed ? 'Caret' : 'Range'
   }
 
   /** 当前选区对应的 Range */
@@ -81,6 +94,13 @@ export class EtSelection {
 
   get commonAncestor() {
     return this._range ? this._range.commonAncestorContainer : null
+  }
+
+  /**
+   * 选中的节点, 当且仅当选区Range, 且刚好完全 Range 一个节点时非空
+   */
+  get selectedNode() {
+    return this._selectedNode
   }
 
   /**
@@ -207,13 +227,37 @@ export class EtSelection {
 
     if (this._collapsed) {
       this._body.el.classList.remove(CssClassEnum.SelectionRange, CssClassEnum.SelectionAll)
+      this._updateSelectedNode()
     }
     else {
       this._body.el.classList.add(CssClassEnum.SelectionRange)
       if (this.isRangingBody) {
         this._body.el.classList.add(CssClassEnum.SelectionAll)
       }
+      else {
+        this._updateSelectedNode()
+      }
     }
+  }
+
+  private _updateSelectedNode() {
+    if (this._selectedNode) {
+      (this._selectedNode as HTMLElement).classList?.remove(CssClassEnum.SelectionNode)
+      this._selectedNode = null
+    }
+    if (!this._range) {
+      return this._selectedNode = null
+    }
+    if (this._range.endOffset !== this._range.startOffset + 1
+      || this._range.startContainer !== this._range.endContainer
+      || this._range.commonAncestorContainer.nodeType === 3 /** Node.TEXT_NODE */
+    ) {
+      return this._selectedNode = null
+    }
+    this._selectedNode = this._range.startContainer.childNodes.item(
+      this._range.startOffset,
+    )
+    ;(this._selectedNode as HTMLElement).classList?.add(CssClassEnum.SelectionNode)
   }
 
   /**
@@ -622,6 +666,18 @@ export class EtSelection {
     return this._rawEl
   }
 
+  /**
+   * 选择一个节点 (让选区刚好Range改节点, 如果是元素, 还会给改节点添加对应类名 `Et`)
+   */
+  selectNode(node: Node) {
+    if (!this._body.isNodeInBody(node)) {
+      return false
+    }
+    const r = document.createRange()
+    r.selectNode(node)
+    return this.selectRange(r)
+  }
+
   selectCaretRange(caretRange: Et.CaretRange) {
     const range = caretRange.toRange()
     if (!range?.startContainer.isConnected) {
@@ -638,6 +694,7 @@ export class EtSelection {
     else {
       this.setInRaw(null)
     }
+    this._ctx.forceUpdate()
     return true
   }
 
@@ -649,6 +706,7 @@ export class EtSelection {
     }
     sel.removeAllRanges()
     sel.addRange(range)
+    this._ctx.forceUpdate()
     return true
   }
 
@@ -1177,14 +1235,6 @@ export class EtSelection {
       return document.createDocumentFragment() as Et.Fragment
     }
     return this._range.cloneContents()
-  }
-
-  /**
-   * 派发 selectionchange 事件;
-   * * selectionchange事件不是同步触发的, 若需要立即更新上下文, 应使用 ctx.forceUpdate方法
-   */
-  dispatchChange() {
-    document.dispatchEvent(new Event('selectionchange'))
   }
 }
 

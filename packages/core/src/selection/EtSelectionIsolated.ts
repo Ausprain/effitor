@@ -70,7 +70,7 @@ export class EtSelectionIsolated extends EtSelection {
     }
     this._nextRange = range as Et.Range
     // 手动触发一个selchange事件，模拟Selection.addRange 函数的‘副作用’
-    this.dispatchChange()
+    this._ctx.forceUpdate()
     return true
   }
 
@@ -91,7 +91,7 @@ export class EtSelectionIsolated extends EtSelection {
     else {
       r.setStart(this._range.endContainer, this._range.endOffset)
     }
-    this.dispatchChange()
+    this._ctx.forceUpdate()
     if (reveal) {
       this.scrollIntoView()
     }

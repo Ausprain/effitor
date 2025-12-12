@@ -1,3 +1,5 @@
+import type { CssClassEnum, HtmlAttrEnum } from '@effitor/shared'
+
 import type { Et } from './@types'
 
 declare global {
@@ -5,6 +7,9 @@ declare global {
     __proto__: Object
   }
 }
+
+type EtCssClassNames = `${CssClassEnum}`
+type EtHTMLAttrs = Et.ElAttrs & Record<`${HtmlAttrEnum}`, string>
 
 /* -------------------------------------------------------------------------- */
 /*                               DOM Augmentations                            */
@@ -25,6 +30,12 @@ declare global {
     }
   }
 
+  interface DOMTokenList {
+    add(...tokens: EtCssClassNames[]): void
+    remove(...tokens: EtCssClassNames[]): void
+    contains(token: EtCssClassNames): boolean
+  }
+
   interface EventTarget extends Et.EtCodeTarget { }
   interface Text {
     /** 文本节点使用.data, 不要使用.textContent; 前者比后者快 1 倍 */
@@ -32,11 +43,11 @@ declare global {
   }
   interface HTMLElement {
     textContent: string
-    setAttribute<K extends keyof Et.ElAttrs>(qualifiedName: K, value: Et.ElAttrs[K]): void
+    setAttribute<K extends keyof EtHTMLAttrs>(qualifiedName: K, value: EtHTMLAttrs[K]): void
     setAttribute(qualifiedName: string, value: string): void
-    getAttribute<K extends keyof Et.ElAttrs>(qualifiedName: K): Et.ElAttrs[K]
+    getAttribute<K extends keyof EtHTMLAttrs>(qualifiedName: K): EtHTMLAttrs[K]
     getAttribute(qualifiedName: string): string | null
-    removeAttribute<K extends keyof Et.ElAttrs>(qualifiedName: K): void
+    removeAttribute<K extends keyof EtHTMLAttrs>(qualifiedName: K): void
     removeAttribute(qualifiedName: string): void
     addEventListener(type: 'beforeinput', listener: (ev: InputEvent) => void, options?: boolean | EventListenerOptions): void
   }

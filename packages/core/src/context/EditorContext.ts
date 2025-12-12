@@ -167,7 +167,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.root = options.root
     this.body = new EditorBody(options.bodyEl, this.editor.scrollContainer)
     this.mode = new EditorMode(this)
-    this._selection = new EtSelection(this.body)
+    this._selection = new EtSelection(this, this.body)
     this._connectedSel = this._selection as EtSelection
     this.segmenter = new Segmenter(options.locale)
     this.composition = new Composition(this, platform.isSupportInsertFromComposition)
@@ -369,21 +369,22 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * @param enable 是否隔离选区
    */
   isolateSelection(enable: boolean) {
+    if (enable === (this._selection === this._isolatedSel)) {
+      return
+    }
     if (enable) {
       if (!this._isolatedSel) {
-        this._isolatedSel = new EtSelectionIsolated(this.body)
+        this._isolatedSel = new EtSelectionIsolated(this, this.body)
       }
-      if (this.selection.range) {
-        // this.selection.range 只要存在，就是 Range 的实例，只是被上述 TS 限制能力
-        this._isolatedSel.selectRange(this.selection.range as unknown as Range)
-      }
-      else {
+      Object.assign(this._isolatedSel, this._connectedSel)
+      if (this._isolatedSel.range) {
         // 选择编辑区开头
         this._isolatedSel.selectCaretRange(cr.caretIn(this.bodyEl, 0))
       }
       this._selection = this._isolatedSel
     }
     else {
+      Object.assign(this._connectedSel, this._isolatedSel)
       this._selection = this._connectedSel
     }
     this.forceUpdate()
@@ -470,7 +471,8 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       // 如 <et-p>aaa<et-p> 后边插入一个列表 `<et-list><et-li>|</et-li></et-list>`
       // 期望光标落于 li 内即`|`处, 但使用`forceUpdate`时, 光标会落在`<et-p>aaa|<et-p>`
       // 手动触发selectionchange事件, 以更新通过 selchange 回调来更新上下文和选区
-      this._selection.dispatchChange()
+      // this._selection.dispatchChange()
+      document.dispatchEvent(new Event('selectionchange'))
       // fixed. selectionchange事件是异步的, 即时手动触发也不会立即执行, 这里需要保底更新选区
       // 因为 setSelection() 方法的语义上同步更新选区
       this._selection.update()

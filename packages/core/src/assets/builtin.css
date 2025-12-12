@@ -20,6 +20,12 @@ et-body.Et--selection-all {
     background: none;
   }
 }
+.Et--selection-node {
+  outline: 1px dashed var(--et-color-theme);
+  &::selection {
+    background: none;
+  }
+}
 
 .etp {
   display: block;
