@@ -10,7 +10,7 @@ import type { MainKeydownKeySolver } from './keydown'
 import type { MainKeyupKeySolver } from './keyup'
 
 /** 效应器, 响应用户操作, 激活对应效应 */
-export interface Effector extends Partial<Solvers & Hooks> {
+export interface Effector extends Partial<Solvers & Callbacks & Hooks> {
   /**
    * 强制将该effector注册次序提前or后移 \
    * 若多个插件effector标识了该属性, 则排在插件列表前的pre靠前, 排在插件列表后的post靠后 \
@@ -22,18 +22,7 @@ export interface Effector extends Partial<Solvers & Hooks> {
 type HookKeysInEditorCallback = keyof {
   [k in keyof EditorCallbacks as k extends `on${string}` ? k : never]: never
 }
-export interface Hooks extends Pick<EditorCallbacks, HookKeysInEditorCallback> {
-  /**
-   * 编辑器mount一个div时执行
-   * @param ctx 编辑器上下文; 每次mount, 都是一个关联当前宿主的新上下文
-   * @param signal 与编辑器相关的事件监听器的终止监听信号, 所有与编辑器相关的事件监听器都应在此回调内绑定 并绑定该sinal
-   */
-  readonly onMounted: (ctx: EditorContext, signal: AbortSignal) => void
-  /**
-   * 卸载一个div前执行
-   */
-  readonly onBeforeUnmount: (ctx: EditorContext) => void
-}
+export interface Hooks extends Pick<EditorCallbacks, HookKeysInEditorCallback> {}
 export interface Solvers {
   /**
    * keydown.capture中处理按键响应, 类似 keydownSolver; 但能捕获所有按键, 并可通过
@@ -89,6 +78,8 @@ export interface Solvers {
    * 来阻止Effitor的相同事件行为, 而不是`ctx.preventAndSkipDefault(ev)`
    */
   readonly htmlEventSolver: HTMLEventSolver
+}
+export interface Callbacks {
   /** 复制或剪切时添加数据到clipboardData */
   readonly copyCutCallback: ClipboardAction
   /**
@@ -117,8 +108,8 @@ export interface Solvers {
   readonly dragoverCallback: DragEventAction
   readonly dragleaveCallback: DragEventAction
   readonly dropCallback: DragEventAction
+
 }
-export type Solver = KeyboardSolver | InputSolver | HTMLEventSolver
 /** 主效应器 */
 export interface MainEffector {
   readonly keydownSolver: MainKeydownKeySolver

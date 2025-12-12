@@ -27,6 +27,16 @@ export type OnParagraphChanged = (
  */
 export interface EditorCallbacks {
   /**
+   * 编辑器挂载后执行
+   * @param ctx 编辑器上下文; 每次mount, 都是一个关联当前宿主的新上下文
+   * @param signal 与编辑器相关的事件监听器的终止监听信号, 所有与编辑器相关的事件监听器都应在此回调内绑定 并绑定该sinal
+   */
+  onMounted?: (ctx: EditorContext, signal: AbortSignal) => void
+  /**
+   * 编辑器卸载前执行
+   */
+  onBeforeUnmount?: (ctx: EditorContext) => void
+  /**
    * 定义编辑区内首个插入的段落, 未定义则使用内部默认方式创造第一个段落 ( ctx.createParagraph() )
    * @returns 返回一个元组或一个段落元素; 元组: [段落元素, 光标位置]
    */
@@ -37,14 +47,14 @@ export interface EditorCallbacks {
   onParagraphChanged?: OnParagraphChanged
   /** 光标所在顶层节点发生改变时调用, 这是同步执行的 */
   onTopElementChanged?: OnParagraphChanged
-  /**
-   * 编辑器内容改变时调用
-   * @deprecated 未清晰此回调用意
-   *
-   * @param ctx
-   * @param changedTopElements 改变了的顶层元素
-   */
-  onEditorContentChanged?: (ctx: EditorContext, changedTopElements: EtParagraph[]) => void
+  // /**
+  //  * 编辑器内容改变时调用
+  //  * @deprecated 未清晰此回调用意
+  //  *
+  //  * @param ctx
+  //  * @param changedTopElements 改变了的顶层元素
+  //  */
+  // onEditorContentChanged?: (ctx: EditorContext, changedTopElements: EtParagraph[]) => void
   /**
    * 编辑器深色模式改变时调用
    * @param isDark 是否为深色模式
@@ -59,6 +69,8 @@ export interface ParagraphCreator {
   (ctx: EditorContext): [EtParagraph] | [EtParagraph, CaretRange]
 }
 export interface EditorStatus {
+  /** 是否为只读模式 */
+  readonly: boolean
   /** 是否为深色模式 */
   isDark: boolean
 }
@@ -168,7 +180,9 @@ export interface CreateEditorOptions {
    * @default false
    */
   shadow?: boolean
-  /** 主题名称, 默认为 'default' */
+  /** 是否为只读模式, 默认为 false */
+  readonly?: boolean
+  /** 主题名称, 默认为 ''（引入什么主题css，就是什么主题） */
   theme?: string
   /** schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容 */
   schemaInit?: Partial<EditorSchema>

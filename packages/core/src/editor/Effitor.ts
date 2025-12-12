@@ -19,6 +19,7 @@ import { mountEtHandler, registerEtElement } from '../element/register'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, type MdProcessor } from '../markdown/processor'
 import { useUndo } from '../plugins'
+import { dom } from '../utils'
 import type { EditorMountOptions } from './config'
 import { ConfigManager } from './ConfigManager'
 import { addListenersToEditorBody, initListeners } from './listeners'
@@ -38,11 +39,60 @@ interface EditorMeta extends CreateEditorContextOptionsFields {
   readonly cssText: string
   readonly customStyleLinks: readonly Et.CustomStyleLink[]
 }
-export type PluginConfigs = Omit<Et.Effector, 'enforce' | 'onMounted' | 'onBeforeUnmount'> & {
+export type PluginConfigs = Omit<Et.Effector, 'enforce'> & {
   cssText: string
-  onMounteds: Required<Et.Effector>['onMounted'][]
-  onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][]
 }
+const reducePlugins = (
+  assists: Et.EditorPlugin[],
+  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
+): PluginConfigs => {
+  const pNameSet = new Set<Et.EditorPlugin['name']>()
+  const effectors: Et.Effector[] = [],
+    preEffectors: Et.Effector[] = [],
+    postEffectors: Et.Effector[] = [],
+    cssTexts: string[] = []
+  const setSchema: Et.EditorSchemaSetter = (init) => {
+    Object.assign(
+      ctx.schema,
+      Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
+    )
+  }
+  function solvePlugins(ps: Et.EditorPlugin[]) {
+    for (const cur of ps) {
+      if (pNameSet.has(cur.name)) {
+        throw Error(`Duplicate plug-in named '${cur.name}'.`)
+      }
+      pNameSet.add(cur.name)
+      if (cur.cssText) {
+        cssTexts.push(cur.cssText)
+      }
+      if (cur.elements) {
+        cur.elements.forEach(e => elCtors.push(e))
+      }
+      const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
+      for (const et of ets) {
+        if (et.enforce === void 0) {
+          effectors.push(et)
+        }
+        else if (et.enforce === 'pre') {
+          preEffectors.push(et)
+        }
+        else {
+          postEffectors.push(et)
+        }
+      }
+      cur.register?.(ctx, setSchema, mountEtHandler)
+    }
+  }
+  solvePlugins(assists)
+  solvePlugins(plugins)
+  const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
+  return {
+    cssText: cssTexts.join('\n'),
+    ...pluginEffector,
+  }
+}
+
 // interface ObserveEditingInit<ParagraphType extends Node = Node> {
 //   /**
 //    * 编辑区内部文本变化
@@ -78,6 +128,11 @@ export class Effitor {
   /** 已注册样式的文档对象, 避免再次挂载时重复注册样式表 */
   private __styledDocuments = new WeakSet<Document>()
 
+  // 只读相关
+  private __readonlyObKey?: symbol
+  private __readonlyEditableEls?: Map<HTMLElement, string>
+  private __readonlyRawEls?: Set<Et.HTMLRawEditElement>
+
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
 
@@ -89,7 +144,7 @@ export class Effitor {
   public readonly platform = platform
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor
-  public readonly callbacks: Et.EditorCallbacks
+  public readonly callbacks: Readonly<Et.EditorCallbacks>
   /**
    * 编辑器配置管理器, 可由构造函数参数提供; 用于自定义编辑器配置持久化, 如快捷键等
    */
@@ -176,7 +231,7 @@ export class Effitor {
 
   constructor({
     shadow = false,
-    theme = 'default',
+    theme = '',
     readonly = false,
     schemaInit = {},
     mainEffector = getMainEffector(),
@@ -221,10 +276,33 @@ export class Effitor {
     }
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
+    // 将on回调取出，以插件形式添加
+    plugins.push({
+      name: '$editor-callbacks',
+      effector: {
+        ...(() => {
+          const ons: Et.Hooks = {}, cbs: Et.EditorCallbacks = {}
+          for (const key in callbacks) {
+            if (key.startsWith('on')) {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              ons[key] = callbacks[key]
+            }
+            else {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              cbs[key] = callbacks[key]
+            }
+          }
+          callbacks = cbs
+          return ons
+        })(),
+      },
+    })
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
     // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
     // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
-    const pluginConfigs = this.#reducePlugins([useUndo(), ...assists], plugins, pluginElCtors, contextMeta)
+    const pluginConfigs = reducePlugins([useUndo(), ...assists], plugins, pluginElCtors, contextMeta)
     // html相关处理器
     const htmlTransformerMaps: Et.HtmlToEtElementTransformerMap[] = []
     // mdast相关处理器
@@ -269,22 +347,9 @@ export class Effitor {
       toMdTransformerMapList,
       toMdHandlerMap,
     })
-    const cbInEffector = Object.fromEntries(Object.entries(pluginConfigs).filter(([k]) => k.startsWith('on')))
-    this.callbacks = Object.assign(cbInEffector,
-      Object.entries(callbacks).reduce((acc, [k, v]) => {
-        if (k in cbInEffector) {
-          const fn = cbInEffector[k] as (...args: unknown[]) => void
-          acc[k] = (...args: unknown[]) => {
-            fn(...args)
-            v(...args)
-          }
-        }
-        else {
-          acc[k] = v
-        }
-        return acc
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }, {} as any),
+    this.callbacks = Object.assign(
+      Object.fromEntries(Object.entries(pluginConfigs).filter(([k]) => k.startsWith('on'))),
+      callbacks,
     )
   }
 
@@ -353,10 +418,7 @@ export class Effitor {
     if (this.config.AUTO_CREATE_FIRST_PARAGRAPH) {
       this.initBody(undefined, true)
     }
-
-    for (const onMounted of pluginConfigs.onMounteds) {
-      onMounted(context, ac.signal)
-    }
+    this.callbacks.onMounted?.(this.context, ac.signal)
     return this
   }
 
@@ -365,9 +427,7 @@ export class Effitor {
    */
   unmount() {
     if (!this.__host) return
-    for (const onBeforeUnmount of this.__meta.pluginConfigs.onBeforeUnmounts) {
-      onBeforeUnmount(this.context)
-    }
+    this.callbacks.onBeforeUnmount?.(this.context)
 
     // abort signal自动清除绑定的监听器
     this.__ac?.abort()
@@ -402,14 +462,60 @@ export class Effitor {
 
   setReadonly(readonly: boolean) {
     if (readonly) {
-      this.bodyEl.style.pointerEvents = 'none'
+      this.bodyEl.removeAttribute('contenteditable')
       this.context.isolateSelection(true)
+      this.#setReadonly()
     }
     else {
-      this.bodyEl.style.pointerEvents = ''
+      this.bodyEl.setAttribute('contenteditable', '')
       this.context.isolateSelection(false)
+      this.#cancelReadonly()
     }
     Object.assign(this.status, { readonly })
+  }
+
+  #setReadonly() {
+    const els = this.__readonlyEditableEls = new Map()
+    const rawEls = this.__readonlyRawEls = new Set()
+    this.__readonlyObKey = this.observeEditor((ms) => {
+      for (const rcd of ms) {
+        if (rcd.type === 'attributes') {
+          const el = rcd.target as HTMLElement
+          const val = el.contentEditable
+          if (val !== 'false') {
+            els.set(el, val)
+            el.contentEditable = 'false'
+          }
+          return
+        }
+        for (const node of rcd.addedNodes) {
+          if (dom.isRawEditElement(node)) {
+            rawEls.add(node)
+          }
+        }
+        for (const node of (rcd.removedNodes as NodeListOf<HTMLElement>)) {
+          const val = node.contentEditable
+          if (val !== void 0) {
+            node.contentEditable = val
+            els.delete(node)
+          }
+        }
+      }
+    }, {
+      childList: true,
+      attributes: true,
+      attributeFilter: ['contenteditable'],
+      subtree: true,
+    }, 'root')
+  }
+
+  #cancelReadonly() {
+    if (this.__readonlyObKey) {
+      this.cancelObserve(this.__readonlyObKey)
+      this.__readonlyObKey = void 0
+    }
+    this.__readonlyEditableEls = void 0
+    this.__readonlyRawEls = void 0
   }
 
   /**
@@ -545,16 +651,18 @@ export class Effitor {
   }
 
   /**
-   * 观察编辑区body变化
-   * @param options 默认只监听文本和子节点的变化
+   * 观察编辑器变化，默认监听对象为编辑区 et-body 元素
+   * @param options 监听选项
+   * @param target 监听目标, 默认为 'body'; 当为 'root' 时监听编辑器根节点（et-editor 或 ShadowRoot）
    * @returns 本次观察的 key 值, 用于cancelObserve 关闭
    */
-  observeBody(fn: MutationCallback, options?: MutationObserverInit) {
-    if (!this.__body) {
+  observeEditor(fn: MutationCallback, options?: MutationObserverInit, target: 'body' | 'root' = 'body') {
+    const targetNode = target === 'body' ? this.__body : this.root
+    if (!targetNode) {
       throw new EffitorNotMountedError()
     }
     const ob = new MutationObserver(fn)
-    ob.observe(this.__body, options)
+    ob.observe(targetNode, options)
     const key = Symbol()
     this.__observerDisconnecters.set(key, (key) => {
       const records = ob.takeRecords()
@@ -639,68 +747,6 @@ export class Effitor {
       this.__observerDisconnecters.entries().forEach(([key, fn]) => fn(key))
     }
     this.__observerDisconnecters.clear()
-  }
-
-  #reducePlugins(
-    assists: Et.EditorPlugin[],
-    plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
-  ): PluginConfigs {
-    const pNameSet = new Set<Et.EditorPlugin['name']>()
-    const effectors: Et.Effector[] = [],
-      preEffectors: Et.Effector[] = [],
-      postEffectors: Et.Effector[] = [],
-      onMounteds: Required<Et.Effector>['onMounted'][] = [],
-      onBeforeUnmounts: Required<Et.Effector>['onBeforeUnmount'][] = [],
-      cssTexts: string[] = []
-    const setSchema: Et.EditorSchemaSetter = (init) => {
-      Object.assign(
-        ctx.schema,
-        Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
-      )
-    }
-    function solvePlugins(ps: Et.EditorPlugin[]) {
-      for (const cur of ps) {
-        if (pNameSet.has(cur.name)) {
-          throw Error(`Duplicate plug-in named '${cur.name}'.`)
-        }
-        pNameSet.add(cur.name)
-        if (cur.cssText) {
-          cssTexts.push(cur.cssText)
-        }
-        if (cur.elements) {
-          cur.elements.forEach(e => elCtors.push(e))
-        }
-        const ets = Array.isArray(cur.effector) ? cur.effector : [cur.effector]
-        for (const et of ets) {
-          const { onMounted, onBeforeUnmount, ...solvers } = et
-          if (onMounted) {
-            onMounteds.push(onMounted)
-          }
-          if (onBeforeUnmount) {
-            onBeforeUnmounts.push(onBeforeUnmount)
-          }
-          if (et.enforce === void 0) {
-            effectors.push(solvers)
-          }
-          else if (et.enforce === 'pre') {
-            preEffectors.push(solvers)
-          }
-          else {
-            postEffectors.push(solvers)
-          }
-        }
-        cur.register?.(ctx, setSchema, mountEtHandler)
-      }
-    }
-    solvePlugins(assists)
-    solvePlugins(plugins)
-    const pluginEffector = solveEffectors([...preEffectors, ...effectors, ...postEffectors])
-    return {
-      cssText: cssTexts.join('\n'),
-      onMounteds,
-      onBeforeUnmounts,
-      ...pluginEffector,
-    }
   }
 
   /** 格式化容器div为Effitor初始化结构 */
