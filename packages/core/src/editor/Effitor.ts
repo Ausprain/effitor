@@ -43,7 +43,7 @@ export type PluginConfigs = Omit<Et.Effector, 'enforce'> & {
 }
 const reducePlugins = (
   assists: Et.EditorPlugin[],
-  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctx: Et.EditorContextMeta,
+  plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctxMeta: Et.EditorContextMeta,
 ): PluginConfigs => {
   const pNameSet = new Set<Et.EditorPlugin['name']>()
   const effectors: Et.Effector[] = [],
@@ -52,7 +52,7 @@ const reducePlugins = (
     cssTexts: string[] = []
   const setSchema: Et.EditorSchemaSetter = (init) => {
     Object.assign(
-      ctx.schema,
+      ctxMeta.schema,
       Object.fromEntries(Object.entries(init).filter(([, v]) => v !== void 0)),
     )
   }
@@ -80,7 +80,7 @@ const reducePlugins = (
           postEffectors.push(et)
         }
       }
-      cur.register?.(ctx, setSchema, mountEtHandler)
+      cur.register?.(ctxMeta, setSchema, mountEtHandler)
     }
   }
   solvePlugins(assists)
@@ -117,12 +117,12 @@ const reducePlugins = (
  * Effitor编辑器
  */
 export class Effitor {
-  private __host: HTMLDivElement | undefined
-  private __root: ShadowRoot | Et.EtEditorElement | undefined
-  private __editorEl: Et.EtEditorElement | undefined
-  private __body: Et.EtBodyElement | undefined
-  private __context: Et.EditorContext | null = null
-  private __ac: AbortController | undefined
+  private __host?: HTMLDivElement = void 0
+  private __root?: ShadowRoot | Et.EtEditorElement = void 0
+  private __editorEl?: Et.EtEditorElement = void 0
+  private __body?: Et.EtBodyElement = void 0
+  private __context?: Et.EditorContext = void 0
+  private __ac?: AbortController = void 0
   private __scrollContainer: HTMLElement = document.documentElement
   /** 已注册样式的文档对象, 避免再次挂载时重复注册样式表 */
   private __styledDocuments = new WeakSet<Document>()
@@ -135,7 +135,6 @@ export class Effitor {
   public readonly isShadow: boolean
   public readonly theme: string
   public readonly config: Et.EditorConfig
-  public readonly platform = platform
   public readonly htmlProcessor: HtmlProcessor
   public readonly mdProcessor: MdProcessor
   public readonly callbacks: Readonly<Et.EditorCallbacks>
@@ -227,7 +226,11 @@ export class Effitor {
     shadow = false,
     theme = '',
     readonly = false,
-    schemaInit = {},
+    schemaInit = {
+      editor: EtEditorElement,
+      body: EtBodyElement,
+      paragraph: EtParagraphElement,
+    },
     mainEffector = getMainEffector(),
     assists = [],
     plugins = [],
@@ -253,16 +256,10 @@ export class Effitor {
       configManager.updateConfig('editorConfig', this.config)
     }
 
-    const schema = {
-      editor: EtEditorElement,
-      body: EtBodyElement,
-      paragraph: EtParagraphElement,
-      ...schemaInit,
-    } as Et.EditorSchema
     /** 初始化编辑器上下文 */
     const contextMeta: Et.EditorContextMeta = {
       editor: this,
-      schema,
+      schema: schemaInit as Et.EditorSchema,
       assists: {} as Et.EditorAssists,
       actions: {} as Et.EditorActions,
       pctx: {} as Et.EditorPluginContext,
@@ -271,28 +268,30 @@ export class Effitor {
     // 记录需要注册的EtElement
     const pluginElCtors: Et.EtElementCtor[] = []
     // 将on回调取出，以插件形式添加
-    plugins.push({
-      name: '$editor-callbacks',
-      effector: {
-        ...(() => {
-          const ons: Et.Hooks = {}, cbs: Et.EditorCallbacks = {}
-          for (const key in callbacks) {
-            if (key.startsWith('on')) {
+    if (Object.keys(callbacks).length > 0) {
+      plugins.push({
+        name: '$editor-callbacks',
+        effector: {
+          ...(() => {
+            const ons: Et.Hooks = {}, cbs: Et.EditorCallbacks = {}
+            for (const key in callbacks) {
+              if (key.startsWith('on')) {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              ons[key] = callbacks[key]
-            }
-            else {
+                ons[key] = callbacks[key]
+              }
+              else {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
-              cbs[key] = callbacks[key]
+                cbs[key] = callbacks[key]
+              }
             }
-          }
-          callbacks = cbs
-          return ons
-        })(),
-      },
-    })
+            callbacks = cbs
+            return ons
+          })(),
+        },
+      })
+    }
     /** 从plugins中提取出effector对应处理器 及 自定义元素类对象至elCtors */
     // undoEffector应放在首位, 但放在其他强制pre的插件effector之后, 因此将其标记pre并放在插件列表最后
     // 目前尚未遇到插件需要在undoEffector之前执行的情况, 暂时强制放在首位
@@ -305,7 +304,7 @@ export class Effitor {
     const toMdHandlerMap: Et.ToMarkdownHandlerMap = {}
     // 注册EtElement 加载mdast处理器; plugin的元素类必须先于内置的进行处理, 否则markdown处理顺序将可能与预期不符
     const registeredCtors = new WeakSet<Et.EtElementCtor>()
-    pluginElCtors.concat(Object.values(schema)).forEach((ctor) => {
+    pluginElCtors.concat(Object.values(contextMeta.schema)).forEach((ctor) => {
       if (registeredCtors.has(ctor)) {
         return
       }
@@ -342,9 +341,58 @@ export class Effitor {
       toMdHandlerMap,
     })
     this.callbacks = Object.assign(
+      {},
       Object.fromEntries(Object.entries(pluginConfigs).filter(([k]) => k.startsWith('on'))),
       callbacks,
     )
+  }
+
+  /**
+   * 克隆一个编辑器实例, 克隆的编辑器会共享一些全局性的配置
+   * @experimental 该方法目前是实验性的; 可能存在克隆缺陷或数据竞争问题;
+   *          如需多个编辑器实例时, 更稳定的做法是将配置项缓存起来, 再创建下一个编辑器时服用配置项
+   * @param options 克隆选项
+   * @returns 克隆后的编辑器实例
+   */
+  clone(options?: Et.CloneEditorOptions) {
+    const clone = new Effitor({ schemaInit: {} as Et.EditorSchema })
+    const {
+      config,
+      configManager,
+      isShadow,
+      status,
+      theme,
+      htmlProcessor,
+      mdProcessor,
+      __meta,
+      __styledDocuments,
+    } = this
+    const callbacks = Object.assign(
+      {},
+      Object.fromEntries(Object.entries(__meta.pluginConfigs).filter(([k]) => k.startsWith('on'))),
+      options?.callbacks,
+    )
+    Object.assign(clone, {
+      callbacks,
+      config: { ...config, ...options?.config },
+      configManager: options?.configManager ?? configManager,
+      isShadow: options?.shadow ?? isShadow,
+      status: { ...status, ...{ readonly: options?.readonly } },
+      theme: options?.theme ?? theme,
+      htmlProcessor,
+      mdProcessor,
+      __styledDocuments,
+      __meta: {
+        ...__meta,
+        contextMeta: {
+          ...__meta.contextMeta,
+          editor: clone,
+          pctx: {},
+        },
+        hotstringOptions: options?.hotstringOptions ?? __meta.hotstringOptions,
+      },
+    })
+    return clone
   }
 
   /**
@@ -357,7 +405,7 @@ export class Effitor {
    */
   mount(host: HTMLDivElement, {
     scrollContainer,
-    locale = this.platform.locale,
+    locale = platform.locale,
     customStyleLinks = [...this.__meta.customStyleLinks],
   }: EditorMountOptions = {}) {
     if (this.__host) {
@@ -426,8 +474,8 @@ export class Effitor {
     // abort signal自动清除绑定的监听器
     this.__ac?.abort()
     this.__host.innerHTML = ''
-    this.__host = undefined
-    this.__context = null
+    this.__host = void 0
+    this.__context = void 0
     this.cancelObserve()
   }
 

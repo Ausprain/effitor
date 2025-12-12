@@ -106,16 +106,19 @@ export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.Edi
 
   return {
     name: '@effitor/plugin-code',
-    effector: [codeEffector],
-    elements: [EtCodeElement],
-    register(ctxMeta, setSchema, mountEtHandler) {
-      initCodePluginContext(ctxMeta, highlighter, {
+    effector: [{ onMounted: (ctx) => {
+      initCodePluginContext(ctx, highlighter, {
         ...options,
         renderOptions,
       })
+    } }, codeEffector],
+    elements: [EtCodeElement],
+    register(ctxMeta, setSchema, mountEtHandler) {
       setSchema({
         code: EtCodeElement,
       })
+      // 注册actions
+      ctxMeta.actions.code = codeActions
       mountEtHandler(EtCodeElement, inCodeHandler)
     },
   }

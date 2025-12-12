@@ -82,8 +82,6 @@ export const codeEffector: Et.Effector = {
     },
   },
   onMounted(ctx) {
-    // 注册actions
-    ctx.actions.code = codeActions
     addCodeBlockItemToDropdown(ctx.assists.dropdown)
   },
   onStatusChanged: (ctx, type, oldValue) => {

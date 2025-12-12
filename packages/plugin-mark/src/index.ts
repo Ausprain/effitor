@@ -25,10 +25,9 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
   options?.useActions?.(markActions)
   return {
     name: '@effitor/plugin-mark',
-    effector: markEffector,
+    effector: [{ onMounted: ctx => initMarkPluginContext(ctx, options?.enableHinting) }, markEffector],
     elements: [EtMarkElement],
     register(ctxMeta, setSchema, mountEtHandler) {
-      initMarkPluginContext(ctxMeta, options?.enableHinting)
       setSchema({ mark: EtMarkElement })
       mountEtHandler(EtMarkElement, inMarkHandler)
       mountEtHandler(EtMarkElement, markHandler)
@@ -37,6 +36,8 @@ export const useMarkPlugin = (options?: MarkPluginOptions): Et.EditorPlugin => {
       ;(options?.needMarkEffectElementCtors ?? [ctxMeta.schema.paragraph]).forEach((Ctor) => {
         mountEtHandler(Ctor, markHandler, MARK_ET_TYPE)
       })
+      // 注册actions
+      ctxMeta.actions.mark = markActions
     },
   }
 }

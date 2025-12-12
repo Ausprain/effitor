@@ -38,13 +38,14 @@ export const useBlockquotePlugin = (options?: BlockquotePluginOptions): Et.Edito
   }
   return {
     name: '@effitor/plugin-blockquote',
-    effector: blockquoteEffector,
+    effector: [{ onMounted: ctx => initBlockquotePluginContext(ctx, options) }, blockquoteEffector],
     elements: [EtBlockquoteElement],
     register(ctxMeta, setSchema, mountEtHandler) {
       setSchema({
         blockquote: EtBlockquoteElement,
       })
-      initBlockquotePluginContext(ctxMeta, options)
+      // 注册actions
+      ctxMeta.actions.blockquote = blockquoteActions
       mountEtHandler(ctxMeta.schema.paragraph, blockquoteHandler)
     },
   }

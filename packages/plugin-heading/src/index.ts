@@ -27,8 +27,10 @@ export const useHeadingPlugin = (options?: HeadingPluginOptions): Et.EditorPlugi
       },
     }],
     elements: [EtHeadingElement],
-    register(_, setSchema) {
+    register(ctxMeta, setSchema) {
       setSchema({ heading: EtHeadingElement })
+      // 注册actions
+      ctxMeta.actions.heading = headingActions
     },
   }
 }

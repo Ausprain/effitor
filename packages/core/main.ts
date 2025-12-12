@@ -1,7 +1,10 @@
-import { Effitor, EtHeading } from './src'
+import { Effitor, EtBodyElement, EtEditorElement, EtHeading, EtParagraphElement } from './src'
 
 const editor = new Effitor({
   schemaInit: {
+    editor: EtEditorElement,
+    body: EtBodyElement,
+    paragraph: EtParagraphElement,
     heading: EtHeading,
   },
 })

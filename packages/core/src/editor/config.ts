@@ -181,8 +181,11 @@ export interface CreateEditorOptions {
   readonly?: boolean
   /** 主题名称, 默认为 ''（引入什么主题css，就是什么主题） */
   theme?: string
-  /** schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容 */
-  schemaInit?: Partial<EditorSchema>
+  /**
+   * schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容\
+   * 若提供, 则必须包含 editor, body, paragraph 三个元素类
+   */
+  schemaInit?: Required<Pick<EditorSchema, 'editor' | 'body' | 'paragraph'>> & Partial<EditorSchema>
   /** 主效应器 */
   mainEffector?: Required<MainEffector>
   /**
@@ -215,6 +218,15 @@ export interface CreateEditorOptions {
    */
   configManager?: ConfigManager
 }
+export type CloneEditorOptions = Pick<CreateEditorOptions,
+  | 'shadow'
+  | 'theme'
+  | 'readonly'
+  | 'config'
+  | 'configManager'
+  | 'callbacks'
+  | 'hotstringOptions'
+>
 export interface CustomStyleLink {
   href: string
   /** 是否预加载, 内容相关样式预加载可降低内容闪烁的可能; 或者直接使用customStyleText添加样式 */

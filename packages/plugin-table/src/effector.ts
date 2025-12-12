@@ -40,7 +40,6 @@ export const tableEffector: Et.Effector = {
     },
   },
   onMounted(ctx) {
-    ctx.actions.table = tableActions
     initTableDropdown(ctx)
   },
 }

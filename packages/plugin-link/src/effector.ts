@@ -48,8 +48,6 @@ export const linkEffector: Et.Effector = {
     return ctx.preventAndSkipDefault(ev)
   },
   onMounted(ctx) {
-    // 注册actions
-    ctx.actions.link = linkActions
     const { popup, dropdown } = ctx.assists
     if (popup) {
       initLinkPopup(popup)

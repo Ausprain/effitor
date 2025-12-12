@@ -99,8 +99,6 @@ export const listEffector: Et.Effector = {
   keydownSolver,
 
   onMounted(ctx) {
-    // 注册actions
-    ctx.actions.list = listActions
     // 初始化dropdown
     initListDropdown(ctx.assists.dropdown)
   },

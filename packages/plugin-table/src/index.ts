@@ -58,6 +58,7 @@ export const useTablePlugin = (options?: TablePluginOptions): Et.EditorPlugin =>
       mountEtHandler(ctxMeta.schema.paragraph, tableHandler)
       mountEtHandler(ctxMeta.schema.tableRow, inTableRowHandler)
       mountEtHandler(ctxMeta.schema.tableCell, inTableCellHandler)
+      ctxMeta.actions.table = tableActions
     },
   }
 }

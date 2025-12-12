@@ -174,7 +174,6 @@ export const mediaEffector: Et.Effector = {
     }
   },
   onMounted(ctx) {
-    ctx.actions.media = mediaActions
     const { dropdown, popup } = ctx.assists
     if (dropdown) {
       initMediaDropdown(dropdown, ctx)

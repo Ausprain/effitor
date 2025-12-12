@@ -57,9 +57,11 @@ export const useListPlugin = (options?: ListPluginOptions): Et.EditorPlugin => {
     name: '@effitor/plugin-list',
     effector: listEffector,
     elements: [EtListElement, EtListItemElement],
-    register(_ctxMeta, setSchema, mountEtHandler) {
+    register(ctxMeta, setSchema, mountEtHandler) {
       setSchema({ list: EtListElement, listItem: EtListItemElement })
       mountEtHandler(EtListItemElement, inListHandler)
+      // 注册actions
+      ctxMeta.actions.list = listActions
     },
   }
 }

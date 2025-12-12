@@ -35,7 +35,6 @@ export const markEffector: Et.Effector = {
     },
   },
   onMounted(ctx) {
-    ctx.actions.mark = markActions
     ctx.hotkeyManager.addActions({
       /** 斜体 */
       markItalic: hotkey.createAction('editor', 'Italic', {

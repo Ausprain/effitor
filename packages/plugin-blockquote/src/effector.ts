@@ -85,8 +85,6 @@ export const blockquoteEffector: Et.Effector = {
         },
       })
     }
-    // 注册actions
-    ctx.actions.blockquote = blockquoteActions
     // 注册 dropdown
     initDropdown(ctx)
   },

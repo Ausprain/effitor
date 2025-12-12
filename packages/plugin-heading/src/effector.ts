@@ -55,8 +55,6 @@ export const headingEffector: Et.Effector = {
   beforeKeydownSolver,
   keydownSolver,
   onMounted(ctx) {
-    // 注册actions
-    ctx.actions.heading = headingActions
     // 注册 dropdown
     initHeadingDropdown(ctx)
   },

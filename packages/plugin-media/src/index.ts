@@ -62,29 +62,15 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
   options?.useActions?.(mediaActions)
   return {
     name: '@effitor/plugin-media',
-    effector: mediaEffector,
-    elements: [
-      EtImageElement,
-      ...[
-        options?.audio ? EtAudioElement : undefined,
-        options?.video ? EtVideoElement : undefined,
-      ].filter(el => !!el),
-    ],
-
-    register(ctxMeta, setSchema, mountEtHandler) {
+    effector: [{ onMounted: (ctx: Et.EditorContextMeta) => {
       const media: MediaPluginContext = { MEDIA_ET_TYPE } as MediaPluginContext
-      const els = [], schemaInit = {} as Et.EditorSchema
       if (!options) {
         media.image = defaultOptions.image
-        els.push(EtImageElement)
-        schemaInit.image = EtImageElement
       }
       else {
         const { urlMapping, popupOptions, image, audio, video } = options
         media.popupOptions = popupOptions
         if (image) {
-          els.push(EtImageElement)
-          schemaInit[MediaType.Image] = EtImageElement
           media.image = image === true
             ? defaultOptions.image
             : {
@@ -96,8 +82,6 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
               }
         }
         if (audio) {
-          els.push(EtAudioElement)
-          schemaInit[MediaType.Audio] = EtAudioElement
           media.audio = audio === true
             ? defaultOptions.audio
             : {
@@ -109,8 +93,6 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
               }
         }
         if (video) {
-          els.push(EtVideoElement)
-          schemaInit[MediaType.Video] = EtVideoElement
           media.video = video === true
             ? defaultOptions.video
             : {
@@ -122,9 +104,34 @@ export const useMediaPlugin = (options?: MediaOptions): Et.EditorPlugin => {
               }
         }
       }
-      ctxMeta.pctx.$mediaPx = media
+      ctx.pctx.$mediaPx = media
+    } }, mediaEffector],
+    elements: [
+      EtImageElement,
+      ...[
+        options?.audio ? EtAudioElement : undefined,
+        options?.video ? EtVideoElement : undefined,
+      ].filter(el => !!el),
+    ],
+    register(ctxMeta, setSchema, mountEtHandler) {
+      const schemaInit = {} as Et.EditorSchema
+      if (!options) {
+        schemaInit.image = EtImageElement
+      }
+      else {
+        if (options.image) {
+          schemaInit[MediaType.Image] = EtImageElement
+        }
+        if (options.audio) {
+          schemaInit[MediaType.Audio] = EtAudioElement
+        }
+        if (options.video) {
+          schemaInit[MediaType.Video] = EtVideoElement
+        }
+      }
       setSchema(schemaInit)
       mountEtHandler(ctxMeta.schema.paragraph, markMediaHandler, MEDIA_ET_TYPE)
+      ctxMeta.actions.media = mediaActions
     },
   }
 }

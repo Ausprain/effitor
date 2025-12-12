@@ -33,15 +33,16 @@ export const useLinkPlugin = (options?: LinkPluginOptions): Et.EditorPlugin => {
   options?.useActions?.(linkActions)
   return {
     name: '@effitor/plugin-link',
-    effector: linkEffector,
+    effector: [{ onMounted: ctx => initLinkPluginContext(ctx, options) }, linkEffector],
     elements: [EtLinkElement],
-    register(ctx, setSchema, mountEtHandler) {
+    register(ctxMeta, setSchema, mountEtHandler) {
       setSchema({ link: EtLinkElement })
       // 注册link效应到段落上
       new Set(options?.needLinkEffectElementCtors ?? [])
-        .add(ctx.schema.paragraph)
+        .add(ctxMeta.schema.paragraph)
         .forEach(ctor => mountEtHandler(ctor, markLinkHandler, LINK_ET_TYPE))
-      initLinkPluginContext(ctx, options)
+        // 注册actions
+      ctxMeta.actions.link = linkActions
     },
   }
 }
