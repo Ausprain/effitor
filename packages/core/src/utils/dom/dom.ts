@@ -202,8 +202,8 @@ export const isRawEditElement = (node: Node | null | undefined): node is Et.HTML
   if (!node) {
     return false
   }
-  return (node.nodeName === 'INPUT' && (node as HTMLInputElement).type === 'text')
-    || (node.nodeName === 'TEXTAREA')
+  return (node.nodeName === 'TEXTAREA')
+    || (node.nodeName === 'INPUT' && (node as HTMLInputElement).type === 'text')
 }
 export const isNodeBeforeTheOther = (node: Et.Node, other: Et.Node) => node.compareDocumentPosition(other) & 4 /** Node.DOCUMENT_POSITION_FOLLOWING */
 /**

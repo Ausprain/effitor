@@ -4,6 +4,7 @@ import { cmd, cr } from '@effitor/core'
 import { codeBlockIcon } from '@effitor/shared'
 
 import { CodeEnum } from './config'
+import type { EtCodeElement } from './EtCodeElement'
 
 const checkMarkCode = (ctx: Et.EditorContext) => {
   if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.commonEtElement)) {
@@ -84,6 +85,21 @@ export const codeEffector: Et.Effector = {
     // 注册actions
     ctx.actions.code = codeActions
     addCodeBlockItemToDropdown(ctx.assists.dropdown)
+  },
+  onStatusChanged: (ctx, type, oldValue) => {
+    if (type !== 'readonly') {
+      return
+    }
+    ctx.root.querySelectorAll(CodeEnum.ElName).forEach((el) => {
+      if ((el as EtCodeElement).codeCtx) {
+        if (oldValue) {
+          (el as EtCodeElement).codeCtx.enable()
+        }
+        else {
+          (el as EtCodeElement).codeCtx.disable()
+        }
+      }
+    })
   },
 }
 

@@ -19,7 +19,6 @@ import { mountEtHandler, registerEtElement } from '../element/register'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, type MdProcessor } from '../markdown/processor'
 import { useUndo } from '../plugins'
-import { dom } from '../utils'
 import type { EditorMountOptions } from './config'
 import { ConfigManager } from './ConfigManager'
 import { addListenersToEditorBody, initListeners } from './listeners'
@@ -127,11 +126,6 @@ export class Effitor {
   private __scrollContainer: HTMLElement = document.documentElement
   /** 已注册样式的文档对象, 避免再次挂载时重复注册样式表 */
   private __styledDocuments = new WeakSet<Document>()
-
-  // 只读相关
-  private __readonlyObKey?: symbol
-  private __readonlyEditableEls?: Map<HTMLElement, string>
-  private __readonlyRawEls?: Set<Et.HTMLRawEditElement>
 
   private readonly __observerDisconnecters = new Map<symbol, (observerKey: symbol) => void>()
   private readonly __meta: Readonly<EditorMeta>
@@ -444,6 +438,9 @@ export class Effitor {
   setColorScheme(isDark: boolean) {
     const root = this.isShadow ? (this.__root as ShadowRoot).host : (this.__root as HTMLElement)
     if (!root || root.classList.contains(CssClassEnum.DarkMode) === isDark) {
+      if (this.status.isDark !== isDark) {
+        Object.assign(this.status, { isDark })
+      }
       return
     }
     if (isDark) {
@@ -453,7 +450,7 @@ export class Effitor {
       root.classList.remove(CssClassEnum.DarkMode)
     }
     Object.assign(this.status, { isDark })
-    this.callbacks.onDarkModeChanged?.(this.context, isDark)
+    this.callbacks.onStatusChanged?.(this.context, 'isDark', !isDark)
   }
 
   setLocale(locale: string) {
@@ -461,61 +458,19 @@ export class Effitor {
   }
 
   setReadonly(readonly: boolean) {
+    if (readonly === this.status.readonly) {
+      return
+    }
     if (readonly) {
       this.bodyEl.removeAttribute('contenteditable')
       this.context.isolateSelection(true)
-      this.#setReadonly()
     }
     else {
       this.bodyEl.setAttribute('contenteditable', '')
       this.context.isolateSelection(false)
-      this.#cancelReadonly()
     }
     Object.assign(this.status, { readonly })
-  }
-
-  #setReadonly() {
-    const els = this.__readonlyEditableEls = new Map()
-    const rawEls = this.__readonlyRawEls = new Set()
-    this.__readonlyObKey = this.observeEditor((ms) => {
-      for (const rcd of ms) {
-        if (rcd.type === 'attributes') {
-          const el = rcd.target as HTMLElement
-          const val = el.contentEditable
-          if (val !== 'false') {
-            els.set(el, val)
-            el.contentEditable = 'false'
-          }
-          return
-        }
-        for (const node of rcd.addedNodes) {
-          if (dom.isRawEditElement(node)) {
-            rawEls.add(node)
-          }
-        }
-        for (const node of (rcd.removedNodes as NodeListOf<HTMLElement>)) {
-          const val = node.contentEditable
-          if (val !== void 0) {
-            node.contentEditable = val
-            els.delete(node)
-          }
-        }
-      }
-    }, {
-      childList: true,
-      attributes: true,
-      attributeFilter: ['contenteditable'],
-      subtree: true,
-    }, 'root')
-  }
-
-  #cancelReadonly() {
-    if (this.__readonlyObKey) {
-      this.cancelObserve(this.__readonlyObKey)
-      this.__readonlyObKey = void 0
-    }
-    this.__readonlyEditableEls = void 0
-    this.__readonlyRawEls = void 0
+    this.callbacks.onStatusChanged?.(this.context, 'readonly', !readonly)
   }
 
   /**

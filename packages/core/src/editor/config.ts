@@ -55,11 +55,8 @@ export interface EditorCallbacks {
   //  * @param changedTopElements 改变了的顶层元素
   //  */
   // onEditorContentChanged?: (ctx: EditorContext, changedTopElements: EtParagraph[]) => void
-  /**
-   * 编辑器深色模式改变时调用
-   * @param isDark 是否为深色模式
-   */
-  onDarkModeChanged?: (ctx: EditorContext, isDark: boolean) => void
+  /** 编辑器状态改变时调用 */
+  onStatusChanged?: <K extends keyof EditorStatus>(ctx: EditorContext, type: K, oldValue: EditorStatus[K]) => void
 }
 export interface ParagraphCreator {
   /**

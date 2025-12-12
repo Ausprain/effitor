@@ -76,16 +76,20 @@ export class CodeContext<L extends string = string> {
    * @param el 挂载元素
    * @param async 是否异步渲染, 默认为 false
    */
-  mount(el: HTMLElement, async: boolean) {
+  mount(el: HTMLElement, async: boolean, readonly?: boolean) {
     el.appendChild(this.wrapper)
     if (!async) {
       this.render()
-      this.enable()
+      if (!readonly) {
+        this.enable()
+      }
       return
     }
     el.classList.add(CodeEnum.Class_Loading)
     this.renderByLine().then(() => {
-      this.enable()
+      if (!readonly) {
+        this.enable()
+      }
       el.classList.remove(CodeEnum.Class_Loading)
     })
   }

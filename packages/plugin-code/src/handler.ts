@@ -1,7 +1,7 @@
 import { cmd, cr, type Et } from '@effitor/core'
 
-import { CodeContext } from './CodeContext'
-import { Brackets } from './config'
+import type { CodeContext } from './CodeContext'
+import { BRACKETS } from './config'
 import type { EtCodeElement } from './EtCodeElement'
 
 export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> = {
@@ -55,9 +55,9 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
         data += ' '.repeat(indent)
         // 括号后插入换行, 增加一层缩进
         const precedingChar = codeCtx.precedingChar
-        if (precedingChar in Brackets) {
+        if (precedingChar in BRACKETS) {
           data += codeCtx.tab
-          if (codeCtx.followingChar === Brackets[precedingChar]) {
+          if (codeCtx.followingChar === BRACKETS[precedingChar]) {
             ctx.commandManager.pushHandleCallback(() => {
               this.InsertTextInRawEl(ctx, {
                 rawEl, data: '\n', offset: rawEl.selectionStart, focus: false,
@@ -69,16 +69,16 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
       }
       else if (data.length === 1) {
       // 插入左括号, 自动添加右括号
-        if (data in Brackets) {
+        if (data in BRACKETS) {
           ctx.commandManager.pushHandleCallback(() => {
             this.InsertTextInRawEl(ctx, {
-              rawEl, data: Brackets[data] as string, offset: rawEl.selectionStart, focus: false,
+              rawEl, data: BRACKETS[data] as string, offset: rawEl.selectionStart, focus: false,
             })
             ctx.commandManager.handle()
           })
         }
         // 插入右括号, 且与 followingChar 匹配, 则光标后移一位
-        else if (Object.values(Brackets).includes(data) && codeCtx.followingChar === data) {
+        else if (Object.values(BRACKETS).includes(data) && codeCtx.followingChar === data) {
           rawEl.setSelectionRange(rawEl.selectionEnd + 1, rawEl.selectionEnd + 1)
           return true
         }
@@ -160,7 +160,7 @@ export const inCodeHandler: Et.EffectHandlerWith<EtCodeElement, EtCodeElement> =
       }
       // 删除左括号, 连带删除右括号
       const precedingChar = codeCtx.precedingChar
-      if (precedingChar in Brackets && Brackets[precedingChar] === codeCtx.followingChar) {
+      if (precedingChar in BRACKETS && BRACKETS[precedingChar] === codeCtx.followingChar) {
         ctx.commandManager.commitNextHandle(true)
         return this.DeleteTextInRawEl(ctx, {
           rawEl,

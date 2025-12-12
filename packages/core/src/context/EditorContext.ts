@@ -14,6 +14,7 @@ import { KeepDefaultModkeyMap } from '../hotkey/builtin'
 import { HotkeyManager } from '../hotkey/HotkeyManager'
 import { HotstringManager } from '../hotstring/HotstringManager'
 import { Segmenter } from '../intl/Segmenter'
+import { cr } from '../selection'
 import { EtSelection } from '../selection/EtSelection'
 import { EtSelectionIsolated } from '../selection/EtSelectionIsolated'
 import { traversal } from '../utils'
@@ -373,13 +374,19 @@ export class EditorContext implements Readonly<EditorContextMeta> {
         this._isolatedSel = new EtSelectionIsolated(this.body)
       }
       if (this.selection.range) {
+        // this.selection.range 只要存在，就是 Range 的实例，只是被上述 TS 限制能力
         this._isolatedSel.selectRange(this.selection.range as unknown as Range)
+      }
+      else {
+        // 选择编辑区开头
+        this._isolatedSel.selectCaretRange(cr.caretIn(this.bodyEl, 0))
       }
       this._selection = this._isolatedSel
     }
     else {
       this._selection = this._connectedSel
     }
+    this.forceUpdate()
   }
 
   /**

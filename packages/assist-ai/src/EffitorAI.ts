@@ -126,11 +126,13 @@ export class EffitorAI {
   }
 
   private _startTyping() {
+    this._ctx.bodyEl.style.pointerEvents = 'none'
     this._runBeforeCallbacks()
     this._startMask()
   }
 
   private _stopTyping() {
+    this._ctx.bodyEl.style.pointerEvents = ''
     this._runAfterCallbacks()
     this._stopMask()
   }

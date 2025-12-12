@@ -82,7 +82,7 @@ export interface CodePluginContext {
 
 export const CODE_ET_TYPE = etcode.get(CodeEnum.ElName)
 
-export const Brackets: Record<string, string> = {
+export const BRACKETS: Record<string, string> = {
   '(': ')',
   '[': ']',
   '{': '}',

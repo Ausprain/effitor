@@ -27,6 +27,7 @@ export interface CodeDecorateOptions<L extends string> extends CodeContextOption
    * 是否异步渲染, 默认为 false
    */
   async?: boolean
+  readonly?: boolean
 }
 
 /**
@@ -69,6 +70,7 @@ export class EtCodeElement extends EtComponent {
       tabSize: ctx.pctx.$codePx.defaultTabSize,
       highlighter: ctx.pctx.$codePx.highlighter,
       async,
+      readonly: ctx.editor.status.readonly,
     }, (el, cbs) => {
       el.codeHeader = new CodeHeader(ctx, el, cbs)
       el.prepend(el.codeHeader.el)
@@ -135,7 +137,7 @@ export class EtCodeElement extends EtComponent {
   ) {
     this.wrapping = !!options.wrapping
     this.codeCtx = new CodeContext(options)
-    this.codeCtx.mount(this, options.async || false)
+    this.codeCtx.mount(this, options.async || false, options.readonly)
     fn?.(this, {
       onCopy: async (ctx: Et.EditorContext) => {
         await this.codeCtx.copy(ctx)

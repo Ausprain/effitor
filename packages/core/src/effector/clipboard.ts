@@ -14,6 +14,9 @@ type EmptyClipboardEvent = Et.ClipboardEvent & { clipboardData: null }
 
 export const getCopyListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
+    if (ctx.editor.status.readonly) {
+      return
+    }
     // import.meta.env.DEV && console.log('copy', ev.clipboardData?.types, ev)
     // 非trusted的copy事件不会产生任何作用, 直接返回
     if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
@@ -49,6 +52,10 @@ export const getCutListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAct
 }
 export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardAction) => {
   return (ev: EmptyClipboardEvent | NotEmptyClipboardEvent) => {
+    if (ctx.editor.status.readonly) {
+      ev.preventDefault()
+      return
+    }
     if (!ev.isTrusted || !ev.clipboardData || !ctx.isUpdated()) return
     // for (const type of ev.clipboardData.types) {
     //   console.log(type, ev.clipboardData.getData(type))

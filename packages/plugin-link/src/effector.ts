@@ -101,6 +101,12 @@ const initLinkPopup = (popup: Popup) => {
     },
     beforeShow: (_ctx, linkEl, contentEl, _items) => {
       const inputDiv = contentEl.firstElementChild as HTMLDivElement
+      if (_ctx.editor.status.readonly) {
+        inputDiv.contentEditable = 'false'
+      }
+      else {
+        inputDiv.contentEditable = 'plaintext-only'
+      }
       inputDiv.textContent = linkEl.linkUrl
       inputDiv.setAttribute('title', linkEl.linkTitle)
       inputDiv.onmousedown = e => (e.stopPropagation(), _ctx.editor.blur())
