@@ -506,7 +506,7 @@ export class Effitor {
   }
 
   setReadonly(readonly: boolean) {
-    if (readonly === this.status.readonly) {
+    if (readonly === !this.bodyEl.isContentEditable) {
       return
     }
     if (readonly) {

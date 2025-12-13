@@ -376,7 +376,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       if (!this._isolatedSel) {
         this._isolatedSel = new EtSelectionIsolated(this, this.body)
       }
-      Object.assign(this._isolatedSel, this._connectedSel)
+      Object.assign(this._isolatedSel, this._connectedSel, { isolated: true })
       if (this._isolatedSel.range) {
         // 选择编辑区开头
         this._isolatedSel.selectCaretRange(cr.caretIn(this.bodyEl, 0))
@@ -384,7 +384,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this._selection = this._isolatedSel
     }
     else {
-      Object.assign(this._connectedSel, this._isolatedSel)
+      Object.assign(this._connectedSel, this._isolatedSel, { isolated: false })
       this._selection = this._connectedSel
     }
     this.forceUpdate()

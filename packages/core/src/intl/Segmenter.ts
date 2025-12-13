@@ -29,10 +29,8 @@ export class Segmenter {
    */
   setLocale(locale: string) {
     try {
-      const graphemeSeg = new Intl.Segmenter(locale, { granularity: 'grapheme' })
-      const wordSeg = new Intl.Segmenter(locale, { granularity: 'word' })
-      this._graphemeSegmenter = graphemeSeg
-      this._wordSegmenter = wordSeg
+      this._graphemeSegmenter = new Intl.Segmenter(locale, { granularity: 'grapheme' })
+      this._wordSegmenter = new Intl.Segmenter(locale, { granularity: 'word' })
       this._locale = locale
       return true
     }
