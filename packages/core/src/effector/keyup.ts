@@ -8,7 +8,9 @@ const mainKeyupSolver: MainKeyboardSolver = {
   ' ': (_ev, ctx) => {
     if (ctx.prevUpKey === ' ') {
       const tc = ctx.selection.getTargetCaret()
-      if (!tc || ctx.selIsolated) { // 隔离选区时禁用双空格效应
+      // 隔离选区时禁用双空格效应; 因为双空格效应主要用于优化用户编辑体验,
+      // 而隔离选区一般用于脚本操作
+      if (!tc || ctx.selIsolated) {
         return
       }
       ctx.getEtHandler(tc.anchorEtElement).dblSpace?.(ctx, tc)

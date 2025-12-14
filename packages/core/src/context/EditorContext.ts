@@ -191,7 +191,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
    * 更新编辑器上下文
    */
   update() {
-    const prevSelType = this._selection.isCollapsed
+    const prevSelType = this._selection.type
     if (!this._selection.update()) {
       // 光标更新失败, 强制编辑器失去焦点
       this.editor.blur()
@@ -210,7 +210,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       this.editor.blur()
       return (this._updated = false)
     }
-    this._selectionTypeChanged = prevSelType === this._selection.isCollapsed
+    this._selectionTypeChanged = prevSelType !== this._selection.type
     // 更新上下文效应元素
     // 特别的, 若 focusEtElement === focusParagraph === focusTopElement, 则
     // focusinCallback 由 focusEtElement 调用
