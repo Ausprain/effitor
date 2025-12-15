@@ -6,7 +6,7 @@ export type A_hotkey = string
 export type A_actionKey = string
 
 export const enum HotkeyEnum {
-  Connector = '_',
+  // Connector = '_',
   LocalStorageKey = '@effitor_$hotkey-mapping',
 }
 

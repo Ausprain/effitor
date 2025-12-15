@@ -7,7 +7,7 @@ import {
   ModKeyDownBuiltinMap,
   ModKeyDownDefaultMap,
 } from './builtin'
-import { type A_actionKey, type A_hotkey, type HotkeyAction, HotkeyEnum } from './config'
+import { type A_actionKey, type A_hotkey, type HotkeyAction } from './config'
 import { CtrlCmd } from './Mod'
 import { create, createAction, modKey, parseHotkey, withMod } from './util'
 
@@ -28,7 +28,11 @@ interface HotkeyData {
 }
 
 /**
- * 快捷键管理器
+ * 快捷键管理器;
+ *
+ * 每一个快捷键遵循`{0|1}{0|1}{0|1}{0|1}{Key}`格式，
+ * 前 4 个二进制位，分别表示是否按下了 Ctrl、Shift、Alt、Meta 修饰键，
+ * {Key}使用 KeyboardEvent.code 值，如`1000KeA`表示`Ctrl+A`
  */
 export class HotkeyManager {
   private readonly _builtinModKeyEffect: IModKeyDownEffectMap
@@ -64,10 +68,12 @@ export class HotkeyManager {
    * 检查当前 keydown 按下的按键组合含 modifier 修饰键
    * @param modifier Mod.AltOpt | Mod.Ctrl | Mod.MetaCmd | Mod.Shift 修饰键或其组合, 缺省时自动适配 CtrlCmd
    */
-  checkWithMod(modifier?: Omit<KeyMod, KeyMod.None>, modkey = this._modkey) {
-    const [_, mod] = modkey.split(HotkeyEnum.Connector)
-    const num = parseInt(mod as string)
-    if (typeof modifier === 'number') {
+  checkWithMod(modifier?: KeyMod, modkey = this._modkey) {
+    const num = (modkey[0] === '1' ? 8 : 0)
+      + (modkey[1] === '1' ? 4 : 0)
+      + (modkey[2] === '1' ? 2 : 0)
+      + (modkey[3] === '1' ? 1 : 0)
+    if (modifier !== void 0) {
       return (num & modifier) === modifier
     }
     return (num & CtrlCmd) === CtrlCmd

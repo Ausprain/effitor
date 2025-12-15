@@ -240,10 +240,10 @@ export const enum KeyMod {
   /** 无修饰键 */
   None = 0,
   // 单修饰键
-  Ctrl = 1,
-  Shift = 2,
-  AltOpt = 4,
-  MetaCmd = 8,
+  Ctrl = 8,
+  Shift = 4,
+  AltOpt = 2,
+  MetaCmd = 1,
   // 组合修饰键
   Ctrl_Shift = KeyMod.Ctrl | KeyMod.Shift,
   Ctrl_Alt = KeyMod.Ctrl | KeyMod.AltOpt,

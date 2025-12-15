@@ -1,17 +1,18 @@
 import { KeyMod } from '@effitor/shared'
 
-import { type A_hotkey, type ActionGroupMap_, type HotkeyAction, HotkeyEnum } from './config'
+import { type A_hotkey, type ActionGroupMap_, type HotkeyAction } from './config'
 import { type Key, keyChars } from './Key'
 import { CtrlCmd, modChar, type ModType } from './Mod'
 
 /**
  * 获取一个快捷键字符串\
- * 最终的快捷键通过 `{KeyName}_{ModNum}` 的形式表示, 如 `ctrl+shift+A` 为 `KeyA_12`
- * @param mod 修饰键, 通过 hotkey.Mod 枚举获取, 多个修饰符通过 | 组合
+ * 最终的快捷键通过 `xxxx${Key}` 的形式表示, x是一个二进制位，依次表示是否按下 Ctrl、Shift、Alt、Meta 修饰键，
+ * Key 是对应按键产生的 KeyboardEvent.code 值，如 `Ctrl+Shift+A` 为 `1100KeyA`
  * @param key 按键, 通过 hotkey.Key 枚举获取
+ * @param mod 修饰键, 通过 hotkey.Mod 枚举获取, 多个修饰符通过 | 组合; 范围是 [0，15] 的整数
  */
 export const create = (key: Key, mod: ModType): A_hotkey => {
-  return key + HotkeyEnum.Connector + mod
+  return mod.toString(2).padStart(4, '0') + key
 }
 
 /**
@@ -29,12 +30,11 @@ export const withMod = (key: Key, extraMod: ModType = KeyMod.None): A_hotkey => 
  * @returns 快捷键字符串
  */
 export const modKey = (ev: KeyboardEvent) => {
-  return ev.code + HotkeyEnum.Connector + (
-    (ev.metaKey ? KeyMod.MetaCmd : 0)
-    | (ev.ctrlKey ? KeyMod.Ctrl : 0)
-    | (ev.altKey ? KeyMod.AltOpt : 0)
-    | (ev.shiftKey ? KeyMod.Shift : 0)
-  )
+  return (ev.ctrlKey ? '1' : '0')
+    + (ev.shiftKey ? '1' : '0')
+    + (ev.altKey ? '1' : '0')
+    + (ev.metaKey ? '1' : '0')
+    + ev.code
 }
 
 /**
@@ -43,14 +43,12 @@ export const modKey = (ev: KeyboardEvent) => {
  * 如"KeyA_12"(快捷键`ctrl+shift+A`), 对应为: `['Ctrl', 'Shift', 'A']` 或 `['⌃', '⇧', 'A']` \
  */
 export const parseHotkey = (modKey: string) => {
-  const [key, mod] = modKey.split(HotkeyEnum.Connector)
-  const num = parseInt(mod as string)
-  const parts = [
-    (num & KeyMod.Ctrl) ? modChar.ctrl : '',
-    (num & KeyMod.Shift) ? modChar.shift : '',
-    (num & KeyMod.AltOpt) ? modChar.altopt : '',
-    (num & KeyMod.MetaCmd) ? modChar.metacmd : '',
-  ].filter(Boolean)
+  const key = modKey.slice(4)
+  const parts = []
+  if (modKey[0] === '1') parts.push(modChar.ctrl)
+  if (modKey[1] === '1') parts.push(modChar.shift)
+  if (modKey[2] === '1') parts.push(modChar.altopt)
+  if (modKey[3] === '1') parts.push(modChar.metacmd)
   parts.push(keyChars[key as keyof typeof keyChars] ?? key)
   return parts
 }
