@@ -72,11 +72,11 @@ et-li.etp {
   min-height: calc(1.5em + 4px);
 
   &[et-check] {
-    /* safari部分不支持::marker，无法通过::marker将其设置为空 */
+    /* safari部分不支持::marker，无法通过::marker将其设置为空; 使用 list-style: none; 去除 */
     list-style: none;
-    /* &::marker {
+    &::marker {
       content: '';
-    } */
+    }
 
     &::before {
       content: '';
