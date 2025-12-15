@@ -26,12 +26,13 @@ export const trimHtml = (html: string) => {
  * @param offset 当前光标位置, 即从此位置向前匹配, 此位置之后都属于right的内容; 默认为data.length
  */
 export const checkParseMarkdownReference = (type: 'link' | 'image', data: string, offset = data.length) => {
-  let leftSquareIndex = -1
+  let leftSquareIndex = -1, textStart
   if (type === 'link') {
     leftSquareIndex = data.lastIndexOf('[', offset)
     if (leftSquareIndex < 0 || data[leftSquareIndex - 1] === '!') {
       return null
     }
+    textStart = leftSquareIndex + 1
   }
   else {
     leftSquareIndex = data.lastIndexOf('![', offset)
@@ -39,6 +40,7 @@ export const checkParseMarkdownReference = (type: 'link' | 'image', data: string
       leftSquareIndex = data.lastIndexOf('\uff01[' /** ！[ */, offset)
     }
     if (leftSquareIndex < 0) return null
+    textStart = leftSquareIndex + 2
   }
 
   const rightSquareIndex = data.lastIndexOf(']', offset)
@@ -50,7 +52,7 @@ export const checkParseMarkdownReference = (type: 'link' | 'image', data: string
   }
   if (leftBracketIndex < 0 || leftBracketIndex !== rightSquareIndex + 1) return null
 
-  const text = data.slice(leftSquareIndex + 2, rightSquareIndex)
+  const text = data.slice(textStart, rightSquareIndex)
 
   const urlTitleArr = data.slice(leftBracketIndex + 1, offset - 1).split(' ')
   if (!urlTitleArr.length || urlTitleArr.length > 2) return null
