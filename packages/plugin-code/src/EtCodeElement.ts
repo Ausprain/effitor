@@ -250,7 +250,7 @@ export class EtCodeElement extends EtComponent {
     code: (node, ctx) => {
       const lang = node.lang ? (ctx.pctx.$codePx.highlighter.langs[node.lang] ?? '') : ''
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), lang, true)
-      return el
+      return () => el
     },
     html: (node, ctx) => {
       if (!ctx.pctx.$codePx.codeRenderer['html']) {
@@ -258,7 +258,48 @@ export class EtCodeElement extends EtComponent {
       }
       const el = EtCodeElement.withDefaultDecoration(ctx, node.value.trim(), 'html', true)
       ctx.pctx.$codePx.renderCodeBlock(ctx, el)
-      return el
+      return () => el
+    },
+    paragraph: (node, ctx) => {
+      if (!ctx.pctx.$codePx.codeRenderer['latex']) {
+        return null
+      }
+      let latex = ''
+      if (node.children.length === 1) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const child = node.children[0]!
+        if (child.type !== 'text' || !child.value.startsWith('$$') || !child.value.endsWith('$$')
+        ) {
+          return null
+        }
+        latex = child.value.slice(2, -2)
+      }
+      else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const first = node.children[0]!, last = node.children[node.children.length - 1]!
+        if (first.type !== 'text' || last.type !== 'text' || first.value !== '$$' || last.value !== '$$') {
+          return null
+        }
+        for (let i = 1; i < node.children.length - 1; i++) {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const child = node.children[i]!
+          if (child.type === 'text') {
+            latex += child.value
+            continue
+          }
+          if (child.type === 'break') {
+            latex += '\n'
+            continue
+          }
+          return null
+        }
+      }
+      if (!latex) {
+        return null
+      }
+      const el = EtCodeElement.withDefaultDecoration(ctx, latex.trim(), 'latex', true)
+      ctx.pctx.$codePx.renderCodeBlock(ctx, el)
+      return () => el
     },
   }
 }

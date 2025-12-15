@@ -34,9 +34,9 @@ const handleManager = (() => {
     reset: (decount?: ManagerStatus) => (status = decount ? (decount & status ? status - decount : status) : ManagerStatus.NONE, handleManager),
 
     /**
-         * 使用目标数组内的节点 替换当前节点（或从当前索引开始的多个节点，通过deleteCount指定数量），
-         * 该方法会调用一次 `revisitIndex` 以重新访问当前索引的节点,
-         */
+     * 使用目标数组内的节点 替换当前节点（或从当前索引开始的多个节点，通过deleteCount指定数量），
+     * 该方法会调用一次 `revisitCurrentIndex` 以重新访问当前索引的节点,
+     */
     replaceCurrentNode(index: number, parent: mdast.Parents, newNodes: mdast.Nodes[], deleteCount = 1) {
       parent.children.splice(index, deleteCount, ...newNodes as mdast.RootContent[])
       this.revisitCurrentIndex()
@@ -95,12 +95,17 @@ const handleMdastNode = <T extends mdast.Nodes>(ctx: Et.EditorContext, node: T, 
       return out
     }
     if (!out) continue
+    if (typeof out === 'function') {
+      return out()
+    }
     if (handleManager.childrenSkipped) {
       handleManager.reset(ManagerStatus.SKIP_CHILDREN)
       return out
     }
     // 若返回htmlElement或documentFragment, 则继续解析mdast子节点, 并插入到该父节点中
-    if ((out.nodeType === Node.ELEMENT_NODE || out.nodeType === Node.DOCUMENT_FRAGMENT_NODE) && isMdastParentNode(node)) {
+    if ((out.nodeType === 1 /** Node.ELEMENT_NODE */
+      || out.nodeType === 11 /** Node.DOCUMENT_FRAGMENT_NODE */
+    ) && isMdastParentNode(node)) {
       handleMdastChildren(ctx, node, out as ParentNode, handlersMap)
     }
     else {
@@ -117,7 +122,7 @@ const handleMdastChildren = (ctx: Et.EditorContext, parent: mdast.Parents, htmlp
     const child = parent.children[i]!
     const out = handleMdastNode(ctx, child, parent, i, handlersMap)
     if (out) {
-      htmlparent.appendChild(out)
+      htmlparent.appendChild(typeof out === 'function' ? out() : out)
     }
     if (handleManager.currentRevisited) {
       i--

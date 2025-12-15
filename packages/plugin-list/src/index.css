@@ -56,6 +56,7 @@ et-editor,
 
 .et-list,
 et-list {
+  /* 强制counter重新计数, 避免有祖先设置 contain 时不同列表连续counter问题 */
   contain: style;
   display: block;
   margin: 4px 0;

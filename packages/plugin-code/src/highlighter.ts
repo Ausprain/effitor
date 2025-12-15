@@ -46,6 +46,7 @@ export interface ShikiHighlighterOptions {
    * json
    * markdown
    * sql
+   * latex
    * ```
    */
   langs?: LanguageInput[]
@@ -71,7 +72,7 @@ export interface ShikiHighlighterOptions {
    * json: 'json',
    * md: 'markdown',
    * sql: 'sql',
-   * vue: 'vue',
+   * latex: 'latex',
    * ```
    */
   alias?: Record<string, BundledLanguage>
@@ -94,7 +95,7 @@ export const defaultOptions: Required<ShikiHighlighterOptions> = {
     () => import(`@shikijs/langs/json`),
     () => import(`@shikijs/langs/markdown`),
     () => import(`@shikijs/langs/sql`),
-    () => import(`@shikijs/langs/vue`),
+    () => import(`@shikijs/langs/latex`),
   ],
   alias: {
     javascript: 'javascript',
@@ -113,7 +114,7 @@ export const defaultOptions: Required<ShikiHighlighterOptions> = {
     markdown: 'markdown',
     md: 'markdown',
     sql: 'sql',
-    vue: 'vue',
+    latex: 'latex',
   },
   // langs: [
   //   'bat', 'ps1', 'shell', 'c', 'c++', 'cmake', 'c#',

@@ -77,7 +77,9 @@ et-code {
   max-height: var(--et-code-max-height);
   border-radius: inherit;
   overflow: auto;
-  /* contain: content; */
+  et-code>& {
+    contain: content;
+  }
 }
 .et-code__container {
   position: relative;
@@ -189,7 +191,10 @@ et-code {
 
 /* 代码块头 */
 .et-code__header {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   overflow: visible;
 }
 .et-code__btn-group{
@@ -241,6 +246,11 @@ et-code {
 et-code.et-code--rendered {
   border: none;
   min-height: 48px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
   &::before {
     display: none;
   }

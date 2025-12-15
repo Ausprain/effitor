@@ -1,5 +1,7 @@
 import type { Et } from '../@types'
 
+export type HTMLTransformResult = Et.EtElement | null | Et.Fragment | (() => Et.EtElement | null)
+
 export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement> {
   /**
    * 定义一个html元素如何转为效应元素; 若最终未处理, 则会转为纯文本
@@ -18,7 +20,7 @@ export interface HtmlToEtElementTransformer<T extends HTMLElement = HTMLElement>
     el: T,
     ctx: Et.EditorContext,
     parent: Readonly<Element> | null
-  ): Et.EtElement | null | Et.Fragment | (() => Et.EtElement | null)
+  ): HTMLTransformResult
 }
 
 export type HtmlToEtElementTransformerMap = {

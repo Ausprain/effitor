@@ -10,7 +10,7 @@ import type { CreateMdastNode } from './toMarkdown'
 export type MdastNodes = mdast.Nodes
 export type MdastNode<T extends mdast.Nodes['type']> = Extract<mdast.Nodes, { type: T }>
 
-export type MdastHandlerReturnType = DocumentFragment | HTMLElement | Text | null
+export type MdastHandlerReturnType = DocumentFragment | HTMLElement | Text | null | (() => HTMLElement)
 export interface MdastNodeHandler<N extends mdast.Nodes | mdast.Nodes['type']> {
   /**
    * 定义一个mdast节点如何转为html节点, 无需手动处理后代节点
