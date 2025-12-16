@@ -39,7 +39,9 @@ export class EtBodyElement extends EffectElement {
       focusNode = ctx.bodyEl.lastChild
       toStart = false
     }
-    if (focusNode && ctx.isEtParagraph(focusNode) && focusNode.isContentEditable) {
+    if (focusNode && ctx.isEtParagraph(focusNode) && (focusNode.isContentEditable
+      || ctx.isPlainParagraph(focusNode)
+    )) {
       ctx.setCaretToAParagraph(focusNode, toStart)
       return
     }

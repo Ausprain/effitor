@@ -68,6 +68,7 @@ export const getMediaSrcWithMetadata = (url: string, data: MediaUrlMetadata, enc
       })
 }
 
+// TODO 优化等待加载的处理
 export const initMediaElementSrc = (
   el: HTMLImageElement | HTMLAudioElement | HTMLVideoElement,
   src: string | Promise<string>,

@@ -11,6 +11,7 @@ const checkQuitBlockquote = (ctx: Et.EditorContext, currP: Et.EtParagraphElement
     if (!ctx.schema.blockquote.is(bq)) {
       return false
     }
+    ctx.commandManager.commitNextHandle(true)
     if (bq.childNodes.length === 1) {
       // bq 仅有一个空段落, 删除
       ctx.commandManager.push(

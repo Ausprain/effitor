@@ -179,7 +179,7 @@ export interface CreateEditorOptions {
   shadow?: boolean
   /** 是否为只读模式, 默认为 false */
   readonly?: boolean
-  /** 主题名称, 默认为 ''（引入什么主题css，就是什么主题） */
+  /** 主题名称, 默认为 ''（引入什么主题css，就是什么主题; 但有些 css 选择器可能依赖该值（主题属性 et-theme 的值） */
   theme?: string
   /**
    * schema选项, 一个自定义元素map, 用于定义编辑器内的富文本内容\

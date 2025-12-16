@@ -372,6 +372,7 @@ export class CommonHandler {
 
   /**
    * 在指定光标位置所在段落后边插入一个段落
+   * * 若插入位置不接受将要插入的“段落”（newP），则会向上找最近一个可接受newP 为子节点的祖先段落（直至 et-body），并插入
    * * 该effect成功后默认会发送一个`inputType = insertParagraph` 的input事件
    * @param caretAt 光标位置, 若为 null, 则使用当前光标位置; 若位置无效, 则直接返回false
    * @param newP 要插入的新段落; 若缺省, 则依据光标所在段落创建新段落:
@@ -421,7 +422,7 @@ export class CommonHandler {
         insertAt = cr.caretOutEnd(tc.anchorTopElement)
       }
       else {
-        // 判断当前段落父节点是否允许传入的newP
+        // 判断当前段落父节点是否允许传入的newP; 若不允许，则找最近一个可允许插入的祖先段落，直至 et-body
         const ps = ctx.body.outerParagraphs(tc.anchorParagraph)
         for (const p of ps) {
           if (etcode.checkIn(p, newP)) {

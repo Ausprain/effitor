@@ -522,6 +522,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     }
   }
 
+  /**
+   * 光标定位到文档树的上一个段落
+   * @param toStart 是否定位到段落开头
+   * @returns 是否 focus 了
+   */
   focusToPrevParagraph(toStart = false) {
     if (!this._focusParagraph) {
       return
@@ -536,6 +541,11 @@ export class EditorContext implements Readonly<EditorContextMeta> {
     this.setCaretToAParagraph(prevP, toStart, true)
   }
 
+  /**
+   * 光标定位到文档树的下一个段落
+   * @param toStart 是否定位到段落开头
+   * @returns 是否 focus 了
+   */
   focusToNextParagraph(toStart = true) {
     if (!this._focusParagraph) {
       return
