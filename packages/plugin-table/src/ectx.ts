@@ -186,7 +186,7 @@ export const tableCellKeyMap: hotkey.ModKeyDownEffectMap = {
   [hotkey.create('KeyC', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'center'),
   [hotkey.create('KeyR', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'right'),
   [hotkey.create('KeyL', hotkey.Mod.AltOpt)]: ctx => setTableAlign(ctx, 'left'),
-  [hotkey.create('KeyE', hotkey.Mod.AltOpt)]: toggleTableEven,
+  [hotkey.create('KeyE', hotkey.CtrlCmd)]: toggleTableEven,
 }
 
 export const tableActions = {
