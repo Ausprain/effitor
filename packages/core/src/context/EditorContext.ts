@@ -23,6 +23,7 @@ import type { EditorContextMeta, EditorPluginContext } from './config'
 import { EditorBody } from './EditorBody'
 import { EditorLogger } from './EditorLogger'
 import { EditorMode } from './EditorMode'
+import { addListenersToEditorBody, initListeners } from './listeners'
 
 type PickKeyOfRange
   = | keyof AbstractRange
@@ -53,9 +54,12 @@ export interface CreateEditorContextOptionsFields {
   readonly hotstringOptions?: Et.hotstring.ManagerOptions
 }
 export interface CreateEditorContextOptions extends CreateEditorContextOptionsFields {
+  readonly ac: AbortController
   readonly root: Et.EditorRoot
   readonly bodyEl: Et.EtBodyElement
   readonly locale?: string
+  readonly mainEffector: Et.MainEffector
+  readonly pluginConfigs: Et.PluginConfigs
   readonly onEffectElementChanged?: OnEffectElementChanged
   readonly onParagraphChanged?: OnParagraphChanged
   readonly onTopElementChanged?: OnParagraphChanged
@@ -164,8 +168,12 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       ...KeepDefaultModkeyMap,
     }
 
+    const listeners = initListeners(this, options.mainEffector, options.pluginConfigs)
+    addListenersToEditorBody(options.bodyEl, options.ac, this, listeners,
+      options.pluginConfigs.htmlEventSolver, options.pluginConfigs.htmlEventCapturedSolver)
+
     this.root = options.root
-    this.body = new EditorBody(options.bodyEl, this.editor.scrollContainer)
+    this.body = new EditorBody(options.bodyEl, listeners, this.editor.scrollContainer)
     this.mode = new EditorMode(this)
     this._selection = new EtSelection(this, this.body)
     this._connectedSel = this._selection as EtSelection

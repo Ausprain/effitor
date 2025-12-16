@@ -1,4 +1,5 @@
 import type { Et } from '../@types'
+import type { PluginConfigs } from '../editor/config'
 import { getBeforeinputListener } from '../effector/beforeinput'
 import { getCopyListener, getCutListener, getPasteListener } from '../effector/clipboard'
 import {
@@ -24,8 +25,8 @@ import {
 } from '../effector/mouse'
 import { getSelectionChangeListener } from '../effector/selchange'
 import { dom } from '../utils'
-import type { PluginConfigs } from './Effitor'
 
+export type EditorListeners = ReturnType<typeof initListeners>
 export const initListeners = (
   ctx: Et.EditorContext, mainEffector: Et.MainEffector, pluginEffector: PluginConfigs,
 ) => ({
@@ -66,10 +67,17 @@ export const addListenersToEditorBody = (
   body: Et.EtBodyElement,
   ac: AbortController,
   ctx: Et.EditorContext,
-  listeners: ReturnType<typeof initListeners>,
+  listeners: EditorListeners,
   htmlEventSolver?: Et.HTMLEventSolver,
+  htmlEventCapturedSolver?: Et.HTMLEventSolver,
 ) => {
   // 先为插件绑定其他监听器, 这样通过e.stopImmediatePropagation()可以阻止effitor相关事件的默认行为触发
+  if (htmlEventCapturedSolver) {
+    for (const [name, fn] of Object.entries(htmlEventCapturedSolver)) {
+      // @ts-expect-error name 是一个 string, 无法准确提取出 e 的类型
+      body.addEventListener(name, e => fn(e, ctx), { signal: ac.signal, capture: true })
+    }
+  }
   if (htmlEventSolver) {
     for (const [name, fn] of Object.entries(htmlEventSolver)) {
       // @ts-expect-error name 是一个 string, 无法准确提取出 e 的类型

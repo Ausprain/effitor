@@ -2,6 +2,7 @@ import { EtTypeEnum } from '@effitor/shared'
 
 import type { Et } from '../@types'
 import { type EtBodyElement, etcode } from '../element'
+import { type EditorListeners } from './listeners'
 
 // const enum EditorBodyEventName {
 //   HeadingChainUpdated = 'headingchainupdated',
@@ -30,7 +31,7 @@ export class EditorBody {
   // private _eventHandlersMap: { [k in keyof EditorBodyEventMap]?: EditorBodyEventListener<k>[] } = {}
 
   // private _headingOb: IntersectionObserver
-  private _updateHeadingChainIdle?: number
+  // private _updateHeadingChainIdle?: number
 
   /** 获取编辑区所有文本 等于 et-body元素的 textContent值 */
   get textContent() {
@@ -45,6 +46,7 @@ export class EditorBody {
   constructor(
     /** 编辑区元素 */
     public readonly el: EtBodyElement,
+    private readonly _listeners: EditorListeners,
     /** 编辑器所在滚动容器, 默认为根 html 元素 */
     public readonly scrollContainer: HTMLElement = document.documentElement,
   ) {
@@ -137,6 +139,17 @@ export class EditorBody {
   //   }
   //   return true
   // }
+
+  /**
+   * 直接使用编辑区事件监听器处理一个事件
+   */
+  handleEvent(ev: Event) {
+    const handle = this._listeners[ev.type as keyof EditorListeners]
+    if (handle) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return handle(ev as any)
+    }
+  }
 
   /** 在编辑区触发一个input事件; */
   dispatchInputEvent(

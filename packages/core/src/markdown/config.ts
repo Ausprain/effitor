@@ -19,7 +19,12 @@ export interface MdastNodeHandler<N extends mdast.Nodes | mdast.Nodes['type']> {
    * * 返回Text节点, 会作为直接插入到父节点对应位置中
    * * 返回null, 则跳过当前handler, 尝试用下一个handler处理, 若所有handler均返回null(或无对应handler), 则该mdast节点会被丢弃, 即相应markdown内容将从渲染结果中缺失
    */
-  (node: N extends mdast.Nodes ? N : Extract<mdast.Nodes, { type: N }>, ctx: EditorContext, index: number, parent: mdast.Parents, manager: MdastHandleManager): MdastHandlerReturnType
+  (node: N extends mdast.Nodes ? N : Extract<mdast.Nodes, { type: N }>,
+    ctx: EditorContext,
+    index: number,
+    parent: mdast.Parents,
+    manager: MdastHandleManager
+  ): MdastHandlerReturnType
 }
 /**
  * 定义mdast节点如何转为html节点，无需手动处理后代节点

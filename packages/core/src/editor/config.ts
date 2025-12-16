@@ -1,6 +1,7 @@
 import type { OmitStringIndexSignature, TrueOrVoid } from '@effitor/shared'
 
 import type { EditorContext, EditorContextMeta } from '../context'
+import type { CreateEditorContextOptionsFields } from '../context/EditorContext'
 import type { Effector, MainEffector } from '../effector'
 import type {
   EffectElement,
@@ -245,4 +246,17 @@ export interface EditorMountOptions {
 export interface EditorAction {
   /** 编辑器操作函数, 用于执行编辑器内的任何操作; 当且仅当返回 true 时, 终止后续操作 */
   (ctx: EditorContext): TrueOrVoid
+}
+
+/**
+ * 编辑器元数据
+ */
+export interface EditorMeta extends CreateEditorContextOptionsFields {
+  readonly mainEffector: Readonly<MainEffector>
+  readonly pluginConfigs: Readonly<PluginConfigs>
+  readonly cssText: string
+  readonly customStyleLinks: readonly CustomStyleLink[]
+}
+export type PluginConfigs = Omit<Effector, 'enforce'> & {
+  cssText: string
 }

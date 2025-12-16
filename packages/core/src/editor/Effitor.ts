@@ -7,7 +7,6 @@ import baseCss from '../assets/base.css?raw'
 import builtinCss from '../assets/builtin.css?raw'
 import { defaultConfig, platform } from '../config'
 import { EditorContext } from '../context'
-import { type CreateEditorContextOptionsFields } from '../context/EditorContext'
 import { getMainEffector } from '../effector'
 import { solveEffectors } from '../effector/ectx'
 import {
@@ -19,9 +18,8 @@ import { mountEtHandler, registerEtElement } from '../element/register'
 import { HtmlProcessor } from '../html/HtmlProcessor'
 import { getMdProcessor, type MdProcessor } from '../markdown/processor'
 import { useUndo } from '../plugins'
-import type { EditorMountOptions } from './config'
+import type { EditorMeta, EditorMountOptions, PluginConfigs } from './config'
 import { ConfigManager } from './ConfigManager'
-import { addListenersToEditorBody, initListeners } from './listeners'
 
 class EffitorNotMountedError extends Error {
   constructor() {
@@ -29,18 +27,6 @@ class EffitorNotMountedError extends Error {
   }
 }
 
-/**
- * 编辑器元数据
- */
-interface EditorMeta extends CreateEditorContextOptionsFields {
-  readonly mainEffector: Readonly<Et.MainEffector>
-  readonly pluginConfigs: Readonly<PluginConfigs>
-  readonly cssText: string
-  readonly customStyleLinks: readonly Et.CustomStyleLink[]
-}
-export type PluginConfigs = Omit<Et.Effector, 'enforce'> & {
-  cssText: string
-}
 const reducePlugins = (
   assists: Et.EditorPlugin[],
   plugins: Et.EditorPlugin[], elCtors: Et.EtElementCtor[], ctxMeta: Et.EditorContextMeta,
@@ -423,11 +409,14 @@ export class Effitor {
     const ac = new AbortController()
     const [root, bodyEl, editorEl] = this.#formatEffitorStructure(host, customStyleLinks, ac.signal)
     const context = new EditorContext({
+      ac,
       contextMeta,
       root,
       bodyEl,
       locale,
       hotstringOptions,
+      mainEffector,
+      pluginConfigs,
       onEffectElementChanged: this.callbacks.onEffectElementChanged,
       onParagraphChanged: this.callbacks.onParagraphChanged,
       onTopElementChanged: this.callbacks.onTopElementChanged,
@@ -451,10 +440,6 @@ export class Effitor {
     if (this.status.readonly) {
       this.setReadonly(true)
     }
-
-    /** 编辑器事件监听器 */
-    const listeners = initListeners(context, mainEffector, pluginConfigs)
-    addListenersToEditorBody(bodyEl, ac, context, listeners, pluginConfigs.htmlEventSolver)
 
     // 配置了自动创建首段落
     if (this.config.AUTO_CREATE_FIRST_PARAGRAPH) {

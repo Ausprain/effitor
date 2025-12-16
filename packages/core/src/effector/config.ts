@@ -78,6 +78,11 @@ export interface Solvers {
    * 来阻止Effitor的相同事件行为, 而不是`ctx.preventAndSkipDefault(ev)`
    */
   readonly htmlEventSolver: HTMLEventSolver
+  /**
+   * 同 htmlEventSolver, 但在事件捕获阶段触发；这是编辑器所有事件的最前沿，
+   * 在配置的事件处理器中使用 `ev.stopImmediatePropagation` 会跳过编辑器对应事件的所有行为
+   */
+  readonly htmlEventCapturedSolver: HTMLEventSolver
 }
 export interface Callbacks {
   /** 复制或剪切时添加数据到clipboardData */
