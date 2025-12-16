@@ -11,10 +11,9 @@ et-editor.Et--dark,
   --et-table-odd-row-bg-color: #171819;
 }
 
-.et-table,
-et-table {
+:where(.et-table,et-table) {
   /* 等宽表格 */
-  &[data-even="1"] {
+  &[data-even] {
     table-layout: fixed;
     & et-tc,
     & .et-tc {
@@ -23,6 +22,7 @@ et-table {
   }
 
   /* 表格对齐 */
+  &[data-align=""],
   &[data-align="left"] {
     text-align: left;
   }
@@ -50,8 +50,7 @@ et-table {
   }
 }
 
-.et-table,
-et-table {
+:where(.et-table,et-table) {
   display: table !important;
   /* collapse 会导致 border-radius 失效；但不 collapse 又太丑了 */
   /* border-collapse: collapse; */
@@ -68,13 +67,11 @@ et-table {
 
 }
 
-.et-tr,
-et-tr {
+:where(.et-tr,et-tr) {
   display: table-row !important;
 }
 
-.et-tc,
-et-tc {
+:where(.et-tc,et-tc) {
   border: 1px solid;
   display: table-cell !important;
   padding: 6px;

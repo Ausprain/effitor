@@ -1,6 +1,7 @@
 import type {
   CreateMdastNode,
   EditorContext,
+  Et,
   EtCaret,
   HtmlToEtElementTransformerMap,
   MdastNodeHandlerMap,
@@ -10,6 +11,7 @@ import { cr, EtParagraph } from '@effitor/core'
 
 import { TABLE_CELL_ET_TYPE, TABLE_ROW_ET_TYPE, TableName } from './config'
 import { EtTableCellElement } from './EtTableCellElement'
+import { parseTableRowMeta } from './util'
 
 export class EtTableRowElement extends EtParagraph {
   protected override nativeTag?: keyof HTMLElementTagNameMap | undefined = 'tr'
@@ -81,6 +83,7 @@ export class EtTableRowElement extends EtParagraph {
 
   static override readonly fromNativeElementTransformerMap: HtmlToEtElementTransformerMap = {
     tr: (_el) => {
+      // TODO 若后续有rowMeta, 则需要额外处理
       return this.create()
     },
   }
@@ -90,7 +93,28 @@ export class EtTableRowElement extends EtParagraph {
   }
 
   static override readonly fromMarkdownHandlerMap: MdastNodeHandlerMap = {
-    tableRow: () => {
+    tableRow: (node, _c, _i, parent) => {
+      const col = (parent as Et.MdastNode<'table'>).align?.length
+      if (!col || !node.children.length) {
+        return null
+      }
+      let metaCell
+      if (node.children.length > col) {
+        metaCell = node.children[col]
+        node.children.length = col
+      }
+      for (const cell of node.children) {
+        if (cell.type !== 'tableCell') {
+          cell.type = 'tableCell'
+          cell.children = []
+        }
+      }
+      // TODO 若后续有rowMeta, 则需要解析
+      if (import.meta.env.DEV) {
+        if (metaCell) {
+          parseTableRowMeta(metaCell)
+        }
+      }
       return this.create()
     },
   }
