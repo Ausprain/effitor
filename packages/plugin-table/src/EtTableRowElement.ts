@@ -19,7 +19,7 @@ export class EtTableRowElement extends EtParagraph {
   static override readonly inEtType: number = TABLE_CELL_ET_TYPE
 
   override connectedCallback(): void {
-    this.setAttribute('contenteditable', '')
+    this.setAttribute('contenteditable', 'true')
   }
 
   /**

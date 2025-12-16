@@ -1,5 +1,5 @@
 import type { DropdownContent } from '@effitor/assist-dropdown'
-import { dom, type Et } from '@effitor/core'
+import { dom, type Et, etcode } from '@effitor/core'
 import {
   colDeleteRightIcon,
   colInsertLeftIcon,
@@ -13,6 +13,7 @@ import {
 
 import { TableName } from './config'
 import { tableActions, tableCellKeyMap } from './ectx'
+import type { EtTableRowElement } from './EtTableRowElement'
 
 const beforeKeydownSolver: Et.KeyboardSolver = {
   [TableName.TableCell]: (ev, ctx) => {
@@ -42,6 +43,19 @@ export const tableEffector: Et.Effector = {
   onMounted(ctx) {
     initTableDropdown(ctx)
   },
+  onStatusChanged: (ctx, type, oldValue) => {
+    if (type !== 'readonly') {
+      return
+    }
+    ctx.root.querySelectorAll(TableName.TableRow).forEach((el) => {
+      if (oldValue) {
+        (el as EtTableRowElement).contentEditable = 'true'
+      }
+      else {
+        (el as EtTableRowElement).contentEditable = 'false'
+      }
+    })
+  },
 }
 
 /**
@@ -51,15 +65,28 @@ export const tabToTableEffector: Et.Effector = {
   keydownSolver: {
     Tab: (ev, ctx) => {
       if (!ctx.selection.isCollapsed || !ctx.isPlainParagraph(ctx.focusParagraph)
-        || !ctx.selection.anchorText || ctx.focusParagraph.childElementCount > 0
+        || !ctx.selection.anchorText
       ) {
         return
       }
-      const data = ctx.focusParagraph.textContent
-      if (data.length > 20 || data.includes('\t') || data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
-        || (data.length !== ctx.selection.anchorOffset && !dom.isTrailingZWS(data, ctx.selection.anchorOffset))
-      ) {
-        return
+      let data: string | null = null
+      if (ctx.focusParagraph.childElementCount > 0) {
+        if (ctx.focusParagraph.childElementCount !== 1
+          || ctx.focusParagraph.lastChild !== ctx.selection.anchorText
+          || ctx.selection.anchorOffset !== ctx.selection.anchorText.length
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          || !etcode.checkIn(ctx.schema.tableCell.inEtType, ctx.focusParagraph.children[0]!)
+        ) {
+          return
+        }
+      }
+      else {
+        data = ctx.focusParagraph.textContent
+        if (data.length > 50 || data.includes('\t') || data.replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '') === ''
+          || (data.length !== ctx.selection.anchorOffset && !dom.isTrailingZWS(data, ctx.selection.anchorOffset))
+        ) {
+          return
+        }
       }
       ctx.effectInvoker.invoke(ctx.focusParagraph, 'replaceParagraphWithTable', ctx, {
         data,

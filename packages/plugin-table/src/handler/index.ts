@@ -53,11 +53,25 @@ const careteTable = (ctx: Et.EditorContext, data: string) => {
 
 export const tableHandler: Et.EffectHandler = {
   replaceParagraphWithTable: (ctx, { data, paragraph }) => {
-    if (!data) {
-      data = ''
+    ctx.commandManager.commitNextHandle(true)
+    if (data) {
+      const { table, destCaretRange } = careteTable(ctx, data)
+      return ctx.commandManager.handleReplaceNode(paragraph, table, destCaretRange)
     }
-    const { table, destCaretRange } = careteTable(ctx, data)
-    return ctx.commandManager.handleReplaceNode(paragraph, table, destCaretRange)
+    const mr = cr.spanRangeAllIn(paragraph)
+    if (!mr) {
+      return
+    }
+    const tb = ctx.schema.table.create(false)
+    const tr = ctx.schema.tableRow.create()
+    const tc = ctx.schema.tableCell.create()
+    const tc2 = ctx.schema.tableCell.create()
+    tr.append(tc, tc2)
+    tb.appendChild(tr)
+    return ctx.commandManager.push(
+      cmd.moveNodes(mr, cr.caret(tc, 0)),
+      cmd.replaceNode({ oldNode: paragraph, newNode: tb }),
+    ).handleAndUpdate(cr.caret(tc2, 0))
   },
   insertTableAfterParagraph: (ctx, { paragraph }) => {
     const { table, destCaretRange } = careteTable(ctx, '')

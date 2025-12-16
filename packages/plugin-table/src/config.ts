@@ -30,8 +30,8 @@ declare module '@effitor/core' {
 
   interface EffectHandleDeclaration {
     replaceParagraphWithTable: Et.EffectHandle<{
-      /** 第一个单元格的内容, 默认空字符串 */
-      data?: string
+      /** 第一个单元格的内容, 如果为 null，则将段落内容移入第一个单元格；调用者需确保段落内容允许插入单元格（符合效应规则） */
+      data: string | null
       paragraph: Et.EtParagraphElement
     }>
     insertTableAfterParagraph: Et.EffectHandle<{
