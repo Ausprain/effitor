@@ -1,8 +1,25 @@
+import type { Et } from '@effitor/core'
+
 import type { MarkdownTextMapping } from '../config'
 
 interface MarkElement {
   localName: 'et-mark'
-  markType: 'bold' | 'italic' | 'highlight' | 'code'
+  markType: 'bold' | 'italic' | 'highlight' | 'code' | 'delete'
+}
+
+const checkToTabout = (ctx: Et.EditorContext, i: number, s: string, type: MarkElement['markType'], char: string, dbl: boolean) => {
+  const el = ctx.focusEtElement as MarkElement | null
+  if (el?.localName !== 'et-mark' || el.markType !== type) {
+    return null
+  }
+  if (dbl ? (s[i + 1] === char) : (s[i - 1] !== char)) {
+    return {
+      value: 'Tab',
+      type: 'key',
+      nextIndex: dbl ? i + 2 : i + 1,
+    } as const
+  }
+  return null
 }
 
 export const mappingForMark: MarkdownTextMapping = {
@@ -15,39 +32,17 @@ export const mappingForMark: MarkdownTextMapping = {
         nextIndex: i + 1,
       }
     }
-    const el = ctx.focusEtElement as MarkElement | null
-    if (s[i + 1] === '*'
-      ? (el?.localName === 'et-mark' && el.markType === 'bold')
-      : (el?.localName === 'et-mark' && el.markType === 'italic' && s[i - 1] !== '*')
-    ) {
-      return {
-        value: 'Tab',
-        type: 'key',
-        nextIndex: i + 2,
-      }
-    }
-    return null
-  },
-  '=': (ctx, i, s) => {
-    const el = ctx.focusEtElement as MarkElement | null
-    if (s[i + 1] === '=' && el?.localName === 'et-mark' && el.markType === 'highlight') {
-      return {
-        value: 'Tab',
-        type: 'key',
-        nextIndex: i + 2,
-      }
-    }
-    return null
+    return checkToTabout(ctx, i, s, 'bold', '*', true)
+      ?? checkToTabout(ctx, i, s, 'italic', '*', false)
   },
   '`': (ctx, i, s) => {
-    const el = ctx.focusEtElement as MarkElement | null
-    if (s[i - 1] !== '`' && el?.localName === 'et-mark' && el.markType === 'code') {
-      return {
-        value: 'Tab',
-        type: 'key',
-        nextIndex: i + 1,
-      }
-    }
-    return null
+    return checkToTabout(ctx, i, s, 'code', '`', false)
   },
+  '~': (ctx, i, s) => {
+    return checkToTabout(ctx, i, s, 'delete', '~', true)
+  },
+  '=': (ctx, i, s) => {
+    return checkToTabout(ctx, i, s, 'highlight', '=', true)
+  },
+
 }

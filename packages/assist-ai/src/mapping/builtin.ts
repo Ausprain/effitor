@@ -29,9 +29,9 @@ export const builtinMapping: MarkdownTextMapping = {
     }
     return null
   },
-  '\n': (_, i, s) => {
+  '\n': (ctx, i, s) => {
     // `\n\n` -> 相邻两个换行符视为一个段落结束
-    if (s[i + 1] === '\n') {
+    if (s[i + 1] === '\n' && ctx.isPlainParagraph(ctx.focusParagraph)) {
       return (ctx) => {
         ctx.body.dispatchInputEvent('beforeinput', { inputType: 'insertParagraph' })
         return i + 2

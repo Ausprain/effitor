@@ -1,6 +1,8 @@
 import type { Et } from '@effitor/core'
 
 export enum AIEnum {
+  /** typingMarkdown时, 表示接下来是按下按键的先导字符 */
+  Typing_Key_Char = '\x00',
   Id_Deco = 'Et_ai-deco',
   Class_Mask = 'Et_ai-mask',
   Class_Caret = 'Et_ai-caret',

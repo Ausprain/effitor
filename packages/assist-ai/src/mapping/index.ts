@@ -1,4 +1,5 @@
 export { builtinMapping } from './builtin'
+export { mappingForBlockquote } from './mappingForBlockquote'
 export { mappingForCode } from './mappingForCode'
 export { mappingForList } from './mappingForList'
 export { mappingForMark } from './mappingForMark'
