@@ -37,12 +37,13 @@ export class TextCounter {
   private _idleTimeout
   private _idleId?: number = void 0
   private _onUpdated?: TextCountCallback
-  /** 设置字符统计更新回调, 未配置时不会执行统计任务 */
+  /** 设置字符统计更新回调, 未配置时不会执行统计任务；设置后自动开始统计 */
   setUpdatedCallback(callback?: TextCountCallback) {
     this._onUpdated = callback
+    this.startCounting()
   }
 
-  /** 开启自动统计, 未配置 onUpdated 时不会执行统计任务 */
+  /** 开始自动统计, 未配置 onUpdated 时不会执行统计任务 */
   startCounting(interval = this._interval) {
     if (!this._onUpdated || this._autoUpdateTimer) return
     this._autoUpdateTimer = window.setInterval(async () => {
