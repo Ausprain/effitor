@@ -199,9 +199,11 @@ export interface CreateEditorOptions {
   plugins?: EditorPlugin[] | EditorPlugin[]
   /** 编辑器配置项 */
   config?: Partial<EditorConfig>
-  /** 自定义样式css文本, 该文本会连同自定义EffectElement的cssText和cssStyle一起插入到 shadowDOM的内置样式表中, 会在编辑器挂载前加载完毕 */
+  /** 编辑器根节点样式，会在挂载时直接赋值给et-editor 元素的 style 属性 */
+  editorStyle?: string
+  /** 自定义样式css文本, 该文本会连同插件的 cssText 一起插入到 ShadowRoot 或 document 的内置样式表中, 会在编辑器挂载前加载完毕 */
   customStyleText?: string
-  /** 自定义样式文件列表, 以<link>形式插入到编辑器根节点中 */
+  /** 自定义样式文件列表, 以<link>形式插入 ShadowDOM 或 document 根节点中 */
   customStyleLinks?: CustomStyleLink[]
   /** 编辑器回调, 编辑器核心会主动调用的函数(钩子) */
   callbacks?: EditorCallbacks
@@ -252,6 +254,8 @@ export interface EditorAction {
  * 编辑器元数据
  */
 export interface EditorMeta extends CreateEditorContextOptionsFields {
+  /** 编辑器根节点样式 */
+  readonly editorStyle: string
   readonly mainEffector: Readonly<MainEffector>
   readonly pluginConfigs: Readonly<PluginConfigs>
   readonly cssText: string

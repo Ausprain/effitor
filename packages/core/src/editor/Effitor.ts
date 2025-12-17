@@ -222,6 +222,7 @@ export class Effitor {
     plugins = [],
     config = {},
     configManager = new ConfigManager(),
+    editorStyle = '',
     customStyleText = '',
     customStyleLinks = [],
     callbacks = {},
@@ -313,6 +314,7 @@ export class Effitor {
       isDark: false,
     }
     this.__meta = {
+      editorStyle,
       contextMeta,
       mainEffector,
       cssText: baseCss + builtinCss + pluginConfigs.cssText + customStyleText,
@@ -743,6 +745,10 @@ export class Effitor {
   ) {
     const editorEl = document.createElement(BuiltinElName.ET_EDITOR)
     const body = document.createElement(BuiltinElName.ET_BODY)
+
+    if (this.__meta.editorStyle) {
+      editorEl.style.cssText = this.__meta.editorStyle
+    }
 
     if (!this.config.INSERT_BR_FOR_LINE_BREAK) {
       // 换行不使用<br>时, 设置pre, 以支持段落内文本换行符来换行
