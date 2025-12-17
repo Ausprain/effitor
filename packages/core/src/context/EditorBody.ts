@@ -141,6 +141,15 @@ export class EditorBody {
   // }
 
   /**
+   * 判断编辑区内容是否空白（相当于是否是初始化状态：只有一个段落，段落内容为空或一个零宽字符）
+   * @param ctx 编辑器上下文
+   */
+  isBlank(ctx: Et.EditorContext) {
+    return this.el.childNodes.length === 1 && ctx.isPlainParagraph(this.el.firstChild)
+      && (!this.el.firstChild.textContent || this.el.firstChild.textContent === '\u200b')
+  }
+
+  /**
    * 直接使用编辑区事件监听器处理一个事件
    */
   handleEvent(ev: Event) {
