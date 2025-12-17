@@ -43,9 +43,9 @@ export class CommandManager implements CommandQueue {
     return this._inTransaction
   }
 
-  /** 当前撤回栈长度 */
+  /** 当前撤回栈长度（当前可连续撤回命令事务个数） */
   get stackLength() {
-    return this._undoStack.stackLength
+    return this._undoStack.length
   }
 
   /** 有排队未处理的命令 */
@@ -59,6 +59,7 @@ export class CommandManager implements CommandQueue {
 
   /** 重置撤回栈 */
   reset(): void {
+    this.closeTransaction()
     this.clearQueue()
     this._undoStack = new UndoStack(this._ctx.editor.config.UNDO_LENGTH)
   }
@@ -366,18 +367,20 @@ export class CommandManager implements CommandQueue {
 
   /**
    * 撤回事务
+   * @returns 是否执行了撤销操作
    */
-  undoTransaction(): void {
+  undoTransaction(): boolean {
     this._prepareUndoRedo()
-    this._undoStack.undo(this._ctx)
+    return this._undoStack.undo(this._ctx)
   }
 
   /**
    * 重做事务
+   * @returns 是否执行了重做操作
    */
-  redoTransaction(): void {
+  redoTransaction(): boolean {
     this._prepareUndoRedo()
-    this._undoStack.redo(this._ctx)
+    return this._undoStack.redo(this._ctx)
   }
 
   /* -------------------------------------------------------------------------- */

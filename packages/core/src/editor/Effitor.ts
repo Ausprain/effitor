@@ -495,11 +495,11 @@ export class Effitor {
       return
     }
     if (readonly) {
-      this.bodyEl.removeAttribute('contenteditable')
+      this.bodyEl.setAttribute('contenteditable', 'false')
       this.context.isolateSelection(true)
     }
     else {
-      this.bodyEl.setAttribute('contenteditable', '')
+      this.bodyEl.setAttribute('contenteditable', 'true')
       this.context.isolateSelection(false)
     }
     Object.assign(this.status, { readonly })

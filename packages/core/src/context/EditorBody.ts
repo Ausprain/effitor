@@ -272,12 +272,17 @@ export class EditorBody {
         offsetRight = Math.min(window.innerWidth, offsetRect.right)
       }
     }
-    // 在视口内, 无需滚动
-    if (scrollContainer === document.documentElement
-      && rect.top > offsetTop && rect.top < offsetBottom
-      && rect.bottom < offsetBottom && rect.bottom > offsetTop
-    ) {
-      return 0
+    if (scrollContainer === document.documentElement) {
+      // 只读编辑器，不滚动视口
+      if (!this.el.isContentEditable) {
+        return 0
+      }
+      // 在视口内, 无需滚动
+      if (rect.top > offsetTop && rect.top < offsetBottom
+        && rect.bottom < offsetBottom && rect.bottom > offsetTop
+      ) {
+        return 0
+      }
     }
 
     const { clientHeight, clientWidth, scrollLeft, scrollTop } = scrollContainer

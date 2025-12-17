@@ -87,7 +87,7 @@ export class CommonHandler {
   /**
    * 初始化编辑器内容, 一般初始化为一个普通段落, 可通过编辑器 firstInsertedParagraph 回调自定义;
    * 若编辑器已有内容, 则会先清空再重新初始化
-   * @param isFirstInit 是否首次初始化, 即编辑器是否为空; 否则会添加一个命令, 用于清空编辑区内容
+   * @param isFirstInit 是否首次初始化, 若为 true，会清空编辑区内容以及撤回栈; 否则会添加一个命令, 用于清空编辑区内容
    * @param create? 首段落创建函数
    */
   initEditorContents(isFirstInit: boolean, create?: Et.ParagraphCreator) {
@@ -108,6 +108,8 @@ export class CommonHandler {
       dest = cr.caretInAuto(newP)
     }
     if (isFirstInit) {
+      ctx.commandManager.commitAll()
+      bodyEl.textContent = ''
       bodyEl.appendChild(newP)
       ctx.setSelection(dest)
       return true

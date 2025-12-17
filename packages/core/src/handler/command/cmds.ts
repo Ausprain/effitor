@@ -65,7 +65,8 @@ interface CmdMeta<MetaType> {
 }
 interface CmdFinalCallback<T extends CmdTypeEm, MetaType = any> extends CmdMeta<MetaType> {
   /**
-   * 命令最终回调; 会在撤回栈满, 命令被踢出, 或在编辑器unmount时调用
+   * 命令最终回调; 会在撤回栈满, 命令被踢出, 或在编辑器unmount时调用;
+   * Text相关的 4 个命令无此回调; 它们可能在命令合并过程中被丢弃
    */
   finalCallback?: CmdCallback<T, MetaType>
 }

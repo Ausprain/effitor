@@ -20,7 +20,7 @@ interface UndoTransaction {
   srcCaretRange: Et.CaretRange | null | undefined
   destCaretRange: Et.CaretRange | null | undefined
   /** 命令事务最终最终回调, 在事务被挤出撤回栈 或 编辑器unmount时执行; 会依次执行其中所有命令的 finalCallback */
-  tranxFinalCallback: (ctx: Et.EditorContext) => void
+  tranxFinalCallback?: (ctx: Et.EditorContext) => void
 }
 /**
  * 命令撤回栈, 会根据情况自动合并命令, 并记录在一个撤回栈事务中; 以命令事务为单位进行撤回/重做
@@ -43,7 +43,7 @@ export class UndoStack {
   }
 
   /** 当前撤回栈长度 */
-  get stackLength() {
+  get length() {
     return this.transactionStack.length
   }
 
@@ -94,7 +94,7 @@ export class UndoStack {
    * 清空撤回栈，final所有命令
    */
   commitAll(ctx: Et.EditorContext) {
-    this.transactionStack.forEach(x => x.tranxFinalCallback(ctx))
+    this.transactionStack.forEach(x => x.tranxFinalCallback?.(ctx))
     this.transactionStack.length = 0
     this._pos = 0
   }
@@ -113,7 +113,7 @@ export class UndoStack {
     this.transactionStack[this._pos] = tranx
     if (this._pos + 1 > this.size) {
       const firstX = this.transactionStack.shift()
-      firstX?.tranxFinalCallback(ctx)
+      firstX?.tranxFinalCallback?.(ctx)
     }
     else {
       this._pos++
@@ -126,20 +126,20 @@ export class UndoStack {
 
   undo(ctx: Et.EditorContext) {
     if (this._pos <= 0) {
-      // this.pos = 0
-      return
+      return false
     }
     const tranx = this.transactionStack[--this._pos] as UndoTransaction
     cmdHandler.handleUndo(tranx.cmds, ctx)
+    return true
   }
 
   redo(ctx: Et.EditorContext) {
     if (this._pos >= this.transactionStack.length) {
-      // this.pos = this.transactionStack.length
-      return
+      return false
     }
     const tranx = this.transactionStack[this._pos++] as UndoTransaction
     cmdHandler.handleRedo(tranx.cmds, ctx)
+    return true
   }
 
   // /**
@@ -167,8 +167,8 @@ export class UndoStack {
   // }
 }
 
-const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTransaction | null => {
-  cmds = checkMergeCmds(checkMergeCmdInsertCompositionText(cmds, ctx))
+const buildTransaction = (input: ExecutedCmd[], ctx: Et.EditorContext): UndoTransaction | null => {
+  const { cmds, hasFinal } = checkMergeCmds(checkMergeCmdInsertCompositionText(input, ctx))
 
   // 合并命令长度为0, 只有一种情况, 就是输入法输入时, 用户主动删除了输入法会话内的构造串, 此时返回null
   return cmds.length === 0
@@ -178,11 +178,13 @@ const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTrans
         length: cmds.length,
         srcCaretRange: cmds[0]!.srcCaretRange,
         destCaretRange: cmds[cmds.length - 1]!.destCaretRange,
-        tranxFinalCallback(ctx) {
-          for (const cmd of cmds) {
-            cmd.finalCallback?.(ctx)
-          }
-        },
+        tranxFinalCallback: hasFinal
+          ? (ctx) => {
+              for (const cmd of cmds) {
+                cmd.finalCallback?.(ctx)
+              }
+            }
+          : undefined,
       }
 }
 
@@ -191,6 +193,7 @@ const buildTransaction = (cmds: ExecutedCmd[], ctx: Et.EditorContext): UndoTrans
  */
 const checkMergeCmds = (cmds: ExecutedCmd[]) => {
   const out: ExecutedCmd[] = []
+  let hasFinal = false
 
   for (let i = 0; i < cmds.length; i++) {
     const _cmd = cmds[i] as ExecutedCmd<CmdInsertText | CmdDeleteText | CmdFunctional>
@@ -275,7 +278,13 @@ const checkMergeCmds = (cmds: ExecutedCmd[]) => {
         nextCmd = cmds[i + 1]
       }
       out.push(currCmd)
+      if (currCmd.finalCallback) {
+        hasFinal = true
+      }
       continue
+    }
+    if (_cmd.finalCallback) {
+      hasFinal = true
     }
     out.push(_cmd)
   } // for end
@@ -286,7 +295,7 @@ const checkMergeCmds = (cmds: ExecutedCmd[]) => {
     }
   }
 
-  return out
+  return { cmds: out, hasFinal }
 }
 /**
  * 合并连续的Insert_Composition_Text命令, 并转为Insert_Node 或 Insert_Text命令
