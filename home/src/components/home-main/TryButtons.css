@@ -4,6 +4,7 @@
   margin-inline: 24px;
   @apply px-8 py-6 bg-linear-to-r from-blue-700 to-indigo-700 text-white font-semibold rounded-lg hover:shadow-lg transition-colors;
 
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   &::before {

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { useScroll, useTransform, motion } from 'framer-motion'
+import React, { useCallback, useEffect, useRef } from 'react'
+// import { useScroll, useTransform, motion } from 'framer-motion'
 import MainSlogan from './TheMainSlogan'
 import TryButtons from './TryButtons'
 import { useNavbar } from '../../context/NavbarContext'
@@ -7,7 +7,11 @@ import HomeEditor from '../home-editor'
 import { TheQualities } from './TheQualities'
 import { FeatureViewer } from '../feature-viewer'
 
-// 自定义平滑滚动函数
+/**
+ * 自定义迅速平滑滚动函数
+ * @param target 要滚动到的 scrollTop
+ * @param duration 滚动持续时间，单位毫秒
+ */
 const smoothScroll = (target: number, duration?: number) => {
   const startPosition = window.scrollY
   const distance = target - startPosition
@@ -29,14 +33,23 @@ const smoothScroll = (target: number, duration?: number) => {
   }
   requestAnimationFrame(animation)
 }
+const stickElToNavBottom = (el: HTMLElement, navbarBottom: number, gap = 16) => {
+  const elTop = el.offsetTop
+
+  const currentDistance = elTop - window.scrollY - navbarBottom
+  if (Math.abs(currentDistance - gap) > 1) {
+    smoothScroll(elTop - navbarBottom - gap)
+  }
+}
 
 const HomeMainContent: React.FC<{ children?: React.ReactNode }> = ({
   children,
 }) => {
-  const editorAreaRef = useRef<HTMLDivElement>(null)
   const { navbarBottom, isEditorFocused, setIsEditorFocused } = useNavbar()
+  const editorAreaRef = useRef<HTMLDivElement>(null)
+  const featureViewerRef = useRef<HTMLDivElement>(null)
 
-  const focusEditorToStick = () => {
+  const focusEditorToStick = useCallback(() => {
     // 当编辑器获得焦点时的自定义逻辑，包括滚动功能
     if (!editorAreaRef.current) {
       return
@@ -44,14 +57,14 @@ const HomeMainContent: React.FC<{ children?: React.ReactNode }> = ({
     if (!isEditorFocused) {
       setIsEditorFocused(true)
     }
-    const editorTop = editorAreaRef.current.offsetTop
-    const desiredDistance = 16
-
-    const currentDistance = editorTop - window.scrollY - navbarBottom
-    if (Math.abs(currentDistance - desiredDistance) > 1) {
-      smoothScroll(editorTop - navbarBottom - desiredDistance)
+    stickElToNavBottom(editorAreaRef.current, navbarBottom)
+  }, [navbarBottom])
+  const stickFeature = useCallback(() => {
+    if (!featureViewerRef.current) {
+      return
     }
-  }
+    stickElToNavBottom(featureViewerRef.current, navbarBottom)
+  }, [navbarBottom])
 
   useEffect(() => {
     if (isEditorFocused) {
@@ -59,8 +72,8 @@ const HomeMainContent: React.FC<{ children?: React.ReactNode }> = ({
     }
   }, [isEditorFocused])
 
-  const { scrollY } = useScroll()
-  const rotate = useTransform(scrollY, [820, 1280], [0, 90])
+  // const { scrollY } = useScroll()
+  // const _rotate = useTransform(scrollY, [820, 1280], [0, 90])
 
   return (
     <div className="w-4/5 max-w-[960px] mx-auto">
@@ -68,21 +81,27 @@ const HomeMainContent: React.FC<{ children?: React.ReactNode }> = ({
       <MainSlogan />
 
       {/* 尝试按钮 */}
-      <TryButtons onClickTryNow={focusEditorToStick} />
+      <TryButtons onClickTryNow={focusEditorToStick} onClickFeature={stickFeature} />
+
+      {/* <p>Effitor 是一个为编辑体验而生的富文本编辑器。它的一切设计，都为极致的编辑体验服务，包括但不限于：语言适应的光标控制能力、强大的快捷键和热字符串支持、优雅的外观、高可扩展性和高性能。</p> */}
 
       {/* 功能介绍 */}
       <TheQualities />
 
+      <div className="my-12" ref={featureViewerRef}>
+        <FeatureViewer />
+      </div>
+
       {/* 尝试编辑器 */}
-      <motion.div
+      {/* <motion.div */}
+      <div
         ref={editorAreaRef}
         className="rounded-xl shadow-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-colors"
-        style={{ rotateX: rotate, transformOrigin: 'bottom', transform: `translateZ(50px)` }}
+        // style={{ rotateX: rotate, transformOrigin: 'bottom', transform: `translateZ(50px)` }}
       >
         <HomeEditor />
-      </motion.div>
-
-      <FeatureViewer />
+      </div>
+      {/* </motion.div> */}
 
       {children}
     </div>

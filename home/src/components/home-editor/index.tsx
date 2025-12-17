@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 
 import './index.css'
 import type { Et } from 'effitor'
@@ -21,16 +21,6 @@ const listenFocusPlugin: Et.EditorPlugin = {
     focusoutCallback: () => editorFocusCallbacks.onBlur?.(),
   },
 }
-const editor = await createEditor({
-  config: {
-    USE_HOST_AS_SCROLL_CONTAINER: true,
-  },
-  extraPlugins: [
-    listenFocusPlugin,
-    useTypingTipAssist(),
-    useDarkAssist(),
-  ],
-})
 
 const HomeEditor: React.FC = () => {
   const {
@@ -47,21 +37,39 @@ const HomeEditor: React.FC = () => {
   editorFocusCallbacks.onFocus = () => setIsEditorFocused(true)
   editorFocusCallbacks.onBlur = () => setIsEditorFocused(false)
 
+  const editor = useMemo(() => {
+    return createEditor({
+      config: {
+        USE_HOST_AS_SCROLL_CONTAINER: true,
+      },
+      extraPlugins: [
+        listenFocusPlugin,
+        useTypingTipAssist(),
+        useDarkAssist(),
+      ],
+    })
+  }, [])
+
   useEffect(() => {
     if (!editorHostRef.current || editor.isMounted) {
       return
     }
+
     editor.mount(editorHostRef.current)
     editor.context.assists.darkAssist.toggleDark = () => {
       toggleDark()
     }
     editor.context.assists.typingTip.onModChange = setKeyState
     editor.context.assists.typingTip.onHotstringProgress = setHotstringState
+
     return () => {
       editor.unmount()
     }
-  }, [])
+  }, [editor])
   useEffect(() => {
+    Promise.resolve().then(() => {
+      setKeyState({ index: 0, key: '', mods: [], nextMods: [], keys: [] })
+    })
     if (isEditorFocused) {
       editor.focus()
       return
