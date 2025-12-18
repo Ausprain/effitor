@@ -20,7 +20,7 @@ import { EtSelectionIsolated } from '../selection/EtSelectionIsolated'
 import { traversal } from '../utils'
 import { Composition } from './Composition'
 import type { EditorContextMeta, EditorPluginContext } from './config'
-import { EditorBody } from './EditorBody'
+import { type CreateEditorBodyOptions, EditorBody } from './EditorBody'
 import { EditorLogger } from './EditorLogger'
 import { EditorMode } from './EditorMode'
 import { addListenersToEditorBody, initListeners } from './listeners'
@@ -49,17 +49,25 @@ export interface UpdatedContext extends EditorContext {
   readonly focusEtElement: NodeHasParent<Et.EtElement>
   readonly selection: UpdatedContextSelection
 }
+/**
+ * 创建编辑器上下文的选项字段; 这些属性会存储到编辑器实例中，与实际 mount 的元素脱离
+ */
 export interface CreateEditorContextOptionsFields {
   readonly contextMeta: Readonly<Et.EditorContextMeta>
+  readonly mainEffector: Readonly<Et.MainEffector>
+  readonly pluginConfigs: Readonly<Et.PluginConfigs>
   readonly hotstringOptions?: Et.hotstring.ManagerOptions
 }
+
+/**
+ * 创建编辑器上下文的选项; 这些属性与实际 mount 的元素相关联
+ */
 export interface CreateEditorContextOptions extends CreateEditorContextOptionsFields {
   readonly ac: AbortController
   readonly root: Et.EditorRoot
   readonly bodyEl: Et.EtBodyElement
   readonly locale?: string
-  readonly mainEffector: Et.MainEffector
-  readonly pluginConfigs: Et.PluginConfigs
+  readonly editorBodyOptions?: CreateEditorBodyOptions
   readonly onEffectElementChanged?: OnEffectElementChanged
   readonly onParagraphChanged?: OnParagraphChanged
   readonly onTopElementChanged?: OnParagraphChanged
@@ -173,7 +181,7 @@ export class EditorContext implements Readonly<EditorContextMeta> {
       options.pluginConfigs.htmlEventSolver, options.pluginConfigs.htmlEventCapturedSolver)
 
     this.root = options.root
-    this.body = new EditorBody(options.bodyEl, listeners, this.editor.scrollContainer)
+    this.body = new EditorBody(options.bodyEl, listeners, options.editorBodyOptions)
     this.mode = new EditorMode(this)
     this._selection = new EtSelection(this, this.body)
     this._connectedSel = this._selection as EtSelection

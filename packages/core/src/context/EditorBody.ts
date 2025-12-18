@@ -24,6 +24,15 @@ import { type EditorListeners } from './listeners'
 //   (this: EditorBody, event: EditorBodyEventMap[K]): boolean
 // }
 
+export interface CreateEditorBodyOptions {
+  /** 编辑器所在滚动容器, 默认为根 html 元素 */
+  scrollContainer?: HTMLElement
+  /** 光标超出滚动容器，自动滚动时的水平内边距, 默认为 20 */
+  autoScrollPaddingX?: number
+  /** 光标超出滚动容器，自动滚动时的垂直内边距, 默认为 20 */
+  autoScrollPaddingY?: number
+}
+
 /**
  * 编辑器编辑区对象
  */
@@ -32,6 +41,10 @@ export class EditorBody {
 
   // private _headingOb: IntersectionObserver
   // private _updateHeadingChainIdle?: number
+
+  private _scrollContainer: HTMLElement
+  private _autoScrollPaddingX: number
+  private _autoScrollPaddingY: number
 
   /** 获取编辑区所有文本 等于 et-body元素的 textContent值 */
   get textContent() {
@@ -43,18 +56,42 @@ export class EditorBody {
     return this.el.contentText
   }
 
+  /**
+   * 编辑器所在滚动容器`document.documentElement`
+   * * [NB]: 该值不是`document.documentElement`时, 监听 scroll 事件的 scrollTarget 等于该值
+   *         否则, scrollTarget 为 document 或 window 对象
+   */
+  get scrollContainer() {
+    return this._scrollContainer
+  }
+
+  /**
+   * 用于监听scroll事件的滚动目标, 当 scrollContainer 为 `document.documentElement` (默认值) 时,
+   * 等于 document; 否则, 等于 scrollContainer 本身
+   */
+  get scrollTarget() {
+    return this._scrollContainer === document.documentElement ? document : this._scrollContainer
+  }
+
   constructor(
     /** 编辑区元素 */
     public readonly el: EtBodyElement,
     private readonly _listeners: EditorListeners,
-    /** 编辑器所在滚动容器, 默认为根 html 元素 */
-    public readonly scrollContainer: HTMLElement = document.documentElement,
+    {
+      scrollContainer = document.documentElement,
+      autoScrollPaddingX = 20,
+      autoScrollPaddingY = 20,
+    }: CreateEditorBodyOptions = {},
   ) {
-  //   // TODO 移植到 heading 插件
-  //   this.addEventListener('headingchainupdated', (ev) => {
-  //     console.log('heading chain updated', ev.headingChain)
-  //     return false
-  //   })
+    this._scrollContainer = scrollContainer
+    this._autoScrollPaddingX = autoScrollPaddingX
+    this._autoScrollPaddingY = autoScrollPaddingY
+
+    //   // TODO 移植到 heading 插件
+    //   this.addEventListener('headingchainupdated', (ev) => {
+    //     console.log('heading chain updated', ev.headingChain)
+    //     return false
+    //   })
 
   //   this._headingOb = new IntersectionObserver((entries) => {
   //     for (const entry of entries) {
@@ -233,10 +270,10 @@ export class EditorBody {
    */
   scrollIntoView(rect: DOMRect, {
     toStart = true,
-    paddingX = 20,
-    paddingY = 20,
+    paddingX = this._autoScrollPaddingX,
+    paddingY = this._autoScrollPaddingY,
     scrollBehavior = 'auto',
-    scrollContainer = this.scrollContainer,
+    scrollContainer = this._scrollContainer,
   }: {
     toStart?: boolean
     paddingX?: number

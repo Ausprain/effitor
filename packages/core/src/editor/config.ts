@@ -1,6 +1,7 @@
 import type { OmitStringIndexSignature, TrueOrVoid } from '@effitor/shared'
 
 import type { EditorContext, EditorContextMeta } from '../context'
+import type { CreateEditorBodyOptions } from '../context/EditorBody'
 import type { CreateEditorContextOptionsFields } from '../context/EditorContext'
 import type { Effector, MainEffector } from '../effector'
 import type {
@@ -239,7 +240,7 @@ export interface CustomStyleLink {
 }
 export interface EditorMountOptions {
   /** 编辑器所在滚动容器, 默认为根 html 元素 */
-  scrollContainer?: HTMLElement
+  editorBodyOptions?: CreateEditorBodyOptions
   /** 编辑器语言, 默认为 'navigator.language' */
   locale?: string
   /** 自定义样式文件列表, 该值会覆盖编辑器初始化时的customStyleLinks */
@@ -256,8 +257,6 @@ export interface EditorAction {
 export interface EditorMeta extends CreateEditorContextOptionsFields {
   /** 编辑器根节点样式 */
   readonly editorStyle: string
-  readonly mainEffector: Readonly<MainEffector>
-  readonly pluginConfigs: Readonly<PluginConfigs>
   readonly cssText: string
   readonly customStyleLinks: readonly CustomStyleLink[]
 }

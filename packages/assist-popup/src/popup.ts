@@ -88,7 +88,7 @@ export class Popup {
 
   constructor(ctx: Et.EditorContext, signal: AbortSignal) {
     this._ctx = ctx
-    this.scrollTarget = ctx.editor.scrollTarget
+    this.scrollTarget = ctx.body.scrollTarget
     const popupEl = dom.el('div', PopupEnum.Class_Popup)
     this.popupEl = popupEl
     this.selectionRangePopupContent = dom.el('div', `${PopupEnum.Class_Popup_Item_Container} ${CssClassEnum.Card}`)

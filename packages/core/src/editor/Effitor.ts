@@ -109,7 +109,6 @@ export class Effitor {
   private __body?: Et.EtBodyElement = void 0
   private __context?: Et.EditorContext = void 0
   private __ac?: AbortController = void 0
-  private __scrollContainer: HTMLElement = document.documentElement
   /** 已注册样式的文档对象, 避免再次挂载时重复注册样式表 */
   private __styledDocuments = new WeakSet<Document>()
 
@@ -181,23 +180,6 @@ export class Effitor {
       throw new EffitorNotMountedError()
     }
     return this.__editorEl
-  }
-
-  /**
-   * 编辑器所在滚动容器`document.documentElement`
-   * * [NB]: 该值不是`document.documentElement`时, 监听 scroll 事件的 scrollTarget 等于该值
-   *         否则, scrollTarget 为 document 或 window 对象
-   */
-  get scrollContainer() {
-    return this.__scrollContainer
-  }
-
-  /**
-   * 用于监听scroll事件的滚动目标, 当 scrollContainer 为 `document.documentElement` (默认值) 时,
-   * 等于 document; 否则, 等于 scrollContainer 本身
-   */
-  get scrollTarget() {
-    return this.__scrollContainer === document.documentElement ? document : this.__scrollContainer
   }
 
   /**
@@ -392,7 +374,7 @@ export class Effitor {
    * @param customStyleLinks 自定义样式链接, 默认是配置中的样式链接; 该值会覆盖配置中的样式链接
    */
   mount(host: HTMLDivElement, {
-    scrollContainer,
+    editorBodyOptions,
     locale = platform.locale,
     customStyleLinks = [...this.__meta.customStyleLinks],
   }: EditorMountOptions = {}) {
@@ -404,9 +386,13 @@ export class Effitor {
         throw Error('Editor already mounted')
       }
     }
-    if (scrollContainer) {
-      this.__scrollContainer = scrollContainer
+    if (this.config.USE_HOST_AS_SCROLL_CONTAINER) {
+      if (!editorBodyOptions) {
+        editorBodyOptions = {}
+      }
+      editorBodyOptions.scrollContainer = host
     }
+
     const { contextMeta, mainEffector, pluginConfigs, hotstringOptions } = this.__meta
     const ac = new AbortController()
     const [root, bodyEl, editorEl] = this.#formatEffitorStructure(host, customStyleLinks, ac.signal)
@@ -416,6 +402,7 @@ export class Effitor {
       root,
       bodyEl,
       locale,
+      editorBodyOptions,
       hotstringOptions,
       mainEffector,
       pluginConfigs,
@@ -430,10 +417,6 @@ export class Effitor {
     this.__editorEl = editorEl
     this.__body = bodyEl
     this.__context = context
-
-    if (this.config.USE_HOST_AS_SCROLL_CONTAINER) {
-      this.__scrollContainer = host
-    }
 
     // 使用 shadowRoot 时, 必须向 EtSelection 提供获取 shadowRoot 内选区的方法
     if (this.isShadow) {
