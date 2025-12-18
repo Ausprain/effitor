@@ -577,6 +577,32 @@ export class EditorContext implements Readonly<EditorContextMeta> {
   }
 
   /**
+   * 光标定位到编辑区开头，若无段落，则插入第一个普通段落
+   */
+  focusToBodyStart() {
+    const firstP = this.bodyEl.firstChild
+    if (!firstP || !this.isEtParagraph(firstP)) {
+      this.commandManager.handleInsertParagraphToBodyStart()
+    }
+    else {
+      this.setCaretToAParagraph(firstP, true, true)
+    }
+  }
+
+  /**
+   * 光标定位到编辑区末尾，若无段落，则插入最后一个普通段落
+   */
+  focusToBodyEnd() {
+    const lastP = this.bodyEl.lastChild
+    if (!lastP || !this.isEtParagraph(lastP)) {
+      this.commandManager.handleInsertParagraphToBodyEnd()
+    }
+    else {
+      this.setCaretToAParagraph(lastP, false, true)
+    }
+  }
+
+  /**
    * 检查光标是否***直接***在指定效应元素内；当且仅当选区 collapsed 且 focusEtElement 等于 el 时返回 true
    */
   isCaretIn(el: Et.EtElement) {

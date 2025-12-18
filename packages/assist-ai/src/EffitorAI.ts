@@ -273,7 +273,10 @@ export class EffitorAI {
       if (!segment || nextIdx > index) {
         continue
       }
-      yield await typeNext(segment, index)
+      if (!this._ctx.selection.range || !this._ctx.isUpdated()) {
+        this._ctx.focusToBodyEnd()
+      }
+      yield typeNext(segment, index)
     }
   }
 
