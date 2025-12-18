@@ -27,9 +27,9 @@ import { type EditorListeners } from './listeners'
 export interface CreateEditorBodyOptions {
   /** 编辑器所在滚动容器, 默认为根 html 元素 */
   scrollContainer?: HTMLElement
-  /** 光标超出滚动容器，自动滚动时的水平内边距, 默认为 20 */
+  /** 光标超出滚动容器，自动滚动时的水平内边距, 默认为 50 */
   autoScrollPaddingX?: number
-  /** 光标超出滚动容器，自动滚动时的垂直内边距, 默认为 20 */
+  /** 光标超出滚动容器，自动滚动时的垂直内边距, 默认为 50 */
   autoScrollPaddingY?: number
 }
 
@@ -79,8 +79,8 @@ export class EditorBody {
     private readonly _listeners: EditorListeners,
     {
       scrollContainer = document.documentElement,
-      autoScrollPaddingX = 20,
-      autoScrollPaddingY = 20,
+      autoScrollPaddingX = 50,
+      autoScrollPaddingY = 50,
     }: CreateEditorBodyOptions = {},
   ) {
     this._scrollContainer = scrollContainer
@@ -281,48 +281,53 @@ export class EditorBody {
     scrollBehavior?: ScrollBehavior
     scrollContainer?: Element
   } = {}): -1 | 0 | 1 {
-    let offsetTop, offsetBottom, offsetLeft, offsetRight
-    if (scrollContainer === document.documentElement) {
-      offsetTop = 0
-      offsetBottom = window.innerHeight
-      offsetLeft = 0
-      offsetRight = window.innerWidth
+    const winHeight = window.innerHeight, winWidth = window.innerWidth
+    let offsetTop = 0, offsetBottom = 0, offsetLeft = 0, offsetRight = 0
+    const initOffset = (H: number, W: number, T: number, B: number, L: number, R: number) => {
+      let px = paddingX, py = paddingY
+      if (px > 0 && px < 1) {
+        px = px * W
+      }
+      if (py > 0 && py < 1) {
+        py = py * H
+      }
+      offsetTop = T + py
+      offsetBottom = B - py
+      offsetLeft = L + px
+      offsetRight = R - px
     }
-    else {
+    if (scrollContainer !== document.documentElement) {
       const offsetRect = scrollContainer.getBoundingClientRect()
       // 即使滚动滚动容器也无法让 rect 在视口内, 直接返回 false
       // 滚动容器在视口上方或下方
-      if (offsetRect.bottom < paddingY) {
+      if (offsetRect.bottom - paddingY < 0) {
         return -1
       }
-      else if (offsetRect.top > window.innerHeight - paddingY) {
+      else if (offsetRect.top + paddingY > window.innerHeight) {
         return 1
       }
-      if ((toStart && rect.left > offsetRect.left && rect.left < offsetRect.right
-        && rect.top > offsetRect.top && rect.top < offsetRect.bottom)
-      || (!toStart && rect.right < offsetRect.right && rect.right > offsetRect.left
-        && rect.bottom < offsetRect.bottom && rect.bottom > offsetRect.top)
+      initOffset(offsetRect.height, offsetRect.width,
+        Math.max(0, offsetRect.top),
+        Math.min(window.innerHeight, offsetRect.bottom),
+        Math.max(0, offsetRect.left),
+        Math.min(window.innerWidth, offsetRect.right),
+      )
+      if ((toStart && rect.left > offsetLeft && rect.left < offsetRight
+        && rect.top > offsetTop && rect.top < offsetBottom)
+      || (!toStart && rect.right < offsetRight && rect.right > offsetLeft
+        && rect.bottom < offsetBottom && rect.bottom > offsetTop)
       ) {
         // rect在滚动容器内, 无需滚动滚动容器, 滚动视口
         scrollContainer = document.documentElement
-        offsetTop = 0
-        offsetBottom = window.innerHeight
-        offsetLeft = 0
-        offsetRight = window.innerWidth
       }
-      else {
-        // rect不在滚动容器内, 需滚动滚动容器
-        offsetTop = Math.max(0, offsetRect.top)
-        offsetBottom = Math.min(window.innerHeight, offsetRect.bottom)
-        offsetLeft = Math.max(0, offsetRect.left)
-        offsetRight = Math.min(window.innerWidth, offsetRect.right)
-      }
+      // rect不在滚动容器内, 需滚动滚动容器
     }
     if (scrollContainer === document.documentElement) {
       // 只读编辑器，不滚动视口
       if (!this.el.isContentEditable) {
         return 0
       }
+      initOffset(winHeight, winWidth, 0, winHeight, 0, winWidth)
       // 在视口内, 无需滚动
       if (rect.top > offsetTop && rect.top < offsetBottom
         && rect.bottom < offsetBottom && rect.bottom > offsetTop
@@ -331,51 +336,34 @@ export class EditorBody {
       }
     }
 
-    const { clientHeight, clientWidth, scrollLeft, scrollTop } = scrollContainer
-    if (paddingX < 0) {
-      paddingX = 20
-    }
-    else if (paddingX > 0 && paddingX < 1) {
-      paddingX = paddingX * clientWidth
-    }
-    if (paddingY < 0) {
-      paddingY = 20
-    }
-    else if (paddingY > 0 && paddingY < 1) {
-      paddingY = paddingY * clientHeight
-    }
-    // 矩形框高度小于 50, 大概率是一个文本行, 取其高度一半追加到默认的 paddingY 上
-    if (paddingY === 20 && rect.height < 50) {
-      paddingY += Math.floor(rect.height / 2)
-    }
-
+    const { scrollLeft, scrollTop } = scrollContainer
     let left = scrollLeft, top = scrollTop
     if (toStart) {
       if (rect.top < offsetTop) {
-        top += rect.top - offsetTop - paddingY // rect.top < 0, 多减 padding 不至于紧贴边缘
+        top += rect.top - offsetTop
       }
       else if (rect.top > offsetBottom) {
-        top += rect.top - offsetBottom + paddingY
+        top += rect.top - offsetBottom
       }
       if (rect.left < offsetLeft) {
-        left += rect.left - offsetLeft - paddingX
+        left += rect.left - offsetLeft
       }
       else if (rect.left > offsetRight) {
-        left += rect.left - offsetRight + paddingX
+        left += rect.left - offsetRight
       }
     }
     else {
       if (rect.bottom > offsetBottom) {
-        top += rect.bottom - offsetBottom + paddingY
+        top += rect.bottom - offsetBottom
       }
       else if (rect.bottom < offsetTop) {
-        top += rect.bottom - offsetTop - paddingY
+        top += rect.bottom - offsetTop
       }
       if (rect.right > offsetRight) {
-        left += rect.right - offsetRight + paddingX
+        left += rect.right - offsetRight
       }
       else if (rect.right < offsetLeft) {
-        left += rect.right - offsetLeft - paddingX
+        left += rect.right - offsetLeft
       }
     }
     if (left === scrollLeft && top === scrollTop) {

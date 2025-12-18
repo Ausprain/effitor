@@ -55,7 +55,7 @@ export class EtSelection {
   private _focusParagraph: Et.Paragraph | null | undefined
   private _focusTopElement: Et.Paragraph | null | undefined
 
-  private _revealIdleCallbackId = 0
+  private _scrollIntoViewTime = 0
 
   /**
    * 创建一个编辑器选区对象, 当编辑器使用 ShadowDOM 时, 必须在编辑器 mount 之后调用 setSelectionGetter\
@@ -874,10 +874,12 @@ export class EtSelection {
    *    在视口内, 还是优先保证range终点在视口内
    */
   scrollIntoView(toStart = true, scrollBehavior: ScrollBehavior = 'auto') {
-    if (this._revealIdleCallbackId) {
-      cancelIdleCallbackPolyByEffitor(this._revealIdleCallbackId)
+    const now = Date.now()
+    if (now - this._scrollIntoViewTime < 200) {
+      return
     }
-    requestIdleCallbackPolyByEffitor(() => this.scrollIntoViewSync(toStart, scrollBehavior))
+    this._scrollIntoViewTime = now
+    this.scrollIntoViewSync(toStart, scrollBehavior)
   }
 
   /**
@@ -891,7 +893,6 @@ export class EtSelection {
       this._scrollIntoViewInRawEl(this._rawEl, toStart, scrollBehavior)
       return
     }
-    this._revealIdleCallbackId = 0
     if (range && !this._body.isNodeInBody(range.commonAncestorContainer)) {
       return
     }
@@ -923,8 +924,6 @@ export class EtSelection {
     this._body.scrollIntoView(rect, {
       toStart,
       scrollBehavior,
-      paddingX: 50,
-      paddingY: 50,
     })
     // const scrollContainer = this._body.scrollContainer
     // const { scrollLeft, scrollTop } = scrollContainer

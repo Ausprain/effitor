@@ -31,6 +31,8 @@ export class CodeContext<L extends string = string> {
   private __tab = ''
   private readonly _highlighter: EtCodeHighlighter<L>
 
+  private _scrollIntoViewTime = 0
+
   constructor({ value = '', lang, tabSize = 4, highlighter }: CodeContextOptions<L>) {
     this.__lang = lang
     this.__tab = ' '.repeat(tabSize)
@@ -418,6 +420,11 @@ export class CodeContext<L extends string = string> {
    *                undefined 时, 使用固定边距 20px
    */
   scrollIntoView(ctx: Et.EditorContext, toStart?: boolean, padding?: number) {
+    const now = Date.now()
+    if (now - this._scrollIntoViewTime < 200) {
+      return
+    }
+    this._scrollIntoViewTime = now
     const { selectionStart, selectionEnd, selectionDirection } = this.area
     toStart = toStart ?? selectionDirection === 'backward'
     const caretOffset = toStart ? selectionStart : selectionEnd
