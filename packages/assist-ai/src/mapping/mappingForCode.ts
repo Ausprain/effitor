@@ -33,7 +33,7 @@ export const mappingForCode: MarkdownTextMapping = {
     return null
   },
   '`': (ctx, i, s) => {
-    if (s[i + 1] === '`' && s[i + 2] === '`') {
+    if (s[i - 1] === '\n' && s[i + 1] === '`' && s[i + 2] === '`') {
       return checkInCodeEnd(ctx, s[i + 3] === '\n' ? i + 4 : i + 3)
     }
     return null
