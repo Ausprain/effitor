@@ -47,6 +47,23 @@ const blockquoteFeatureDataZh: FeatureData = {
     [300, 30, false, '\x00Space,0000'],
     [300, 30, false, '“小心”引用块\n\n'],
   ],
+  mdText: `# 引用块
+> 来自插件: @effitor/plugin-blockquote\n
+要创建一个引用块，在空段落中输入\`>\`，然后按下\`Enter\`。如：
+> 引用块默认支持嵌套，以及 Github 风格的引用块。
+> > [!NOTE]
+“注意”引用块\n
+> > [!TIP]
+“提示”引用块\n
+> > [!IMPORTANT]
+“重要”引用块\n
+> > [!WARNING]
+“警告”引用块\n
+> > [!CAUTION]
+“小心”引用块\n\n
+#### 不够高效？热字符串说：是的！
+得益于 **Effitor** 核心强大的热字符模块，以上可通过特定的缩写词快捷插入对应引用块。如：连续地输入\`note.\`然后按空格键。
+`,
 }
 const blockquoteFeatureDataEn: FeatureData = {
   icon,
@@ -92,6 +109,23 @@ const blockquoteFeatureDataEn: FeatureData = {
     [200, 30, false, '\x00Space,0000'],
     [200, 30, false, '“Caution” blockquote\n\n'],
   ],
+  mdText: `# Blockquote
+> From plugin: @effitor/plugin-blockquote\n
+To create a blockquote, type \`>\` in an empty paragraph and press \`Enter\`. For example:
+> Blockquote supports nested quotes and Github-style blockquotes.
+> > [!NOTE]
+“Note” blockquote\n
+> > [!TIP]
+“Tip” blockquote\n
+> > [!IMPORTANT]
+“Important” blockquote\n
+> > [!WARNING]
+“Warning” blockquote\n
+> > [!CAUTION]
+“Caution” blockquote\n\n
+#### Not efficient enough? Hot strings say: Yes!
+Thanks to the powerful hot string module in **Effitor** core, the above can be inserted with specific abbreviations. For example: continuously type \`note.\` then press Space.
+`,
 }
 export const blockquoteFeatureDataMap: Record<string, FeatureData> = {
   zh: blockquoteFeatureDataZh,

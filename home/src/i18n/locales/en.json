@@ -6,7 +6,8 @@
   },
   "main": {
     "try": "Try Now",
-    "features": "Features"
+    "features": "Features",
+    "try_this": "Try This"
   },
   "keymap": {
     "撤回": "Undo",

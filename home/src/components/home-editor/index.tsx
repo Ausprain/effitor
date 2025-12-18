@@ -25,6 +25,7 @@ const listenFocusPlugin: Et.EditorPlugin = {
 const HomeEditor: React.FC = () => {
   const {
     isEditorFocused,
+    editorMarkdown,
     setIsEditorFocused,
     setKeyState,
     setHotstringState,
@@ -76,11 +77,25 @@ const HomeEditor: React.FC = () => {
     }
   }, [isEditorFocused])
   useEffect(() => {
-    if (editor) {
+    if (editor && editor.isMounted) {
       editor.setColorScheme(isDark)
       editor.context.assists.darkAssist.isDark = isDark
     }
   }, [isDark])
+
+  useEffect(() => {
+    if (!editorMarkdown || !editor || !editor.isMounted) {
+      return
+    }
+    editor.fromMarkdown(editorMarkdown)
+    editor.focus({
+      preventScroll: true,
+    })
+    editor.context.focusToBodyEnd()
+    setTimeout(() => {
+      editor.context.selection.scrollIntoView()
+    }, 20)
+  }, [editorMarkdown])
 
   return (
     <div ref={editorHostRef} className="editor-host overflow-auto max-h-[600px]"></div>

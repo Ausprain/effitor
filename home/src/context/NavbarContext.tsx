@@ -22,6 +22,8 @@ export interface NavbarContextType {
   // Editor State
   isEditorFocused: boolean
   setIsEditorFocused: (focused: boolean) => void
+  editorMarkdown: string
+  setEditorMarkdown: React.Dispatch<React.SetStateAction<string>>
 
   // Key and Hotstring State
   keyState: KeyState
@@ -47,6 +49,7 @@ export const NavbarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Editor State
   const [isEditorFocused, setIsEditorFocused] = useState(false)
+  const [editorMarkdown, setEditorMarkdown] = useState('')
 
   // Key and Hotstring State
   const [keyState, setKeyState] = useState<KeyState>({
@@ -130,6 +133,8 @@ export const NavbarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Editor State
     isEditorFocused,
     setIsEditorFocused,
+    editorMarkdown,
+    setEditorMarkdown,
 
   }
 

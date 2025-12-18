@@ -5,4 +5,5 @@ export interface FeatureData {
   title: string
   pluginName: string
   editorActions: TypingMarkdownArray
+  mdText: string
 }

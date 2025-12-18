@@ -6,7 +6,8 @@
   },
   "main": {
     "try": "立即尝试",
-    "features": "功能列表"
+    "features": "功能列表",
+    "try_this": "尝试一下"
   },
   "keymap": {
     "撤回": "撤回",

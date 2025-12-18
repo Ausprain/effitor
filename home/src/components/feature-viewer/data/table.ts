@@ -40,6 +40,42 @@ plugin-table\t表格插件\n\n`],
 \`Ctrl|Cmd+E\`\t表格单元格等宽\n\n`],
     [500, 50, false, '表格还支持嵌套其他插件节点，如`mark`。您可以在创建对应插件时配置。'],
   ],
+  mdText: `# 表格
+> 从插件: @effitor/plugin-table
+
+要创建一个表格，在空段落中输入一段简短文本，然后按下\`Tab\`。如：
+
+| **Effitor 内置插件** | **描述** |
+| ---------------- | ---------------- |
+| assist-counter | 字数统计助手 |
+| assist-dialog | 对话框助手 |
+| assist-dropdown | 下拉菜单助手 |
+| assist-message | 消息助手 |
+| aassist-popup | 弹窗和悬浮工具助手 |
+| plugin-heading | 标题插件 |
+| plugin-mark | 高亮插件 |
+| plugin-link | 链接插件 |
+| plugin-list | 列表插件 |
+| plugin-media | 媒体（图像/音/视频）插件 |
+| plugin-code | 代码块插件 |
+| plugin-blockquote | 引用块插件 |
+| plugin-table | 表格插件 |
+
+| **表格内置快捷键** | **表格操作** |
+| ---------------- | ---------------- |
+| \`Tab\` | 光标移入下一单元格或插入新列 |
+| \`Shift+Tab\` | 光标移入前一单元格或插入新列 |
+| \`Enter\` | 插入新行 |
+| \`Opt|Alt+↑/↓\` | 表格行上移/下移 |
+| \`Opt|Alt+Shift+↑/↓\` | 表格行复制上移/下移 |
+| \`Ctrl+Opt|Alt+←/→\` | 表格列左移/右移 |
+| \`Opt|Alt+C\` | 表格居中对齐 |
+| \`Opt|Alt+L\` | 表格左对齐 |
+| \`Opt|Alt+R\` | 表格右对齐 |
+| \`Ctrl|Cmd+E\` | 表格单元格等宽 |
+
+表格还支持嵌套其他插件节点，如\`mark\`。您可以在创建对应插件时配置。
+`,
 }
 const tableFeatureDataEn: FeatureData = {
   icon,
@@ -78,6 +114,42 @@ plugin-table\tTable plugin\n\n`],
 \`Ctrl|Cmd+E\`\tEqual width of table cells\n\n`],
     [500, 30, false, 'Table also supports nested other plugin nodes, such as `mark`. You can configure it when creating the corresponding plugin.'],
   ],
+  mdText: `# Table
+> From plugin: @effitor/plugin-table
+
+To create a table, type a short text in an empty paragraph and press \`Tab\`. For example:
+
+| **Effitor built-in plugins** | **Description** |
+| ---------------- | ---------------- |
+| assist-counter | Word count assistant |
+| assist-dialog | Dialog assistant |
+| assist-dropdown | Dropdown menu assistant |
+| assist-message | Message assistant |
+| aassist-popup | Popup and floating tool assistant |
+| plugin-heading | Heading plugin |
+| plugin-mark | Highlight plugin |
+| plugin-link | Link plugin |
+| plugin-list | List plugin |
+| plugin-media | Media (image/audio/video) plugin |
+| plugin-code | Code block plugin |
+| plugin-blockquote | Blockquote plugin |
+| plugin-table | Table plugin |
+
+| **Table built-in shortcuts** | **Table operations** |
+| ---------------- | ---------------- |
+| \`Tab\` | Move cursor to the next cell <br>or insert a new column |
+| \`Shift+Tab\` | Move cursor to the previous cell <br>or insert a new column |
+| \`Enter\` | Insert a new row |
+| \`Opt|Alt+↑/↓\` | Move table row up/down |
+| \`Opt|Alt+Shift+↑/↓\` | Copy table row up/down |
+| \`Ctrl+Opt|Alt+←/→\` | Move table column left/right |
+| \`Opt|Alt+C\` | Center align table |
+| \`Opt|Alt+L\` | Left align table |
+| \`Opt|Alt+R\` | Right align table |
+| \`Ctrl|Cmd+E\` | Equal width of table cells |
+
+Table also supports nested other plugin nodes, such as \`mark\`. You can configure it when creating the corresponding plugin.
+`,
 }
 export const tableFeatureDataMap: Record<string, FeatureData> = {
   zh: tableFeatureDataZh,

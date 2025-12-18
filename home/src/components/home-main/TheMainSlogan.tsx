@@ -9,7 +9,7 @@ const MainSlogan = () => (
     <p className="leading-[1.2] -my-8 md:my-0">
       An elegant and
     </p>
-    <p className="lg:my-8 scale-[1.1]">
+    <p className="lg:my-8 xl:my-12 scale-[1.1]">
       <svg
         width="100%"
         height="100"
@@ -40,7 +40,7 @@ const MainSlogan = () => (
         </defs>
         <text
           x="50%"
-          y="88%"
+          y="95%"
           textAnchor="middle"
         >
           <tspan fill="url(#textGradient)">

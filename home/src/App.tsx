@@ -6,7 +6,9 @@ import Home from './pages/Home'
 
 const App: React.FC = () => {
   return (
-    <div className="pt-24
+    <div
+      id="app-main"
+      className="pt-24
     bg-linear-to-br
     from-blue-50 to-indigo-100
     dark:from-gray-900 dark:to-indigo-950
