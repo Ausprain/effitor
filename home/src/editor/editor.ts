@@ -51,6 +51,75 @@ const onMediaFileSelected = (files: File[]) => {
   return opts
 }
 
+export const patchPlugin: Et.EditorPlugin = {
+  // 内置插件补丁
+  name: 'plugin-patch',
+  effector: {
+    enforce: 'post',
+    onMounted(ctx) {
+      // 段落组热字符串没有提示, 在这里加上
+      ctx.hotstringManager.allHotstrings().forEach((hs) => {
+        if (hs.hotstring === 'pg.') {
+          Object.assign(hs, {
+            title: '段落组',
+          })
+        }
+        else if (hs.hotstring === 'pg2.') {
+          Object.assign(hs, {
+            title: '段落组(2栏)',
+          })
+        }
+        else if (hs.hotstring === 'pg3.') {
+          Object.assign(hs, {
+            title: '段落组(3栏)',
+          })
+        }
+      })
+      // text counter ui
+      const countDiv = document.createElement('span')
+      countDiv.style = 'position: absolute; top: 8px; right: 8px; font-size: 12px; color: #888;'
+      ctx.root.appendChild(countDiv)
+      ctx.assists.textCounter.setUpdatedCallback((count) => {
+        countDiv.textContent = count.textCount.toString()
+      })
+    },
+  },
+}
+export const counterAssist = useCounterAssist()
+export const defaultAssists = [
+  counterAssist,
+  useDialogAssist(),
+  useDropdownAssist(),
+  useMessageAssist(),
+  usePopupAssist(),
+]
+export const defalutPlugins = [
+  useHeadingPlugin(),
+  useMarkPlugin({
+    needMarkEffectElementCtors: [EtTableCellElement, EtParagraphElement],
+  }),
+  useLinkPlugin(),
+  useListPlugin(),
+  useMediaPlugin({
+    image: {
+      onfileselected: onMediaFileSelected,
+    },
+    audio: {
+      onfileselected: onMediaFileSelected,
+    },
+    video: {
+      onfileselected: onMediaFileSelected,
+      maxSize: 20 * 1024 * 1024,
+    },
+  }),
+  useTablePlugin(),
+  useBlockquotePlugin(),
+  await useCodePlugin({
+    canRenderLangs: ['html', 'latex'],
+    allowSMIL: true,
+  }),
+]
+
 const createEditorOptions: Et.CreateEditorOptions = {
   htmlOptions: {
     sanitizer: html => dompurify.sanitize(html),
@@ -58,82 +127,17 @@ const createEditorOptions: Et.CreateEditorOptions = {
   config: {
     AUTO_CREATE_FIRST_PARAGRAPH: false,
   },
-  assists: [
-    useCounterAssist(),
-    useDialogAssist(),
-    useDropdownAssist(),
-    useMessageAssist(),
-    usePopupAssist(),
-  ],
-  plugins: [
-    useHeadingPlugin(),
-    useMarkPlugin({
-      needMarkEffectElementCtors: [EtTableCellElement, EtParagraphElement],
-    }),
-    useLinkPlugin(),
-    useListPlugin(),
-    useMediaPlugin({
-      image: {
-        onfileselected: onMediaFileSelected,
-      },
-      audio: {
-        onfileselected: onMediaFileSelected,
-      },
-      video: {
-        onfileselected: onMediaFileSelected,
-        maxSize: 20 * 1024 * 1024,
-      },
-    }),
-    useTablePlugin(),
-    useBlockquotePlugin(),
-    await useCodePlugin({
-      canRenderLangs: ['html', 'latex'],
-      allowSMIL: true,
-    }),
-    {
-      // 内置插件补丁
-      name: 'plugin-patch',
-      effector: {
-        enforce: 'post',
-        onMounted(ctx) {
-          // 段落组热字符串没有提示, 在这里加上
-          ctx.hotstringManager.allHotstrings().forEach((hs) => {
-            if (hs.hotstring === 'pg.') {
-              Object.assign(hs, {
-                title: '段落组',
-              })
-            }
-            else if (hs.hotstring === 'pg2.') {
-              Object.assign(hs, {
-                title: '段落组(2栏)',
-              })
-            }
-            else if (hs.hotstring === 'pg3.') {
-              Object.assign(hs, {
-                title: '段落组(3栏)',
-              })
-            }
-          })
-          // text counter ui
-          const countDiv = document.createElement('span')
-          countDiv.style = 'position: absolute; top: 8px; right: 8px; font-size: 12px; color: #888;'
-          ctx.root.appendChild(countDiv)
-          ctx.assists.textCounter.setUpdatedCallback((count) => {
-            countDiv.textContent = count.textCount.toString()
-          })
-        },
-      },
-    },
-  ],
 }
 
 export const createEditor = ({
   editorStyle = '',
   config = {},
+  extraAssists = [],
   extraPlugins = [],
 }: {
   editorStyle?: string
   config?: Partial<Et.EditorConfig>
+  extraAssists?: Et.EditorPlugin[]
   extraPlugins?: Et.EditorPlugin[]
 } = {}) => {
   return new Effitor({
@@ -143,6 +147,7 @@ export const createEditor = ({
       ...createEditorOptions.config,
       ...config,
     },
+    assists: [...extraAssists, ...(createEditorOptions.assists || [])],
     plugins: [...extraPlugins, ...(createEditorOptions.plugins || [])],
   })
 }

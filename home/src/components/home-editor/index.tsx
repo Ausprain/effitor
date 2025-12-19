@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 
 import './index.css'
 import type { Et } from 'effitor'
-import { createEditor } from '../../editor/editor'
+import { createEditor, defalutPlugins, defaultAssists, patchPlugin } from '../../editor/editor'
 import { useNavbar } from '../../context/NavbarContext'
 import { useDarkAssist } from '../../editor/plugins/darkAssist'
 import { useTypingTipAssist } from '../../editor/plugins/typingTipAssist'
@@ -43,10 +43,15 @@ const HomeEditor: React.FC = () => {
       config: {
         USE_HOST_AS_SCROLL_CONTAINER: true,
       },
-      extraPlugins: [
-        listenFocusPlugin,
+      extraAssists: [
+        ...defaultAssists,
         useTypingTipAssist(),
         useDarkAssist(),
+      ],
+      extraPlugins: [
+        ...defalutPlugins,
+        patchPlugin,
+        listenFocusPlugin,
       ],
     })
   }, [])

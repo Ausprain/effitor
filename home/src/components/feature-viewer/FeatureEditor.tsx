@@ -1,27 +1,31 @@
 import { useAIAssist, type TypingResult } from '@effitor/assist-ai'
 import { ArrowBigDown, Pause, Play } from 'lucide-react'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { create } from 'zustand'
 import { useNavbar } from '../../context/NavbarContext'
-import { createEditor } from '../../editor/editor'
+import { counterAssist, createEditor, defalutPlugins, patchPlugin } from '../../editor/editor'
 import { useKeyTipAssist } from '../../editor/plugins/key-tip'
 import type { FeatureData } from './config'
-import { useTranslation } from 'react-i18next'
 
 const _state = create<{
+  auto: boolean
   progress: number
   finished: boolean
   paused: boolean
   setProgress: (progress: number) => void
   setFinished: (finished: boolean) => void
   setPaused: (paused: boolean) => void
+  setAuto: (auto: boolean) => void
 }>(set => ({
+  auto: true,
   progress: 0,
   finished: false,
   paused: false,
   setProgress: (progress: number) => set({ progress }),
   setFinished: (finished: boolean) => set({ finished }),
   setPaused: (paused: boolean) => set({ paused }),
+  setAuto: (auto: boolean) => set({ auto }),
 }))
 
 export const FeatureEditor: React.FC<{
@@ -41,28 +45,31 @@ export const FeatureEditor: React.FC<{
         USE_HOST_AS_SCROLL_CONTAINER: true,
         UNDO_LENGTH: 200,
       },
-      extraPlugins: [
+      extraAssists: [
+        counterAssist,
         useAIAssist(),
         useKeyTipAssist(),
+      ],
+      extraPlugins: [
+        ...defalutPlugins,
+        patchPlugin,
       ],
     })
   }, [])
 
   const countDown = 3000
   const state = _state()
-  const pause = useCallback(() => {
-    typingResult.current?.pause()
-    state.setPaused(true)
-  }, [])
-  const resumeOrNext = useCallback(() => {
-    if (_state.getState().finished) {
+  useEffect(() => {
+    if (state.paused) {
+      typingResult.current?.pause()
+    }
+    else if (state.finished) {
       onFinished()
     }
     else {
-      state.setPaused(false)
       typingResult.current?.resume()
     }
-  }, [])
+  }, [state.paused])
 
   const { isDark } = useNavbar()
   useEffect(() => {
@@ -72,7 +79,6 @@ export const FeatureEditor: React.FC<{
   }, [isDark])
 
   const typingResult = useRef<TypingResult | null>(null)
-  const needPause = useRef<boolean>(false)
   const { isEditorFocused } = useNavbar()
   useEffect(() => {
     if (!editorHostRef.current || editor.isMounted) {
@@ -88,15 +94,14 @@ export const FeatureEditor: React.FC<{
 
     const ob = new IntersectionObserver((items) => {
       for (const item of items) {
+        if (!_state.getState().auto) {
+          return
+        }
         if (item.isIntersecting) {
-          if (!_state.getState().paused) {
-            typingResult.current?.resume()
-          }
-          needPause.current = false
+          state.setPaused(false)
         }
         else {
-          typingResult.current?.pause()
-          needPause.current = true
+          state.setPaused(true)
         }
       }
     })
@@ -109,10 +114,10 @@ export const FeatureEditor: React.FC<{
   }, [])
   useEffect(() => {
     if (isEditorFocused) {
-      typingResult.current?.pause()
+      state.setPaused(true)
     }
     else {
-      typingResult.current?.resume()
+      state.setPaused(false)
     }
   }, [isEditorFocused])
 
@@ -132,7 +137,7 @@ export const FeatureEditor: React.FC<{
       if (editor.bodyEl.textContent.length > 1 || editor.bodyEl.textContent !== '\u200b') {
         editor.context.commonHandler.initEditorContents(true)
       }
-      if (!needPause.current) {
+      if (!_state.getState().paused) {
         result.resume()
       }
       result.finished.then(() => {
@@ -199,7 +204,10 @@ export const FeatureEditor: React.FC<{
         </progress>
         <button
           className="btn join-item text-gray-700 dark:text-gray-300 transition-colors"
-          onClick={state.paused ? resumeOrNext : pause}
+          onClick={() => {
+            state.setPaused(!state.paused)
+            state.setAuto(!state.auto)
+          }}
         >
           {state.paused ? <Play /> : <Pause />}
         </button>
