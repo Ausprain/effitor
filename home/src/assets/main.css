@@ -1,5 +1,11 @@
 @import "./base.css";
 
+:root {
+  background-color: #e5ebfd;
+  &[data-theme="dark"] {
+    background-color: #1a1a41;
+  }
+}
 
 body {
   margin: 0;
@@ -9,11 +15,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  & {
-    @apply bg-linear-to-br
-      from-blue-50 to-indigo-100
-      transition-colors;
-  }
+  @apply bg-linear-to-br  from-blue-50 to-indigo-100 transition-colors;
   :root[data-theme="dark"] > & {
     @apply from-gray-900 to-indigo-950;
   }
@@ -31,12 +33,12 @@ body {
   &::after {
     background: radial-gradient(#9921e7, #6671e7 2px, transparent 30%);
     animation-name: firefly1;
-    animation-duration: 25s;
+    animation-duration: 15s;
   }
   &::before {
     background: radial-gradient(#6671e7, #9971e7 2px, transparent 30%);
     animation-name: firefly2;
-    animation-duration: 28s;
+    animation-duration: 18s;
     animation-delay: -7s; /* Offset from firefly1 */
   }
 }
@@ -52,6 +54,7 @@ body {
     translate: 15% -15%;
     scale: 1.1;
     opacity: 0.8;
+    filter: blur(99px);
   }
   66% {
     translate: 25% -5%;
@@ -80,6 +83,7 @@ body {
     translate: -25% -32%;
     scale: 1.1;
     opacity: 0.6;
+    filter: blur(99px);
   }
   75% {
     translate: -32% -39%;
