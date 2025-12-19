@@ -18,16 +18,23 @@ import type { CodeBlockRenderOptions } from './config'
 import { type CodeActionMap, codeActions, codeEffector } from './effector'
 import { EtCodeElement } from './EtCodeElement'
 import { inCodeHandler } from './handler'
-import { createShikiHighlighter, type ShikiHighlighterOptions } from './highlighter'
+import { createShikiHighlighter, type EtCodeHighlighter, type ShikiHighlighterOptions } from './highlighter'
 
 export interface CodePluginOptions extends CodeBlockRenderOptions {
+  /**
+   * 是否复用 highlighter; 开启后, 多个代码块会共享同一个 highlighter,
+   * 当且仅当设置为 false 时, 每个代码块会创建一个 highlighter
+   * @default true
+   */
+  reuseHighlighter?: boolean
   /**
    * 是否开启自动完成; 开启后, 会根据当前代码位置自动插入缩进/闭括号等
    * @default true
    */
   autoComplete?: boolean
   /**
-   * Shiki 配置项; 由于 shiki 高亮必须指定已加载的语言或'', 因为未配置的语言默认以 '' 处理
+   * Shiki 配置项; 由于 shiki 高亮必须指定已加载的语言或'', 因为未配置的语言默认以 '' 处理;
+   * 当 `reuseHighlighter` 为 true 时, 此项配置无效
    */
   shikiOptions?: ShikiHighlighterOptions
   /**
@@ -49,8 +56,10 @@ export interface CodePluginOptions extends CodeBlockRenderOptions {
 }
 export type { EtCodeHighlighter } from './highlighter'
 export { EtCodeElement }
+let __highlighter: EtCodeHighlighter<string> | undefined
 export const useCodePlugin = async (options?: CodePluginOptions): Promise<Et.EditorPlugin> => {
-  const highlighter = await createShikiHighlighter(options?.shikiOptions)
+  const highlighter = (options?.reuseHighlighter !== false && __highlighter)
+    || await createShikiHighlighter(options?.shikiOptions)
   options?.useActions?.(codeActions)
 
   const renderOptions: RenderOptions = {}
