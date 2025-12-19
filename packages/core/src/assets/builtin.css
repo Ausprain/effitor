@@ -45,7 +45,7 @@ et-body.Et--selection-all {
 }
 
 /* 鼠标悬浮提示元素的 et-title属性值 */
-[et-title] {
+:where([et-title]) {
   position: relative;
 
   &::before {
