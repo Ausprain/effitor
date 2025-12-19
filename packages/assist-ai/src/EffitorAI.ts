@@ -146,10 +146,12 @@ export class EffitorAI {
         await new Promise<void>((res, rej) => {
           state.rejectJob = rej
           state.doJob = () => {
-            state.timer = window.setInterval(async () => {
+            const timer = state.timer = window.setInterval(async () => {
               if ((await gen.next()).done) {
                 res()
-                clearInterval(state.timer)
+                // fixed. 清除当前的定时器 timer，而不是 state.timer，因为其可能被更改
+                // clearInterval(state.timer)
+                clearInterval(timer)
               }
             }, delay)
           }
