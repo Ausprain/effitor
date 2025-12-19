@@ -20,6 +20,36 @@ import {
   useMediaPlugin,
   useTablePlugin,
 } from 'effitor/plugins'
+import type { CreateImageOptions } from '@effitor/plugin-media'
+
+const onMediaFileSelected = (files: File[]) => {
+  const opts: CreateImageOptions[] = []
+  for (const file of files) {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    opts.push({
+      alt: file.name,
+      url: new Promise((resolve) => {
+        reader.onloadend = async () => {
+          const start = Date.now()
+          await (async () => {
+            return new Promise<void>((resolve) => {
+              const it = setInterval(() => {
+                // 添加一个延迟，模拟加载大文件效果
+                if (Date.now() - start > 1000) {
+                  resolve()
+                  clearInterval(it)
+                }
+              }, 500)
+            })
+          })()
+          resolve(reader.result as string)
+        }
+      }),
+    })
+  }
+  return opts
+}
 
 const createEditorOptions: Et.CreateEditorOptions = {
   htmlOptions: {
@@ -42,10 +72,24 @@ const createEditorOptions: Et.CreateEditorOptions = {
     }),
     useLinkPlugin(),
     useListPlugin(),
-    useMediaPlugin(),
+    useMediaPlugin({
+      image: {
+        onfileselected: onMediaFileSelected,
+      },
+      audio: {
+        onfileselected: onMediaFileSelected,
+      },
+      video: {
+        onfileselected: onMediaFileSelected,
+        maxSize: 20 * 1024 * 1024,
+      },
+    }),
     useTablePlugin(),
     useBlockquotePlugin(),
-    await useCodePlugin(),
+    await useCodePlugin({
+      canRenderLangs: ['html', 'latex'],
+      allowSMIL: true,
+    }),
     {
       // 内置插件补丁
       name: 'plugin-patch',

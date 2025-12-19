@@ -8,24 +8,94 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
 
-#app-main {
+  & {
+    @apply bg-linear-to-br
+      from-blue-50 to-indigo-100
+      transition-colors;
+  }
+  :root[data-theme="dark"] > & {
+    @apply from-gray-900 to-indigo-950;
+  }
+
   &::after,
   &::before {
     content: '';
     position: fixed;
     inset: 0;
     filter: blur(111px);
-  }
-  &::before {
-    translate: 20% -10%;
-    background: radial-gradient(#9921e7, #6671e7 2px, transparent 30%);
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    pointer-events: none;
   }
   &::after {
-    translate: -30% -37%;
-    background: radial-gradient(#6671e7, #9971e7 2px, transparent 30%);
+    background: radial-gradient(#9921e7, #6671e7 2px, transparent 30%);
+    animation-name: firefly1;
+    animation-duration: 25s;
   }
+  &::before {
+    background: radial-gradient(#6671e7, #9971e7 2px, transparent 30%);
+    animation-name: firefly2;
+    animation-duration: 28s;
+    animation-delay: -7s; /* Offset from firefly1 */
+  }
+}
+
+/* Firefly animations for background halos */
+@keyframes firefly1 {
+  0% {
+    translate: 20% -10%;
+    scale: 1;
+    opacity: 0.6;
+  }
+  33% {
+    translate: 15% -15%;
+    scale: 1.1;
+    opacity: 0.8;
+  }
+  66% {
+    translate: 25% -5%;
+    scale: 0.9;
+    opacity: 0.5;
+  }
+  100% {
+    translate: 20% -10%;
+    scale: 1;
+    opacity: 0.6;
+  }
+}
+
+@keyframes firefly2 {
+  0% {
+    translate: -30% -37%;
+    scale: 1;
+    opacity: 0.5;
+  }
+  25% {
+    translate: -35% -42%;
+    scale: 0.9;
+    opacity: 0.7;
+  }
+  50% {
+    translate: -25% -32%;
+    scale: 1.1;
+    opacity: 0.6;
+  }
+  75% {
+    translate: -32% -39%;
+    scale: 0.95;
+    opacity: 0.8;
+  }
+  100% {
+    translate: -30% -37%;
+    scale: 1;
+    opacity: 0.5;
+  }
+}
+
+#app {
+  position: relative;
+  z-index: 1;
 }
 
 .editor-host {

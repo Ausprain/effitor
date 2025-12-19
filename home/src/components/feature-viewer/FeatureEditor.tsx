@@ -89,7 +89,9 @@ export const FeatureEditor: React.FC<{
     const ob = new IntersectionObserver((items) => {
       for (const item of items) {
         if (item.isIntersecting) {
-          typingResult.current?.resume()
+          if (!_state.getState().paused) {
+            typingResult.current?.resume()
+          }
           needPause.current = false
         }
         else {
