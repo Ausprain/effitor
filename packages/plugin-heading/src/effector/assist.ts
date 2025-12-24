@@ -1,69 +1,14 @@
-import type { Dropdown } from '@effitor/assist-dropdown'
-import type { Et } from '@effitor/core'
-import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon, HtmlCharEnum } from '@effitor/shared'
-
-import { HeadingEnum } from './config'
-import { inHeadingHandler, replaceParagraphWithHeading } from './handler'
-
-const checkAtxToHeading = (ctx: Et.UpdatedContext) => {
-  // import.meta.env.DEV && console.error('check heading start')
-  if (!ctx.selection.isCollapsed || !ctx.focusEtElement || !ctx.selection.anchorText) return false
-  // 只在纯段落内生效
-  if (!ctx.isPlainParagraph(ctx.focusParagraph) || ctx.focusParagraph.childElementCount > 1) return false
-  let data = ctx.focusParagraph.textContent
-  if (data.length > 6) return false
-  data = data.trim().replaceAll(HtmlCharEnum.ZERO_WIDTH_SPACE, '')
-  let level = -1
-  if (/^#{1,6}$/.test(data)) {
-    level = data.length
-  }
-  else if (/^#[1-6]$/.test(data)) {
-    level = parseInt(data[1] as string)
-  }
-  if (level === -1) return false
-  return replaceParagraphWithHeading(ctx, {
-    level: level as Et.HeadingLevel,
-    paragraph: ctx.focusParagraph,
-  })
-}
-const beforeKeydownSolver: Et.KeyboardKeySolver = {
-  ' ': (_ev, ctx) => checkAtxToHeading(ctx),
-  'Enter': (_ev, ctx) => checkAtxToHeading(ctx),
-  'Tab': (_ev, ctx) => {
-    if (ctx.focusEtElement.localName === HeadingEnum.ElName) {
-      return true
-    }
-  },
-}
-
-const keydownSolver: Et.KeyboardSolver = {
-  // heading 专有 keydown solver
-  [HeadingEnum.ElName]: (ev, ctx) => {
-    if (ev.key === 'Backspace'
-      && ctx.selection.isCollapsed
-      && ctx.selection.anchorOffset === 0
-    ) {
-      inHeadingHandler.regressHeadingToParagraph(ctx, {
-        heading: ctx.commonEtElement,
-      })
-      return ctx.skipDefault()
-    }
-  },
-}
-
-export const headingEffector: Et.Effector = {
-  beforeKeydownSolver,
-  keydownSolver,
-  onMounted(ctx) {
-    // 注册 dropdown
-    initHeadingDropdown(ctx)
-  },
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                  dropdown                                  */
+
+import type { Dropdown } from '@effitor/assist-dropdown'
+import type { Et } from '@effitor/core'
+import { h1Icon, h2Icon, h3Icon, h4Icon, h5Icon, h6Icon } from '@effitor/shared'
+
+import { replaceParagraphWithHeading } from '../handler'
+
 /* -------------------------------------------------------------------------- */
-const initHeadingDropdown = (ctx: Et.EditorContext) => {
+export const initHeadingDropdown = (ctx: Et.EditorContext) => {
   const dropdown = ctx.assists.dropdown
   if (!dropdown) {
     return
@@ -117,8 +62,3 @@ export const replaceCurrentParagraphWithHeading = (ctx: Et.EditorContext, level:
     paragraph: ctx.focusParagraph,
   })
 }
-
-export const headingActions = {
-  replaceCurrentParagraphWithHeading,
-}
-export type HeadingActionMap = typeof headingActions

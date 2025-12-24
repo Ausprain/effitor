@@ -4,26 +4,6 @@ import type { Et } from '../@types'
 import { type EtBodyElement, etcode } from '../element'
 import { type EditorListeners } from './listeners'
 
-// const enum EditorBodyEventName {
-//   HeadingChainUpdated = 'headingchainupdated',
-// }
-// interface HeadingChainUpdatedEvent {
-//   /** 逆序标题元素链, 越往后标题等级越高 */
-//   headingChain: readonly Et.EtHeading[]
-// }
-// interface EditorBodyEventMap {
-//   /** 标题链更新事件 */
-//   headingchainupdated: HeadingChainUpdatedEvent
-// }
-// interface EditorBodyEventListener<K extends keyof EditorBodyEventMap> {
-//   /**
-//    * 编辑区事件处理函数
-//    * @param event 事件对象
-//    * @returns 是否结束事件(终止后续事件监听器执行)
-//    */
-//   (this: EditorBody, event: EditorBodyEventMap[K]): boolean
-// }
-
 export interface CreateEditorBodyOptions {
   /** 编辑器所在滚动容器, 默认为根 html 元素 */
   scrollContainer?: HTMLElement
@@ -37,11 +17,6 @@ export interface CreateEditorBodyOptions {
  * 编辑器编辑区对象
  */
 export class EditorBody {
-  // private _eventHandlersMap: { [k in keyof EditorBodyEventMap]?: EditorBodyEventListener<k>[] } = {}
-
-  // private _headingOb: IntersectionObserver
-  // private _updateHeadingChainIdle?: number
-
   private _scrollContainer: HTMLElement
   private _autoScrollPaddingX: number
   private _autoScrollPaddingY: number
@@ -86,96 +61,7 @@ export class EditorBody {
     this._scrollContainer = scrollContainer
     this._autoScrollPaddingX = autoScrollPaddingX
     this._autoScrollPaddingY = autoScrollPaddingY
-
-    //   // TODO 移植到 heading 插件
-    //   this.addEventListener('headingchainupdated', (ev) => {
-    //     console.log('heading chain updated', ev.headingChain)
-    //     return false
-    //   })
-
-  //   this._headingOb = new IntersectionObserver((entries) => {
-  //     for (const entry of entries) {
-  //       if (entry.isIntersecting) {
-  //         // console.log('heading intersect', entry.target)
-  //         // entry.target.style.backgroundColor = 'skyblue'
-  //         this.updateHeadingChain(entry.target as Et.Paragraph)
-  //       }
-  //       else {
-  //         // entry.target.style.backgroundColor = ''
-  //       }
-  //     }
-  //   }, {
-  //     root: this.scrollContainer === document.documentElement ? null : this.scrollContainer,
-  //     // 在前 1/5 的位置划一横线, 与该横线相交的段落触发回调
-  //     // 从该段落开始向上找标题, 构建标题链
-  //     rootMargin: '-19.9% 0px -80% 0px',
-  //   })
-  //   const paragraphMutationObserver = new MutationObserver((records) => {
-  //     for (const rd of records) {
-  //       for (const nod of rd.addedNodes) {
-  //         if (etcode.check(nod, EtTypeEnum.Paragraph)) {
-  //           // console.log('heading added', nod)
-  //           this._headingOb.observe(nod)
-  //         }
-  //       }
-  //       for (const nod of rd.removedNodes) {
-  //         if (etcode.check(nod, EtTypeEnum.Paragraph)) {
-  //           // console.log('heading removed', nod)
-  //           this._headingOb.unobserve(nod)
-  //         }
-  //       }
-  //     }
-  //   })
-  //   paragraphMutationObserver.observe(this.el, {
-  //     childList: true,
-  //   })
-  // }
   }
-
-  // /* -------------------------------------------------------------------------- */
-  // /*                                  编辑区事件                                 */
-  // /* -------------------------------------------------------------------------- */
-  // addEventListener<K extends keyof EditorBodyEventMap>(type: K, listener: EditorBodyEventListener<K>, signal?: AbortSignal): void {
-  //   if (!this._eventHandlersMap[type]) {
-  //     this._eventHandlersMap[type] = []
-  //   }
-  //   this._eventHandlersMap[type].push(listener)
-  //   if (signal) {
-  //     signal.addEventListener('abort', () => {
-  //       this.removeEventListener(type, listener)
-  //     })
-  //   }
-  // }
-
-  // removeEventListener<K extends keyof EditorBodyEventMap>(type: K, listener: EditorBodyEventListener<K>): void {
-  //   const handlers = this._eventHandlersMap[type]
-  //   if (handlers) {
-  //     for (let i = 0; i < handlers.length; i++) {
-  //       if (handlers[i] === listener) {
-  //         handlers.splice(i, 1)
-  //         break
-  //       }
-  //     }
-  //   }
-  // }
-
-  // /**
-  //  * 派发编辑区事件
-  //  * * DOM 事件请使用 body.el.dispatchEvent
-  //  * @param type 事件类型
-  //  * @param event 事件对象
-  //  */
-  // dispatchEvent<K extends keyof EditorBodyEventMap>(type: K, event: EditorBodyEventMap[K]): boolean {
-  //   const handlers = this._eventHandlersMap[type]
-  //   if (handlers) {
-  //     for (const handler of handlers) {
-  //       if (handler.call(this, event)) {
-  //         return true
-  //       }
-  //     }
-  //   }
-  //   return true
-  // }
 
   /**
    * 判断编辑区内容是否空白（相当于是否是初始化状态：只有一个段落，段落内容为空或一个零宽字符）
@@ -208,49 +94,6 @@ export class EditorBody {
       ...init,
     }))
   }
-
-  // /**
-  //  * 计算并更新标题链
-  //  * @returns 逆序标题元素链, 越往后标题等级越高
-  //  */
-  // private updateHeadingChain(topEl: Et.Paragraph) {
-  //   if (this._updateHeadingChainIdle) {
-  //     cancelIdleCallbackPolyByEffitor(this._updateHeadingChainIdle)
-  //   }
-  //   const cb = (deadline?: IdleDeadline) => {
-  //     console.warn('update heading chain', deadline?.timeRemaining())
-  //     if (deadline && deadline.timeRemaining() < 5) {
-  //       this._updateHeadingChainIdle = requestIdleCallbackPolyByEffitor(cb)
-  //       return
-  //     }
-  //     this._updateHeadingChainIdle = void 0
-  //     const chain = []
-  //     let currLevel = 7
-  //     // TODO 算法优化
-  //     // 记录当前的标题链Set, 向上搜索遇到相同标题时终止, 复用重复的标题链部分
-  //     while (topEl) {
-  //       if (etcode.check(topEl, EtTypeEnum.Heading)) {
-  //         const level = topEl.headingLevel
-  //         if (level < currLevel) {
-  //           chain.push(topEl)
-  //           currLevel = level
-  //         }
-  //         if (level === 1) {
-  //           break
-  //         }
-  //       }
-  //       topEl = topEl.previousSibling as Et.Paragraph
-  //     }
-  //     if (chain.length) {
-  //       this.dispatchEvent('headingchainupdated', { headingChain: chain })
-  //     }
-  //   }
-  //   this._updateHeadingChainIdle = requestIdleCallbackPolyByEffitor(cb)
-  // }
-
-  // focusTopElement(topEl: Et.Paragraph) {
-  //   this.updateHeadingChain(topEl)
-  // }
 
   /* -------------------------------------------------------------------------- */
   /*                                滚动容器相关                                  */
