@@ -92,7 +92,8 @@ export class CommandManager implements CommandQueue {
 
   /**
    * 注册一个回调函数, 在下一次调用 `handle` 时(命令执行之后)执行,
-   * * 此回调函数的行为不可撤销, 不要在回调函数中修改编辑区内容
+   * * 此回调函数的行为不可撤销, 不要在回调函数中直接修改DOM；如果此回调中
+   *   同步添加并执行了其他命令，则会在`commitNextHandle`前执行完毕
    * * 若执行 `handle` 时命令队列没有命令, 则不执行此函数添加的回调函数,
    *   并且会清空回调函数队列; 若依然希望执行回调, 可添加一个空命令 (
    *   可通过 `cmd.null()` 创建)
@@ -389,25 +390,26 @@ export class CommandManager implements CommandQueue {
 
   /**
    * 更新文本节点中的文本, 不自动 commit
+   * * 该方法依旧会 push 命令，若先前有 push 而未执行的命令，会一并执行
    * * ⚠️ 该方法不会判断更新(删除文本)后文本节点是否为空;
    * @param destCaretRange 命令执行后光标位置;
-   *                       若为 true, 则使用新节点内开头位置;
+   *                       若为 true, 则使用删除或插入文本后的位置;
    *                       若为 false 或缺省, 则不设置光标位置也不更新上下文和选区
    */
   handleUpdateText(
     textNode: Text,
     offset: number,
     delDataOrLen: string | number,
-    replData: string,
+    insertData: string,
     destCaretRange: Et.CaretRange | boolean = false,
   ) {
-    if (!delDataOrLen && !replData) {
+    if (!delDataOrLen && !insertData) {
       return false
     }
     this.push(cmd.replaceText({
       text: textNode as Et.Text,
       offset,
-      data: replData,
+      data: insertData,
       delLen: typeof delDataOrLen === 'string' ? delDataOrLen.length : delDataOrLen,
       setCaret: destCaretRange === true,
     }))

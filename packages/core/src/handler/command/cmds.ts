@@ -374,10 +374,10 @@ const execReplaceText = function (this: CmdReplaceText) {
   const { data, delLen, offset } = this
   this.delLen = data.length
   this.data = this.text.data.slice(offset, offset + delLen)
-  this.text.replaceData(this.offset, delLen, data)
+  this.text.replaceData(offset, delLen, data)
   if (this.setCaret) {
     this.setCaret = false
-    this.destCaretRange = cr.caret(this.text, this.offset + data.length)
+    this.destCaretRange = cr.caret(this.text, offset + data.length)
   }
   return true
 }

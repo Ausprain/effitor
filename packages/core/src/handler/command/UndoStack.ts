@@ -200,12 +200,16 @@ const checkMergeCmds = (cmds: ExecutedCmd[]) => {
     if (_cmd.type === CmdType.Insert_Text) { // Insert_Text
       let j = i + 1
       let insertedData = _cmd.data
+      let nextOffset = _cmd.offset + _cmd.data.length
       while (j < cmds.length) {
         const nextCmd = cmds[j] as CmdInsertText
-        if (nextCmd.type !== CmdType.Insert_Text || nextCmd.text !== _cmd.text) {
+        if (nextCmd.type !== CmdType.Insert_Text || nextCmd.text !== _cmd.text
+          || nextCmd.offset !== nextOffset
+        ) {
           break
         }
         insertedData += nextCmd.data
+        nextOffset = nextCmd.offset + nextCmd.data.length
         _cmd.destCaretRange = nextCmd.destCaretRange
         j++
       }
