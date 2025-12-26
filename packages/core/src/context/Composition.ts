@@ -182,9 +182,9 @@ export class Composition {
    * 用于在compositionend时, 恢复段落的最后一个节点
    */
   private _lastNode: Et.NodeOrNull | undefined = void 0
-  get lastNodeInCompositionStart() {
-    return this._lastNode
-  }
+  // get lastNodeInCompositionStart() {
+  //   return this._lastNode
+  // }
 
   onStart() {
     this._inSession = true

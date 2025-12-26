@@ -96,9 +96,9 @@ export const getKeydownCaptureListener = (
   return (ev: Et.KeyboardEvent) => {
     // 没有effectElement 或没有选区 阻止后续输入
     if (!ctx.isUpdated()) {
-      // if (import.meta.env.DEV) {
-      //   console.error('keydown error: no effectelement', ctx)
-      // }
+      if (import.meta.env.DEV) {
+        throw new Error('keydown error: no effectelement')
+      }
       ev.preventDefault()
       ev.stopPropagation()
       ev.stopImmediatePropagation()

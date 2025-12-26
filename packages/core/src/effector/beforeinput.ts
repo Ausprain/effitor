@@ -1,51 +1,67 @@
 import { BuiltinConfig } from '@effitor/shared'
 
 import type { Et } from '../@types'
+import { platform } from '../config'
 import { cr } from '../selection'
 import { solveInputInRawEl } from './beforeinputInRaw'
 
-const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
-  default: (ev, ctx) => {
-    let effect
-    if (ev.inputType) {
-      effect = BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType
-    }
-    else {
-      // chrome 会将未声明或不合法的inputType转为"", 判断是否设置在了 data 里
-      if (!ev.data) {
-        if (import.meta.env.DEV) {
-          ctx.assists.logger?.logWarn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
-        }
-        return
+const defaultAction = (ev: InputEvent, ctx: Et.UpdatedContext) => {
+  let effect
+  if (ev.inputType) {
+    effect = BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.inputType
+  }
+  else {
+    // chrome 会将未声明或不合法的inputType转为"", 判断是否设置在了 data 里
+    if (!ev.data) {
+      if (import.meta.env.DEV) {
+        ctx.assists.logger?.logWarn(`handle unvalid inputType: ${ev.inputType}`, `beforeinput.${ev.inputType}`)
       }
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      effect = ev.data[0]!.toUpperCase() === ev.data[0]
-        ? ev.data
-        : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
+      return
     }
-    // 如果 beforeinput 事件提供了 targetRange, 则尝试从事件对象中获取 targetRange
-    // 由于 effitor 拦截了所有默认行为, 理论上这里的 targetRange 不会是浏览器创建的
-    // 而如果非空, 则说明是由 effitor 创建并触发的 beforeinput 事件, 并提供了 StaticRange
-    let targetRange, staticRange
-    if ((staticRange = ev.getTargetRanges?.()[0])) {
-      targetRange = ctx.selection.createTargetRange(cr.fromRange(staticRange))
-    }
-    if (!targetRange) {
-      targetRange = ctx.selection.getTargetRange()
-    }
-    // 理论上通过用户编辑行为触发的事件, ctx 上下文与targetRange 上下文应该是一致的
-    if (!targetRange || (!staticRange && ctx.commonEtElement !== targetRange.commonEtElement)) {
-      return false
-    }
-    if (ctx.effectInvoker.invoke(ctx.commonEtElement, effect as Et.InputTypeEffect, ctx, {
-      data: ev.data,
-      dataTransfer: ev.dataTransfer,
-      targetRange,
-    })) {
-      ev.preventDefault()
-    }
-    ctx.commandManager.handleAndUpdate()
-  },
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    effect = ev.data[0]!.toUpperCase() === ev.data[0]
+      ? ev.data
+      : BuiltinConfig.BUILTIN_EFFECT_PREFFIX + ev.data
+  }
+  // 如果 beforeinput 事件提供了 targetRange, 则尝试从事件对象中获取 targetRange
+  // 由于 effitor 拦截了所有默认行为, 理论上这里的 targetRange 不会是浏览器创建的
+  // 而如果非空, 则说明是由 effitor 创建并触发的 beforeinput 事件, 并提供了 StaticRange
+  let targetRange, staticRange
+  if ((staticRange = ev.getTargetRanges?.()[0])) {
+    targetRange = ctx.selection.createTargetRange(cr.fromRange(staticRange))
+  }
+  if (!targetRange) {
+    targetRange = ctx.selection.getTargetRange()
+  }
+  // 理论上通过用户编辑行为触发的事件, ctx 上下文与targetRange 上下文应该是一致的
+  if (!targetRange || (!staticRange && ctx.commonEtElement !== targetRange.commonEtElement)) {
+    return false
+  }
+  if (ctx.effectInvoker.invoke(ctx.commonEtElement, effect as Et.InputTypeEffect, ctx, {
+    data: ev.data,
+    dataTransfer: ev.dataTransfer,
+    targetRange,
+  })) {
+    ev.preventDefault()
+  }
+  ctx.commandManager.handleAndUpdate()
+}
+
+const mainBeforeInputTypeSolver: Et.MainInputTypeSolver = {
+  // fixed. safari 下，使用外部输入法开启大写锁定时，insertText 的 beforeinput 事件会先于 keydown 触发
+  // 这里将 trusted 的事件阻止，避免插入重复内容；因为 keydown 接管了所有按键，正常流程下的 beforeinput 事件都是非 trusted 的
+  ...(platform.isSafari
+    ? {
+        insertText(ev, ctx) {
+          if (ev.isTrusted) {
+            ev.preventDefault()
+            return
+          }
+          defaultAction(ev, ctx)
+        },
+      }
+    : {}),
+  default: defaultAction,
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -93,9 +109,9 @@ export const getBeforeinputListener = (
 ) => {
   return (ev: Et.InputEvent) => {
     if (!ctx.isUpdated()) {
+      ev.preventDefault()
       return
     }
-    // console.log('beforeinput', ev.inputType, ev.data)
     ev.stopPropagation()
     // 输入法会话内 跳过显式的 delete 处理; 正常情况下, 输入法会话内的 inputType 不会是以下值, 只可能是
     // [insertCompositionText, deleteCompositionText, insertFromComposition], 后两项是Safari 独有

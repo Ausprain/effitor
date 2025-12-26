@@ -33,6 +33,9 @@ export const solveInputInRawEl = (
     case 'insertFromDrop':
     case 'insertFromPaste':
     case 'insertText': {
+      if (ev.isTrusted) {
+        return
+      }
       let data = ev.data
       if (!data) {
         data = ev.dataTransfer?.getData('text/plain') || ''
