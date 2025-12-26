@@ -5,7 +5,9 @@
 - [ ] 拖拽实现
   - 实现拖拽可能需要完全关闭 shadow 模式, 因为 ShadowDOM 还不成熟, Chromium 尚且不支持 ShadowDOM 内的 insertFromDrop 更别提 firefox 和 safari; 这也是至今未考虑实现拖拽的原因----ShadowDOM 的去留问题.
 - [ ] 优化热键绑定, 考虑给 effector 新增一个 keymapSolver, 然后在 keydown 监听器中判断执行对应的热键action
+  - [ ] 去掉 keydownSolver，直接使用 keymapSolver，如（`1000Enter` -> `Ctrl+Enter`）
 - [ ] 拓展 CaretRange, 以支持用于描述选区在 input/textarea 内部的位置
+  - [ ] v0.2.0已初步实现（EtInRaw）
 - [ ] 重构代码块为非 textarea 方案, 并考虑将高亮器全局化
 - [ ] 重构范围删除, 效应化.
 - [ ] 优化插入内容时的"拆 partial 节点"逻辑

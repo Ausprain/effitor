@@ -32,7 +32,9 @@
   - [x] 代码块的复制粘贴问题，粘贴的代码块无法编辑（CodeContext 丢失）
     - [ ] 提升到组件的复制粘贴问题来解决 //TODO 现在的实现很粗糙
   - [ ] 撤回重做导致代码碎片问题
-  - [ ] safari代码块无法粘贴问题
+    - 该问题不严重，v0.3 版本若实现非 textarea 代码块，则无此问题
+  - [x] safari代码块无法粘贴问题
+    - trig. safari 不接受非trusted 的 beforeinput 事件携带 dataTransfer
 - plugin-link
   - [x] 复制网页的内容, 粘贴过来被识别为了粘贴链接
 - plugin-list

@@ -85,7 +85,9 @@ export const getPasteListener = (ctx: Et.EditorContext, callback?: Et.ClipboardA
     // 接管默认粘贴行为
     ctx.body.dispatchInputEvent('beforeinput', {
       inputType: 'insertFromPaste',
-      dataTransfer: ev.clipboardData,
+      // fixed. safari 不接受非trusted 的 beforeinput 事件携带 dataTransfer，导致无法插入粘贴内容
+      // dataTransfer: ev.clipboardData,
+      data: ev.clipboardData.getData('text/plain'),
     })
   }
 }
