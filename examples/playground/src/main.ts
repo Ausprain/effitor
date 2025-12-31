@@ -12,7 +12,7 @@ import * as icons from '../../../packages/shared/src/icons'
 import { Effitor, etcode, EtParagraphElement } from '@effitor/core'
 import { HtmlAttrEnum } from '@effitor/shared'
 
-// import { useAIAssist } from '@effitor/assist-ai'
+import { useAIAssist } from '@effitor/assist-ai'
 import { useCounterAssist } from '@effitor/assist-counter'
 import { useDialogAssist } from '@effitor/assist-dialog'
 import { useDropdownAssist } from '@effitor/assist-dropdown'
@@ -26,11 +26,7 @@ import { useListPlugin } from '@effitor/plugin-list/'
 import { useMarkPlugin } from '@effitor/plugin-mark'
 import { type CreateImageOptions, useMediaPlugin } from '@effitor/plugin-media'
 import { EtTableCellElement, useTablePlugin } from '@effitor/plugin-table'
-// import { renderExcalidraw } from '@effitor/plugin-excalidraw'
-// import css from '@excalidraw/excalidraw/index.css?raw'
-// console.log(css.length)  // 186452
 
-// import md from '../../../README_zh.md?raw'
 import DOMPurify from 'dompurify'
 import md from '../demo.md?raw'
 
@@ -65,16 +61,16 @@ const onMediaFileSelected = (files: File[]) => {
 const countSpan = initTextCountSpan()
 const editor = new Effitor({
   // shadow: false,
-  // customStyleText: css,
+  theme: 'default',
   config: {
     WITH_EDITOR_DEFAULT_LOGGER: true,
-    AUTO_CREATE_FIRST_PARAGRAPH: false,
+    AUTO_CREATE_FIRST_PARAGRAPH: true,
   },
   htmlOptions: {
     sanitizer: html => DOMPurify.sanitize(html),
   },
   assists: [
-    // useAIAssist(),
+    useAIAssist(),
     useCounterAssist({
       onUpdated: (count) => {
         countSpan.textContent = JSON.stringify(count)
@@ -89,7 +85,14 @@ const editor = new Effitor({
     useMarkPlugin({
       needMarkEffectElementCtors: [EtTableCellElement, EtParagraphElement],
     }),
-    useHeadingPlugin(),
+    useHeadingPlugin({
+      onHeadingTreeUpdated: (items) => {
+        console.log('onHeadingTreeUpdated', items)
+      },
+      onHeadingChainUpdated: (items) => {
+        console.log('onHeadingChainUpdated', items)
+      },
+    }),
     useBlockquotePlugin(),
     useListPlugin(),
     await useCodePlugin({
@@ -110,70 +113,12 @@ const editor = new Effitor({
       },
     }),
     useTablePlugin(),
-
-    // {
-    //   name: 'excalidraw',
-    //   effector: {
-    //     onMounted: (ctx) => {
-    //       const div = document.createElement('div')
-    //       ctx.bodyEl.appendChild(div)
-    //       renderExcalidraw(div)
-    //     },
-    //   },
-    // },
   ],
 })
 
 const host = document.getElementById('effitor-host') as HTMLDivElement
 editor.mount(host)
 editor.fromMarkdown(md)
-
-// editor.context.commonHandler.initEditorContents(true)
-// editor.bodyEl.dispatchEvent(new KeyboardEvent('keydown', {
-//   key: '#AAA',
-// }))
-// requestAnimationFrame(() => {
-//   editor.bodyEl.dispatchEvent(new KeyboardEvent('keydown', {
-//     key: ' ',
-//   }))
-// })
-// editor.bodyEl.contentEditable = 'false'
-
-// aa\`bbb\`dde\\\`f
-// \`\`\`js
-// const a = 3;
-// \`\`\`
-// aa
-
-// - 司法界
-// - 上飞机诶
-
-// 1. 的撒娇佛额
-// 2. 的撒娇佛IE
-
-// * 的sjfie
-// * 是的就发i饿哦
-// const mmd = `# 这是一个标题
-
-// aaa[www](www.cc.com)gg
-// `
-
-// // 这是一个段落**aabb**DDeff==www==kkll*abbc*ddef**bold*italic*end**。
-// editor.context.assists.ai.typingMarkdown(mmd, 50)
-
-// const btn = dom.el('button', '', `
-//   position: fixed;
-//   top: 100px;
-//   right: 100px;
-//   z-index: 1000;
-//   background-color: wheat;
-//   width: 50px;
-//   height: 50px;
-//   `)
-// document.body.appendChild(btn)
-// btn.onclick = () => {
-//   editor.context.actions.table.insertNewRowBottom(editor.context)
-// }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

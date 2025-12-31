@@ -60,9 +60,9 @@ const insertTextAtCaretByTyping = (
       }))
       return true
     }
-    // TODO 这里可以加一个判断, 后续是否有相邻兄弟文本节点, 有的话合并为一个文本节点
     // 光标右边是零宽字符, 全部替换
     // 避免出现某个段落内容为: `xxx&ZeroWidthSpace;&ZeroWidthSpace;&ZeroWidthSpace;`的情况
+    // TODO 这里可以加一个判断, 后续是否有相邻兄弟文本节点, 有的话合并为一个文本节点
     if (offset === 0 && anchorText.data[offset] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
       let r = offset + 1
       while (r < anchorText.length && anchorText.data[r] === HtmlCharEnum.ZERO_WIDTH_SPACE) {
@@ -91,6 +91,23 @@ const insertTextAtCaretByTyping = (
     anchorText.data[offset - 1] as string,
   )
   if (replaceChar) {
+    // if (replaceChar === '`') {
+    //   // 如果替换为反引号，则删除前一个字符，并发出一个反引号 keydown 事件
+    //   // 以实现中文输入法下输入`·+空格`转为插入反引号（markdown 内联代码）的效果
+    //   ctx.commandManager.push(cmd.deleteText({
+    //     text: anchorText,
+    //     offset: offset - 1,
+    //     data: anchorText.data[offset - 1] as string,
+    //     isBackward: true,
+    //   }))
+    //   ctx.commandManager.pushHandleCallback(() => {
+    //     ctx.bodyEl.dispatchEvent(new KeyboardEvent('keydown', {
+    //       key: '`',
+    //       code: 'Backquote',
+    //     }))
+    //   })
+    //   return true
+    // }
     ctx.commandManager.push(cmd.replaceText({
       text: anchorText,
       data: replaceChar,

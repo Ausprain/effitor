@@ -75,22 +75,37 @@ const IN_ETCODE = Symbol("IN_ETCODE");
 // @internal
 const NOT_IN_ETCODE = Symbol("NOT_IN_ETCODE");
 
+// 效应元素基类
 abstract class EffectElement extends HTMLElement {
+  /**
+   * 效应元素名称，用于注册自定义元素
+   * 根据自定义元素规范，必须是`kebab-case`格式，否则注册时会报错
+   */
   static abstract readonly elName: string;
 
+  /** 效应元素类型码 */
   static readonly etType = 0;
+  /** 该效应元素的直接子元素允许的效应元素类型码 */
   static inEtType = 0;
+  /** 该效应元素的直接子元素不允许的效应元素类型码 */
   static notInEtType = 0;
 
+  /** 效应元素实例（html 节点）的效应码，在创建元素实例时直接通过 static etType 赋值 */
   readonly [ETCODE]: number;
+  /** 允许成为该效应元素实例直接子节点的效应元素类型码，等于 static inEtType */
   readonly [IN_ETCODE]: number;
+  /** 不允许成为该效应元素实例直接子节点的效应元素类型码，等于 static notInEtType */
   readonly [NOT_IN_ETCODE]: number;
 
   get etCode() {
     return this[ETCODE];
   }
 }
+```
 
+创建一个段落效应元素
+
+```ts
 class EtParagraphElement extends EffectElement {
   static readonly elName = "et-p";
 }
@@ -121,11 +136,7 @@ declare module "@effitor/core" {
     // 注意：效应处理函数的参数列表是固定的，
     // 额外声明的效应处理函数，可通过重载`payload`的类型来指定接收的参数类型,
     // 如果该效应不需要 payload, 可省略或声明为`void`类型.
-    effectA: (
-      this: Et.EffectHandleThis,
-      ctx: Et.EditorContext,
-      payload: EffectAPayload,
-    ) => boolean;
+    effectA: (this: Et.EffectHandleThis, ctx: Et.EditorContext, payload: EffectAPayload) => boolean;
     // 或直接通过工具函数来声明
     effectB: Et.EffectHandle<void>;
   }
@@ -138,12 +149,12 @@ export {};
 ```ts
 // handler.ts
 export const handler: Et.EffectHandler = {
-  effectA(ctx, { data }) => {
+  effectA(ctx, { data }) {
     // 处理效应A
     // 也可通过this调用其他效应
-    this.effectB?.(ctx)
-  }
-}
+    this.effectB?.(ctx);
+  },
+};
 ```
 
 激活效应
@@ -151,9 +162,11 @@ export const handler: Et.EffectHandler = {
 ```ts
 // 激活当前光标所在效应元素的效应A
 ctx.effectInvoker.invoke(ctx.focusEtElement, "effectA", ctx, { data: "hello" });
+// 或直接获取效应处理器调用（此方式是个便利方法，且便于IDE追踪，但会无视`effectBlocker`）
+ctx.getEtHandler(ctx.focusEtElement).effectA?.(ctx, { data: "hello" });
 ```
 
-效应处理器想要生效，必须挂载到指定效应元素上。若挂载到效应元素基类`EffectElement`上，则对应的效应及效应处理函数对所有效应元素都有效（除非被覆盖）。
+效应处理器想要生效，必须挂载到指定效应元素上。若挂载到效应元素基类`EffectElement`上，则对应的效应及效应处理函数对所有效应元素都有效（除非被覆盖）。因为本质上，效应处理器最终会挂载到效应元素类对象（构造器）上。
 
 ```ts
 import { EffectElement } from "@effitor/core";
@@ -169,8 +182,6 @@ const usePlugin = () => {
 };
 ```
 
-本质上，效应处理器最终会挂载到效应元素类对象（构造器）上，通过编辑器上下文上的效应激活器`effectInvoker`，从指定效应元素上激活特定效应并执行相应的效应处理函数。
-
 ### 深入效应
 
 effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来声明，通过效应处理函数来实现。效应元素和效应处理器使用了面向对象的思想，得益于 js 原型链的设计，子类效应元素自动继承父类的效应处理器。而子类重新绑定的效应处理器（准确的说，是效应处理函数），会覆盖父类对相应效应的处理方式，相当于重写（override）了父类指定效应的处理函数。
@@ -181,30 +192,7 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 
 ### 现有内置效应列表：
 
-| 效应                              | 描述    | 回调效应^1 | 备注                       |
-| --------------------------------- | ------- | ---------- | -------------------------- |
-| `InsertParagraphAtParagraphEnd`   | // todo | ✅         |                            |
-| `InsertParagraphAtParagraphStart` | // todo | ✅         |                            |
-| `DeleteBackwardAtParagraphStart`  | // todo | ✅         |                            |
-| `DeleteForwardAtParagraphEnd`     | // todo | ✅         |                            |
-| `InsertCompositionTextSuccess`    | // todo | ✅         |                            |
-| `TransformInsertContents`         | // todo | ✅         |                            |
-| ~~`DeleteContentsSpanningStart`~~ | // todo | ✅         |                            |
-| ~~`DeleteContentsSpanningEnd`~~   | // todo | ✅         |                            |
-| `InsertCompositionTextInRawEl`    | // todo | ✅         | 选区在原生编辑节点^2内生效 |
-| `InsertTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `DeleteInRawEl`                   | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `DeleteTextInRawEl`               | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `ReplaceTextInRawEl`              | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `FormatIndentInRawEl`             | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `FormatOutdentInRawEl`            | // todo | ✅         | 选区在原生编辑节点内生效   |
-| `tabout`                          | // todo | ✅         |                            |
-| `dblSpace`                        | // todo | ✅         |                            |
-
-备注：
-
-1. 回调效应指编辑器核心会在特定时机主动调用的效应，如`DeleteBackwardAtParagraphStart`会在光标在段落开头按下退格键（`Backspace`）时被调用。
-2. 原生编辑节点指的是`textarea`和`input[type="text"]`。
+// todo: 补充列表
 
 ## 上下文
 
@@ -214,11 +202,18 @@ effitor 将编辑器内的特定行为称为效应，通过 ts 类型增强来�
 
 编辑器上下文是编辑器的核心，编辑器的行为由编辑器上下文上的各个模块进行处理。这些模块有：
 
-- `selection`：选区模块
+- `body`：编辑器主体模块
+- `pctx`：插件上下文模块
+- `assists`：助手（插件）模块（由插件声明并实现）
+- `actions`：编辑器动作模块（由插件声明并实现）
 - `composition`：输入法模块
-- `pctx`：插件上下文
-- `assists`：助手（插件）模块
+- `segmenter`：分词模块
+- `selection`：选区模块
 - `effectInvoker`：效应激活器
+- `commandManager`：命令管理器
+- `commonHandler`：通用效应处理器
+- `hotkeyManager`：热键管理器
+- `hotstringManager`：热字符串管理器
 
 ### 插件上下文
 
@@ -233,16 +228,16 @@ interface EditorContext {
 }
 ```
 
-> [!NOTE] `pctx`在每个编辑器上下文ctx实例上都有一份。
+> [!NOTE]
 > 插件上下文仅在插件被注册时创建到指定编辑器上下文ctx实例中。
 
 # 插件化
 
 effitor的核心仅提供一套处理 DOM 操作的 API，并实现基础的文本操作；“富文本”则必须通过插件实现。每个effitor插件，都是效应器、效应元素与效应处理器的组合。一般来说，插件应至少有一个效应器。
 
-effitor的插件分两类：助手插件（assist）和内容插件（plugin）。
+effitor的插件分两类：助手插件（assistant）和内容插件（plugin）。
 
-## 助手插件 assist
+## 助手插件 assistant
 
 助手插件通常不携带效应元素，并最终挂载到编辑器上下文的 assists 属性上，供其他插件使用，或实现特定的编辑器功能，如工具栏、悬浮菜单等。
 
@@ -257,13 +252,11 @@ interface EditorContext {
 
 内置的助手有：
 
-- [ ] `assist-ai`：AI 助手
 - [x] `assist-counter`：字数统计
 - [x] `assist-dialog`：对话框
 - [x] `assist-dropdown`：下拉菜单
 - [x] `assist-message`：消息
 - [x] `assist-popup`：弹窗或悬浮菜单
-- [ ] `assist-toolbar`：工具栏
 
 ## 内容插件 plugin
 
@@ -277,10 +270,8 @@ interface EditorContext {
 - [x] `plugin-link`：链接
 - [x] `plugin-media`：媒体（图片/音/视频）
 - [x] `plugin-code`：代码块（支持渲染 html 和 latex）
-- [ ] `plugin-math`：数学公式
-- [ ] `plugin-table`：表格
-- [ ] `plugin-blockquote`：引用块
-- [ ] `plugin-excalidraw`：Excalidraw
+- [x] `plugin-table`：表格
+- [x] `plugin-blockquote`：引用块
 
 ## 自定义插件
 
@@ -307,6 +298,9 @@ const editor = new Effitor({
   plugins: [usePlugin()],
 });
 ```
+
+> [!NOTE]
+> 这里的命名`usePlugin`的`use`是字面意思，因一开始的习惯而保留的下来，跟`react`的钩子没有关系；函数在调用时也没有任何副作用，仅仅只是返回一个插件对象。
 
 # 命令系统
 
@@ -394,6 +388,10 @@ ctx.commandManager.undoTransaction();
 // 重做
 ctx.commandManager.redoTransaction();
 ```
+
+> [!NOTE]
+> 底层的命令并不检查文档的规范性，它直接根据命令的配置执行相应的 DOM 操作。因此在创建命令时需谨慎判断命令的执行时机和位置，避免出现如段落内插入段落，或列表内插入除列表项以外的节点等不合法行为。
+> 或通过更上层的方式`ctx.commonHandler`来执行相应的 DOM 操作。
 
 # 选区系统
 

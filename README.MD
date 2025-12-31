@@ -1,4 +1,6 @@
-<p align="center"><a href="#"><img src="./docs/assets/title.webp" alt="efficient editor"></a></p>
+<p align="center">
+  <a href="#"><img src="./docs/assets/title.webp" alt="Effitor - Efficient Editor"></a>
+</p>
 <p align="center">
   <a href="#">English</a> | 
   <a href="./README_zh.md">中文</a>
@@ -6,59 +8,74 @@
 
 # Effitor
 
-Effitor is a high-performance, plugin-based web rich-text editor. Its name comes from "**efficient editor**"—it embraces the latest web standards and technologies, aiming to deliver an exceptionally elegant editing experience.
+Effitor is a high-performance, pluggable web rich text editor that embraces modern web standards and aims for the **ultimate editing experience**. It can be used as an out-of-the-box editor library or as an underlying framework for building customized editors.
 
-> ⚠️ **Effitor is an experimental project**. It is not yet a fully stable editor and still has many known or unknown issues to be addressed. Currently, it only supports modern desktop browsers (Chrome, Edge, Firefox, Safari) and **does not support collaborative editing**.
+> ⚠️ Note: Currently in early exploration phase (v0.x)
+>
+> - Not yet production-ready stable, APIs may change;
+> - Only supports modern desktop browsers (Chrome, Edge, Firefox, Safari);
+> - Does not support collaborative editing (not a design goal).
 
-## Why Effitor?
+## Why Choose Effitor?
 
-Unlike other editors, Effitor prioritizes **editing efficiency and user experience**, as reflected in its name: _efficient editor_. Built on `contenteditable`, it implements core functionality using fundamental DOM operations and **overrides nearly all of the browser’s default `contenteditable` behaviors** (except for IME input), enabling highly customized editing logic.
+Unlike other editors, Effitor has **editing efficiency and experience** as its core goal—hence the name: _**effi**cient edi**tor**_.
 
-If you don’t need features like collaborative editing, spell-checking, auto-completion, or strict document structure—and you simply want a pleasant, personalized way to write content—then Effitor is a great fit. It’s intentionally simple, with **no abstract data model**. As long as you’re familiar with basic DOM manipulation, you can easily customize Effitor to build your own unique editor. Alternatively, if you’re happy with its default configuration, you can use it **out of the box**.
+It's built on `contenteditable`, implemented through the most basic DOM operations, and **almost completely takes over browser's default behavior for `contenteditable`** (except for IME), enabling highly flexible and customizable editing logic.
 
-Moreover, within Effitor’s core package (`@effitor/core`), we’ve implemented numerous enhancements to improve the editing experience—and this work is ongoing.
+If you:
 
-### Decent Performance
+- Don't need collaborative editing, spell checking, or auto-completion;
+- Don't strictly require consistent document structure;
+- Want to quickly build or customize an editor with minimal learning cost
 
-// TODO: benchmark
+Then Effitor is perfect for you. It has no complex abstract models, just familiarize yourself with basic DOM operations, and you can quickly build your own editor. Of course, you can also use the default configuration directly, "out of the box".
 
-### Format Continuation Problem
+Additionally, Effitor's core package `@effitor/core` already includes extensive editing experience optimizations and will continue to iterate.
 
-Most rich-text editors behave like a set of neatly arranged paintbrushes—you constantly need to switch between them. For example, to apply bold formatting, you press `Ctrl+B`, type your text, and then press `Ctrl+B` again to turn it off. Additionally, if bold (or any highlighted) text appears at the end of a paragraph, continuing to type will **automatically inherit that style**, unless you manually toggle it off. If you used both bold and italic, you’d need to press `Ctrl+B` _and_ `Ctrl+I` to exit both styles.
+### 🚀 Notable Features
 
-This behavior has become an unspoken norm across editors—but it’s **not a good user experience**.
+#### 1. More Reasonable Format Continuation
 
-Effitor try to solve this. Instead of forcing users to manage formatting states manually, the editor **responds instantly to intent**—switching "brushes" automatically. We introduce the concept of **effect elements**: formatting nodes like bold are treated as such. Pressing `Tab` lets you **escape the current effect element**, and double-pressing space allows you to **jump out of the outermost styling context**.
+Most editors are like a set of painting tools: users need to manually switch brushes (toggle styles: like `Ctrl+B` for bold). If bold text is at the end of a paragraph, subsequent input will **automatically inherit the style**, requiring another key press (switching to normal brush) to exit—this has become an "industry convention," but it's not a good experience. For example, if a piece of text is bold+italic+underline, you need to press: `Ctrl+B+I+U` or another clear-style combination key to cancel all styles.
 
-### Built-in Hotstrings
+Effitor tries to change this: **style switching is done by the editor, not the user**. The core idea is: users insert special nodes through hotkeys or hotstrings, and the editor automatically applies specific styles or executes corresponding behaviors based on the cursor position and editor configuration (plugins, etc.).
 
-Hotstrings are similar to hotkeys: when you type a specific sequence of characters, it can be replaced with predefined text or trigger an action.
+- Introduces the concept of "effect elements," where all key nodes, including style nodes (like bold, italic), are "effect elements";
+- Pressing `Tab` inside a style "effect element" allows you to jump out of the current style;
+- Double-pressing space allows you to jump out of the outermost style nesting.
+- Developers can customize "effect elements" and their internal editing behaviors (plugin-based).
 
-On Windows, tools like [AutoHotkey](https://www.autohotkey.com/) can implement hotstrings—but they require programming knowledge, can be unstable (sometimes failing to recognize triggers or unexpectedly switching IME modes), and **don’t support macOS**. While macOS has Hammerspoon, using it for hotstrings is far from ideal.
+#### 2. Built-in Hotstring
 
-Effitor includes **native hotstring support**. You can define your own hotstrings via configuration. The matching algorithm is highly efficient—adding thousands of hotstrings has **negligible impact on performance** or editing fluency.
+Similar to AutoHotkey's hotstring functionality, but without external tools and with cross-platform support.
 
-### Automatic Half-Width Punctuation for IME Input
+- Supports custom hotstring rules;
+- Efficient matching, even with thousands of configured rules, without affecting performance;
+- Perfectly solves the problem of no AutoHotkey alternative on macOS.
 
-Non-English speakers may have encountered this: while writing Markdown with a IME enabled, you press the backtick key `` ` `` to create inline code—but you get character else like `·` instead. You’re forced to constantly toggle between input methods or keyboard layouts to get the desired character. On macOS, switching system keyboard or IME is particularly frustrating.
+#### 3. Automatic Half-width Punctuation Conversion for IME
 
-You might try tweaking IME settings, but often there’s no clean solution. On Windows, AutoHotkey’s `T*` hotstring mode can help—but it may cause side effects.
+When Chinese users use Chinese input methods to write markdown, they may often need to switch input methods or Chinese/English modes to insert correct markdown syntax characters (like `` ` ``, `[]`, instead of `·`, `【】`). On Windows, this is no issue, but on macOS, frequently switching input methods is an operation that extremely affects the editing experience.
 
-In Effitor, we offer a more elegant fix: if you press `` ` `` and get `·`, just **press space once more**, and it becomes `` ` ``. Similarly: `【` → `[`, `！` → `!`. All you need is an extra space. If you prefer not to press space, you can configure Effitor to **automatically convert full-width punctuation to half-width upon insertion**, or disable this feature entirely.
+Effitor provides two solutions:
 
-### Language-Aware Cursor Navigation
+- **Lightweight mode**: After entering a full-width symbol, press space again to automatically replace it with half-width (e.g., `·` → `` ` ``, `！` → `!`);
+- **Automatic mode** (configurable): Automatically convert full-width characters to corresponding half-width when inserted;
+- Can also completely disable this feature.
 
-When editing, you might use `Alt + ←/→` to jump by word—but browsers typically only recognize Latin words and half-width punctuation. Fortunately, modern browsers already support **language-aware word boundary detection** based on system or page language.
+#### 4. Language-aware Caret Control
 
-Effitor integrates this capability directly into the editor. You can **set a specific language** for the editor, enabling smooth, accurate word-by-word navigation—even for non-Latin scripts.
+Browsers natively support `Alt + ←/→` to jump the caret by "semantic words," but this depends on system language.
 
-The same applies to `Alt + Backspace` for deleting individual semantic words.
+Effitor integrates this capability into the editor:
+
+- Can set editor language through API;
+- Supports `Alt + ←/→` to skip words;
+- Supports `Alt + Backspace` to delete entire semantic words.
 
 ## Installation
 
-Install via npm:
-
-```bash
+```sh
 npm install effitor
 ```
 
@@ -78,12 +95,12 @@ import {
 import {
   useMarkPlugin,
   useHeadingPlugin,
-  useBlockquotePlugin,
   useListPlugin,
   useCodePlugin,
   useLinkPlugin,
   useMediaPlugin,
   useTablePlugin,
+  useBlockquotePlugin,
 } from "effitor/plugins";
 
 const host = document.getElementById("host") as HTMLDivElement | null;
@@ -98,14 +115,15 @@ const editor = new Effitor({
   plugins: [
     useMarkPlugin(),
     useHeadingPlugin(),
-    useBlockquotePlugin(),
     useListPlugin(),
-    await useCodePlugin(),
     useLinkPlugin(),
     useMediaPlugin(),
+    await useCodePlugin(),
     useTablePlugin(),
+    useBlockquotePlugin(),
   ],
 });
+
 if (host) {
   editor.mount(host);
 }
@@ -121,64 +139,85 @@ cd example/playground
 bun dev
 ```
 
+---
+
 ## Performance
 
-_(To be documented)_
+### Editors supporting basic markdown, loading 300k characters HTML (no tables and code blocks), and typing 1000 characters at the end paragraph
 
-## Features
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 45.6         | 499.2    | 0   | 59.2     | 110.6     | 44.4        |
+| lexical | 73.4         | 281.6    | 0   | 145.6    | 120.8     | 83.2        |
+| tiptap  | 52.7         | 216.8    | 0.2 | 64       | 61.3      | 20.6        |
 
-- Out-of-the-box usability
-- Framework-agnostic & highly customizable
-- Built-in undo stack
-- [ ] Built-in cursor history (_in progress_)
-- Built-in keyboard shortcuts & hotstrings
-- Light/dark mode toggle
-- Partial Markdown and HTML conversion
-- Built-in assistants:
-  - `assist-counter`: character count
-  - `assist-dialog`: modal dialogs
-  - `assist-dropdown`: dropdown menus
-  - `assist-message`: notifications
-  - `assist-popup`: tooltips & floating panels
-- Built-in plugins:
-  - `plugin-heading`: headings
-  - `plugin-mark`: highlights
-  - `plugin-link`: hyperlinks
-  - `plugin-list`: ordered/unordered lists
-  - `plugin-media`: images/audio/video
-  - `plugin-code`: code blocks
-  - `plugin-blockquote`: blockquotes
-  - `plugin-table`: tables
-  - [ ] `plugin-math`: math formulas (_planned; currently possible via LaTeX rendering in code blocks_)
-  - [ ] `plugin-excalidraw`: (_in progress_)
+### Editors supporting basic markdown, loading 1 million characters HTML (no tables and code blocks), and typing 1000 characters at the end paragraph
 
-### Characteristics
+| Editor  | Duration (s) | LCP (ms) | CLS | INP (ms) | INPs (ms) | Memory (MB) |
+| ------- | ------------ | -------- | --- | -------- | --------- | ----------- |
+| effitor | 50.5         | 1206.4   | 0   | 80       | 149.9     | 35.2        |
+| tiptap  | 62.3         | 755.2    | 0.2 | 84.8     | 92.4      | 58.2        |
 
-- **No abstract data model**—editing is done via direct DOM manipulation.
-- Based on `contenteditable`, but **overrides almost all browser behaviors** (except IME input and clipboard handling).
-- Built on modern **web standards**, including:
-  - [`Input Events Level 2`](https://www.w3.org/TR/input-events-2/)
-  - [`Selection API`](https://www.w3.org/TR/selection-api/)
-  - [`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html)
+> From [effitor performance tests](./examples/benchmark/)
+> Test environment: macOS: 8x[Apple M3] 16GB, nodejs: v24.3.0, playwright: 1.56.1
+>
+> - LCP reflects the total time for editor initialization and loading corresponding content, where effitor includes the time for loading the shiki highlighter;
+> - INP reflects the response time after stable user input, the lower the better, indicating lower latency after stable input;
+> - INPs is the average of INP metric recorded values, the lower the better, indicating more stable editor response, the higher the larger average response latency or existence of some operation causing high latency;
+> - Duration is the total time for the editor to complete all operations, after subtracting LCP it's the time to simulate typing 1000 characters, the lower the better, indicating faster editor response and higher efficiency;
+> - Memory is the memory size occupied by the editor, where effitor includes the shiki highlighter (~15MB).
 
-### Limitations
+## Feature Overview
 
-Because Effitor lacks an abstract document model and operates directly on the DOM, **collaborative editing is extremely difficult to implement**—and was never part of its original vision. Effitor emerged as a high-performance rich-text framework during an exploration of elegant editing experiences.
+- ✅ Out of the box
+- ✅ Framework-agnostic, highly customizable
+- ✅ Built-in undo/redo stack
+- 🔄 Built-in cursor/selection history (in development)
+- ✅ Built-in hotkeys and hotstrings
+- ✅ Light/dark theme switching
+- ✅ Partial Markdown, native HTML conversion
+- ✅ Built-in assistants
+  - ✅ `assist-counter`: Word count
+  - ✅ `assist-dialog`: Dialog
+  - ✅ `assist-dropdown`: Dropdown menu
+  - ✅ `assist-message`: Message notification
+  - ✅ `assist-popup`: Popup and floating tools
+- ✅ Built-in plugins
+  - ✅ `plugin-heading`: Headings
+  - ✅ `plugin-mark`: Highlights (bold, italic, strikethrough, etc.)
+  - ✅ `plugin-link`: Links
+  - ✅ `plugin-list`: Ordered/unordered/task lists
+  - ✅ `plugin-media`: Media (images/audio/video)
+  - ✅ `plugin-code`: Code blocks (supports HTML, LaTeX rendering)
+  - ✅ `plugin-table`: Tables
+  - ✅ `plugin-blockquote`: Blockquotes (paragraph groups | columns)
+- Other assistants or plugins
+  - 🔄 `assist-ai`: AI assistant (in development)
+  - 📐 `plugin-math`: Math formulas (planned)
+  - 🎨 `plugin-excalidraw`: excalidraw whiteboard (in development)
 
-Additionally, since Effitor relies heavily on web standard APIs—and browsers implement these inconsistently—it’s possible that **edge cases remain unhandled**, potentially causing instability in rare scenarios.
+## Design Philosophy
 
-Finally, Effitor makes extensive use of **custom elements**, and its **accessibility (a11y) support is still incomplete**.
+- **No abstract data model**: Direct DOM manipulation, reducing learning cost;
+- **Deeply customizable `contenteditable`**: Except for IME and clipboard, all behaviors are controlled by Effitor;
+- **Based on web standards**: Follows [`Input Events Level 2`](https://www.w3.org/TR/input-events-2/), [`Selection API`](https://www.w3.org/TR/selection-api/), [`Range`](https://www.w3.org/TR/DOM-Level-2-Traversal-Range/ranges.html) and other specifications.
 
----
+## Limitations
+
+- **No collaborative editing support**: Due to no intermediate data model, collaborative implementation is extremely difficult (but not a design goal anyway);
+- **Browser compatibility differences**: Although most edge cases have been handled, individual subtle behaviors may vary by browser;
+- **Accessibility (a11y) support to be improved**: Heavy use of custom elements, ARIA support is still under construction.
+
+## Final Words
+
+Effitor is still in the exploration phase, and some APIs may be adjusted at any time. For example, we initially built Effitor based on Shadow DOM, but in practice we found: **current Shadow DOM still has many compatibility and interaction issues in rich text editing scenarios**, and eventually had to abandon this approach.
+
+We plan to complete the last major refactoring in **v0.3.0**, supplement complete tests, and push Effitor towards maturity and stability.
 
 ## Documentation
 
-[Documentation](./docs/index_en.md)
-
-## Acknowledgements
-
-_(To be filled)_
+[Documentation](./docs/index.md)
 
 ## License
 
-MIT
+[MIT](https://choosealicense.com/licenses/mit/)
