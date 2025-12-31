@@ -1,0 +1,42 @@
+name: Deploy Home to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'home/**'          # 只有 home/ 目录变化才触发
+  # 可选：允许手动触发
+  workflow_dispatch:
+
+# 授予权限（必须，否则无法推送）
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: home/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./home
+
+      - name: Build Vite project
+        run: npm run build
+        working-directory: ./home
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./home/dist    # 构建产物路径
+          publish_branch: gh-pages    # 推送到 gh-pages 分支
