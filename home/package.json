@@ -1,6 +1,6 @@
 {
   "name": "@effitor/home",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Homepage of Effitor.",
   "private": true,
   "keywords": [
@@ -21,13 +21,6 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
-  },
-  "module": "index.ts",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
   },
   "dependencies": {
     "@effitor/assist-ai": "^0.2.1",
@@ -51,5 +44,11 @@
     "use-immer": "^0.11.0",
     "vite": "^7.2.4",
     "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

@@ -2,7 +2,7 @@
   <a href="https://ausprain.github.io/effitor/"><img src="https://raw.githubusercontent.com/ausprain/effitor/main/docs/assets/title.webp" alt="Effitor - Efficient Editor"></a>
 </p>
 <p align="center">
-  <a href="https://raw.githubusercontent.com/ausprain/effitor/main/README.md">English</a> | 
+  <a href="https://github.com/Ausprain/effitor/blob/main/README.md">English</a> | 
   <a href="#">中文</a>
 </p>
 
@@ -131,13 +131,7 @@ if (host) {
 
 ## Demo
 
-```bash
-git clone https://github.com/effitor/effitor.git
-cd effitor
-bun install
-cd example/playground
-bun dev
-```
+[Live Demo](https://effitor.top/)
 
 ---
 
@@ -216,7 +210,7 @@ Effitor 仍处于探索阶段，部分 API 可能随时调整。例如，我们�
 
 ## 文档
 
-[中文文档](./docs/index_zh.md)
+[中文文档](https://github.com/Ausprain/effitor/blob/main/docs/Index_zh.md)
 
 ## 许可证
 

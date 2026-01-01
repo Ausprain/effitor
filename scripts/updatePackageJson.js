@@ -45,10 +45,11 @@ const keyOrdered = {
   peerDependencies: undefined,
 }
 
-const { REPOSITORY_URL, MAIN_PKG_DIR_PATH, PACKAGES_DIR_PATH, EXAMPLES_DIR_PATH } = config
+const { REPOSITORY_URL, MAIN_PKG_DIR_PATH, HOME_PKG_DIR_PATH, PACKAGES_DIR_PATH, EXAMPLES_DIR_PATH } = config
 
 const pkgDirPaths = [
   MAIN_PKG_DIR_PATH,
+  HOME_PKG_DIR_PATH,
   ...(await fs.readdir(PACKAGES_DIR_PATH)).map(name => resolve(PACKAGES_DIR_PATH, name)),
   ...(await fs.readdir(EXAMPLES_DIR_PATH)).map(name => resolve(EXAMPLES_DIR_PATH, name)),
 ]
@@ -76,6 +77,10 @@ packageJsonList.forEach(({ path: jsonPath, json }) => {
   if (pkgName === 'main') {
     repositoryDir = 'main'
     pkgName = 'effitor'
+  }
+  else if (pkgName === 'home') {
+    repositoryDir = 'home'
+    pkgName = '@effitor/home'
   }
   else {
     repositoryDir = unixdirname(jsonPath).split('/').slice(-2).join('/')

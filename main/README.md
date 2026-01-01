@@ -3,7 +3,7 @@
 </p>
 <p align="center">
   <a href="#">English</a> | 
-  <a href="https://raw.githubusercontent.com/ausprain/effitor/main/README_zh.md">中文</a>
+  <a href="https://github.com/Ausprain/effitor/blob/main/README_zh.md">中文</a>
 </p>
 
 # Effitor
@@ -131,13 +131,7 @@ if (host) {
 
 ## Demo
 
-```bash
-git clone https://github.com/effitor/effitor.git
-cd effitor
-bun install
-cd example/playground
-bun dev
-```
+[Live Demo](https://effitor.top/)
 
 ---
 
@@ -216,7 +210,7 @@ We plan to complete the last major refactoring in **v0.3.0**, supplement complet
 
 ## Documentation
 
-[Documentation](./docs/index.md)
+[Documentation](https://github.com/Ausprain/effitor/blob/main/docs/Index.md)
 
 ## License
 
