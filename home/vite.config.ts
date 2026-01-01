@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   server: {
@@ -8,6 +9,14 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
+    ...(process.env.ANALYZE
+      ? [visualizer({
+          open: true, // 构建完成后自动打开报告
+          gzipSize: true, // 显示 gzip 压缩后的体积（更真实）
+          brotliSize: true, // 同时显示 Brotli 体积（可选）
+          filename: 'stats.html', // 报告文件名
+        })]
+      : []),
   ],
   build: {
     rollupOptions: {

@@ -48,7 +48,7 @@ jobs:
         run: bun install
 
       # 运行测试或构建
-      - run: bun run build
+      - run: bun run build --base=effitor
 
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
