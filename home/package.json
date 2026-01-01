@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@effitor/assist-ai": "^0.2.2",
+    "@effitor/themes": "^0.2.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/vite": "^4.1.17",
     "@vitejs/plugin-react": "^5.1.1",

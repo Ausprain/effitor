@@ -6,6 +6,7 @@
       "name": "@effitor/home",
       "dependencies": {
         "@effitor/assist-ai": "^0.2.2",
+        "@effitor/themes": "^0.2.2",
         "@tailwindcss/postcss": "^4.1.17",
         "@tailwindcss/vite": "^4.1.17",
         "@vitejs/plugin-react": "^5.1.1",
@@ -107,6 +108,8 @@
     "@effitor/plugin-media": ["@effitor/plugin-media@0.2.2", "", { "dependencies": { "@effitor/core": "0.2.2" } }, "sha512-bmHm74lSV5wt/bdpzxXL8dcvZR8+D+/DqKnNLJsJaOY0XCsc29bhHDZ2CoE/zqlKSVB0Vs3QxPWlIerTeWtHQA=="],
 
     "@effitor/plugin-table": ["@effitor/plugin-table@0.2.2", "", { "dependencies": { "@effitor/core": "0.2.2" } }, "sha512-GC7g93sIkoyyAo4Cy6qcNnhkxHDFEavyTC7NZBkj45ESs2RAdAqw2CSUOpVvyIU9ffb0eH49sr/itHA8iNzjyg=="],
+
+    "@effitor/themes": ["@effitor/themes@0.2.2", "", {}, "sha512-SpXK6YcW8b12PNEYDugVKaw06ZaL8XQ+crRoIV0DXEKNXU8RFSIUH6uDLSC0qi/TykIoi/MnwFcmk5iUWXWyYw=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.2", "", { "os": "aix", "cpu": "ppc64" }, "sha512-GZMB+a0mOMZs4MpDbj8RJp4cw+w1WV5NYD6xzgvzUJ5Ek2jerwfO2eADyI6ExDSUED+1X8aMbegahsJi+8mgpw=="],
 
