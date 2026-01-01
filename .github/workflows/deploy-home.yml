@@ -15,24 +15,40 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./home 
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 设置 Bun（自动安装并加入 PATH）
+      - name: Setup Bun
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: home/package-lock.json
+          bun-version: latest
+      
+      # 验证安装
+      - run: bun --version
 
+      # 缓存 node_modules（基于 bun.lock）
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: home/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('home/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      
+      # 如果没有命中缓存，则安装
       - name: Install dependencies
-        run: npm ci
-        working-directory: ./home
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install
 
-      - name: Build Vite project
-        run: npm run build
-        working-directory: ./home
+      # 运行测试或构建
+      - run: bun run build
 
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
