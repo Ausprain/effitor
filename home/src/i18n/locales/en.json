@@ -67,5 +67,31 @@
     "段落组(3栏)": "Paragraph Group (3 Columns)",
     "深色模式切换": "Toggle Dark Mode",
     "清空编辑器": "Clear Editor"
+  },
+  "qualities": {
+    "experience_first": {
+      "title": "Experience First",
+      "description": "Effitor is built for editing experience, focusing on smooth and efficient rich text editing."
+    },
+    "plugin_design": {
+      "title": "Plugin Architecture",
+      "description": "Modular plugin architecture that can be freely extended and integrated as needed."
+    },
+    "ts_friendly": {
+      "title": "TypeScript Friendly",
+      "description": "Written in TypeScript with complete type definitions, providing excellent type safety and IDE autocomplete."
+    },
+    "high_performance": {
+      "title": "High Performance",
+      "description": "Optimized DOM manipulation and event handling mechanisms ensure smooth editing even for large documents."
+    },
+    "ready_to_use": {
+      "title": "Ready to Use",
+      "description": "Built-in basic Markdown plugins, ready to use with simple installation."
+    },
+    "framework_agnostic": {
+      "title": "Framework Agnostic",
+      "description": "Implemented directly using standard Web APIs, without depending on any frontend framework."
+    }
   }
 }

@@ -67,5 +67,31 @@
     "段落组(3栏)": "段落组(3栏)",
     "深色模式切换": "深色模式切换",
     "清空编辑器": "清空编辑器"
+  },
+  "qualities": {
+    "experience_first": {
+      "title": "体验优先",
+      "description": "Effitor 为编辑体验而生，专注于富文本编辑的流畅与高效。"
+    },
+    "plugin_design": {
+      "title": "插件化设计",
+      "description": "模块化的插件架构，可根据需要自由扩展和集成。"
+    },
+    "ts_friendly": {
+      "title": "TS 友好",
+      "description": "使用TypeScript编写，提供完整的类型定义，良好的类型安全和IDE自动补全。"
+    },
+    "high_performance": {
+      "title": "高性能",
+      "description": "采用优化的 DOM 操作和事件处理机制，大文档也能流畅编辑。"
+    },
+    "ready_to_use": {
+      "title": "开箱即用",
+      "description": "内置了基础的 Markdown 插件，简单安装即可直接使用。"
+    },
+    "framework_agnostic": {
+      "title": "框架无关",
+      "description": "使用标准的 Web API 直接实现，不依赖任何前端框架。"
+    }
   }
 }
