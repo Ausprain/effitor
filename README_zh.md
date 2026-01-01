@@ -1,8 +1,8 @@
 <p align="center">
-  <a href="#"><img src="./docs/assets/title.webp" alt="Effitor - Efficient Editor"></a>
+  <a href="#"><img src="https://raw.githubusercontent.com/ausprain/effitor/main/docs/assets/title.webp" alt="Effitor - Efficient Editor"></a>
 </p>
 <p align="center">
-  <a href="./README.md">English</a> | 
+  <a href="https://raw.githubusercontent.com/ausprain/effitor/main/README.md">English</a> | 
   <a href="#">中文</a>
 </p>
 
