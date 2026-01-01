@@ -1,6 +1,6 @@
 {
   "name": "@effitor/assist-message",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A lightweight message assistant for Effitor.",
   "keywords": [
     "editor",

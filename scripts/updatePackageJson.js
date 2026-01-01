@@ -87,6 +87,9 @@ packageJsonList.forEach(({ path: jsonPath, json }) => {
     ...json,
     ...updateConfigs,
     name: pkgName,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    version: json.version > updateConfigs.version ? json.version : updateConfigs.version,
   }
   if (pkgJson.repository) {
     pkgJson.repository.type = 'git'

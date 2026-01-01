@@ -30,14 +30,14 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@effitor/assist-ai": "link:@effitor/assist-ai",
+    "@effitor/assist-ai": "^0.2.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/vite": "^4.1.17",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.22",
     "daisyui": "^5.5.5",
     "dompurify": "^3.3.0",
-    "effitor": "link:effitor",
+    "effitor": "^0.2.1",
     "framer-motion": "^12.23.24",
     "i18next": "^25.7.1",
     "immer": "^11.0.1",

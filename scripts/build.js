@@ -21,7 +21,7 @@ const TSCONFIG_BUILD_JSON = `
 }
 `.trimStart()
 
-const { PACKAGES_DIR_PATH, MAIN_PKG_DIR_PATH } = config
+const { PACKAGES_DIR_PATH, MAIN_PKG_DIR_PATH, PROJECT_DIR_PATH } = config
 
 const logTsupResult = (stdout) => {
   if (stdout) {
@@ -58,6 +58,15 @@ const buildThemes = async () => {
 
 const buildMain = async () => {
   await tsupPkg(MAIN_PKG_DIR_PATH, false)
+  await fs.copyFile(
+    resolve(PROJECT_DIR_PATH, 'README.md'),
+    resolve(MAIN_PKG_DIR_PATH, 'README.md'),
+  )
+  await fs.copyFile(
+    resolve(PROJECT_DIR_PATH, 'README_zh.md'),
+    resolve(MAIN_PKG_DIR_PATH, 'README_zh.md'),
+  )
+
   console.log(styleText('cyan', `build main success\n`))
 }
 
