@@ -1,6 +1,6 @@
 {
   "name": "effitor-monorepo",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "An elegant and efficient editor.",
   "private": true,
   "keywords": [
@@ -21,7 +21,7 @@
     "build:main": "bun ./scripts/build.js",
     "prebuild:main": "tsc --noEmit && bun eslint packages --quiet && bun run update:packages",
     "publish:main": "./scripts/publish-all.sh",
-    "prepublish:main": "bun run build:main",
+    "prepublish:main": "bun run build:main && rimraf bun.lock && bun install",
     "update:packages": "bun ./scripts/updatePackageJson.js",
     "benchmark": "cd examples/benchmark && bun run benchmark",
     "test": "vitest --project unit --project intg",

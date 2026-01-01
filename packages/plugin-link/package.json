@@ -1,6 +1,6 @@
 {
   "name": "@effitor/plugin-link",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A link plugin for Effitor.",
   "keywords": [
     "editor",

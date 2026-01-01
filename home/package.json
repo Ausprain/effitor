@@ -1,6 +1,6 @@
 {
   "name": "@effitor/home",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Homepage of Effitor.",
   "private": true,
   "keywords": [
@@ -23,14 +23,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@effitor/assist-ai": "^0.2.1",
+    "@effitor/assist-ai": "^0.2.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@tailwindcss/vite": "^4.1.17",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.22",
     "daisyui": "^5.5.5",
     "dompurify": "^3.3.0",
-    "effitor": "^0.2.1",
+    "effitor": "^0.2.2",
     "framer-motion": "^12.23.24",
     "i18next": "^25.7.1",
     "immer": "^11.0.1",

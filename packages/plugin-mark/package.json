@@ -1,6 +1,6 @@
 {
   "name": "@effitor/plugin-mark",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A mark plugin for Effitor, supporting bold, italic, strikethrough, highlight, and inline code.",
   "keywords": [
     "editor",

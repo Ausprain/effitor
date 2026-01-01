@@ -41,7 +41,7 @@ for pkg in "${PACKAGES[@]}"; do
   echo "📦 发布 $pkg..."
   (
     cd "$pkg"
-    bun publish
+    bun publish --access public 
   )
   echo "✅ $pkg 发布成功！"
   echo "---"
